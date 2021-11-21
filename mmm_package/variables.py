@@ -44,25 +44,25 @@ class Variables(object):
         # TODO: Check that calculated values match CDF values
         self.aimass = Variable('AIMASS')
         self.alphamhd = Variable('Alpha_MHD')
-        self.betae = Variable('Electron Beta', cdfvar='BETAE')
+        self.betae = Variable('Electron Beta') # cdfvar='BETAE'
         self.btor = Variable('Toroidal Magnetic Field')
         self.eps = Variable('Inverse Aspect Ratio')
-        self.nd = Variable('ND', cdfvar='ND')
-        self.nh = Variable('Hydrogenic Ion Density', cdfvar='NH')
+        self.nd = Variable('ND') # cdfvar='ND'
+        self.nh = Variable('Hydrogenic Ion Density') # cdfvar='NH'
         self.nuei = Variable('Collision Frequency')
         self.nuei2 = Variable('NUEI2')
-        self.nuste = Variable('Electron Collisionality', cdfvar='NUSTE')
-        self.nusti = Variable('Ion Collisionality', cdfvar='NUSTI')
-        self.p = Variable('Plasma Pressure', cdfvar='PPLAS')
+        self.nuste = Variable('Electron Collisionality') # cdfvar='NUSTE'
+        self.nusti = Variable('Ion Collisionality') # cdfvar='NUSTI'
+        self.p = Variable('Plasma Pressure') # cdfvar='PPLAS'
         self.raxis = Variable('RAXIS')
         self.rmin = Variable('Minor Radius')
-        self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT')
+        self.shat = Variable('Effective Magnetic Shear') # cdfvar='SHAT'
         self.shear = Variable('Magnetic Shear')
         self.vpar = Variable('VPAR')
         self.vtor = Variable('VTOR')
         self.tau = Variable('Temperature Ratio')
         self.zcf = Variable('Collision Frequency Factor')
-        self.zeff = Variable('Effective Charge', cdfvar='ZEFF')
+        self.zeff = Variable('Effective Charge') # cdfvar='ZEFF'
         self.zgmax = Variable('ZGMAX')
         self.zgyrfi = Variable('Ion Gyrofrequency')
         self.zlari = Variable('ZLARI')
@@ -94,13 +94,14 @@ class Variables(object):
         vars = self.get_variables()
         return [var for var in vars if getattr(self, var).cdfvar is not None]
 
-    def print_variable_descriptions(self):
-        vars = self.get_variables()
+    def print_nonzero_variables(self):
+        vars = self.get_nonzero_variables()
         for var in vars:
             print(var + ", "
                   + str(getattr(self, var).name) + ", "
                   + str(getattr(self, var).desc) + ", " 
-                  + str(getattr(self, var).units))
+                  + str(getattr(self, var).units) + ", "
+                  + str(getattr(self, var).values.shape))
 
     def __str__(self):
         return str(self.get_nonzero_variables())

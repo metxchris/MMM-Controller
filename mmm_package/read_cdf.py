@@ -3,6 +3,7 @@ import sys
 sys.path.insert(0, '../')
 
 from netCDF4 import Dataset # 3rd Party Packages
+import numpy as np
 
 from mmm_package import variables # Local Packages
 
@@ -24,10 +25,11 @@ def read_cdf(cdfname, print_warnings=False):
     for var in vars_to_get:
         if getattr(vars, var).cdfvar in cdf.variables:
             # Transpose to put the values in the format needed for calculations: (X, Time)
-            values = cdf.variables[getattr(vars, var).cdfvar][:].T
+            # TODO: Probably don't want to transpose yet
+            values = np.array(cdf.variables[getattr(vars, var).cdfvar][:].T)
 
             # Not all values in the CDF are arrays
-            getattr(vars, var).values = values if values.ndim == 0 else values[:]
+            getattr(vars, var).values = values[:]
 
             # Store units of values and strip extra whitespace
             getattr(vars, var).units = (cdf.variables[getattr(vars, var).cdfvar].units).strip()
