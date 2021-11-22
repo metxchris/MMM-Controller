@@ -7,7 +7,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 import scipy.ndimage
 # Local Packages
-from mmm_package import variables, constants 
+from mmm_package import variables 
 
 # Store sizes of the number of points for different dimensions
 class NumPoints(object):
@@ -48,36 +48,41 @@ def convert_variable(cdf_var, num_points, xvals):
     elif units == 'CM**2/SEC':
         var.values /= 10**4
         var.units = 'M**2/SEC'
+    elif units == 'AMPS':
+        var.values /= 10**6
+        var.units = 'MAMPS'
 
-    # Reshape non-scalar variables so that their shape matches (X, T)
-    if var.values.ndim == 0:
+    # Reshape all non-scalar variables so that their shape matches (XBo, TIME)
+    # This allows us to vectorize our calculations later, making them much faster
+    xdim = var.get_xdim()
+    # 0-dimensional variables are not reshaped
+    if xdim is None or var.values.ndim == 0:
         pass
-    # Tile 1-dim time arrays into 2-dim arrays, in the format of (X, T)
-    # This also adds the origin to the X-axis
-    elif var.values.shape[0] == num_points.time:
+    # Tile 1-dim time arrays into 2-dim arrays, in the format of (XBo, TIME)
+    # This also adds the origin to the X-axis  
+    elif xdim in ['TIME', 'TIME3']:
         var.values = np.tile(var.values, (num_points.boundary, 1))
+        var.set_dims(['XBO', xdim])
     # Some variables (i.e. VPOL) are mirrored around the X-axis, so take non-negative XB values
     # TODO: Handle this case better
-    elif var.values.shape[0] == 2 * num_points.boundary - 1:
+    elif xdim in ['RMAJM']:
         var.values = var.values[num_points.boundary - 1:, :]
-    # Interpolate remaining variables onto XBo
+        var.set_xdim('XBO')
+    # Interpolate/Extrapolate variable from X or XB to XBo using a cubic spline
+    elif xdim in ['X', 'XB']:
+        set_interp = interp1d(getattr(xvals, xdim.lower()), var.values.T, kind='cubic', fill_value="extrapolate")
+        var.values = set_interp(xvals.xbo).T
+        var.set_xdim('XBO')
     else:
-        xdim = var.get_xdim()
-        if xdim in ['X', 'XB']:
-            # Interpolate/Extrapolate variable from X or XB to XBo using a cubic spline
-            set_interp = interp1d(getattr(xvals, xdim.lower()), var.values.T, kind='cubic', fill_value="extrapolate")
-            var.values = set_interp(xvals.xbo).T
-            var.set_xdim('XBo')
-        else:
-            print('[create_inputs] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
+        print('[create_inputs] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
 
-    # Variable smoothing using a Gaussian filter (use sigma=0 to disable filtering)
-    var.values = scipy.ndimage.gaussian_filter(var.values, sigma=1)
+    # Variable smoothing using a Gaussian filter
+    var.apply_smoothing()
 
     return var
 
 # Calculates input variables for the MMM script from CDF data
-def create_inputs(cdf_vars, num_interp_points=200):
+def convert_inputs(cdf_vars, num_interp_points=200):
     # Input variables for MMM will be stored in new vars object
     vars = variables.Variables()
 
@@ -100,21 +105,18 @@ def create_inputs(cdf_vars, num_interp_points=200):
 
     # Get list of CDF variables to convert to the format needed for MMM
     cdf_var_list = cdf_vars.get_cdf_variables()
-    already_copied = ['time', 'x', 'xb']
 
-    # Remove independent variables already copied from CDF variable list
-    for var in already_copied:
-        if var in cdf_var_list:
-            cdf_var_list.remove(var)
+    # Remove independent variables that were already copied
+    for var in ['time', 'x', 'xb']:
+        cdf_var_list.remove(var)
 
     # Convert remaining CDF variables into the format needed for MMM
+    # TODO: Add option to use TIPRO, TEPRO in place of TI, TE
     for var in cdf_var_list:
         cdf_var = getattr(cdf_vars, var)
         # Variables previously not found in the CDF will not have values
         if cdf_var.values is not None:
             setattr(vars, var, convert_variable(cdf_var, num_points, xvals))
-
-    # TODO: Calculate new variables and gradients
 
     return vars
 

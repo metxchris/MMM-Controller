@@ -1,5 +1,8 @@
+# 3rd Party Packages
+import scipy.ndimage
+
 class Variable(object):
-    def __init__(self, name, label=None, desc=None, cdfvar=None, mmmvar=None, units=None, dimensions=None, values=None):
+    def __init__(self, name, label=None, desc=None, cdfvar=None, mmmvar=None, units=None, dimensions=None, smooth=None, values=None):
         self.name = name
         self.label = label # LaTeX Format
         self.desc = desc
@@ -7,6 +10,7 @@ class Variable(object):
         self.mmmvar = mmmvar
         self.units = units
         self.dimensions = dimensions
+        self.smooth = smooth # None to disable smoothing, or n = 1, 2, 3, ...  
         self.values = values
 
     def __str__(self):
@@ -21,6 +25,33 @@ class Variable(object):
         else:
             print('[variables] *** Error: Failed to set xdim on variable', self.name)
 
+    def get_dims(self):
+        return self.dimensions
+
+    def set_dims(self, dims):
+        self.dimensions = dims
+
+    def get_units(self):
+        return self.units
+
+    def set_units(self, units):
+        self.units = units
+
+    def set_values(self, values):
+        self.values = values
+
+    # Set variable values, dimensions, and units, then apply smoothing
+    def set_variable(self, values, dimensions, units):
+        self.values = values
+        self.dimensions = dimensions
+        self.units = units
+        self.apply_smoothing()
+
+    # Variable smoothing using a Gaussian filter
+    def apply_smoothing(self):
+        if self.smooth is not None:
+            self.values = scipy.ndimage.gaussian_filter(self.values, sigma=self.smooth)
+
 class Variables(object):
     def __init__(self):
         # CDF Independent Variables
@@ -29,37 +60,36 @@ class Variables(object):
         self.xb = Variable('XB', cdfvar='XB')
 
         # CDF Variables
-        self.aimp = Variable('AIMP', cdfvar='AIMP')
-        self.arat = Variable('Aspect Ratio', cdfvar='ARAT')
-        self.bz = Variable('BZ', cdfvar='BZ')
-        self.elong = Variable('Elongation', cdfvar='ELONG')
-        self.omega = Variable('OMEGA', cdfvar='OMEGA')
-        self.ne = Variable('Electron Density', cdfvar='NE')
-        self.nf = Variable('NF', cdfvar='BDENS')
-        self.nh2 = Variable('NH', cdfvar='NH') # TODO: why do i have this?
-        self.nd2 = Variable('ND', cdfvar='ND') # TODO: why do i have this?
-        self.ni = Variable('Thermal Ion Density', cdfvar='NI')
-        self.nz = Variable('NZ', cdfvar='NIMP')
-        self.pcur = Variable('PCUR', cdfvar='PCUR')
-        self.q = Variable('Safety Factor', cdfvar='Q')
-        self.rmaj = Variable('Major Radius', cdfvar='RMJMP')
-        self.te = Variable('Electron Temperature', cdfvar='TE')
-        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI')
-        self.triang = Variable('TRIANG', cdfvar='TRIANG')
-        self.vpold = Variable('VPOL', cdfvar='VPOLD_NC')
-        self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC')
-        self.wexbs = Variable('ExB Shear Rate', cdfvar='SREXBA')
-        self.zimp = Variable('ZIMP', cdfvar='XZIMP')
+        self.aimp = Variable('AIMP', cdfvar='AIMP', smooth=1)
+        self.arat = Variable('Aspect Ratio', cdfvar='ARAT', smooth=1)
+        self.bz = Variable('BZ', cdfvar='BZ', smooth=1)
+        self.elong = Variable('Elongation', cdfvar='ELONG', smooth=1)
+        self.omega = Variable('OMEGA', cdfvar='OMEGA', smooth=1)
+        self.ne = Variable('Electron Density', cdfvar='NE', smooth=1)
+        self.nf = Variable('NF', cdfvar='BDENS', smooth=1)
+        self.nh = Variable('Hydrogenic Ion Density', cdfvar='NH', smooth=1)
+        self.nd = Variable('ND', cdfvar='ND', smooth=1)
+        self.ni = Variable('Thermal Ion Density', cdfvar='NI', smooth=1)
+        self.nz = Variable('NZ', cdfvar='NIMP', smooth=1)
+        self.pcur = Variable('PCUR', cdfvar='PCUR', smooth=1)
+        self.q = Variable('Safety Factor', cdfvar='Q', smooth=1)
+        self.rmaj = Variable('Major Radius', cdfvar='RMJMP', smooth=None)
+        self.te = Variable('Electron Temperature', cdfvar='TE', smooth=1)
+        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', smooth=1)
+        self.triang = Variable('TRIANG', cdfvar='TRIANG', smooth=1)
+        self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=3)
+        self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC', smooth=3)
+        self.wexbs = Variable('ExB Shear Rate', cdfvar='SREXBA', smooth=1)
+        self.zimp = Variable('ZIMP', cdfvar='XZIMP', smooth=1)
 
         # Calculated Variables (some are also in the CDF)
         # TODO: Check that calculated values match CDF values
         self.aimass = Variable('AIMASS')
         self.alphamhd = Variable('Alpha_MHD')
+        self.beta = Variable('Beta')
         self.betae = Variable('Electron Beta') # cdfvar='BETAE'
         self.btor = Variable('Toroidal Magnetic Field')
         self.eps = Variable('Inverse Aspect Ratio')
-        self.nd = Variable('ND') # cdfvar='ND'
-        self.nh = Variable('Hydrogenic Ion Density') # cdfvar='NH'
         self.nuei = Variable('Collision Frequency')
         self.nuei2 = Variable('NUEI2')
         self.nuste = Variable('Electron Collisionality') # cdfvar='NUSTE'
@@ -70,9 +100,9 @@ class Variables(object):
         self.shat = Variable('Effective Magnetic Shear') # cdfvar='SHAT'
         self.shear = Variable('Magnetic Shear')
         self.vpar = Variable('VPAR')
+        self.vpol = Variable('VPOL')
         self.vtor = Variable('VTOR')
         self.tau = Variable('Temperature Ratio')
-        self.zcf = Variable('Collision Frequency Factor')
         self.zeff = Variable('Effective Charge') # cdfvar='ZEFF'
         self.zgmax = Variable('ZGMAX')
         self.zgyrfi = Variable('Ion Gyrofrequency')
