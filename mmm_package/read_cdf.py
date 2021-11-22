@@ -38,8 +38,7 @@ def read_cdf(cdfname, print_warnings=False):
 
             # Store variable dimensions in reverse order, since we transposed the values above
             cdf_dimensions = cdf.variables[getattr(vars, var).cdfvar].get_dims()
-            dimensions = [dim.name for dim in cdf_dimensions]
-            getattr(vars, var).dimensions = dimensions
+            getattr(vars, var).dimensions = [dim.name for dim in cdf_dimensions]
             getattr(vars, var).dimensions.reverse()
 
         elif print_warnings:

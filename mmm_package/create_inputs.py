@@ -1,11 +1,13 @@
-import sys # Standard Packages
+# Standard Packages
+import sys
 from copy import deepcopy
 sys.path.insert(0, '../')
-
-import numpy as np # 3rd Party Packages
+# 3rd Party Packages
+import numpy as np 
 from scipy.interpolate import interp1d
-
-from mmm_package import variables,constants # Local Packages
+import scipy.ndimage
+# Local Packages
+from mmm_package import variables, constants 
 
 # Store sizes of the number of points for different dimensions
 class NumPoints(object):
@@ -25,7 +27,6 @@ class XValues(object):
 # This interpolates variables onto a new grid and converts some units
 # Also applies optional smoothing and removal of outliers
 # Assumes values of cdf_var are not None
-# xb = original XB, xb_o = XB with the origin
 def convert_variable(cdf_var, num_points, xvals):
     # deepcopy needed to create a new variable instead of a reference
     var = deepcopy(cdf_var)
@@ -56,6 +57,7 @@ def convert_variable(cdf_var, num_points, xvals):
     elif var.values.shape[0] == num_points.time:
         var.values = np.tile(var.values, (num_points.boundary, 1))
     # Some variables (i.e. VPOL) are mirrored around the X-axis, so take non-negative XB values
+    # TODO: Handle this case better
     elif var.values.shape[0] == 2 * num_points.boundary - 1:
         var.values = var.values[num_points.boundary - 1:, :]
     # Interpolate remaining variables onto XBo
@@ -69,7 +71,8 @@ def convert_variable(cdf_var, num_points, xvals):
         else:
             print('[create_inputs] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
 
-    # TODO: Apply smoothing using moving average
+    # Variable smoothing using a Gaussian filter (use sigma=0 to disable filtering)
+    var.values = scipy.ndimage.gaussian_filter(var.values, sigma=1)
 
     return var
 
@@ -110,6 +113,8 @@ def create_inputs(cdf_vars, num_interp_points=200):
         # Variables previously not found in the CDF will not have values
         if cdf_var.values is not None:
             setattr(vars, var, convert_variable(cdf_var, num_points, xvals))
+
+    # TODO: Calculate new variables and gradients
 
     return vars
 
