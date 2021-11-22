@@ -24,8 +24,7 @@ def read_cdf(cdfname, print_warnings=False):
     # Get values for all specified CDF variables
     for var in vars_to_get:
         if getattr(vars, var).cdfvar in cdf.variables:
-            # Transpose to put the values in the format needed for calculations: (X, Time)
-            # TODO: Probably don't want to transpose yet
+            # Transpose to put the values in the format needed for calculations: (X, T)
             values = np.array(cdf.variables[getattr(vars, var).cdfvar][:].T)
 
             # Not all values in the CDF are arrays
@@ -36,6 +35,12 @@ def read_cdf(cdfname, print_warnings=False):
 
             # Store long name of values and strip extra whitespace
             getattr(vars, var).desc = (cdf.variables[getattr(vars, var).cdfvar].long_name).strip()
+
+            # Store variable dimensions in reverse order, since we transposed the values above
+            cdf_dimensions = cdf.variables[getattr(vars, var).cdfvar].get_dims()
+            dimensions = [dim.name for dim in cdf_dimensions]
+            getattr(vars, var).dimensions = dimensions
+            getattr(vars, var).dimensions.reverse()
 
         elif print_warnings:
             print('[read_cdf] *** WARNING:', getattr(vars, var).cdfvar, 'not found in CDF')

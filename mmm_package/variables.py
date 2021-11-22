@@ -1,19 +1,30 @@
 class Variable(object):
-    def __init__(self, name, desc=None, cdfvar=None, mmmvar=None, units=None, values=None):
+    def __init__(self, name, label=None, desc=None, cdfvar=None, mmmvar=None, units=None, dimensions=None, values=None):
         self.name = name
+        self.label = label # LaTeX Format
         self.desc = desc
         self.cdfvar = cdfvar
         self.mmmvar = mmmvar
         self.units = units
+        self.dimensions = dimensions
         self.values = values
 
     def __str__(self):
         return str(self.name)
 
+    def get_xdim(self):
+        return self.dimensions[0] if self.dimensions is not None and len(self.dimensions) > 0 else None
+
+    def set_xdim(self, xdim):
+        if self.dimensions is not None and len(self.dimensions) > 0:
+            self.dimensions[0] = xdim
+        else:
+            print('[variables] *** Error: Failed to set xdim on variable', self.name)
+
 class Variables(object):
     def __init__(self):
         # CDF Independent Variables
-        self.time = Variable('Time', cdfvar='TIME')
+        self.time = Variable('Time', cdfvar='TIME') # TODO: What is TIME3 in CDF?
         self.x = Variable('X', cdfvar='X')
         self.xb = Variable('XB', cdfvar='XB')
 
@@ -101,7 +112,8 @@ class Variables(object):
                   + str(getattr(self, var).name) + ", "
                   + str(getattr(self, var).desc) + ", " 
                   + str(getattr(self, var).units) + ", "
-                  + str(getattr(self, var).values.shape))
+                  + str(getattr(self, var).values.shape) + ", "
+                  + str(getattr(self, var).dimensions))
 
     def __str__(self):
         return str(self.get_nonzero_variables())
