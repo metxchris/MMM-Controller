@@ -37,14 +37,13 @@ class Variable(object):
     def set_units(self, units):
         self.units = units
 
-    def set_values(self, values):
-        self.values = values
-
-    # Set variable values, units, dimensions
-    def set_variable(self, values, units, dimensions='[XBO, TIME]'):
+    # Set variable values, units, dimensions, then apply smoothing
+    def set_variable(self, values, units, dimensions='[XBO, TIME]', apply_smoothing=True):
         self.values = values
         self.units = units
         self.dimensions = dimensions
+        if apply_smoothing:
+            self.apply_smoothing()
 
     # Variable smoothing using a Gaussian filter
     def apply_smoothing(self):

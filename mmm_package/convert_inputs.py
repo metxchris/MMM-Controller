@@ -5,7 +5,6 @@ sys.path.insert(0, '../')
 # 3rd Party Packages
 import numpy as np 
 from scipy.interpolate import interp1d
-import scipy.ndimage
 # Local Packages
 from mmm_package import variables 
 
@@ -34,26 +33,27 @@ def convert_variable(cdf_var, num_points, xvals):
     # Convert units to those needed by MMM
     units = var.units
     if units == 'CM':
-        var.values /= 100
-        var.units = 'M'
+        values = var.values / 100
+        var.set_variable(values, 'M', var.get_dims(), apply_smoothing=False)
     elif units == 'CM/SEC':
-        var.values /= 100
-        var.units = 'M/SEC'
+        values = var.values / 100
+        var.set_variable(values, 'M/SEC', var.get_dims(), apply_smoothing=False)
     elif units == 'N/CM**3':
-        var.values *= 10**6
-        var.units = 'N/M**3'
+        values = var.values * 10**6
+        var.set_variable(values, 'N/M**3', var.get_dims(), apply_smoothing=False)
     elif units == 'EV':
-        var.values /= 1000
-        var.units = 'kEV'
+        values = var.values / 1000
+        var.set_variable(values, 'kEV', var.get_dims(), apply_smoothing=False)
     elif units == 'CM**2/SEC':
-        var.values /= 10**4
-        var.units = 'M**2/SEC'
+        values = var.values / 10**4
+        var.set_variable(values, 'M**2/SEC', var.get_dims(), apply_smoothing=False)
     elif units == 'AMPS':
-        var.values /= 10**6
-        var.units = 'MAMPS'
+        values = var.values / 10**6
+        var.set_variable(values, 'MAMPS', var.get_dims(), apply_smoothing=False)
 
     # Reshape all non-scalar variables so that their shape matches (XBo, TIME)
     # This allows us to vectorize our calculations later, making them much faster
+    # Setting the variable values also applies smoothing using a Gaussian filter
     xdim = var.get_xdim()
     # 0-dimensional variables are not reshaped
     if xdim is None or var.values.ndim == 0:
@@ -61,23 +61,20 @@ def convert_variable(cdf_var, num_points, xvals):
     # Tile 1-dim time arrays into 2-dim arrays, in the format of (XBo, TIME)
     # This also adds the origin to the X-axis  
     elif xdim in ['TIME', 'TIME3']:
-        var.values = np.tile(var.values, (num_points.boundary, 1))
-        var.set_dims(['XBO', xdim])
+        values = np.tile(var.values, (num_points.boundary, 1))
+        var.set_variable(values, var.get_units())
     # Some variables (i.e. VPOL) are mirrored around the X-axis, so take non-negative XB values
     # TODO: Handle this case better
     elif xdim in ['RMAJM']:
-        var.values = var.values[num_points.boundary - 1:, :]
-        var.set_xdim('XBO')
+        values = var.values[num_points.boundary - 1:, :]
+        var.set_variable(values, var.get_units())
     # Interpolate/Extrapolate variable from X or XB to XBo using a cubic spline
     elif xdim in ['X', 'XB']:
         set_interp = interp1d(getattr(xvals, xdim.lower()), var.values.T, kind='cubic', fill_value="extrapolate")
-        var.values = set_interp(xvals.xbo).T
-        var.set_xdim('XBO')
+        values = set_interp(xvals.xbo).T
+        var.set_variable(values, var.get_units())
     else:
         print('[create_inputs] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
-
-    # Variable smoothing using a Gaussian filter
-    var.apply_smoothing()
 
     return var
 
@@ -97,8 +94,8 @@ def convert_inputs(cdf_vars, num_interp_points=200):
                     xbo=np.append([0], vars.xb.values[:, 0]))
 
     # Add the origin to the boundary grid
-    vars.xb.values = np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0)
-    vars.xb.set_xdim('XBo')
+    values = np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0)
+    vars.xb.set_variable(values, units=None)
 
     # Cache sizes and check that interpolation points is not smaller than the number of boundary points
     num_points = NumPoints(max(num_interp_points, xvals.xbo.size), xvals.xbo.size, vars.get_ntimes())
@@ -114,7 +111,7 @@ def convert_inputs(cdf_vars, num_interp_points=200):
     # TODO: Add option to use TIPRO, TEPRO in place of TI, TE
     for var in cdf_var_list:
         cdf_var = getattr(cdf_vars, var)
-        # Variables previously not found in the CDF will not have values
+        # Variables not found in the CDF will not have values
         if cdf_var.values is not None:
             setattr(vars, var, convert_variable(cdf_var, num_points, xvals))
 
