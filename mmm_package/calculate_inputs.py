@@ -3,21 +3,19 @@ import sys
 sys.path.insert(0, '../')
 # 3rd Party Packages
 import numpy as np 
-import scipy.ndimage
 # Local Packages
 from mmm_package import variables, constants
 
-# Set VPOL by creating a refrence to VPOLD or VPOLH, if possible
+# Set VPOL using VPOLD or VPOLH, if possible # TODO: handle this better
 def calculate_vpol(vars):
-    vpol = vars.vpold if vars.vpold.values is not None else vars.vpolh
-    if vpol.values is not None:
-        vars.vpol.values = vpol.values
-        vars.vpol.set_dims(vpol.get_dims())
-        vars.vpol.set_units(vpol.get_units())
-        vars.vpol.apply_smoothing()
-    else:
-        vars.vpol = np.zeros((vars.xb.values.shape[0], vars.time.values.shape[0]))
-    return
+    vpol = np.zeros((vars.xb.values.shape[0], vars.time.values.shape[0]))
+    if vars.vpold.values is not None:
+        vpol = vars.vpold.values
+    elif vars.vpolh.values is not None:
+        vpol = vars.vpolh.values
+
+    vars.vpol.set_variable(vpol, 'M/SEC')
+    vars.vpol.apply_smoothing()
 
 # Hydrogenic Ion Density
 def calculate_nh(vars):
@@ -28,9 +26,7 @@ def calculate_nh(vars):
 
     nh = ne - zimp * nz - nf
 
-    vars.nh.set_values(nh)
-    vars.nh.set_dims(vars.ne.get_dims())
-    vars.nh.set_units(vars.ne.get_units())
+    vars.nh.set_variable(nh, vars.ne.get_units())
     vars.nh.apply_smoothing()
 
 # AIMASS (also AHYD?)
@@ -40,9 +36,7 @@ def calculate_aimass(vars):
 
     aimass = (nh + 2 * nd) / (nh + nd)
 
-    vars.aimass.set_values(aimass)
-    vars.aimass.set_dims(vars.nh.get_dims())
-    vars.aimass.set_units(vars.nh.get_units())
+    vars.aimass.set_variable(aimass, vars.nh.get_units())
     vars.aimass.apply_smoothing()
 
 # Minor Radius, and set origin value to 0
@@ -53,9 +47,7 @@ def calculate_rmin(vars):
     rmin = (rmaj / arat)
     rmin[0, :] = np.zeros(vars.time.values.shape[0])
 
-    vars.rmin.set_values(rmin)
-    vars.rmin.set_dims(vars.rmaj.get_dims())
-    vars.rmin.set_units(vars.rmaj.get_units())
+    vars.rmin.set_variable(rmin, vars.rmaj.get_units())
     vars.rmin.apply_smoothing()
 
 # Temperature Ratio
@@ -65,9 +57,7 @@ def calculate_tau(vars):
 
     tau = te / ti
 
-    vars.tau.set_values(tau)
-    vars.tau.set_dims(vars.te.get_dims())
-    vars.tau.set_units(None)
+    vars.tau.set_variable(tau, None)
     vars.tau.apply_smoothing()
 
 # VTOR
@@ -77,14 +67,12 @@ def calculate_vtor(vars):
 
     vtor = rmaj * omega
 
-    vars.vtor.set_values(vtor)
-    vars.vtor.set_dims(vars.rmaj.get_dims())
-    vars.vtor.set_units('M/S')
+    vars.vtor.set_variable(vtor, 'M/SEC')
     vars.vtor.apply_smoothing()
 
-# VPAR (setting ref to vtor for now)
+# VPAR (setting equal to VTOR for now)
 def calculate_vpar(vars):
-    vars.vpar = vars.vtor
+    vars.vpar.set_variable(vars.vtor.values, vars.vtor.units)
     vars.vpar.apply_smoothing()
 
 # Effective Charge
@@ -97,9 +85,7 @@ def calculate_zeff(vars):
 
     zeff = (nh + nf + zimp**2 * nz) / ne
 
-    vars.zeff.set_values(zeff)
-    vars.zeff.set_dims(vars.zimp.get_dims())
-    vars.zeff.set_units(None)
+    vars.zeff.set_variable(zeff, None)
     vars.zeff.apply_smoothing()
 
 # Calculate BTOR
@@ -110,9 +96,7 @@ def calculate_btor(vars):
 
     btor = rmaj / raxis * bz
 
-    vars.btor.set_values(btor)
-    vars.btor.set_dims(vars.bz.get_dims())
-    vars.btor.set_units(vars.bz.get_units())
+    vars.btor.set_variable(btor, vars.bz.get_units())
     vars.btor.apply_smoothing()
 
 # Calculate Inverse Aspect Ratio
@@ -121,9 +105,7 @@ def calculate_eps(vars):
 
     eps = arat**(-1)
 
-    vars.eps.set_values(eps)
-    vars.eps.set_dims(vars.arat.get_dims())
-    vars.eps.set_units(None)
+    vars.eps.set_variable(eps, None)
     vars.eps.apply_smoothing()
 
 # Plasma Pressure
@@ -136,9 +118,7 @@ def calculate_p(vars):
 
     p = (ne * te + ni * ti) * zckb
 
-    vars.p.set_values(p)
-    vars.p.set_dims(vars.ne.get_dims())
-    vars.p.set_units('PA')
+    vars.p.set_variable(p, 'PA')
     vars.p.apply_smoothing()
 
 # Beta (in %)
@@ -146,9 +126,11 @@ def calculate_beta(vars):
     zcmu0 = constants.ZCMU0
     btor = vars.btor.values
     p = vars.p.values
-    vars.beta.set_dims(vars.btor.get_dims())
-    vars.beta.set_units('%')
-    vars.beta.values = 2 * zcmu0 * p / btor**2 * 100
+
+    beta = 2 * zcmu0 * p / btor**2 * 100
+
+    vars.beta.set_variable(beta, '%')
+    vars.beta.apply_smoothing()
 
 # Electron Beta (in %)
 def calculate_betae(vars):
@@ -160,9 +142,7 @@ def calculate_betae(vars):
 
     betae = 2 * zcmu0 * ne * te * zckb / btor**2 * 100
 
-    vars.betae.set_values(betae)
-    vars.betae.set_dims(vars.btor.get_dims())
-    vars.betae.set_units('%')
+    vars.betae.set_variable(betae, '%')
     vars.betae.apply_smoothing()
 
 # Coulomb Logarithm TODO: what is 37.8? what are units?
@@ -172,8 +152,7 @@ def calculate_zlog(vars):
 
     zlog = 37.8 - np.log(ne**(1/2) / te)
 
-    vars.zlog.set_values(zlog)
-    vars.zlog.set_dims(vars.ne.get_dims())
+    vars.zlog.set_variable(zlog, None)
     vars.zlog.apply_smoothing()
 
 # Collision Frequency (NU_{ei}) TODO: units?
@@ -186,8 +165,7 @@ def calculate_nuei(vars):
 
     nuei = zcf * 2**(1/2) * ne * zlog * zeff / te**(3/2)
 
-    vars.nuei.set_values(nuei)
-    vars.nuei.set_dims(vars.ne.get_dims())
+    vars.nuei.set_variable(nuei, None)
     vars.nuei.apply_smoothing()
 
 # OLD NOTE: Not sure what to call this, but it leads to the approx the correct NUSTI
@@ -200,8 +178,7 @@ def calculate_nuei2(vars):
 
     nuei2 = zcf * 2**(1/2) * ni * zlog * zeff / ti**(3/2)
 
-    vars.nuei2.set_values(nuei2)
-    vars.nuei2.set_dims(vars.ni.get_dims())
+    vars.nuei2.set_variable(nuei2, None)
     vars.nuei2.apply_smoothing()
 
 # Thermal Velocity of Electrons TODO: units?
@@ -212,8 +189,7 @@ def calculate_zvthe(vars):
 
     zvthe = (2 * zckb * te / zcme)**(1/2)
 
-    vars.zvthe.set_values(zvthe)
-    vars.zvthe.set_dims(vars.te.get_dims())
+    vars.zvthe.set_variable(zvthe, None)
     vars.zvthe.apply_smoothing()
 
 # Thermal Velocity of Ions TODO: units?
@@ -225,8 +201,7 @@ def calculate_zvthi(vars):
 
     zvthi = (zckb * ti / (zcmp * aimass))**(1/2)
 
-    vars.zvthi.set_values(zvthi)
-    vars.zvthi.set_dims(vars.aimass.get_dims())
+    vars.zvthi.set_variable(zvthi, None)
     vars.zvthi.apply_smoothing()
 
 # Electron Collisionality (NU^{*}_{e}) TODO: units?
@@ -243,8 +218,7 @@ def calculate_nuste(vars):
 
     nuste = nuei * eps**(-3/2) * q * rmaj / zvthe
 
-    vars.nuste.set_values(nuste)
-    vars.nuste.set_dims(vars.nuei.get_dims())
+    vars.nuste.set_variable(nuste, None)
     vars.nuste.apply_smoothing()
 
 # Ion Collisionality (NUSTI = NU^{*}_{i}) TODO: Units
@@ -263,8 +237,7 @@ def calculate_nusti(vars):
 
     nusti = nuei2 * eps**(-3/2) * q * rmaj / (2 * zvthi) * (zcme / zcmp)**(1/2)
 
-    vars.nusti.set_values(nusti)
-    vars.nusti.set_dims(vars.eps.get_dims())
+    vars.nusti.set_variable(nusti, None)
     vars.nusti.apply_smoothing()
 
 # Ion Gyrofrequency TODO: units
@@ -276,8 +249,7 @@ def calculate_zgyrfi(vars):
 
     zgyrfi = zce * btor / (zcmp * aimass)
 
-    vars.zgyrfi.set_values(zgyrfi)
-    vars.zgyrfi.set_dims(vars.aimass.get_dims())
+    vars.zgyrfi.set_variable(zgyrfi, None)
     vars.zgyrfi.apply_smoothing()
 
 # Upper bound for ne, nh, te, and ti gradients in DRBM model (modmmm7_1.f90) TODO: units
@@ -290,11 +262,8 @@ def calculate_zgmax(vars):
 
     zgmax = rmaj / (zvthi / zgyrfi * q / eps)
 
-    vars.zgmax.set_values(zgmax)
-    vars.zgmax.set_dims(vars.eps.get_dims())
+    vars.zgmax.set_variable(zgmax, None)
     vars.zgmax.apply_smoothing()
-
-
 
 # Calculates new variables needed for MMM and data display from CDF variables
 # Values are stored to vars within each function call

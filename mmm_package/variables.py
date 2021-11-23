@@ -40,12 +40,11 @@ class Variable(object):
     def set_values(self, values):
         self.values = values
 
-    # Set variable values, dimensions, and units, then apply smoothing
-    def set_variable(self, values, dimensions, units):
+    # Set variable values, units, dimensions
+    def set_variable(self, values, units, dimensions='[XBO, TIME]'):
         self.values = values
-        self.dimensions = dimensions
         self.units = units
-        self.apply_smoothing()
+        self.dimensions = dimensions
 
     # Variable smoothing using a Gaussian filter
     def apply_smoothing(self):
@@ -84,7 +83,7 @@ class Variables(object):
 
         # Calculated Variables (some are also in the CDF)
         # TODO: Check that calculated values match CDF values
-        self.aimass = Variable('AIMASS')
+        self.aimass = Variable('AIMASS', smooth=1)
         self.alphamhd = Variable('Alpha_MHD')
         self.beta = Variable('Beta')
         self.betae = Variable('Electron Beta') # cdfvar='BETAE'
