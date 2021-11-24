@@ -21,5 +21,13 @@ def smoothing_test():
     ax.plot(x, scipy.ndimage.gaussian_filter(VPOL, 1), 'r')
     plt.show()
 
+def plot_gradient():
+    gTE = [0,0.893,0.976,1.091,1.276,1.470,1.694,1.921,2.149,2.374,2.593,2.803,3.007,3.205,3.399,3.587,3.770,3.947,4.117,4.282,4.442,4.596,4.748,4.897,5.045,5.189,5.326,5.460,5.587,5.712,5.826,5.932,6.034,6.122,6.211,6.304,6.422,6.623,6.998,7.696,8.962,11.07,14.39,19.24,26.31,36.71,49.82,64.98,86.95,100,100]
+    x = range(len(gTE))
+    fig, ax = plt.subplots()
+    ax.plot(x, gTE, 'b')
+    ax.plot(x, scipy.ndimage.gaussian_filter(gTE, 1), 'r')
+    plt.show()
+
 if __name__ == '__main__':
-    smoothing_test()
+    plot_gradient()

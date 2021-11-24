@@ -14,7 +14,7 @@ def main(cdfname):
     input_vars = calculate_inputs.calculate_inputs(input_vars)
 
     input_vars.print_nonzero_variables()
-    plot2d.plot2d(input_vars.xb.values, input_vars.vpol.values)
+    plot2d.plot2d(input_vars.xb.values, input_vars.gvpar.values)
 
 if __name__ == '__main__':
     main('cdf/132017T01.CDF')

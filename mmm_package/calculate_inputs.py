@@ -2,7 +2,8 @@
 import sys
 sys.path.insert(0, '../')
 # 3rd Party Packages
-import numpy as np 
+import numpy as np
+from scipy.interpolate import interp1d
 # Local Packages
 from mmm_package import variables, constants
 
@@ -243,8 +244,66 @@ def zgmax(vars):
 
     vars.zgmax.set_variable(zgmax, '', ['XBO', 'TIME'])
 
+# Magnetic Shear
+def shear(vars):
+    gq = vars.gq.values
+    rmaj = vars.rmaj.values
+    rmin = vars.rmin.values
+
+    shear = gq * rmin / rmaj
+
+    vars.shear.set_variable(shear, '', ['XBO', 'TIME'])
+
+# Effective Magnetic Shear
+def shat(vars):
+    elong = vars.elong.values
+    shear = vars.shear.values
+
+    shat = (2 * shear - 1 + (elong * (shear - 1))**2)**(1/2)
+    shat[shat < 0] = 0
+
+    vars.shat.set_variable(shat, '', ['XBO', 'TIME'])
+
+# Alpha MHD, convert BETAE from % to number (w20mod.f90)
+def alphamhd(vars):
+    betae = vars.betae.values
+    gne = vars.gne.values
+    gni = vars.gni.values
+    gte = vars.gte.values
+    gti = vars.gti.values
+    q = vars.q.values
+    te = vars.te.values
+    ti = vars.ti.values
+
+    alphamhd = q**2 * betae / 100 * (gne + gte + ti / te * (gni + gti))
+
+    vars.alphamhd.set_variable(alphamhd, '', ['XBO', 'TIME'])
+
+def calculate_gradient(gvar_name, var_name, drmin, vars):
+    rmaj = vars.rmaj.values
+    x = vars.x.values[:, 0]
+    xb = vars.xb.values[:, 0] # includes origin
+
+    # get variables related to the gradient from variable names
+    gvar = getattr(vars, gvar_name)
+    var = getattr(vars, var_name)
+
+    # partial derivative along x-axis
+    dxvar = np.diff(var.values, axis=0) / drmin
+
+    # intepolate from x to xb
+    set_interp = interp1d(x, dxvar.T, kind='cubic', fill_value="extrapolate")
+    dxvar = set_interp(xb).T
+
+    # take gradient
+    gradient_values = rmaj * dxvar / var.values
+
+    gvar.set_variable(gradient_values, '', ['XBO', 'TIME'])
+    gvar.apply_smoothing()
+    gvar.clamp_gradient()
+
 # Calculate the variable specified by it's corresponding function
-def calculate(var_function, vars):
+def calculate_variable(var_function, vars):
     var_function(vars)
 
     # Get the variable name specified by var_function
@@ -253,41 +312,53 @@ def calculate(var_function, vars):
     # Apply smoothing using a Gaussian Filter
     getattr(vars, var_name).apply_smoothing()
 
-    # TODO: remove outliers
-
 # Calculates new variables needed for MMM and data display from CDF variables
 # Values are stored to vars within each function call
 def calculate_inputs(vars):
 
     # Some calculations depend on values from previous calculations
-    calculate(vpol, vars)
-    calculate(nh, vars)
-    calculate(aimass, vars)
-    calculate(rmin, vars)
-    calculate(tau, vars)
-    calculate(vtor, vars)
-    calculate(vpar, vars)
-    calculate(zeff, vars)
-    calculate(btor, vars)
-    calculate(eps, vars)
-    calculate(p, vars)
-    calculate(beta, vars)
-    calculate(betae, vars)
-    calculate(zlog, vars)
-    calculate(nuei, vars)
-    calculate(nuei2, vars)
-    calculate(zvthe, vars)
-    calculate(zvthi, vars)
-    calculate(nuste, vars)
-    calculate(nusti, vars)
-    calculate(zgyrfi, vars)
-    calculate(zgmax, vars)
+    calculate_variable(vpol, vars)
+    calculate_variable(nh, vars)
+    calculate_variable(aimass, vars)
+    calculate_variable(rmin, vars)
+    calculate_variable(tau, vars)
+    calculate_variable(vtor, vars)
+    calculate_variable(vpar, vars)
+    calculate_variable(zeff, vars)
+    calculate_variable(btor, vars)
+    calculate_variable(eps, vars)
+    calculate_variable(p, vars)
+    calculate_variable(beta, vars)
+    calculate_variable(betae, vars)
+    calculate_variable(zlog, vars)
+    calculate_variable(nuei, vars)
+    calculate_variable(nuei2, vars)
+    calculate_variable(zvthe, vars)
+    calculate_variable(zvthi, vars)
+    calculate_variable(nuste, vars)
+    calculate_variable(nusti, vars)
+    calculate_variable(zgyrfi, vars)
+    calculate_variable(zgmax, vars)
 
-    # Calculate Gradients
+    # Differential rmin needed for gradient calculations
+    drmin = np.diff(vars.rmin.values, axis=0)
 
-    # Calculate gradients
+    # Calculate gradients.  The sign on drmin sets the sign of the gradient equation
+    calculate_gradient('gne',   'ne',   -drmin, vars)
+    calculate_gradient('gnh',   'nh',   -drmin, vars)
+    calculate_gradient('gni',   'ni',   -drmin, vars)
+    calculate_gradient('gnz',   'nz',   -drmin, vars)
+    calculate_gradient('gq',    'q',     drmin, vars)
+    calculate_gradient('gte',   'te',   -drmin, vars)
+    calculate_gradient('gti',   'ti',   -drmin, vars)
+    calculate_gradient('gvpar', 'vpar', -drmin, vars)
+    calculate_gradient('gvpol', 'vpol', -drmin, vars)
+    calculate_gradient('gvtor', 'vtor', -drmin, vars)
 
-    # Calculate inputs dependent on gradients
+    # Calculations dependent on gradient variables
+    calculate_variable(shear, vars)
+    calculate_variable(shat, vars)
+    calculate_variable(alphamhd, vars)
 
     return vars
 

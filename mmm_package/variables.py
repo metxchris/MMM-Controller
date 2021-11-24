@@ -61,6 +61,12 @@ class Variable(object):
         if self.smooth is not None:
             self.values = scipy.ndimage.gaussian_filter(self.values, sigma=self.smooth)
 
+    # Clamps values between -100 and 100, and sets origin value to 0
+    def clamp_gradient(self):
+        self.values[0, :] = 0
+        self.values[self.values > 100] = 100
+        self.values[self.values < -100] = -100
+
 class Variables(object):
     def __init__(self):
         # CDF Independent Variables
@@ -86,8 +92,8 @@ class Variables(object):
         self.te = Variable('Electron Temperature', cdfvar='TE', smooth=1)
         self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', smooth=1)
         self.triang = Variable('TRIANG', cdfvar='TRIANG', smooth=1)
-        self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=3)
-        self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC', smooth=3)
+        self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=1)
+        self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC', smooth=1)
         self.wexbs = Variable('ExB Shear Rate', cdfvar='SREXBA', smooth=1)
         self.zimp = Variable('ZIMP', cdfvar='XZIMP', smooth=1)
 
