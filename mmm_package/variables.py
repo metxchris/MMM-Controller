@@ -1,17 +1,19 @@
 # 3rd Party Packages
+import numpy as np
 import scipy.ndimage
+from multipledispatch import dispatch
 
 class Variable(object):
-    def __init__(self, name, label=None, desc=None, cdfvar=None, mmmvar=None, units=None, dimensions=None, smooth=None, values=None):
+    def __init__(self, name, cdfvar=None, mmmvar=None, smooth=None, label=None, values=None, desc=None, units=None, dimensions=None):
         self.name = name
-        self.label = label # LaTeX Format
-        self.desc = desc
-        self.cdfvar = cdfvar
-        self.mmmvar = mmmvar
-        self.units = units
-        self.dimensions = dimensions
+        self.cdfvar = cdfvar # Name of variable as used in CDF's
+        self.mmmvar = mmmvar # Name of variable as used in MMM
         self.smooth = smooth # None to disable smoothing, or n = 1, 2, 3, ...  
         self.values = values
+        self.label = label if label is not None else '' # LaTeX Format
+        self.desc = desc if desc is not None else ''
+        self.units = units if units is not None else ''
+        self.dimensions = dimensions if dimensions is not None else ['','']
 
     def __str__(self):
         return str(self.name)
@@ -28,22 +30,31 @@ class Variable(object):
     def get_dims(self):
         return self.dimensions
 
-    def set_dims(self, dims):
-        self.dimensions = dims
-
     def get_units(self):
         return self.units
 
+    @dispatch(list)
+    def set_dims(self, dimensions):
+        self.dimensions = dimensions
+
+    @dispatch(str)
     def set_units(self, units):
         self.units = units
 
-    # Set variable values, units, dimensions, then apply smoothing
-    def set_variable(self, values, units, dimensions='[XBO, TIME]', apply_smoothing=True):
+    @dispatch(np.ndarray)
+    def set_variable(self, values):
+        self.set_variable(values, self.units, self.dimensions)
+
+    @dispatch(np.ndarray, str)
+    def set_variable(self, values, units):
+        self.set_variable(values, units, self.dimensions)
+
+    # Set variable values, units, dimensions
+    @dispatch(np.ndarray, str, list)
+    def set_variable(self, values, units, dimensions):
         self.values = values
         self.units = units
         self.dimensions = dimensions
-        if apply_smoothing:
-            self.apply_smoothing()
 
     # Variable smoothing using a Gaussian filter
     def apply_smoothing(self):
@@ -82,7 +93,7 @@ class Variables(object):
 
         # Calculated Variables (some are also in the CDF)
         # TODO: Check that calculated values match CDF values
-        self.aimass = Variable('AIMASS', smooth=1)
+        self.aimass = Variable('AIMASS')
         self.alphamhd = Variable('Alpha_MHD')
         self.beta = Variable('Beta')
         self.betae = Variable('Electron Beta') # cdfvar='BETAE'
@@ -104,8 +115,6 @@ class Variables(object):
         self.zeff = Variable('Effective Charge') # cdfvar='ZEFF'
         self.zgmax = Variable('ZGMAX')
         self.zgyrfi = Variable('Ion Gyrofrequency')
-        self.zlari = Variable('ZLARI')
-        self.zlarpo = Variable('ZLARPO')
         self.zlog = Variable('Coulomb Logarithm')
         self.zvthe = Variable('Electron Thermal Velocity')
         self.zvthi = Variable('Ion Thermal Velocity')
