@@ -1,11 +1,12 @@
-from os.path import exists # Standard Packages
+# Standard Packages
+from os.path import exists
 import sys
 sys.path.insert(0, '../')
-
-from netCDF4 import Dataset # 3rd Party Packages
+# 3rd Party Packages
+from netCDF4 import Dataset
 import numpy as np
-
-from mmm_package import variables # Local Packages
+# Local Packages
+from mmm_package import variables
 
 def read_cdf(cdfname, print_warnings=False):
     # Check if file exists

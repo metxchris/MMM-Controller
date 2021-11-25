@@ -78,31 +78,31 @@ class Variables(object):
         self.aimp = Variable('AIMP', cdfvar='AIMP', smooth=1)
         self.arat = Variable('Aspect Ratio', cdfvar='ARAT', smooth=1)
         self.bz = Variable('BZ', cdfvar='BZ', smooth=1)
-        self.elong = Variable('Elongation', cdfvar='ELONG', smooth=1)
+        self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=1)
         self.omega = Variable('OMEGA', cdfvar='OMEGA', smooth=1)
-        self.ne = Variable('Electron Density', cdfvar='NE', smooth=1)
-        self.nf = Variable('NF', cdfvar='BDENS', smooth=1)
-        self.nh = Variable('Hydrogenic Ion Density', cdfvar='NH', smooth=1)
-        self.nd = Variable('ND', cdfvar='ND', smooth=1)
-        self.ni = Variable('Thermal Ion Density', cdfvar='NI', smooth=1)
-        self.nz = Variable('NZ', cdfvar='NIMP', smooth=1)
+        self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', smooth=1)
+        self.nf = Variable('NF', cdfvar='BDENS', label=r'$n_\mathrm{f}$', smooth=1)
+        self.nh = Variable('Hydrogenic Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$',smooth=1)
+        self.nd = Variable('ND', cdfvar='ND', label=r'$n_d$', smooth=1)
+        self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', smooth=1)
+        self.nz = Variable('NZ', cdfvar='NIMP', label=r'$n_z$', smooth=1)
         self.pcur = Variable('PCUR', cdfvar='PCUR', smooth=1)
-        self.q = Variable('Safety Factor', cdfvar='Q', smooth=1)
+        self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', smooth=1)
         self.rmaj = Variable('Major Radius', cdfvar='RMJMP', smooth=None)
-        self.te = Variable('Electron Temperature', cdfvar='TE', smooth=1)
-        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', smooth=1)
+        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', smooth=1)
+        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$', smooth=1)
         self.triang = Variable('TRIANG', cdfvar='TRIANG', smooth=1)
         self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=1)
         self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC', smooth=1)
-        self.wexbs = Variable('ExB Shear Rate', cdfvar='SREXBA', smooth=1)
+        self.wexbs = Variable('ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$', smooth=1)
         self.zimp = Variable('ZIMP', cdfvar='XZIMP', smooth=1)
 
         # Calculated Variables (some are also in the CDF)
         # TODO: Check that calculated values match CDF values
         self.aimass = Variable('AIMASS')
         self.alphamhd = Variable('Alpha_MHD')
-        self.beta = Variable('Beta')
-        self.betae = Variable('Electron Beta') # cdfvar='BETAE'
+        self.beta = Variable('Pressure Ratio')
+        self.betae = Variable('Electron Pressure Ratio') # cdfvar='BETAE'
         self.btor = Variable('Toroidal Magnetic Field')
         self.eps = Variable('Inverse Aspect Ratio')
         self.nuei = Variable('Collision Frequency')
@@ -126,13 +126,13 @@ class Variables(object):
         self.zvthi = Variable('Ion Thermal Velocity')
 
         # Calculated Gradients
-        self.gne = Variable('Electron Density Gradient')
-        self.gnh = Variable('Hydrogenic Ion Density Gradient')
-        self.gni = Variable('Thermal Ion Density Gradient')
-        self.gnz = Variable('NZ Gradient')
-        self.gq = Variable('Safety Factor Gradient')
-        self.gte = Variable('Electron Temperature Gradient')
-        self.gti = Variable('Thermal Ion Temperature Gradient')
+        self.gne = Variable('Electron Density Gradient', label=r'$g_{n_\mathrm{e}}$')
+        self.gnh = Variable('Hydrogenic Ion Density Gradient', label=r'$g_{n_\mathrm{h}}$')
+        self.gni = Variable('Thermal Ion Density Gradient', label=r'$g_{n_\mathrm{i}}$')
+        self.gnz = Variable('NZ Gradient', label=r'$g_{n_\mathrm{z}}$')
+        self.gq = Variable('Safety Factor Gradient', label=r'$g_{q}$')
+        self.gte = Variable('Electron Temperature Gradient', label=r'$g_{T_\mathrm{e}}$')
+        self.gti = Variable('Thermal Ion Temperature Gradient', label=r'$g_{T_\mathrm{i}}$')
         self.gvpar = Variable('VPAR Gradient')
         self.gvpol = Variable('VPOL Gradient')
         self.gvtor = Variable('VTOR Gradient')
@@ -166,3 +166,12 @@ class Variables(object):
 
     def get_ntimes(self):
         return self.x.values.shape[1] if self.xb.values is not None and self.xb.values.ndim > 1 else 0
+
+    # Find the index of the measurement time closet to the input_time
+    def get_measurement_time_idx(self, t):
+        return np.argmin(np.abs(self.time.values - t))
+
+    # Gets the measurement time corresponding to the specified index
+    def get_measurement_time(self, t_idx):
+        return(self.time.values[t_idx])
+

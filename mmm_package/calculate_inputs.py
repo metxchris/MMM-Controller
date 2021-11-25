@@ -360,7 +360,5 @@ def calculate_inputs(vars):
     calculate_variable(shat, vars)
     calculate_variable(alphamhd, vars)
 
-    return vars
-
 if __name__ == '__main__':
     pass
