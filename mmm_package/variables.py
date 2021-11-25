@@ -100,24 +100,27 @@ class Variables(object):
         # Calculated Variables (some are also in the CDF)
         # TODO: Check that calculated values match CDF values
         self.aimass = Variable('AIMASS')
-        self.alphamhd = Variable('Alpha_MHD')
-        self.beta = Variable('Pressure Ratio')
-        self.betae = Variable('Electron Pressure Ratio') # cdfvar='BETAE'
+        self.alphamhd = Variable('Alpha_MHD', label=r'$\alpha_\mathrm{MHD}$')
+        self.beta = Variable('Pressure Ratio', label=r'$\beta$')
+        self.betae = Variable('Electron Pressure Ratio', label=r'$\beta_\mathrm{e}$') # cdfvar='BETAE'
         self.btor = Variable('Toroidal Magnetic Field')
         self.eps = Variable('Inverse Aspect Ratio')
+        self.etae = Variable('Electron Gradient Ratio', label=r'$\eta_\mathrm{e}$')
+        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{i}$')
         self.nuei = Variable('Collision Frequency')
         self.nuei2 = Variable('NUEI2')
-        self.nuste = Variable('Electron Collisionality') # cdfvar='NUSTE'
-        self.nusti = Variable('Ion Collisionality') # cdfvar='NUSTI'
+        self.nuste = Variable('Electron Collisionality', label=r'$\nu^{*}_\mathrm{e}$') # cdfvar='NUSTE'
+        self.nusti = Variable('Ion Collisionality', label=r'$\nu^{*}_\mathrm{i}$') # cdfvar='NUSTI'
         self.p = Variable('Plasma Pressure') # cdfvar='PPLAS'
         self.raxis = Variable('RAXIS')
+        self.rho = Variable('Radius', label=r'$\rho$')
         self.rmin = Variable('Minor Radius')
-        self.shat = Variable('Effective Magnetic Shear') # cdfvar='SHAT'
-        self.shear = Variable('Magnetic Shear')
+        self.shat = Variable('Effective Magnetic Shear', label=r'$\hat{s}$') # cdfvar='SHAT'
+        self.shear = Variable('Magnetic Shear', label=r'$s$')
         self.vpar = Variable('VPAR')
-        self.vpol = Variable('VPOL')
-        self.vtor = Variable('VTOR')
-        self.tau = Variable('Temperature Ratio')
+        self.vpol = Variable('VPOL', label=r'$v_\theta$')
+        self.vtor = Variable('VTOR', label=r'$v_\phi$')
+        self.tau = Variable('Temperature Ratio', label=r'$\tau$')
         self.zeff = Variable('Effective Charge') # cdfvar='ZEFF'
         self.zgmax = Variable('ZGMAX')
         self.zgyrfi = Variable('Ion Gyrofrequency')
@@ -134,8 +137,8 @@ class Variables(object):
         self.gte = Variable('Electron Temperature Gradient', label=r'$g_{T_\mathrm{e}}$')
         self.gti = Variable('Thermal Ion Temperature Gradient', label=r'$g_{T_\mathrm{i}}$')
         self.gvpar = Variable('VPAR Gradient')
-        self.gvpol = Variable('VPOL Gradient')
-        self.gvtor = Variable('VTOR Gradient')
+        self.gvpol = Variable('VPOL Gradient', label=r'$g_{\nu_\theta}$')
+        self.gvtor = Variable('VTOR Gradient', label=r'$g_{\nu_\phi}$')
 
     def get_variables(self):
         return [var for var in dir(self) if not callable(getattr(self, var)) and not var.startswith("__")]

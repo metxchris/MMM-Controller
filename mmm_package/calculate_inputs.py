@@ -47,6 +47,13 @@ def rmin(vars):
 
     vars.rmin.set_variable(rmin, vars.rmaj.get_units(), ['XBO', 'TIME'])
 
+def rho(vars):
+    rmin = vars.rmin.values
+
+    rho = rmin / rmin[-1, :]
+
+    vars.rho.set_variable(rho, '', ['XBO', 'TIME'])
+
 # Temperature Ratio
 def tau(vars):
     te = vars.te.values
@@ -279,6 +286,22 @@ def alphamhd(vars):
 
     vars.alphamhd.set_variable(alphamhd, '', ['XBO', 'TIME'])
 
+def etae(vars):
+    gte = vars.gte.values
+    gne = vars.gne.values
+
+    etae = gte / gne
+
+    vars.etae.set_variable(etae, '', ['XBO', 'TIME'])
+
+def etai(vars):
+    gti = vars.gti.values
+    gni = vars.gni.values
+
+    etai = gti / gni
+
+    vars.etai.set_variable(etai, '', ['XBO', 'TIME'])
+
 def calculate_gradient(gvar_name, var_name, drmin, vars):
     rmaj = vars.rmaj.values
     x = vars.x.values[:, 0]
@@ -321,6 +344,7 @@ def calculate_inputs(vars):
     calculate_variable(nh, vars)
     calculate_variable(aimass, vars)
     calculate_variable(rmin, vars)
+    calculate_variable(rho, vars)
     calculate_variable(tau, vars)
     calculate_variable(vtor, vars)
     calculate_variable(vpar, vars)
@@ -359,6 +383,8 @@ def calculate_inputs(vars):
     calculate_variable(shear, vars)
     calculate_variable(shat, vars)
     calculate_variable(alphamhd, vars)
+    calculate_variable(etae, vars)
+    calculate_variable(etai, vars)
 
 if __name__ == '__main__':
     pass
