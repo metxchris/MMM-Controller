@@ -15,17 +15,21 @@ def main(input_options):
     # Read variables from specified CDF
     cdf_vars = read_cdf.read_cdf(input_options)
 
-    # Convert variables from CDF format to MMM format
-    input_vars = convert_inputs.convert_inputs(cdf_vars, input_options)
+    # Initial conversion variables from CDF format to MMM format
+    input_vars = convert_inputs.initial_conversion(cdf_vars, input_options)
+
+    # TODO: add step to vary input_vars over a specified range
 
     # Calculate new variables from CDF variables
     calculate_inputs.calculate_inputs(input_vars)
 
-    # TODO: add step to vary input_vars over a specified range
-    # input_vars.print_nonzero_variables()
+    # Final conversion: Interpolate onto larger grid of points
+    convert_inputs.final_conversion(input_vars, input_options)
 
     # Plot input profiles being sent to the MMM driver and save as PDF
     plot_input_profiles.make_plots(input_vars, input_options)
+
+    # input_vars.print_nonzero_variables()
 
 if __name__ == '__main__':
     cdf_name = '132017T01'

@@ -1,4 +1,5 @@
 # Standard Packages
+from copy import deepcopy
 import sys
 sys.path.insert(0, '../')
 # 3rd Party Packages
@@ -36,6 +37,10 @@ def aimass(vars):
     aimass = (nh + 2 * nd) / (nh + nd)
 
     vars.aimass.set_variable(aimass, vars.nh.units, ['XBO', 'TIME'])
+
+# AHYD
+def ahyd(vars):
+    vars.ahyd = deepcopy(vars.aimass)
 
 # Minor Radius, and set origin value to 0
 def rmin(vars):
@@ -353,6 +358,7 @@ def calculate_inputs(vars):
     calculate_variable(vpol, vars)
     calculate_variable(nh, vars)
     calculate_variable(aimass, vars)
+    calculate_variable(ahyd, vars)
     calculate_variable(rmin, vars)
     calculate_variable(rho, vars)
     calculate_variable(tau, vars)

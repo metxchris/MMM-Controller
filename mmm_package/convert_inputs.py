@@ -11,10 +11,10 @@ import settings
 
 # Stores single dimension arrays of the values of X, XB, and XB + origin (xbo)
 class XValues:
-    def __init__(self, x, xb, xbo):
-        self.x = x
-        self.xb = xb # implicitly used in the interpolation step
-        self.xbo = xbo
+    def __init__(self, xvar, xbvar):
+        self.x = xvar.values[:, 0]
+        self.xb = xbvar.values[:, 0] # implicitly used in the interpolation step
+        self.xbo = np.append([0], self.xb)
 
 # Converts a variable in CDF format into the format needed for mmm
 # This interpolates variables onto a new grid and converts some units
@@ -61,7 +61,7 @@ def convert_variable(cdf_var, xvals):
         var.set_variable(set_interp(xvals.xbo).T)
         var.set_xdim('XBO')
     else:
-        print('[convert_inputs] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
+        print('[initial_conversion] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
 
     # Apply smoothing with a Gaussian filter
     var.apply_smoothing()
@@ -69,28 +69,23 @@ def convert_variable(cdf_var, xvals):
     return var
 
 # Calculates input variables for the MMM script from CDF data
-def convert_inputs(cdf_vars, input_options):
-    # Input variables for MMM will be stored in new vars object
-    vars = variables.Variables()
+def initial_conversion(cdf_vars, input_options):
+    # Input variables for MMM will be stored in new input_vars object
+    input_vars = variables.Variables()
 
     # Copy independent variables
-    vars.time = deepcopy(cdf_vars.time)
-    vars.x = deepcopy(cdf_vars.x)
-    vars.xb = deepcopy(cdf_vars.xb)
+    input_vars.time = deepcopy(cdf_vars.time)
+    input_vars.x = deepcopy(cdf_vars.x)
+    input_vars.xb = deepcopy(cdf_vars.xb)
 
-    # Cache single column arrays; xbo is xb with the origin tacked on
-    xvals = XValues(x=vars.x.values[:, 0], 
-                    xb=vars.xb.values[:, 0], 
-                    xbo=np.append([0], vars.xb.values[:, 0]))
+    # Cache single column arrays of x-values
+    xvals = XValues(input_vars.x, input_vars.xb)
 
     # Add the origin to the boundary grid
-    vars.xb.set_variable(np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0))
-
-    # Set and check that interpolation points is not smaller than the number of boundary points
-    input_options.interp_points = max(input_options.input_points, xvals.xbo.size)
+    input_vars.xb.set_variable(np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0))
 
     # Set the array index and measurement time value corresponding to the input time
-    input_options.set_measurement_time(vars.time)
+    input_options.set_measurement_time(input_vars.time)
 
     # Get list of CDF variables to convert to the format needed for MMM
     cdf_var_list = cdf_vars.get_cdf_variables()
@@ -104,13 +99,36 @@ def convert_inputs(cdf_vars, input_options):
         cdf_var = getattr(cdf_vars, var)
         # Variables not found in the CDF will not have values
         if cdf_var.values is not None:
-            setattr(vars, var, convert_variable(cdf_var, xvals))
+            setattr(input_vars, var, convert_variable(cdf_var, xvals))
 
     # Use TEPRO, TIPRO in place of TE, TI
     if settings.USE_TEMPERATURE_PROFILES:
-        vars.use_temperature_profiles()
+        input_vars.use_temperature_profiles()
 
-    return vars
+    return input_vars
+
+def final_conversion(input_vars, input_options):
+    # Set and check that interpolation points is not smaller than the number of boundary points
+    input_options.interp_points = max(input_options.input_points, input_vars.get_nboundaries())
+
+    # Single column arrays for interpolation
+    xb = input_vars.xb.values[:, 0]
+    xb_mmm = np.arange(input_options.interp_points + 1) / input_options.interp_points
+
+    # Get list of CDF variables to convert to the format needed for MMM
+    full_var_list = input_vars.get_nonzero_variables()
+
+    # Remove independent variables
+    for var in ['time', 'x', 'xb']:
+        full_var_list.remove(var)
+
+    for var in full_var_list:
+        input_var = getattr(input_vars, var)
+        if input_var.values is not None:
+            set_interp = interp1d(xb, input_var.values.T, kind='cubic', fill_value="extrapolate")
+            input_var.set_variable(set_interp(xb_mmm).T)
+        else:
+            print('error: ', input_vars)
 
 if __name__ == '__main__':
     pass
