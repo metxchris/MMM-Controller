@@ -9,6 +9,7 @@ import matplotlib.font_manager as fm
 from matplotlib.ticker import ScalarFormatter
 # Local Packages
 from mmm_package import constants, utils
+import settings
 
 # Formatting list for plot lines
 LINE_FORMATS = [{'color': constants.BLUE, 'ls': '-', 'lw': 1.5},
@@ -33,7 +34,9 @@ def init_subplots(input_options):
     plt.subplots_adjust(wspace=0.2, hspace=0.38, left=0.1, right=0.9, bottom=0.08, top=0.82)
     
     # Set figure title and subtitle
-    plt.figtext(0.5, 0.92, 'MMM Input Profiles Using Smoothed Input Parameters', fontsize=14, ha='center')
+    modifier = 'Smoothed' if settings.APPLY_SMOOTHING else 'Unaltered'
+    plt.figtext(0.5, 0.92, 'MMM Input Profiles Using {0} Input Profiles'
+        .format(modifier), fontsize=14, ha='center')
     plt.figtext(0.5, 0.90, '{0} Shot {1}, Measurement Time {2}s, {3} Input Points'
         .format(shot_type, runid, time, points), fontsize=10, ha='center')
 
@@ -157,13 +160,11 @@ def make_plots(vars, input_options):
 
     fig.savefig(utils.get_temp_path("input_profiles_3.pdf"))
 
+    # Merge individual pdf sheets with pdftk
+    utils.merge_input_profile_sheets(input_options)
+
     # Show figures
     # plt.show()
-
-    utils.merge_input_profile_sheets(input_options)
-    # TODO: use pdftek to merge individual profile pdfs 
-    # "C:\Users\metxc\Documents\MMM-Package Old\CDF\..\MMM Package\pdftk\pdftk" *.pdf cat output "132017T01 Profiles, 2.100s (08).pdf"
-
 
 if __name__ == '__main__':
     pass

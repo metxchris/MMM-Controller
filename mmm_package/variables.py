@@ -1,7 +1,13 @@
+# Standard Packages
+from copy import deepcopy
+import sys
+sys.path.insert(0, '../')
 # 3rd Party Packages
 import numpy as np
 import scipy.ndimage
 from multipledispatch import dispatch
+# Local Packages
+import settings
 
 class Variables:
     def __init__(self):
@@ -25,7 +31,9 @@ class Variables:
         self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', smooth=1)
         self.rmaj = Variable('Major Radius', cdfvar='RMJMP', smooth=None)
         self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', smooth=1)
+        self.tepro = Variable('Electron Temperature', cdfvar='TEPRO', label=r'$T_\mathrm{e}$', smooth=1)
         self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$', smooth=1)
+        self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO', label=r'$T_\mathrm{i}$', smooth=1)
         self.triang = Variable('TRIANG', cdfvar='TRIANG', smooth=1)
         self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=1)
         self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC', smooth=1)
@@ -106,6 +114,17 @@ class Variables:
     def get_ntimes(self):
         return self.x.values.shape[1] if self.xb.values is not None and self.xb.values.ndim > 1 else 0
 
+    def use_temperature_profiles(self):
+        if self.tepro.values is not None:
+            self.te = deepcopy(self.tepro)
+        else:
+            raise ValueError('Failed to set TEPRO since TEPRO is None')
+
+        if self.tipro.values is not None:
+            self.ti = deepcopy(self.tipro)
+        else:
+            raise ValueError('Failed to set TIPRO since TIPRO is None')
+
 class Variable:
     def __init__(self, name, cdfvar=None, mmmvar=None, smooth=None, label=None, desc=None, units=None, dimensions=None, values=None):
         # Public
@@ -179,14 +198,20 @@ class Variable:
 
     # Variable smoothing using a Gaussian filter
     def apply_smoothing(self):
-        if self.smooth is not None:
+        if self.smooth is not None and settings.APPLY_SMOOTHING:
             self.values = scipy.ndimage.gaussian_filter(self.values, sigma=self.smooth)
 
-    # Clamps values between -100 and 100, and sets origin value to 0
-    def clamp_gradient(self):
+    # Clamps values between -value and value, and sets origin value to 0
+    def clamp_gradient(self, value):
         self.values[0, :] = 0
-        self.values[self.values > 100] = 100
-        self.values[self.values < -100] = -100
+        self.values[self.values > value] = value
+        self.values[self.values < -value] = -value
+
+    # Removes values outside of m standard deviations
+    # TODO: Likely need to interpolate again after this step to replace lost values
+    def reject_outliers(self, m=4):
+        if settings.REMOVE_OUTLIERS:
+            self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
 
 class InputOptions:
     def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None):

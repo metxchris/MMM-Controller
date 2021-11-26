@@ -2,7 +2,6 @@
 import os
 import glob
 from os.path import exists, dirname
-import subprocess
 import sys
 sys.path.insert(0, '../')
 # Local Packages
@@ -38,7 +37,7 @@ def check_filename(file_path):
         if not os.path.exists(new_file_path):
             return new_file_path
 
-    # if this many duplicate files exist, then throw an exception, and shame on you
+    # Throw an exception if this many duplicate files exist
     raise NameError('Too many duplicate files exist to save {0}'.format(file_path))
 
 # Opens the output pdf (likely only works on Windows)

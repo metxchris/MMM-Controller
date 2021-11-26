@@ -6,7 +6,8 @@ sys.path.insert(0, '../')
 import numpy as np 
 from scipy.interpolate import interp1d
 # Local Packages
-from mmm_package import variables 
+from mmm_package import variables
+import settings
 
 # Stores single dimension arrays of the values of X, XB, and XB + origin (xbo)
 class XValues:
@@ -99,12 +100,15 @@ def convert_inputs(cdf_vars, input_options):
         cdf_var_list.remove(var)
 
     # Convert remaining CDF variables into the format needed for MMM
-    # TODO: Add option to use TIPRO, TEPRO in place of TI, TE
     for var in cdf_var_list:
         cdf_var = getattr(cdf_vars, var)
         # Variables not found in the CDF will not have values
         if cdf_var.values is not None:
             setattr(vars, var, convert_variable(cdf_var, xvals))
+
+    # Use TEPRO, TIPRO in place of TE, TI
+    if settings.USE_TEMPERATURE_PROFILES:
+        vars.use_temperature_profiles()
 
     return vars
 

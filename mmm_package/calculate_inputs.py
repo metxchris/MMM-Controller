@@ -322,8 +322,15 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
     gradient_values = rmaj * dxvar / var.values
 
     gvar.set_variable(gradient_values, '', ['XBO', 'TIME'])
+
+    # Apply smoothing using a Gaussian Filter
     gvar.apply_smoothing()
-    gvar.clamp_gradient()
+
+    # Clamp gradient values
+    gvar.clamp_gradient(100)
+
+    # Remove outliers
+    gvar.reject_outliers()
 
 # Calculate the variable specified by it's corresponding function
 def calculate_variable(var_function, vars):
@@ -334,6 +341,9 @@ def calculate_variable(var_function, vars):
 
     # Apply smoothing using a Gaussian Filter
     getattr(vars, var_name).apply_smoothing()
+
+    # Remove outliers
+    getattr(vars, var_name).reject_outliers()
 
 # Calculates new variables needed for MMM and data display from CDF variables
 # Values are stored to vars within each function call
