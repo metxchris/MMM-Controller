@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 from mmm_package import variables 
 
 # Stores single dimension arrays of the values of X, XB, and XB + origin (xbo)
-class XValues(object):
+class XValues:
     def __init__(self, x, xb, xbo):
         self.x = x
         self.xb = xb # implicitly used in the interpolation step
@@ -48,7 +48,7 @@ def convert_variable(cdf_var, xvals):
     # This also adds the origin to the X-axis  
     elif xdim in ['TIME', 'TIME3']:
         var.set_variable(np.tile(var.values, (xvals.xbo.size, 1)))
-        var.set_dims(['XBO', xdim])
+        var.dimensions = ['XBO', xdim]
     # Some variables (i.e. VPOL) are mirrored around the X-axis, so take non-negative XB values
     # TODO: Handle this case better
     elif xdim in ['RMAJM']:
@@ -86,7 +86,7 @@ def convert_inputs(cdf_vars, input_options):
     vars.xb.set_variable(np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0))
 
     # Set and check that interpolation points is not smaller than the number of boundary points
-    input_options.set_interpolation_points(xvals.xbo.size)
+    input_options.interp_points = max(input_options.input_points, xvals.xbo.size)
 
     # Set the array index and measurement time value corresponding to the input time
     input_options.set_measurement_time(vars.time)

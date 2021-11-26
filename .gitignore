@@ -131,3 +131,8 @@ dmypy.json
 # Personal files
 cdfs/*.cdf
 input_profiles_*
+output/*
+temp/*
+
+# Keep this at the bottom
+!*__init__.py

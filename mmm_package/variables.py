@@ -3,100 +3,7 @@ import numpy as np
 import scipy.ndimage
 from multipledispatch import dispatch
 
-class InputOptions(object):
-    def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None):
-        self.cdf_name = cdf_name
-        self.shot_type = shot_type
-        self.input_time = input_time
-        self.input_points = input_points
-        self.runid = None
-        self.interp_points = None
-        self.time = None
-        self.time_idx = None
-
-    # Set the Runid from the CDF, which should match the filename of the CDF
-    def set_runid(self, runid):
-        self.runid = runid.strip()
-        if self.runid != self.cdf_name:
-            print('*** WARNING: runid {0} does not match cdf_name {1}'.format(self.runid, self.cdf_name))
-
-    # Set interpolation points, using the size of vars.xb as a minimum value
-    def set_interpolation_points(self, xbo_size):
-        self.interp_points = max(self.input_points, xbo_size)
-        if self.interp_points < self.input_points:
-            print('*** WARNING: possible interpolation points ({0}) is less than specified input points ({1})'
-                .format(self.interp_points, self.input_points))
-
-    # Find the index of the measurement time closest to the input_time and index and the value
-    def set_measurement_time(self, tvar):
-        self.time_idx = np.argmin(np.abs(tvar.values - self.input_time))
-        self.time = "{:.3f}".format(tvar.values[self.time_idx])
-
-class Variable(object):
-    def __init__(self, name, cdfvar=None, mmmvar=None, smooth=None, label=None, values=None, desc=None, units=None, dimensions=None):
-        self.name = name
-        self.cdfvar = cdfvar # Name of variable as used in CDF's
-        self.mmmvar = mmmvar # Name of variable as used in MMM
-        self.smooth = smooth # None to disable smoothing, or n = 1, 2, 3, ...  
-        self.values = values
-        self.label = label if label is not None else '' # LaTeX Format
-        self.desc = desc if desc is not None else ''
-        self.units = units if units is not None else ''
-        self.dimensions = dimensions if dimensions is not None else ['','']
-
-    def __str__(self):
-        return str(self.name)
-
-    def get_xdim(self):
-        return self.dimensions[0] if self.dimensions is not None and len(self.dimensions) > 0 else None
-
-    def set_xdim(self, xdim):
-        if self.dimensions is not None and len(self.dimensions) > 0:
-            self.dimensions[0] = xdim
-        else:
-            print('[variables] *** Error: Failed to set xdim on variable', self.name)
-
-    def get_dims(self):
-        return self.dimensions
-
-    def get_units(self):
-        return self.units
-
-    @dispatch(list)
-    def set_dims(self, dimensions):
-        self.dimensions = dimensions
-
-    @dispatch(str)
-    def set_units(self, units):
-        self.units = units
-
-    @dispatch(np.ndarray)
-    def set_variable(self, values):
-        self.set_variable(values, self.units, self.dimensions)
-
-    @dispatch(np.ndarray, str)
-    def set_variable(self, values, units):
-        self.set_variable(values, units, self.dimensions)
-
-    # Set variable values, units, dimensions
-    @dispatch(np.ndarray, str, list)
-    def set_variable(self, values, units, dimensions):
-        self.values = values
-        self.units = units
-        self.dimensions = dimensions
-
-    # Variable smoothing using a Gaussian filter
-    def apply_smoothing(self):
-        if self.smooth is not None:
-            self.values = scipy.ndimage.gaussian_filter(self.values, sigma=self.smooth)
-
-    # Clamps values between -100 and 100, and sets origin value to 0
-    def clamp_gradient(self):
-        self.values[0, :] = 0
-        self.values[self.values > 100] = 100
-        self.values[self.values < -100] = -100
-
-class Variables(object):
+class Variables:
     def __init__(self):
         # CDF Independent Variables
         self.time = Variable('Time', cdfvar='TIME') # TODO: What is TIME3 in CDF?
@@ -160,11 +67,11 @@ class Variables(object):
         # Calculated Gradients
         self.gne = Variable('Electron Density Gradient', label=r'$g_{n_\mathrm{e}}$')
         self.gnh = Variable('Hydrogenic Ion Density Gradient', label=r'$g_{n_\mathrm{h}}$')
-        self.gni = Variable('Thermal Ion Density Gradient', label=r'$g_{n_\mathrm{i}}$')
+        self.gni = Variable('Thermal Ion Density Gradient', smooth=0, label=r'$g_{n_\mathrm{i}}$')
         self.gnz = Variable('NZ Gradient', label=r'$g_{n_\mathrm{z}}$')
         self.gq = Variable('Safety Factor Gradient', label=r'$g_{q}$')
         self.gte = Variable('Electron Temperature Gradient', label=r'$g_{T_\mathrm{e}}$')
-        self.gti = Variable('Thermal Ion Temperature Gradient', label=r'$g_{T_\mathrm{i}}$')
+        self.gti = Variable('Thermal Ion Temperature Gradient', smooth=0, label=r'$g_{T_\mathrm{i}}$')
         self.gvpar = Variable('VPAR Gradient')
         self.gvpol = Variable('VPOL Gradient', label=r'$g_{\nu_\theta}$')
         self.gvtor = Variable('VTOR Gradient', label=r'$g_{\nu_\phi}$')
@@ -198,3 +105,132 @@ class Variables(object):
 
     def get_ntimes(self):
         return self.x.values.shape[1] if self.xb.values is not None and self.xb.values.ndim > 1 else 0
+
+class Variable:
+    def __init__(self, name, cdfvar=None, mmmvar=None, smooth=None, label=None, desc=None, units=None, dimensions=None, values=None):
+        # Public
+        self.name = name
+        self.cdfvar = cdfvar # Name of variable as used in CDF's
+        self.mmmvar = mmmvar # Name of variable as used in MMM
+        self.smooth = smooth # None to disable smoothing, or n = 1, 2, 3, ...  
+        self.label = label if label is not None else '' # LaTeX Format
+        self.desc = desc if desc is not None else ''
+        # Private
+        self._units = units if units is not None else ''
+        self._dimensions = dimensions if dimensions is not None else ['','']
+        self._values = values
+
+    def __str__(self):
+        return str(self.name)
+
+    def get_xdim(self):
+        return self.dimensions[0] if self.dimensions is not None and len(self.dimensions) > 0 else None
+
+    def set_xdim(self, xdim):
+        if self.dimensions is not None and len(self.dimensions) > 0:
+            self.dimensions[0] = xdim
+        else:
+            raise ValueError('Failed to set xdim on variable {0}'.format(self.name))
+
+    @property
+    def dimensions(self):
+        return self._dimensions
+
+    @dimensions.setter
+    def dimensions(self, dimensions):
+        if type(dimensions) == list:
+            self._dimensions = dimensions
+        else:
+            raise ValueError('Variable dimensions must be {0} and not {1}'.format(list, type(dimensions)))
+    
+    @property
+    def units(self):
+        return self._units
+
+    @units.setter
+    def units(self, units):
+        self._units = units
+
+    @property
+    def values(self):
+        return self._values
+
+    @values.setter
+    def values(self, values):
+        if type(values) == np.ndarray:
+            self._values = values
+        else:
+            raise ValueError('Variable values must be {0} and not {1}'.format(np.ndarray, type(values)))
+    
+    @dispatch(np.ndarray)
+    def set_variable(self, values):
+        self.set_variable(values, self.units, self.dimensions)
+
+    @dispatch(np.ndarray, str)
+    def set_variable(self, values, units):
+        self.set_variable(values, units, self.dimensions)
+
+    # Set variable values, units, dimensions
+    @dispatch(np.ndarray, str, list)
+    def set_variable(self, values, units, dimensions):
+        self.values = values
+        self.units = units
+        self.dimensions = dimensions
+
+    # Variable smoothing using a Gaussian filter
+    def apply_smoothing(self):
+        if self.smooth is not None:
+            self.values = scipy.ndimage.gaussian_filter(self.values, sigma=self.smooth)
+
+    # Clamps values between -100 and 100, and sets origin value to 0
+    def clamp_gradient(self):
+        self.values[0, :] = 0
+        self.values[self.values > 100] = 100
+        self.values[self.values < -100] = -100
+
+class InputOptions:
+    def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None):
+        # Public
+        self.cdf_name = cdf_name
+        self.shot_type = shot_type
+        self.input_time = input_time
+        self.input_points = input_points
+        # Private
+        self._runid = None
+        self._interp_points = None
+        self._time = None
+        self._time_idx = None
+
+    @property
+    def runid(self):
+        return self._runid
+
+    @runid.setter
+    def runid(self, runid):
+        self._runid = runid.strip()
+        if self._runid != self.cdf_name:
+            print('*** WARNING: runid {0} does not match cdf_name {1}'.format(self.runid, self.cdf_name))
+
+    @property
+    def interp_points(self):
+        return self._interp_points
+
+    @interp_points.setter
+    def interp_points(self, points):
+        self._interp_points = points
+        if self._interp_points < self.input_points:
+            print('*** WARNING: possible interpolation points ({0}) is less than specified input points ({1})'
+                .format(self.interp_points, self.input_points))
+
+    @property
+    def time_idx(self):
+        return self._time_idx
+
+    @property
+    def time(self):
+        return self._time
+
+    # Find the index of the measurement time closest to the input_time and index and the value
+    def set_measurement_time(self, tvar):
+        self._time_idx = np.argmin(np.abs(tvar.values - self.input_time))
+        self._time = "{:.3f}".format(tvar.values[self.time_idx])

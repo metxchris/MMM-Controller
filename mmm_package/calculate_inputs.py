@@ -26,7 +26,7 @@ def nh(vars):
 
     nh = ne - zimp * nz - nf
 
-    vars.nh.set_variable(nh, vars.ne.get_units(), ['XBO', 'TIME'])
+    vars.nh.set_variable(nh, vars.ne.units, ['XBO', 'TIME'])
 
 # AIMASS (also AHYD?)
 def aimass(vars):
@@ -35,7 +35,7 @@ def aimass(vars):
 
     aimass = (nh + 2 * nd) / (nh + nd)
 
-    vars.aimass.set_variable(aimass, vars.nh.get_units(), ['XBO', 'TIME'])
+    vars.aimass.set_variable(aimass, vars.nh.units, ['XBO', 'TIME'])
 
 # Minor Radius, and set origin value to 0
 def rmin(vars):
@@ -45,7 +45,7 @@ def rmin(vars):
     rmin = (rmaj / arat)
     rmin[0, :] = np.zeros(vars.time.values.shape[0])
 
-    vars.rmin.set_variable(rmin, vars.rmaj.get_units(), ['XBO', 'TIME'])
+    vars.rmin.set_variable(rmin, vars.rmaj.units, ['XBO', 'TIME'])
 
 def rho(vars):
     rmin = vars.rmin.values
@@ -96,7 +96,7 @@ def btor(vars):
 
     btor = rmaj / raxis * bz
 
-    vars.btor.set_variable(btor, vars.bz.get_units(), ['XBO', 'TIME'])
+    vars.btor.set_variable(btor, vars.bz.units, ['XBO', 'TIME'])
 
 # Calculate Inverse Aspect Ratio
 def eps(vars):

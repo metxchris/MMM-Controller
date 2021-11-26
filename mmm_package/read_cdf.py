@@ -9,7 +9,7 @@ import numpy as np
 from mmm_package import variables
 import cdfs
 
-# Returns the path to the CDF folder relative to where this function was called
+# Returns the path to the CDF folder
 def get_cdf_path(cdf_name):
     return "{0}/{1}.CDF".format(dirname(cdfs.__file__), cdf_name)
 
@@ -25,7 +25,7 @@ def read_cdf(input_options, print_warnings=False):
     cdf = Dataset(cdf_file)
 
     # Set runid from CDF (should match cdf_name)
-    input_options.set_runid(cdf.Runid)
+    input_options.runid = cdf.Runid
 
     # Variables object to store CDF values
     vars = variables.Variables()

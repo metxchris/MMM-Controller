@@ -4,10 +4,14 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 # Local Packages
-from mmm_package import read_cdf, convert_inputs, calculate_inputs, variables, constants
+from mmm_package import read_cdf, convert_inputs, calculate_inputs, variables, constants, utils
+from tests import test
 from plots import plot2d, plot_input_profiles
 
 def main(input_options):
+    # Clear temp folder
+    utils.clear_temp_folder()
+
     # Read variables from specified CDF
     cdf_vars = read_cdf.read_cdf(input_options)
 
@@ -18,12 +22,10 @@ def main(input_options):
     calculate_inputs.calculate_inputs(input_vars)
 
     # TODO: add step to vary input_vars over a specified range
-    input_vars.print_nonzero_variables()
+    # input_vars.print_nonzero_variables()
 
     # Plot input profiles being sent to the MMM driver and save as PDF
     plot_input_profiles.make_plots(input_vars, input_options)
-
-    # plot2d.plot2d(input_vars.xb.values, input_vars.ne.values, input_vars.rho.values, input_vars.ne.values)
 
 if __name__ == '__main__':
     cdf_name = '132017T01'
