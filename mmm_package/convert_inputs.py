@@ -8,25 +8,18 @@ from scipy.interpolate import interp1d
 # Local Packages
 from mmm_package import variables 
 
-# Store sizes of the number of points for different dimensions
-class NumPoints(object):
-    def __init__(self, interpolation_points, boundary_points, time_points):
-        self.interpolation = interpolation_points # TODO: unused
-        self.boundary = boundary_points
-        self.time = time_points
-
 # Stores single dimension arrays of the values of X, XB, and XB + origin (xbo)
 class XValues(object):
     def __init__(self, x, xb, xbo):
         self.x = x
-        self.xb = xb
+        self.xb = xb # implicitly used in the interpolation step
         self.xbo = xbo
 
 # Converts a variable in CDF format into the format needed for mmm
 # This interpolates variables onto a new grid and converts some units
 # Also applies optional smoothing and removal of outliers
 # Assumes values of cdf_var are not None
-def convert_variable(cdf_var, num_points, xvals):
+def convert_variable(cdf_var, xvals):
     # deepcopy needed to create a new variable instead of a reference
     var = deepcopy(cdf_var)
 
@@ -54,12 +47,12 @@ def convert_variable(cdf_var, num_points, xvals):
     # Tile 1-dim time arrays into 2-dim arrays, in the format of (XBO, TIME)
     # This also adds the origin to the X-axis  
     elif xdim in ['TIME', 'TIME3']:
-        var.set_variable(np.tile(var.values, (num_points.boundary, 1)))
+        var.set_variable(np.tile(var.values, (xvals.xbo.size, 1)))
         var.set_dims(['XBO', xdim])
     # Some variables (i.e. VPOL) are mirrored around the X-axis, so take non-negative XB values
     # TODO: Handle this case better
     elif xdim in ['RMAJM']:
-        var.set_variable(var.values[num_points.boundary - 1:, :])
+        var.set_variable(var.values[xvals.xbo.size - 1:, :])
         var.set_xdim('XBO')
     # Interpolate/Extrapolate variable from X or XB to XBO using a cubic spline
     elif xdim in ['X', 'XB']:
@@ -67,7 +60,7 @@ def convert_variable(cdf_var, num_points, xvals):
         var.set_variable(set_interp(xvals.xbo).T)
         var.set_xdim('XBO')
     else:
-        print('[create_inputs] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
+        print('[convert_inputs] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
 
     # Apply smoothing with a Gaussian filter
     var.apply_smoothing()
@@ -75,7 +68,7 @@ def convert_variable(cdf_var, num_points, xvals):
     return var
 
 # Calculates input variables for the MMM script from CDF data
-def convert_inputs(cdf_vars, num_interp_points=200):
+def convert_inputs(cdf_vars, input_options):
     # Input variables for MMM will be stored in new vars object
     vars = variables.Variables()
 
@@ -92,8 +85,11 @@ def convert_inputs(cdf_vars, num_interp_points=200):
     # Add the origin to the boundary grid
     vars.xb.set_variable(np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0))
 
-    # Cache sizes and check that interpolation points is not smaller than the number of boundary points
-    num_points = NumPoints(max(num_interp_points, xvals.xbo.size), xvals.xbo.size, vars.get_ntimes())
+    # Set and check that interpolation points is not smaller than the number of boundary points
+    input_options.set_interpolation_points(xvals.xbo.size)
+
+    # Set the array index and measurement time value corresponding to the input time
+    input_options.set_measurement_time(vars.time)
 
     # Get list of CDF variables to convert to the format needed for MMM
     cdf_var_list = cdf_vars.get_cdf_variables()
@@ -108,7 +104,7 @@ def convert_inputs(cdf_vars, num_interp_points=200):
         cdf_var = getattr(cdf_vars, var)
         # Variables not found in the CDF will not have values
         if cdf_var.values is not None:
-            setattr(vars, var, convert_variable(cdf_var, num_points, xvals))
+            setattr(vars, var, convert_variable(cdf_var, xvals))
 
     return vars
 

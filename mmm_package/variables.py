@@ -3,6 +3,35 @@ import numpy as np
 import scipy.ndimage
 from multipledispatch import dispatch
 
+class InputOptions(object):
+    def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None):
+        self.cdf_name = cdf_name
+        self.shot_type = shot_type
+        self.input_time = input_time
+        self.input_points = input_points
+        self.runid = None
+        self.interp_points = None
+        self.time = None
+        self.time_idx = None
+
+    # Set the Runid from the CDF, which should match the filename of the CDF
+    def set_runid(self, runid):
+        self.runid = runid.strip()
+        if self.runid != self.cdf_name:
+            print('*** WARNING: runid {0} does not match cdf_name {1}'.format(self.runid, self.cdf_name))
+
+    # Set interpolation points, using the size of vars.xb as a minimum value
+    def set_interpolation_points(self, xbo_size):
+        self.interp_points = max(self.input_points, xbo_size)
+        if self.interp_points < self.input_points:
+            print('*** WARNING: possible interpolation points ({0}) is less than specified input points ({1})'
+                .format(self.interp_points, self.input_points))
+
+    # Find the index of the measurement time closest to the input_time and index and the value
+    def set_measurement_time(self, tvar):
+        self.time_idx = np.argmin(np.abs(tvar.values - self.input_time))
+        self.time = "{:.3f}".format(tvar.values[self.time_idx])
+
 class Variable(object):
     def __init__(self, name, cdfvar=None, mmmvar=None, smooth=None, label=None, values=None, desc=None, units=None, dimensions=None):
         self.name = name
@@ -82,7 +111,6 @@ class Variables(object):
         self.omega = Variable('OMEGA', cdfvar='OMEGA', smooth=1)
         self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', smooth=1)
         self.nf = Variable('NF', cdfvar='BDENS', label=r'$n_\mathrm{f}$', smooth=1)
-        self.nh = Variable('Hydrogenic Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$',smooth=1)
         self.nd = Variable('ND', cdfvar='ND', label=r'$n_d$', smooth=1)
         self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', smooth=1)
         self.nz = Variable('NZ', cdfvar='NIMP', label=r'$n_z$', smooth=1)
@@ -102,11 +130,12 @@ class Variables(object):
         self.aimass = Variable('AIMASS')
         self.alphamhd = Variable('Alpha_MHD', label=r'$\alpha_\mathrm{MHD}$')
         self.beta = Variable('Pressure Ratio', label=r'$\beta$')
-        self.betae = Variable('Electron Pressure Ratio', label=r'$\beta_\mathrm{e}$') # cdfvar='BETAE'
+        self.betae = Variable('Electron Pressure Ratio', label=r'$\beta_\mathrm{\,e}$') # cdfvar='BETAE'
         self.btor = Variable('Toroidal Magnetic Field')
         self.eps = Variable('Inverse Aspect Ratio')
-        self.etae = Variable('Electron Gradient Ratio', label=r'$\eta_\mathrm{e}$')
-        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{i}$')
+        self.etae = Variable('Electron Gradient Ratio', label=r'$\eta_\mathrm{\,e}$')
+        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$')
+        self.nh = Variable('Hydrogenic Ion Density', label=r'$n_\mathrm{h}$',smooth=1) # cdfvar='NH'
         self.nuei = Variable('Collision Frequency')
         self.nuei2 = Variable('NUEI2')
         self.nuste = Variable('Electron Collisionality', label=r'$\nu^{*}_\mathrm{e}$') # cdfvar='NUSTE'
@@ -164,17 +193,8 @@ class Variables(object):
     def __str__(self):
         return str(self.get_nonzero_variables())
 
-    def get_nzones(self):
-        return self.x.values.shape[0] if self.xb.values is not None and self.xb.values.ndim > 0 else 0
+    def get_nboundaries(self):
+        return self.xb.values.shape[0] if self.xb.values is not None and self.xb.values.ndim > 0 else 0
 
     def get_ntimes(self):
         return self.x.values.shape[1] if self.xb.values is not None and self.xb.values.ndim > 1 else 0
-
-    # Find the index of the measurement time closet to the input_time
-    def get_measurement_time_idx(self, t):
-        return np.argmin(np.abs(self.time.values - t))
-
-    # Gets the measurement time corresponding to the specified index
-    def get_measurement_time(self, t_idx):
-        return(self.time.values[t_idx])
-

@@ -129,4 +129,5 @@ dmypy.json
 .pyre/
 
 # Personal files
-cdf/*.cdf
+cdfs/*.cdf
+input_profiles_*

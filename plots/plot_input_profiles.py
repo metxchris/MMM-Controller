@@ -1,8 +1,24 @@
 # 3rd Party Packages
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
+from matplotlib.ticker import ScalarFormatter
+# Local Packages
+from mmm_package import constants
 
-def init_subplots():
+# Formatting list for plot lines
+LINE_FORMATS = [{'color': constants.BLUE, 'ls': '-', 'lw': 1.5},
+                {'color': constants.RED, 'ls': '-.', 'lw': 1.5},
+                {'color': constants.GREEN, 'ls': '--', 'lw': 1.5},
+                {'color': constants.ORANGE, 'ls': ':', 'lw': 2},
+                {'color': constants.PURPLE, 'ls': '-.', 'lw': 1.75},
+                {'color': constants.YELLOW, 'ls': '--', 'lw': 1.75}]
+
+def init_subplots(input_options):
+    runid = input_options.runid
+    shot_type = input_options.shot_type
+    time = input_options.time
+    points = input_options.interp_points
+
     # Init figure and subplots
     fig, axs = plt.subplots(3, 2)
     fig.set_size_inches(8.5, 11)
@@ -10,18 +26,11 @@ def init_subplots():
     # Set plot layout properties (property values chosen for the saved PDF and not for the shown figure)
     plt.tight_layout()
     plt.subplots_adjust(wspace=0.2, hspace=0.38, left=0.1, right=0.9, bottom=0.08, top=0.82)
-
-    # Set fonts (unicode_minus does not work in Computer Modern font)
-    plt.rcParams.update({
-        'font.family': 'serif',
-        'mathtext.fontset': 'cm',
-        'font.serif': 'cmr10',
-        'axes.unicode_minus': False
-    })
     
     # Set figure title and subtitle TODO: Read CDF info from variables
     plt.figtext(0.5, 0.92, 'MMM Input Profiles Using Smoothed Input Parameters', fontsize=14, ha='center')
-    plt.figtext(0.5, 0.90, 'DIII-D Shot 132017T01, Measurement Time 2.100s, 200 Input Points', fontsize=10, ha='center')
+    plt.figtext(0.5, 0.90, '{0} Shot {1}, Measurement Time {2}s, {3} Input Points'
+        .format(shot_type, runid, time, points), fontsize=10, ha='center')
 
     return fig, axs
 
@@ -30,53 +39,63 @@ def set_axes_style(ax, title, xlabel, ylabel):
     titlesize, labelsize, ticksize = 11, 10, 9
 
     # Set plot font properties, cmr10 = Computer Modern
-    ax.set_title(title, fontsize=titlesize, fontname='cmr10')
-    ax.set_xlabel(xlabel, labelpad=2, fontsize=labelsize, fontname='cmr10')
-    ax.set_ylabel(ylabel, labelpad=2, fontsize=labelsize, fontname='cmr10')
+    ax.set_title(title, fontsize=titlesize)
+    ax.set_xlabel(xlabel, labelpad=2, fontsize=labelsize)
+    ax.set_ylabel(ylabel, labelpad=2, fontsize=labelsize)
     ax.tick_params(direction='in', labelsize=ticksize)
-    ax.ticklabel_format(style='sci', scilimits=(-2, 3))
-    ax.xaxis.get_offset_text().set_size(labelsize)
-    ax.yaxis.get_offset_text().set_size(labelsize)
-    ax.xaxis.get_offset_text().set_font('cmr10')
-    ax.yaxis.get_offset_text().set_font('cmr10')
+    ax.xaxis.get_offset_text().set_fontsize(ticksize)
+    ax.yaxis.get_offset_text().set_fontsize(ticksize)
 
-    # Set plot limits
+    # ScalarFormatter used to modify tick value exponent display
+    formatter = ScalarFormatter(useMathText=True)
+    formatter.set_powerlimits(lims=(-2, 3))
+    ax.xaxis.set_major_formatter(formatter)
+    ax.yaxis.set_major_formatter(formatter)
+
+    # Set plot limits TODO: add option to adjust ylim range using yvar indices
     ax.set(xlim=(0, 1))
 
     # Font properties needed to set tick and legend labels
-    font_prop = fm.FontProperties(family='cmr10', size=ticksize)
+    tick_props = fm.FontProperties(size=ticksize)
+    legend_props = fm.FontProperties(size=labelsize)
 
     # Spines are the frame surrounding each subplot
     for spine in ax.spines:
         ax.spines[spine].set_linewidth(0.5)
     for label in ax.get_xticklabels() :
-        label.set_fontproperties(font_prop)
+        label.set_fontproperties(tick_props)
     for label in ax.get_yticklabels() :
-        label.set_fontproperties(font_prop)
+        label.set_fontproperties(tick_props)
 
-    ax.legend(borderpad=0, labelspacing=0, frameon=False, prop=font_prop)
+    ax.legend(borderpad=0, labelspacing=0, frameon=False, prop=legend_props)
 
 def set_axes_plots(ax, t_idx, xvar, *yvars):
-    # TODO: update format_str with better colors
-    format_str = ['b-', 'r-.', 'g--', 'm:', 'c-.', 'y--']
     for i, yvar in enumerate(yvars):
-        ax.plot(xvar, yvar.values[:, t_idx], format_str[i % len(format_str)], label=yvar.label)
+        ax.plot(xvar, yvar.values[:, t_idx], **LINE_FORMATS[i % len(LINE_FORMATS)], label=yvar.label)
 
-def make_plots(vars, input_time):
+def make_plots(vars, input_options):
     # x-axis parameter
     rho = vars.rho.values[:, 0]
 
     # Get the array index and measurement time value corresponding to the input time
-    t_idx = vars.get_measurement_time_idx(input_time)
-    t = vars.get_measurement_time(t_idx)
+    t_idx = input_options.time_idx
+    time = input_options.time
+
+    # Set plot parameters (unicode_minus does not work in Computer Modern font)
+    plt.rcParams.update({
+        'font.family': 'serif',
+        'mathtext.fontset': 'cm',
+        'font.serif': 'cmr10',
+        'axes.unicode_minus': False
+    })
 
     # First figure
-    fig, axs = init_subplots()
+    fig, axs = init_subplots(input_options)
 
     set_axes_plots(axs[0, 0], t_idx, rho, vars.te, vars.ti, vars.q)
     set_axes_style(axs[0, 0], r'Temperatures, Safety Factor', r'$\rho$', r'$q, T$ (keV)')
 
-    set_axes_plots(axs[0, 1], t_idx, rho, vars.ne, vars.nf, vars.ni, vars.nz)
+    set_axes_plots(axs[0, 1], t_idx, rho, vars.ne, vars.ni, vars.nf, vars.nz)
     set_axes_style(axs[0, 1], r'Densities', r'$\rho$', r'$n$ $\left(\mathrm{N/m}^3\right)$')
 
     set_axes_plots(axs[1, 0], t_idx, rho, vars.gte, vars.gti, vars.gq)
@@ -94,7 +113,7 @@ def make_plots(vars, input_time):
     fig.savefig("input_profiles_1.pdf")
 
     # Second figure
-    fig, axs = init_subplots()
+    fig, axs = init_subplots(input_options)
 
     set_axes_plots(axs[0, 0], t_idx, rho, vars.tau)
     set_axes_style(axs[0, 0], r'Temperatures Ratio', r'$\rho$', r'$\tau$')
@@ -117,7 +136,7 @@ def make_plots(vars, input_time):
     fig.savefig("input_profiles_2.pdf")
 
     # Third figure
-    fig, axs = init_subplots()
+    fig, axs = init_subplots(input_options)
 
     set_axes_plots(axs[0, 0], t_idx, rho, vars.vpol)
     set_axes_style(axs[0, 0], r'Poloidal Velocity', r'$\rho$', r'$\nu$ (m/s)')

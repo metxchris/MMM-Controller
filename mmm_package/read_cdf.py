@@ -1,5 +1,5 @@
 # Standard Packages
-from os.path import exists
+from os.path import exists, dirname
 import sys
 sys.path.insert(0, '../')
 # 3rd Party Packages
@@ -7,14 +7,25 @@ from netCDF4 import Dataset
 import numpy as np
 # Local Packages
 from mmm_package import variables
+import cdfs
 
-def read_cdf(cdfname, print_warnings=False):
+# Returns the path to the CDF folder relative to where this function was called
+def get_cdf_path(cdf_name):
+    return "{0}/{1}.CDF".format(dirname(cdfs.__file__), cdf_name)
+
+# Reads CDF variables specified by Variables().cdfname and a Variables() object
+def read_cdf(input_options, print_warnings=False):
+    cdf_file = get_cdf_path(input_options.cdf_name)
+
     # Check if file exists
-    if not exists(cdfname):
-        raise FileNotFoundError("CDF " + cdfname + " could not be found in the cdf folder")
+    if not exists(cdf_file):
+        raise FileNotFoundError("CDF {0} could not be found in the cdf folder".format(input_options.cdf_name))
 
     # Load CDF into memory
-    cdf = Dataset(cdfname)
+    cdf = Dataset(cdf_file)
+
+    # Set runid from CDF (should match cdf_name)
+    input_options.set_runid(cdf.Runid)
 
     # Variables object to store CDF values
     vars = variables.Variables()
@@ -43,17 +54,35 @@ def read_cdf(cdfname, print_warnings=False):
             getattr(vars, var).dimensions.reverse()
 
         elif print_warnings:
-            print('[read_cdf] *** WARNING:', getattr(vars, var).cdfvar, 'not found in CDF')
+            print('*** [read_cdf] WARNING: {0} not found in CDF'.format(getattr(vars, var).cdfvar))
 
     if len(vars.get_nonzero_variables()) == 0:
-        print('[read_cdf] *** ERROR: no variables were saved from ' + cdfname)
+        print('*** [read_cdf] ERROR: no variables were saved from ' + cdf_name)
 
     return vars
 
+# Print all variable names, descriptions, units, and dimensions in the CDF
+def print_cdf_variables(cdf_name):
+    cdf = Dataset(get_cdf_path(cdf_name))
+    cdf_vars = sorted(cdf.variables.keys())
+
+    for var_name in cdf_vars:
+        var = cdf.variables[var_name]
+        var_dims = [dim.name for dim in var.get_dims()]
+        print("{0}, {1}, {2}, {3}".format(var.name, var.long_name.strip(), var.units.strip(), str(var_dims)))
+
+# Print all dimension names and sizes in the CDF
+def print_cdf_dimensions(cdf_name):
+    cdf = Dataset(get_cdf_path(cdf_name))
+    cdf_dims = sorted(cdf.dimensions.keys())
+
+    for dim_name in cdf_dims:
+        dim = cdf.dimensions[dim_name]
+        print("{0}, {1}".format(dim.name, str(dim.size)))
+
 if __name__ == '__main__':
     # For testing purposes
-    read_cdf('../cdf/132017T01.CDF', True)
-
-# Note: All variables in CDF can be viewed using
-# for dimobj in cdf.variables.values():
-    #     print(dimobj)
+    cdf_name = '132017T01'
+    read_cdf(variables.InputOptions(cdf_name), True)
+    print_cdf_dimensions(cdf_name)
+    print_cdf_variables(cdf_name)
