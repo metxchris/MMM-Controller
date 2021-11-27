@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from matplotlib.ticker import ScalarFormatter
 # Local Packages
-from mmm_package import constants, utils
+from main import constants, utils
 import settings
 
 # Formatting list for plot lines

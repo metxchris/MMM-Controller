@@ -5,19 +5,23 @@ from os.path import exists, dirname
 import sys
 sys.path.insert(0, '../')
 # Local Packages
-import pdftk, output, temp 
+import pdftk, output, temp, mmm
 
 # Returns the path to the temp folder
 def get_temp_path(file_name=''):
     return '{0}\\{1}'.format(dirname(temp.__file__), file_name)
 
+# Returns the path to the output folder
+def get_output_path(file_name=''):
+    return '{0}\\{1}'.format(dirname(output.__file__), file_name)
+
+# Returns the path to the output folder
+def get_mmm_path(file_name=''):
+    return '{0}\\{1}'.format(dirname(mmm.__file__), file_name)
+
 # Returns the path to the pdftk executable
 def get_pdftk_path():
     return '{0}\\pdftk.exe'.format(dirname(pdftk.__file__))
-
-# Returns the path to the output folder
-def get_output_path(file_name):
-    return '{0}\\{1}'.format(dirname(output.__file__), file_name)
 
 # checks if output dir exists and creates it if needed
 def create_output_dir(input_options):

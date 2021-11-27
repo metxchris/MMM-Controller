@@ -1,10 +1,8 @@
-# Standard Packages
-import time
 # 3rd Party Packages
 import numpy as np
 import matplotlib.pyplot as plt
 # Local Packages
-from mmm_package import read_cdf, convert_inputs, calculate_inputs, variables, constants, utils
+from main import read_cdf, convert_inputs, calculate_inputs, variables, constants, utils, write_inputs
 from tests import test
 from plots import plot2d, plot_input_profiles
 
@@ -27,8 +25,11 @@ def main(input_options):
     convert_inputs.final_conversion(input_vars, input_options)
 
     # Plot input profiles being sent to the MMM driver and save as PDF
-    plot_input_profiles.make_plots(input_vars, input_options)
+    # plot_input_profiles.make_plots(input_vars, input_options)
 
+    # TODO: Write variables for MMM Driver
+    write_inputs.write_input_file(input_vars, input_options)
+    
     # input_vars.print_nonzero_variables()
 
 if __name__ == '__main__':

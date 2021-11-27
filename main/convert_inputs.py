@@ -6,7 +6,7 @@ sys.path.insert(0, '../')
 import numpy as np 
 from scipy.interpolate import interp1d
 # Local Packages
-from mmm_package import variables
+from main import variables
 import settings
 
 # Stores single dimension arrays of the values of X, XB, and XB + origin (xbo)
@@ -122,6 +122,7 @@ def final_conversion(input_vars, input_options):
     for var in ['time', 'x', 'xb']:
         full_var_list.remove(var)
 
+    # Interpolate variables onto grid specified by input_options.interp_points
     for var in full_var_list:
         input_var = getattr(input_vars, var)
         if input_var.values is not None:

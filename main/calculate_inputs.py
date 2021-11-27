@@ -6,7 +6,7 @@ sys.path.insert(0, '../')
 import numpy as np
 from scipy.interpolate import interp1d
 # Local Packages
-from mmm_package import variables, constants
+from main import variables, constants
 
 # Set VPOL using VPOLD or VPOLH, if possible # TODO: handle this better
 def vpol(vars):
@@ -29,7 +29,7 @@ def nh(vars):
 
     vars.nh.set_variable(nh, vars.ne.units, ['XBO', 'TIME'])
 
-# AIMASS (also AHYD?)
+# AIMASS
 def aimass(vars):
     nh = vars.nh.values
     nd = vars.nd.values
@@ -38,9 +38,9 @@ def aimass(vars):
 
     vars.aimass.set_variable(aimass, vars.nh.units, ['XBO', 'TIME'])
 
-# AHYD
+# AHYD (Setting equal to AIMASS is approximately correct)
 def ahyd(vars):
-    vars.ahyd = deepcopy(vars.aimass)
+    vars.ahyd.set_variable(vars.aimass.values, vars.aimass.units, ['XBO', 'TIME'])
 
 # Minor Radius, and set origin value to 0
 def rmin(vars):
@@ -52,6 +52,7 @@ def rmin(vars):
 
     vars.rmin.set_variable(rmin, vars.rmaj.units, ['XBO', 'TIME'])
 
+# Minor Radius (normalized)
 def rho(vars):
     rmin = vars.rmin.values
 

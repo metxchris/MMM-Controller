@@ -6,7 +6,7 @@ sys.path.insert(0, '../')
 from netCDF4 import Dataset
 import numpy as np
 # Local Packages
-from mmm_package import variables
+from main import variables
 import cdfs
 
 # Returns the path to the CDF folder

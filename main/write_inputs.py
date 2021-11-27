@@ -2,10 +2,9 @@
 import sys
 sys.path.insert(0, '../')
 # 3rd Party Packages
-import numpy as np 
+import numpy as np
 # Local Packages
-from mmm_package import variables
-import settings
+from main import utils
 
 MMM_LABELS = {
     'rmin'     :'! Half-width of the magnetic surface, r [m]'                         ,
@@ -40,4 +39,87 @@ MMM_LABELS = {
     'vpar'     :'! Parallel velocity profile [m/s]'    
     }
 
-print(MMM_LABELS['rmin'])
+MMM_HEADER = '''&testmmm_input_control
+ npoints = {npoints}    ! Number of radial points
+ input_kind = 1
+/
+&testmmm_input_1stkind
+! This is a sample input file of the first kind
+! of an NSTX discharge
+
+!.. Switches for component models
+!   1D0 - ON, 0D0 - OFF
+cmodel  =
+   1D0     ! Weiland
+   1D0     ! DRIBM
+   1D0     ! ETG
+   1D0     ! ETGM
+   1D0     ! MTM  
+    
+!.. Weiland real options
+cW20 =
+   1D0     ! ExB shear coefficient
+   1D0     ! Momentum pinch scaling factor
+   0D0     ! Lower bound of electron thermal diffusivity
+   1D2     ! Upper bound of electron thermal diffusivity
+   0D0     ! Lower bound of ion thermal diffusivity
+   1D2     ! Upper bound of ion thermal diffusivity
+
+!.. DRIBM real options
+cDBM =
+   1D0     ! ExB shear coefficient
+   0.1D0   ! kyrhos
+   
+!.. MTM real options
+cMTM =
+   0.2D0   ! ky/kx for MTM
+   1.0D0   ! calibration factor
+   
+
+!.. ETG integer options
+lETG =
+   2       ! Jenko threshold
+           ! applied to both electrostatic and electromagnetic regimes
+
+!.. ETG real options
+cETG =
+   6D-2    ! CEES scale
+   6D-2    ! CEEM scale
+   
+!.. ETGM integer options
+lETGM =
+   1      ! Collisionless limit
+
+!.. ETGM real options
+cETGM =
+   0.0D0     ! ExB shear coefficient
+   0.330D0   ! kyrhos
+   0.250D0   ! kyrhoe
+   
+lprint   = 0      ! Verbose level\n\n'''
+
+def get_value_line(value):
+    return '   {:.12e}\n'.format(value)
+
+# Writes the input file used by the MMM driver
+def write_input_file(input_vars, input_options):
+    file_name = utils.get_mmm_path('input')
+    f = open(file_name, 'w')
+
+    # Write mmm header
+    f.write(MMM_HEADER.format(npoints=input_options.interp_points))
+
+    # Loop through mmm variables and write input file
+    mmm_var_list = input_vars.get_mmm_variables()
+    for var_name in mmm_var_list:
+        var = getattr(input_vars, var_name)
+        print(var.mmmvar, var_name)
+        f.write(MMM_LABELS[var_name] + '\n')
+        f.write('{0} = \n'.format(var.mmmvar))
+        values = var.values[:, input_options.time_idx]
+        for value in values:
+            f.write(get_value_line(value))
+        f.write('\n')
+
+if __name__ == '__main__':
+    pass
