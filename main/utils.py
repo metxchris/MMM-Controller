@@ -5,7 +5,7 @@ from os.path import exists, dirname
 import sys
 sys.path.insert(0, '../')
 # Local Packages
-import pdftk, output, temp, mmm, cdfs
+import pdftk, output, temp, cdfs
 
 # Returns the path to the CDF folder
 def get_cdf_path(file_name):
@@ -51,11 +51,18 @@ def check_filename(file_path):
 def open_file(file_path):
     os.startfile(file_path)
 
-# Deletes any pdf from the temp folder
+# Clears temporary files from the temp folder
 def clear_temp_folder():
+    # Clear individual pdf sheets
     temp_files = get_temp_path('*.pdf')
     for file in glob.glob(temp_files):
         os.remove(file)
+
+    # Clear input and output files for MMM Driver
+    if os.path.exists(get_temp_path('input')):
+        os.remove(get_temp_path('input'))
+    if os.path.exists(get_temp_path('output')):
+        os.remove(get_temp_path('output'))
 
 # Merge pdf sheets using pdftk in the temp folder into a single pdf and place in the output folder
 def merge_input_profile_sheets(input_options):

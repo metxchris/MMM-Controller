@@ -94,6 +94,8 @@ def make_plots(vars, input_options):
         'axes.unicode_minus': False
     })
 
+    print('Creating input profile figures...')
+
     # First figure
     fig, axs = init_subplots(input_options)
 

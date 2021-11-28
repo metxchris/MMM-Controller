@@ -99,7 +99,7 @@ lprint   = 0      ! Verbose level\n\n'''
 
 # Writes the input file used by the MMM driver
 def write_input_file(input_vars, input_options):
-    file_name = utils.get_mmm_path('input')
+    file_name = utils.get_temp_path('input')
     f = open(file_name, 'w')
 
     # Write mmm header
