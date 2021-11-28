@@ -134,6 +134,7 @@ input_profiles_*
 output/*
 temp/*
 mmm/*
+*.sublime*
 
 # Keep this at the bottom
 !*__init__.py

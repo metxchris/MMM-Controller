@@ -2,7 +2,7 @@
 import numpy as np
 # Local Packages
 from main import *
-from plots import plot_input_profiles, plot2d
+from plots import plot_profiles, plot2d
 
 def main(input_options):
     # Clear temp folder
@@ -23,7 +23,7 @@ def main(input_options):
     # TODO: add step to vary input_vars over a specified range
 
     # Plot input profiles being sent to the MMM driver and save as PDF
-    plot_input_profiles.make_plots(input_vars, input_options)
+    plot_profiles.plot_input_profiles(input_vars, input_options)
 
     # Write variables to input file for MMM Driver
     write_inputs.write_input_file(input_vars, input_options)
@@ -34,7 +34,8 @@ def main(input_options):
     # Read output variables from output file
     output_vars = read_output.read_output_file(input_options)
 
-    # TODO: Plot output profiles
+    # Plot output profiles
+    plot_profiles.plot_output_profiles(output_vars, input_options)
     
     # plot2d.plot(output_vars.rho.values, output_vars.xtiW20.values)
     # input_vars.print_nonzero_variables()

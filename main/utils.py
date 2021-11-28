@@ -66,16 +66,16 @@ def clear_temp_folder():
         os.remove(get_temp_path('output'))
 
 # Merge pdf sheets using pdftk in the temp folder into a single pdf and place in the output folder
-def merge_input_profile_sheets(input_options):
+def merge_profile_sheets(input_options, profile_type):
     create_directory(get_output_path(input_options.runid))
 
-    merged_name = '{0}\\{1} Input Profiles.pdf'.format(input_options.runid, input_options.runid)
+    merged_name = '{0}\\{1} {2} Profiles.pdf'.format(input_options.runid, input_options.runid, profile_type)
     output_file = check_filename(get_output_path(merged_name))
     temp_path = get_temp_path()
     pdftk_path = get_pdftk_path()
     
     # Shell command to use pdftk.exe
-    os.system('cd {0} & {1} *.pdf cat output \"{2}\"'.format(temp_path, pdftk_path, output_file))
+    os.system('cd {0} & {1} *{2}*.pdf cat output \"{3}\"'.format(temp_path, pdftk_path, profile_type, output_file))
 
     return output_file
 

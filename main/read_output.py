@@ -47,7 +47,8 @@ def read_output_file(input_options):
     output_vars.rho.set_variable(output_vars.rmin.values / output_vars.rmin.values[-1])
 
     # Save output data to csv
-    np.savetxt(utils.get_output_path('{0}\\{1} Output Profiles.csv'.format(input_options.cdf_name, input_options.cdf_name)), 
+    utils.create_directory(utils.get_output_path(input_options.runid))
+    np.savetxt(utils.get_output_path('{0}\\{1} Output Profiles.csv'.format(input_options.runid, input_options.runid)), 
         data_array, header=','.join(vars_list) + '\n' + ','.join(units_list), fmt='%.4e', delimiter=',')
 
     return output_vars
@@ -56,4 +57,5 @@ if __name__ == '__main__':
     # For testing purposes
     input_options = variables.InputOptions('132017T01', input_points=51)
     input_options.interp_points = input_options.input_points
+    input_options.runid = input_options.cdf_name
     read_output_file(input_options)
