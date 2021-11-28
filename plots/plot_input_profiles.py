@@ -1,6 +1,4 @@
 # Standard Packages
-from os.path import exists, dirname
-import os
 import sys
 sys.path.insert(0, '../')
 # 3rd Party Packages
@@ -161,9 +159,15 @@ def make_plots(vars, input_options):
     fig.savefig(utils.get_temp_path("input_profiles_3.pdf"))
 
     # Merge individual pdf sheets with pdftk
-    utils.merge_input_profile_sheets(input_options)
+    merged_pdf = utils.merge_input_profile_sheets(input_options)
 
-    # Show figures
+    # Open merged pdf (May only work on Windows)
+    utils.open_file(merged_pdf)
+
+    """
+    plt.show() can be used to view the individual MatPlotLib figures, 
+    but doing so pauses code execution until the figures are closed
+    """
     # plt.show()
 
 if __name__ == '__main__':

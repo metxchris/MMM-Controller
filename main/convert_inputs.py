@@ -113,7 +113,7 @@ def final_conversion(input_vars, input_options):
 
     # Single column arrays for interpolation
     xb = input_vars.xb.values[:, 0]
-    xb_mmm = np.arange(input_options.interp_points + 1) / input_options.interp_points
+    xb_mmm = np.arange(input_options.interp_points) / (input_options.interp_points - 1)
 
     # Get list of CDF variables to convert to the format needed for MMM
     full_var_list = input_vars.get_nonzero_variables()

@@ -133,6 +133,8 @@ cdfs/*.cdf
 input_profiles_*
 output/*
 temp/*
+mmm/*
 
 # Keep this at the bottom
 !*__init__.py
+!README.md

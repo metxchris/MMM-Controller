@@ -1,21 +1,16 @@
 # Standard Packages
-from os.path import exists, dirname
+from os.path import exists
 import sys
 sys.path.insert(0, '../')
 # 3rd Party Packages
 from netCDF4 import Dataset
 import numpy as np
 # Local Packages
-from main import variables
-import cdfs
-
-# Returns the path to the CDF folder
-def get_cdf_path(cdf_name):
-    return "{0}/{1}.CDF".format(dirname(cdfs.__file__), cdf_name)
+from main import variables, utils
 
 # Reads CDF variables specified by Variables().cdfname and a Variables() object
 def read_cdf(input_options, print_warnings=False):
-    cdf_file = get_cdf_path(input_options.cdf_name)
+    cdf_file = utils.get_cdf_path(input_options.cdf_name)
 
     # Check if file exists
     if not exists(cdf_file):
@@ -63,7 +58,7 @@ def read_cdf(input_options, print_warnings=False):
 
 # Print all variable names, descriptions, units, and dimensions in the CDF
 def print_cdf_variables(cdf_name):
-    cdf = Dataset(get_cdf_path(cdf_name))
+    cdf = Dataset(utils.get_cdf_path(cdf_name))
     cdf_vars = sorted(cdf.variables.keys())
 
     for var_name in cdf_vars:
@@ -73,7 +68,7 @@ def print_cdf_variables(cdf_name):
 
 # Print all dimension names and sizes in the CDF
 def print_cdf_dimensions(cdf_name):
-    cdf = Dataset(get_cdf_path(cdf_name))
+    cdf = Dataset(utils.get_cdf_path(cdf_name))
     cdf_dims = sorted(cdf.dimensions.keys())
 
     for dim_name in cdf_dims:
