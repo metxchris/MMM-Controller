@@ -167,12 +167,12 @@ class OutputVariables(Variables):
         self.dbsqprf = Variable('dbsqprf', label='dbsqprf')
 
 class Variable:
-    def __init__(self, name, cdfvar=None, mmmvar=None, smooth=None, label=None, desc=None, units=None, dimensions=None, values=None):
+    def __init__(self, name, cdfvar=None, smooth=None, label=None, desc=None, units=None, dimensions=None, values=None):
         # Public
         self.name = name
         self.cdfvar = cdfvar # Name of variable as used in CDF's
         self.smooth = smooth # None to disable smoothing, or n = 1, 2, 3, ...  
-        self.label = label if label is not None else '' # LaTeX Format
+        self.label = label if label is not None else '' # Plot label in LaTeX Format
         self.desc = desc if desc is not None else ''
         # Private
         self._units = units if units is not None else ''

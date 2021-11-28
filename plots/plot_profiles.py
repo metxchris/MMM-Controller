@@ -93,15 +93,15 @@ def set_rcparams():
     })
 
 def plot_input_profiles(vars, input_options):
+    set_rcparams()
+
+    print('Creating input profile figures...')
+
     # Get the index of the measurement time
     time_idx = input_options.time_idx
 
     # x-axis parameter
     rho = vars.rho.values[:, time_idx]
-
-    set_rcparams()
-
-    print('Creating input profile figures...')
 
     # First figure
     fig, axs = init_subplots(input_options, 'Input')
@@ -199,11 +199,11 @@ def plot_output_profiles(vars, input_options):
     set_axes_output_plots(axs[1, 1], vars.rho, vars.xtiDBM, vars.xdiDBM, vars.xteDBM)
     set_axes_style(axs[1, 1], r'xti, xdi, xte (DBM)', r'$\rho$', r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
 
-    set_axes_output_plots(axs[2, 0], vars.xteETG, vars.xteMTM)
+    set_axes_output_plots(axs[2, 0], vars.rho, vars.xteETG, vars.xteMTM)
     set_axes_style(axs[2, 0], r'xte, (ETG, MTM)', r'$\rho$', r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
 
     set_axes_output_plots(axs[2, 1], vars.rho, vars.xteETGM, vars.xdiETGM)
-    set_axes_style(axs[2, 1], r'xte, xdi (ETGM), ', r'$\rho$', r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
+    set_axes_style(axs[2, 1], r'xte, xdi (ETGM)', r'$\rho$', r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
 
     fig.savefig(utils.get_temp_path("output_profiles_1.pdf"))
 
@@ -222,7 +222,7 @@ def plot_output_profiles(vars, input_options):
     set_axes_output_plots(axs[1, 1], vars.rho, vars.gmaMTM, vars.omgMTM)
     set_axes_style(axs[1, 1], r'gma, omg (MTM)', r'$\rho$', r'$\left(\mathrm{s}^{-1}\right), (\mathrm{rad/s})$')
 
-    set_axes_output_plots(axs[2, 0], vars.gmaETGM, vars.omgETGM)
+    set_axes_output_plots(axs[2, 0], vars.rho, vars.gmaETGM, vars.omgETGM)
     set_axes_style(axs[2, 0], r'gma, omg (ETGM)', r'$\rho$', r'$\left(\mathrm{s}^{-1}\right), (\mathrm{rad/s})$')
 
     set_axes_output_plots(axs[2, 1], vars.rho, vars.dbsqprf)
