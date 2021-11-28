@@ -111,7 +111,7 @@ def write_input_file(input_vars, input_options):
 
         # Write label and variable
         f.write('{0}\n'.format(MMM_LABELS[var_name]))
-        f.write('{0} = \n'.format(var.mmmvar))
+        f.write('{0} = \n'.format(var_name))
 
         # Write all values for variable
         values = var.values[:, input_options.time_idx]

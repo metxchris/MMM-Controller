@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 
-def plot2d(x1, y1, x2=None, y2=None):
+def plot(x1, y1, x2=None, y2=None):
     plt.figure()
     plt.plot(x1,y1, 'b-', lw=2)
     if x2 is not None and y2 is not None:

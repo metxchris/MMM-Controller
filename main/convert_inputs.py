@@ -71,7 +71,7 @@ def convert_variable(cdf_var, xvals):
 # Calculates input variables for the MMM script from CDF data
 def initial_conversion(cdf_vars, input_options):
     # Input variables for MMM will be stored in new input_vars object
-    input_vars = variables.Variables()
+    input_vars = variables.InputVariables()
 
     # Copy independent variables
     input_vars.time = deepcopy(cdf_vars.time)

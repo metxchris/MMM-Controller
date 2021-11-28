@@ -23,7 +23,7 @@ def read_cdf(input_options, print_warnings=False):
     input_options.runid = cdf.Runid
 
     # Variables object to store CDF values
-    vars = variables.Variables()
+    vars = variables.InputVariables()
 
     # List all variables that have a specfied CDF variable name in the Variables class
     vars_to_get = vars.get_cdf_variables()

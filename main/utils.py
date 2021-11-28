@@ -34,6 +34,7 @@ def create_directory(dir_name):
 
 # Returns original file_path if no duplicate files exist
 # Otherwise appends (#) to the end of the file name to avoid overwritting a file
+# TODO: this fails when the path starts with any '.'
 def check_filename(file_path):
     if not os.path.exists(file_path):
         return file_path
