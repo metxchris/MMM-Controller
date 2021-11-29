@@ -14,7 +14,7 @@ def execute_basic_run(input_vars, input_options):
     # Run MMM driver to produce output file
     run_driver.run_mmm_driver(input_options)
 
-    # # Read output variables from output file and save values to a CSV
+    # Read output variables from output file and save values to a CSV
     output_vars = read_output.read_output_file(input_options)
 
     # Plot output profiles
@@ -98,8 +98,8 @@ if __name__ == '__main__':
     Set var_to_scan = None to skip the variable scan
     E.g.: var_to_scan = 'te'
     """
-    var_to_scan = None
-    scan_range = np.arange(start=0.6, stop=2.1, step=0.1)
+    var_to_scan = 'te'
+    scan_range = np.arange(start=0.5, stop=2.1, step=0.1)
 
     # Save Input Options
     input_options = variables.InputOptions(cdf_name, shot_type, input_time, input_points)
