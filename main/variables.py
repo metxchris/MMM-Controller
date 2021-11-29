@@ -266,6 +266,9 @@ class InputOptions:
         self._interp_points = None
         self._time = None
         self._time_idx = None
+        self._var_to_scan = None
+        self._scan_range = None
+        self._scan_factor_str = None
 
     @property
     def runid(self):
@@ -300,3 +303,35 @@ class InputOptions:
     def set_measurement_time(self, tvar):
         self._time_idx = np.argmin(np.abs(tvar.values - self.input_time))
         self._time = "{:.3f}".format(tvar.values[self.time_idx])
+
+    @property
+    def var_to_scan(self):
+        return self._var_to_scan
+
+    @property
+    def scan_range(self):
+        return self._scan_range
+
+    # Sets values needed for conducting a variable scan
+    def set_scan_values(self, var_to_scan, scan_range):
+        # Condition to skip variable scan
+        if var_to_scan is None:
+            return
+        # Error checking
+        elif not hasattr(InputVariables(), var_to_scan):
+            raise ValueError('Variable {0} is not a valid InputVariable to scan.  Please use a variable defined under InputVariable.')
+        elif type(scan_range) is not np.ndarray:
+            raise ValueError('Specified scan range must be a Numpy array (type np.ndarray')
+        # Set scan inputs
+        else:
+            self._var_to_scan = var_to_scan
+            self._scan_range = scan_range
+
+    @property
+    def scan_factor_str(self):
+        return self._scan_factor_str
+
+    @scan_factor_str.setter
+    def scan_factor_str(self, scan_factor_str):
+        self._scan_factor_str = '{:.3f}'.format(scan_factor_str)
+    

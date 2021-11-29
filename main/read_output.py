@@ -12,6 +12,27 @@ from main import utils, variables
 num_input_comment_lines = 4
 num_output_comment_lines = 3
 
+# Save output values to csv format
+def save_output_csv(data_array, vars_list, units_list, input_options):
+    # Set output directory for a basic run
+    if input_options.scan_factor_str is None:
+        output_dir = utils.get_output_path(input_options.runid)
+        file_name = '{0}\\{1} Output Profiles.csv'.format(output_dir, input_options.runid)
+    # Set output directory for a variable scan (creates an additional sub folder)
+    else:
+        output_dir = utils.get_output_path('{0}\\{1}'.format(input_options.runid, input_options.var_to_scan))
+        file_name = '{0}\\{1} = {2}.csv'.format(output_dir, input_options.var_to_scan, input_options.scan_factor_str)
+
+    utils.create_directory(output_dir)
+
+    # When doing a variable scan, clear output directory at the start of each scan
+    if input_options.scan_factor_str is not None and float(input_options.scan_factor_str) == input_options.scan_range.min():
+        utils.clear_folder(output_dir, '*.csv')
+
+    # Save output data to csv
+    csv_header = ','.join(vars_list) + '\n' + ','.join(units_list)
+    np.savetxt(file_name, data_array, header=csv_header, fmt='%.4e', delimiter=',')
+
 # Read output file from MMM driver and store values to OutputVariables object
 def read_output_file(input_options):
     output_vars = variables.OutputVariables()
@@ -46,10 +67,7 @@ def read_output_file(input_options):
     # Calculate and save rho
     output_vars.rho.set_variable(output_vars.rmin.values / output_vars.rmin.values[-1])
 
-    # Save output data to csv
-    utils.create_directory(utils.get_output_path(input_options.runid))
-    np.savetxt(utils.get_output_path('{0}\\{1} Output Profiles.csv'.format(input_options.runid, input_options.runid)), 
-        data_array, header=','.join(vars_list) + '\n' + ','.join(units_list), fmt='%.4e', delimiter=',')
+    save_output_csv(data_array, vars_list, units_list, input_options)
 
     return output_vars
 

@@ -48,9 +48,30 @@ def check_filename(file_path):
     # Throw an exception if this many duplicate files exist
     raise NameError('Too many duplicate files exist to save {0}'.format(file_path))
 
+# Returns original dir_path if no duplicate directories exist
+# Otherwise appends (#) to the end of the dir name to avoid adding files to an existing directory
+def check_dirname(dir_path):
+    if not os.path.isdir(dir_path):
+        return dir_path
+
+    for i in range(2, 1000):
+        new_dir_path = '{0} ({1})'.format(dir_path, i)
+        if not os.path.isdir(new_dir_path):
+            return new_dir_path
+
+    # Throw an exception if this many duplicate files exist
+    raise NameError('Too many duplicate directories exist to save directory {0}'.format(dir_path))
+
 # Opens the output pdf (likely only works on Windows)
 def open_file(file_path):
     os.startfile(file_path)
+
+# Clears all files in a specified folder of the specified file_type
+def clear_folder(dir_path, file_type):
+    folder = '{0}\\{1}'.format(dir_path, file_type)
+    for file in glob.glob(folder):
+        os.remove(file)
+    print('Cleared all files of type {0} from {1}\n'.format(file_type, dir_path))
 
 # Clears temporary files from the temp folder
 def clear_temp_folder():
@@ -76,6 +97,8 @@ def merge_profile_sheets(input_options, profile_type):
     
     # Shell command to use pdftk.exe
     os.system('cd {0} & {1} *{2}*.pdf cat output \"{3}\"'.format(temp_path, pdftk_path, profile_type, output_file))
+
+    print('Profiles saved to {0}\n'.format(output_file))
 
     return output_file
 
