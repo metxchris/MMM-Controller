@@ -10,11 +10,11 @@ from main import constants, utils
 import settings
 
 # Formatting list for plot lines
-LINE_FORMATS = [{'color': constants.BLUE, 'ls': '-', 'lw': 1.5},
+LINE_FORMATS = [{'color': constants.BLUE, 'ls': '-', 'lw': 1.75},
                 {'color': constants.RED, 'ls': '-.', 'lw': 1.5},
                 {'color': constants.GREEN, 'ls': '--', 'lw': 1.5},
-                {'color': constants.PURPLE, 'ls': ':', 'lw': 2},
-                {'color': constants.ORANGE, 'ls': '-.', 'lw': 1.75},
+                {'color': constants.ORANGE, 'ls': ':', 'lw': 2},
+                {'color': constants.PURPLE, 'ls': '-.', 'lw': 1.75},
                 {'color': constants.YELLOW, 'ls': '--', 'lw': 1.75}]
 
 def init_subplots(input_options, profile_type):
@@ -200,7 +200,7 @@ def plot_output_profiles(vars, input_options):
     set_axes_style(axs[1, 1], r'xti, xdi, xte (DBM)', r'$\rho$', r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
 
     set_axes_output_plots(axs[2, 0], vars.rho, vars.xteETG, vars.xteMTM)
-    set_axes_style(axs[2, 0], r'xte, (ETG, MTM)', r'$\rho$', r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
+    set_axes_style(axs[2, 0], r'xte (ETG, MTM)', r'$\rho$', r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
 
     set_axes_output_plots(axs[2, 1], vars.rho, vars.xteETGM, vars.xdiETGM)
     set_axes_style(axs[2, 1], r'xte, xdi (ETGM)', r'$\rho$', r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
