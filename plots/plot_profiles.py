@@ -17,6 +17,9 @@ LINE_FORMATS = [{'color': constants.BLUE, 'ls': '-', 'lw': 1.75},
                 {'color': constants.PURPLE, 'ls': '-.', 'lw': 1.75},
                 {'color': constants.YELLOW, 'ls': '--', 'lw': 1.75}]
 
+# Subplot row and column counts
+ROWS, COLS = 3, 2
+
 def init_subplots(input_options, profile_type):
     runid = input_options.runid
     shot_type = input_options.shot_type
@@ -24,7 +27,7 @@ def init_subplots(input_options, profile_type):
     points = input_options.interp_points
 
     # Init figure and subplots
-    fig, axs = plt.subplots(3, 2)
+    fig, axs = plt.subplots(ROWS, COLS)
     fig.set_size_inches(8.5, 11)
 
     # Set plot layout properties (property values chosen for the saved PDF and not for the shown figure)
@@ -94,6 +97,7 @@ def set_rcparams():
 
 def plot_input_profiles(vars, input_options):
     set_rcparams()
+    rows, cols = 3, 2
 
     print('Creating input profile figures...')
 
@@ -109,7 +113,7 @@ def plot_input_profiles(vars, input_options):
     set_axes_input_plots(axs[0, 0], time_idx, rho, vars.te, vars.ti, vars.q)
     set_axes_style(axs[0, 0], r'Temperatures, Safety Factor', r'$\rho$', r'$q, T$ (keV)')
 
-    set_axes_input_plots(axs[0, 1], time_idx, rho, vars.ne, vars.ni, vars.nf, vars.nz)
+    set_axes_input_plots(axs[0, 1], time_idx, rho, vars.ne, vars.ni, vars.nf, vars.nz, vars.nd, vars.nh)
     set_axes_style(axs[0, 1], r'Densities', r'$\rho$', r'$\left(\mathrm{m}^{-3}\right)$')
 
     set_axes_input_plots(axs[1, 0], time_idx, rho, vars.gte, vars.gti, vars.gq)
@@ -181,6 +185,9 @@ def plot_input_profiles(vars, input_options):
     """
     # plt.show()
 
+    # Clear plots from memory
+    plt.close('all')
+
 def plot_output_profiles(vars, input_options):
     set_rcparams()
 
@@ -244,6 +251,9 @@ def plot_output_profiles(vars, input_options):
     """
     # plt.show()
 
+    # Clear plots from memory
+    plt.close('all')
+
 # Compares profiles of calculated values with values found in the CDF
 def plot_profile_comparison(cdf_vars, input_vars, input_options):
 
@@ -260,10 +270,8 @@ def plot_profile_comparison(cdf_vars, input_vars, input_options):
     time_idx = input_options.time_idx
 
     # x-axis parameter
-    rho = input_vars.rho.values[:, time_idx]
-
-    # Subplot row and column count
-    plot_rows, plot_cols = 3, 2
+    rho_values = input_vars.rho.values[:, time_idx]
+    rho_label = input_vars.rho.label
 
     # Loop counter
     i = 0
@@ -281,8 +289,8 @@ def plot_profile_comparison(cdf_vars, input_vars, input_options):
         calc_var.label += ' (Calc)'
 
         # Logic to count (row, col) in binary; (0, 0), (0, 1), (1, 0), etc.
-        row = int(i / plot_cols) % plot_rows
-        col = i % plot_cols
+        row = int(i / COLS) % ROWS
+        col = i % COLS
 
         # Create a new figure when we're on the first subplot
         if row == 0 and col == 0:
@@ -294,18 +302,18 @@ def plot_profile_comparison(cdf_vars, input_vars, input_options):
                     ax.axis('off')
 
         # Create subplot and enable axis
-        set_axes_input_plots(axs[row, col], time_idx, rho, cdf_var, calc_var)
-        set_axes_style(axs[row, col], cdf_var.name, r'$\rho$', cdf_var.units)
+        set_axes_input_plots(axs[row, col], time_idx, rho_values, cdf_var, calc_var)
+        set_axes_style(axs[row, col], cdf_var.name, rho_label, cdf_var.units)
         axs[row, col].axis('on')
 
         i += 1
 
         # Figure is full of subplots, so save the sheet
-        if i % (plot_rows * plot_cols) == 0:
+        if i % (ROWS * COLS) == 0:
             fig.savefig(utils.get_temp_path("compared_profiles_{0}.pdf".format(int(i / 6))))
 
     # Save any remaining subplots to one final sheet
-    if i % (plot_rows * plot_cols) != 0:
+    if i % (ROWS * COLS) != 0:
         fig.savefig(utils.get_temp_path("compared_profiles_{0}.pdf".format(int(i / 6) + 1)))
 
     # Merge individual pdf sheets with pdftk
@@ -313,6 +321,9 @@ def plot_profile_comparison(cdf_vars, input_vars, input_options):
 
     # Open merged pdf (May only work on Windows)
     utils.open_file(merged_pdf)
+
+    # Clear plots from memory
+    plt.close('all')
 
 if __name__ == '__main__':
     pass

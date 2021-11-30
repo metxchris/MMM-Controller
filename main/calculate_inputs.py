@@ -29,6 +29,15 @@ def nh(vars):
 
     vars.nh.set_variable(nh, vars.ne.units, ['XBO', 'TIME'])
 
+# Thermal Ion Density
+def ni(vars):
+    ne = vars.ne.values
+    nd = vars.nd.values
+    
+    ni = ne + nd
+
+    vars.ni.set_variable(ni, vars.ne.units, ['XBO', 'TIME'])
+
 # AIMASS
 def aimass(vars):
     nh = vars.nh.values
@@ -366,6 +375,7 @@ def calculate_inputs(vars):
     # Some calculations depend on values from previous calculations
     calculate_variable(vpol, vars)
     calculate_variable(nh, vars)
+    calculate_variable(ni, vars)
     calculate_variable(aimass, vars)
     calculate_variable(ahyd, vars)
     calculate_variable(rmin, vars)

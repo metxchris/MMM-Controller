@@ -74,7 +74,7 @@ class InputVariables(Variables):
         self.eps = Variable('Inverse Aspect Ratio')
         self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$')
         self.etai = Variable('Ion Gradient Ratio', cdfvar='ETAI', label=r'$\eta_\mathrm{\,i}$')
-        self.etaih = Variable('Hydrogenic Gradient Ratio', cdfvar='ETAI', label=r'$\eta_\mathrm{\,ih}$')
+        self.etaih = Variable('Hydrogenic Gradient Ratio', cdfvar='ETAIH', label=r'$\eta_\mathrm{\,ih}$')
         self.nh = Variable('Hydrogenic Ion Density', cdfvar='NH', smooth=1, label=r'$n_\mathrm{h}$')
         self.nuei = Variable('Collision Frequency')
         self.nuei2 = Variable('NUEI2')

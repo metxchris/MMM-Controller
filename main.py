@@ -60,8 +60,8 @@ def execute_profile_comparison(input_options):
     cdf_vars = read_cdf.read_cdf(input_options)
 
     # Initial conversion of variables from CDF format to MMM format
-    cdf_vars = convert_inputs.initial_conversion(cdf_vars, input_options)
-    input_vars = deepcopy(cdf_vars)
+    input_vars = convert_inputs.initial_conversion(cdf_vars, input_options)
+    cdf_vars = deepcopy(input_vars)
 
     # Calculate new variables from CDF variables
     calculate_inputs.calculate_inputs(input_vars)
