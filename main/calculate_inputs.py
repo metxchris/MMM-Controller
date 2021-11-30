@@ -1,5 +1,5 @@
 # Standard Packages
-from copy import deepcopy
+import inspect
 import sys
 sys.path.insert(0, '../')
 # 3rd Party Packages
@@ -308,6 +308,14 @@ def etai(vars):
 
     vars.etai.set_variable(etai, '', ['XBO', 'TIME'])
 
+def etaih(vars):
+    gti = vars.gti.values
+    gnh = vars.gnh.values
+
+    etaih = gti / gnh
+
+    vars.etaih.set_variable(etaih, '', ['XBO', 'TIME'])
+
 def calculate_gradient(gvar_name, var_name, drmin, vars):
     rmaj = vars.rmaj.values
     x = vars.x.values[:, 0]
@@ -402,6 +410,11 @@ def calculate_inputs(vars):
     calculate_variable(alphamhd, vars)
     calculate_variable(etae, vars)
     calculate_variable(etai, vars)
+    calculate_variable(etaih, vars)
+
+# Returns function names of calculated variables in this module, other than gradient calculations
+def get_calculated_vars():
+    return [o[0] for o in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(o[1]) and not 'calculate' in o[0]]
 
 if __name__ == '__main__':
     pass

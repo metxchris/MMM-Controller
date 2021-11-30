@@ -69,6 +69,8 @@ def read_output_file(input_options):
 
     save_output_csv(data_array, vars_list, units_list, input_options)
 
+    #TODO: Save input vars as well to CSV
+
     return output_vars
 
 if __name__ == '__main__':

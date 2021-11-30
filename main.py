@@ -4,7 +4,7 @@ from copy import deepcopy
 import numpy as np
 # Local Packages
 from main import *
-from plots import plot_profiles
+from plots import plot_profiles, plot2d
 
 # Run the MMM Driver once, and show output profile plots
 def execute_basic_run(input_vars, input_options):
@@ -34,11 +34,9 @@ def execute_variable_scan(input_vars, input_options):
         print('Executing variable scan {0} of {1} for variable {2}'
             .format(i + 1, len(input_options.scan_range), input_options.var_to_scan))
 
-        # Modifiy values of variable being scanned.
+        # Modifiy values of variable being scanned, and store the scan_factor.
         # Note: We are intentionally not recalculating dependent variables in this step
         scanned_var.set_variable(scan_factor * base_var.values)
-
-        # Store current scan factor for output csv filename
         input_options.scan_factor_str = scan_factor
 
         # Write modified variables to input file for MMM Driver
@@ -53,6 +51,25 @@ def execute_variable_scan(input_vars, input_options):
     # TODO: Plot results of variable scan
 
     print('Variable scan complete!')
+
+def execute_profile_comparison(input_options):
+    # Clear temp folder
+    utils.clear_temp_folder()
+
+    # Read variables from specified CDF
+    cdf_vars = read_cdf.read_cdf(input_options)
+
+    # Initial conversion of variables from CDF format to MMM format
+    cdf_vars = convert_inputs.initial_conversion(cdf_vars, input_options)
+    input_vars = deepcopy(cdf_vars)
+
+    # Calculate new variables from CDF variables
+    calculate_inputs.calculate_inputs(input_vars)
+
+    plot_profiles.plot_profile_comparison(cdf_vars, input_vars, input_options)
+
+    # cdf_vars.nh.values *= 10**5
+    # plot2d.plot(input_options, cdf_vars.xb, cdf_vars.nh, r' (NH $\times 10^5$)', input_vars.xb, input_vars.nh)
 
 # Initializes all input variables needed to run the MMM Driver
 def initialize_controller(input_options):
@@ -107,3 +124,6 @@ if __name__ == '__main__':
 
     # Run MMM Controller
     initialize_controller(input_options)
+
+    # (Optional) Compare calculated profiles with those found in the CDF
+    execute_profile_comparison(input_options)

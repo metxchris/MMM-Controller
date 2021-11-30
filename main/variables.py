@@ -36,60 +36,61 @@ class InputVariables(Variables):
     def __init__(self):
         # CDF Independent Variables
         self.time = Variable('Time', cdfvar='TIME') # TODO: What is TIME3 in CDF?
-        self.x = Variable('X', cdfvar='X')
-        self.xb = Variable('XB', cdfvar='XB')
+        self.x = Variable('X', cdfvar='X', label=r'$x$')
+        self.xb = Variable('XB', cdfvar='XB', label=r'$x_\mathrm{B}$')
 
-        # CDF Variables
-        self.aimp = Variable('AIMP', cdfvar='AIMP', smooth=1)
+        # CDF Variables needed for calculations
+        self.aimp = Variable('AIMP', cdfvar='AIMP', label=r'$\overline{M}_\mathrm{imp}$', smooth=1)
         self.arat = Variable('Aspect Ratio', cdfvar='ARAT', smooth=1)
         self.bz = Variable('BZ', cdfvar='BZ', smooth=1)
         self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=1)
         self.omega = Variable('OMEGA', cdfvar='OMEGA', smooth=1)
-        self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', smooth=2)
+        self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', smooth=1)
         self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', smooth=1)
         self.nd = Variable('ND', cdfvar='ND', label=r'$n_d$', smooth=1)
-        self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', smooth=2)
-        self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', smooth=2)
-        self.pcur = Variable('PCUR', cdfvar='PCUR', smooth=1)
+        self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', smooth=1)
+        self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', smooth=1)
         self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', smooth=2)
-        self.rmaj = Variable('Major Radius', cdfvar='RMJMP', smooth=None)
-        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', smooth=2)
+        self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$', smooth=None)
+        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', smooth=1)
         self.tepro = Variable('Electron Temperature', cdfvar='TEPRO', label=r'$T_\mathrm{e}$', smooth=1)
-        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI',label=r'$T_\mathrm{i}$', smooth=2)
+        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI',label=r'$T_\mathrm{i}$', smooth=1)
         self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO', label=r'$T_\mathrm{i}$', smooth=1)
-        self.triang = Variable('TRIANG', cdfvar='TRIANG', smooth=1)
         self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=1)
         self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC', smooth=1)
         self.wexbs = Variable('ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$', smooth=1)
-        self.zimp = Variable('Mean Charge of Impurities', cdfvar='XZIMP', smooth=1)
+        self.zimp = Variable('Mean Charge of Impurities', cdfvar='XZIMP', label=r'$\overline{Z}_\mathrm{imp}$', smooth=1)
+
+        # Additional CDF variables for comparisons
+        self.betat = Variable('BETAT', cdfvar='BETAT', smooth=1)
 
         # Calculated Variables (some are also in the CDF)
-        # TODO: Check that calculated values match CDF values
-        self.aimass = Variable('Thermal Ion Mean Atomic Mass')
-        self.ahyd = Variable('Hydrogenic Ion Mean Atomic Mass')
+        self.aimass = Variable('Thermal Ion Mean Atomic Mass', label=r'$\overline{M}_\mathrm{i}$')
+        self.ahyd = Variable('Hydrogenic Ion Mean Atomic Mass', label=r'$\overline{M}_\mathrm{h}$')
         self.alphamhd = Variable('Alpha_MHD', label=r'$\alpha_\mathrm{MHD}$')
-        self.beta = Variable('Pressure Ratio', label=r'$\beta$')
-        self.betae = Variable('Electron Pressure Ratio', label=r'$\beta_\mathrm{\,e}$') # cdfvar='BETAE'
-        self.btor = Variable('Toroidal Magnetic Field')
+        self.beta = Variable('Pressure Ratio', cdfvar='BETAT', label=r'$\beta$')
+        self.betae = Variable('Electron Pressure Ratio', cdfvar='BETAE', label=r'$\beta_\mathrm{\,e}$') 
+        self.btor = Variable('Toroidal Magnetic Field', label=r'$B_\mathrm{T}$')
         self.eps = Variable('Inverse Aspect Ratio')
-        self.etae = Variable('Electron Gradient Ratio', label=r'$\eta_\mathrm{\,e}$')
-        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$')
-        self.nh = Variable('Hydrogenic Ion Density', smooth=1, label=r'$n_\mathrm{h}$') # cdfvar='NH'
+        self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$')
+        self.etai = Variable('Ion Gradient Ratio', cdfvar='ETAI', label=r'$\eta_\mathrm{\,i}$')
+        self.etaih = Variable('Hydrogenic Gradient Ratio', cdfvar='ETAI', label=r'$\eta_\mathrm{\,ih}$')
+        self.nh = Variable('Hydrogenic Ion Density', cdfvar='NH', smooth=1, label=r'$n_\mathrm{h}$')
         self.nuei = Variable('Collision Frequency')
         self.nuei2 = Variable('NUEI2')
-        self.nuste = Variable('Electron Collisionality', label=r'$\nu^{*}_\mathrm{e}$') # cdfvar='NUSTE'
-        self.nusti = Variable('Ion Collisionality', label=r'$\nu^{*}_\mathrm{i}$') # cdfvar='NUSTI'
-        self.p = Variable('Plasma Pressure') # cdfvar='PPLAS'
+        self.nuste = Variable('Electron Collisionality', cdfvar='NUSTE', label=r'$\nu^{*}_\mathrm{e}$')
+        self.nusti = Variable('Ion Collisionality', cdfvar='NUSTI', label=r'$\nu^{*}_\mathrm{i}$')
+        self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$') 
         self.raxis = Variable('RAXIS')
         self.rho = Variable('Radius', label=r'$\rho$')
-        self.rmin = Variable('Minor Radius')
-        self.shat = Variable('Effective Magnetic Shear', label=r'$\hat{s}$') # cdfvar='SHAT'
+        self.rmin = Variable('Minor Radius', label=r'$r$')
+        self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$')
         self.shear = Variable('Magnetic Shear', label=r'$s$')
         self.vpar = Variable('Parallel Velocity')
         self.vpol = Variable('Poloidal Velocity', label=r'$v_\theta$')
         self.vtor = Variable('Toroidal Velocity', label=r'$v_\phi$')
         self.tau = Variable('Temperature Ratio', label=r'$\tau$')
-        self.zeff = Variable('Effective Charge') # cdfvar='ZEFF'
+        self.zeff = Variable('Effective Charge', cdfvar='ZEFF', label=r'$Z_\mathrm{eff}$')
         self.zgmax = Variable('ZGMAX')
         self.zgyrfi = Variable('Ion Gyrofrequency')
         self.zlog = Variable('Coulomb Logarithm')
@@ -334,4 +335,3 @@ class InputOptions:
     @scan_factor_str.setter
     def scan_factor_str(self, scan_factor_str):
         self._scan_factor_str = '{:.3f}'.format(scan_factor_str)
-    

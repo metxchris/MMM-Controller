@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 from matplotlib.ticker import ScalarFormatter
 # Local Packages
-from main import constants, utils
+from main import constants, utils, calculate_inputs
 import settings
 
 # Formatting list for plot lines
@@ -110,19 +110,19 @@ def plot_input_profiles(vars, input_options):
     set_axes_style(axs[0, 0], r'Temperatures, Safety Factor', r'$\rho$', r'$q, T$ (keV)')
 
     set_axes_input_plots(axs[0, 1], time_idx, rho, vars.ne, vars.ni, vars.nf, vars.nz)
-    set_axes_style(axs[0, 1], r'Densities', r'$\rho$', r'$n$ $\left(\mathrm{N/m}^3\right)$')
+    set_axes_style(axs[0, 1], r'Densities', r'$\rho$', r'$\left(\mathrm{m}^{-3}\right)$')
 
     set_axes_input_plots(axs[1, 0], time_idx, rho, vars.gte, vars.gti, vars.gq)
-    set_axes_style(axs[1, 0], r'Temperatures, Safety Factor Gradients', r'$\rho$', r'$g$')
+    set_axes_style(axs[1, 0], r'Temperatures, Safety Factor Gradients', r'$\rho$', r'')
 
     set_axes_input_plots(axs[1, 1], time_idx, rho, vars.gne, vars.gni, vars.gnz)
-    set_axes_style(axs[1, 1], r'Density Gradients', r'$\rho$', r'$g$')
+    set_axes_style(axs[1, 1], r'Density Gradients', r'$\rho$', r'')
 
     set_axes_input_plots(axs[2, 0], time_idx, rho, vars.wexbs)
     set_axes_style(axs[2, 0], r'$E \times B$ Shear Rate', r'$\rho$', r'(rad/s)')
 
     set_axes_input_plots(axs[2, 1], time_idx, rho, vars.elong)
-    set_axes_style(axs[2, 1], r'Elongation', r'$\rho$', '')
+    set_axes_style(axs[2, 1], r'Elongation', r'$\rho$', r'')
 
     fig.savefig(utils.get_temp_path("input_profiles_1.pdf"))
 
@@ -130,22 +130,22 @@ def plot_input_profiles(vars, input_options):
     fig, axs = init_subplots(input_options, 'Input')
 
     set_axes_input_plots(axs[0, 0], time_idx, rho, vars.tau)
-    set_axes_style(axs[0, 0], r'Temperatures Ratio', r'$\rho$', r'$\tau$')
+    set_axes_style(axs[0, 0], r'Temperatures Ratio', r'$\rho$', r'')
 
     set_axes_input_plots(axs[0, 1], time_idx, rho, vars.beta, vars.betae)
-    set_axes_style(axs[0, 1], r'Plasma Betas', r'$\rho$', r'$\beta$')
+    set_axes_style(axs[0, 1], r'Plasma Betas', r'$\rho$', r'$(\%)$')
 
     set_axes_input_plots(axs[1, 0], time_idx, rho, vars.etae, vars.etai)
-    set_axes_style(axs[1, 0], r'Gradient Ratios', r'$\rho$', r'$\eta$')
+    set_axes_style(axs[1, 0], r'Gradient Ratios', r'$\rho$', r'')
 
     set_axes_input_plots(axs[1, 1], time_idx, rho, vars.nuste, vars.nusti)
-    set_axes_style(axs[1, 1], r'Collisionalities', r'$\rho$', r'$\nu$')
+    set_axes_style(axs[1, 1], r'Collisionalities', r'$\rho$', r'')
 
     set_axes_input_plots(axs[2, 0], time_idx, rho, vars.shear, vars.shat)
-    set_axes_style(axs[2, 0], r'Magnetic Shear', r'$\rho$', r'$s$')
+    set_axes_style(axs[2, 0], r'Magnetic Shear', r'$\rho$', r'')
 
     set_axes_input_plots(axs[2, 1], time_idx, rho, vars.alphamhd)
-    set_axes_style(axs[2, 1], r'MHD Alpha', r'$\rho$', r'$\alpha_\mathrm{MHD}$')
+    set_axes_style(axs[2, 1], r'MHD Alpha', r'$\rho$', r'')
 
     fig.savefig(utils.get_temp_path("input_profiles_2.pdf"))
 
@@ -153,15 +153,17 @@ def plot_input_profiles(vars, input_options):
     fig, axs = init_subplots(input_options, 'Input')
 
     set_axes_input_plots(axs[0, 0], time_idx, rho, vars.vpol)
-    set_axes_style(axs[0, 0], r'Poloidal Velocity', r'$\rho$', r'$\nu$ (m/s)')
+    set_axes_style(axs[0, 0], r'Poloidal Velocity', r'$\rho$', r'(m/s)')
 
-    set_axes_input_plots(axs[0, 1], time_idx, rho, vars.vtor)
-    set_axes_style(axs[0, 1], r'Toroidal Velocity', r'$\rho$', r'$\nu$ (m/s)')
+    set_axes_input_plots(axs[0, 1], time_idx, rho, vars.gvpol)
+    set_axes_style(axs[0, 1], r'Poloidal Velocity Gradient', r'$\rho$', r'')
 
-    set_axes_input_plots(axs[1, 0], time_idx, rho, vars.gvpol, vars.gvtor)
-    set_axes_style(axs[1, 0], r'Velocity Gradients', r'$\rho$', r'$g$')
+    set_axes_input_plots(axs[1, 0], time_idx, rho, vars.vtor)
+    set_axes_style(axs[1, 0], r'Toroidal Velocity', r'$\rho$', r'(m/s)')
 
-    axs[1, 1].axis('off')
+    set_axes_input_plots(axs[1, 1], time_idx, rho, vars.gvtor)
+    set_axes_style(axs[1, 1], r'Toroidal Velocity Gradient', r'$\rho$', r'')
+
     axs[2, 0].axis('off')
     axs[2, 1].axis('off')
 
@@ -188,7 +190,7 @@ def plot_output_profiles(vars, input_options):
     fig, axs = init_subplots(input_options, 'Output')
 
     set_axes_output_plots(axs[0, 0], vars.rho, vars.xti, vars.xdi, vars.xte, vars.xdz)
-    set_axes_style(axs[0, 0], r'xti, xdi, xte, xdz', r'$\rho$', r'(m/s)')
+    set_axes_style(axs[0, 0], r'xti, xdi, xte, xdz', r'$\rho$', r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
 
     set_axes_output_plots(axs[0, 1], vars.rho, vars.xvt, vars.xvp)
     set_axes_style(axs[0, 1], r'xvt, xvp', r'$\rho$', r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
@@ -241,6 +243,76 @@ def plot_output_profiles(vars, input_options):
     but doing so pauses code execution until the figures are closed
     """
     # plt.show()
+
+# Compares profiles of calculated values with values found in the CDF
+def plot_profile_comparison(cdf_vars, input_vars, input_options):
+
+    # Get list of variables that are both calculated in calculate_inputs and listed in the CDF
+    calculated_vars_list = calculate_inputs.get_calculated_vars()
+    cdf_var_list = cdf_vars.get_cdf_variables()
+    var_compare_list = [var for var in calculated_vars_list if var in cdf_var_list]
+
+    set_rcparams()
+
+    print('Creating profile comparison figures...')
+
+    # Get the index of the measurement time
+    time_idx = input_options.time_idx
+
+    # x-axis parameter
+    rho = input_vars.rho.values[:, time_idx]
+
+    # Subplot row and column count
+    plot_rows, plot_cols = 3, 2
+
+    # Loop counter
+    i = 0
+
+    for var_name in var_compare_list:
+
+        cdf_var =  getattr(cdf_vars, var_name)
+        calc_var = getattr(input_vars, var_name)
+
+        # Skip this variable if there are any issues
+        if cdf_var.values is None or cdf_var.values.ndim != calc_var.values.ndim:
+            continue
+
+        cdf_var.label += ' ({0})'.format(cdf_var.cdfvar)
+        calc_var.label += ' (Calc)'
+
+        # Logic to count (row, col) in binary; (0, 0), (0, 1), (1, 0), etc.
+        row = int(i / plot_cols) % plot_rows
+        col = i % plot_cols
+
+        # Create a new figure when we're on the first subplot
+        if row == 0 and col == 0:
+            fig, axs = init_subplots(input_options, 'Compared')
+
+            # Disable all subplot axes until they are used
+            for sub_axs in axs:
+                for ax in sub_axs:
+                    ax.axis('off')
+
+        # Create subplot and enable axis
+        set_axes_input_plots(axs[row, col], time_idx, rho, cdf_var, calc_var)
+        set_axes_style(axs[row, col], cdf_var.name, r'$\rho$', cdf_var.units)
+        axs[row, col].axis('on')
+
+        i += 1
+
+        # Figure is full of subplots, so save the sheet
+        if i % (plot_rows * plot_cols) == 0:
+            fig.savefig(utils.get_temp_path("compared_profiles_{0}.pdf".format(int(i / 6))))
+
+    # Save any remaining subplots to one final sheet
+    if i % (plot_rows * plot_cols) != 0:
+        fig.savefig(utils.get_temp_path("compared_profiles_{0}.pdf".format(int(i / 6) + 1)))
+
+    # Merge individual pdf sheets with pdftk
+    merged_pdf = utils.merge_profile_sheets(input_options, 'Compared')
+
+    # Open merged pdf (May only work on Windows)
+    utils.open_file(merged_pdf)
 
 if __name__ == '__main__':
     pass

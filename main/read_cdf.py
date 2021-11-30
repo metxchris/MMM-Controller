@@ -35,7 +35,7 @@ def read_cdf(input_options, print_warnings=False):
             values = np.array(cdf.variables[getattr(vars, var).cdfvar][:].T)
 
             # Not all values in the CDF are arrays
-            getattr(vars, var).values = values[:]
+            getattr(vars, var).values = values[:] if values.size > 1 else values
 
             # Store units of values and strip extra whitespace
             getattr(vars, var).units = (cdf.variables[getattr(vars, var).cdfvar].units).strip()
@@ -77,7 +77,7 @@ def print_cdf_dimensions(cdf_name):
 
 if __name__ == '__main__':
     # For testing purposes
-    cdf_name = '132017T01'
+    cdf_name = '129041A10'
     read_cdf(variables.InputOptions(cdf_name), True)
     print_cdf_dimensions(cdf_name)
     print_cdf_variables(cdf_name)
