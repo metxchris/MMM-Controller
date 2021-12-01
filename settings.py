@@ -6,7 +6,7 @@ CYGWIN_HOME_PATH = 'C:/cygwin64/home/metxc/' # MUST USE FORWARDSLASHES
 MMM_DRIVER_PATH = './mmm/mmm7_2/test/mmmrun' # MUST USE FORWARDSLASHES
 
 # Killswitch to disable smoothing on all variables
-APPLY_SMOOTHING = True
+APPLY_SMOOTHING = False
 
 # Killswitch to disable outlier removal on all variables
 REMOVE_OUTLIERS = False

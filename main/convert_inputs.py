@@ -57,8 +57,8 @@ def convert_variable(cdf_var, xvals):
         var.set_xdim('XBO')
     # Interpolate/Extrapolate variable from X or XB to XBO using a cubic spline
     elif xdim in ['X', 'XB']:
-        set_interp = interp1d(getattr(xvals, xdim.lower()), var.values.T, kind='cubic', fill_value="extrapolate")
-        var.set_variable(set_interp(xvals.xbo).T)
+        set_interp = interp1d(getattr(xvals, xdim.lower()), var.values, kind='cubic', fill_value="extrapolate", axis=0)
+        var.set_variable(set_interp(xvals.xbo))
         var.set_xdim('XBO')
     else:
         print('[initial_conversion] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
@@ -126,8 +126,8 @@ def final_conversion(input_vars, input_options):
     for var in full_var_list:
         input_var = getattr(input_vars, var)
         if input_var.values is not None:
-            set_interp = interp1d(xb, input_var.values.T, kind='cubic', fill_value="extrapolate")
-            input_var.set_variable(set_interp(xb_mmm).T)
+            set_interp = interp1d(xb, input_var.values, kind='cubic', fill_value="extrapolate", axis=0)
+            input_var.set_variable(set_interp(xb_mmm))
         else:
             print('error: ', input_vars)
 

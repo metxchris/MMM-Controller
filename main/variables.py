@@ -75,6 +75,7 @@ class InputVariables(Variables):
         self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$')
         self.etai = Variable('Ion Gradient Ratio', cdfvar='ETAI', label=r'$\eta_\mathrm{\,i}$')
         self.etaih = Variable('Hydrogenic Gradient Ratio', cdfvar='ETAIH', label=r'$\eta_\mathrm{\,ih}$')
+        self.etaie = Variable('ETAIE', cdfvar='ETAIE', label=r'$\eta_\mathrm{\,ie}$')
         self.nh = Variable('Hydrogenic Ion Density', cdfvar='NH', smooth=1, label=r'$n_\mathrm{h}$')
         self.nuei = Variable('Collision Frequency')
         self.nuei2 = Variable('NUEI2')
@@ -93,7 +94,7 @@ class InputVariables(Variables):
         self.zeff = Variable('Effective Charge', cdfvar='ZEFF', label=r'$Z_\mathrm{eff}$')
         self.zgmax = Variable('ZGMAX')
         self.zgyrfi = Variable('Ion Gyrofrequency')
-        self.zlog = Variable('Coulomb Logarithm')
+        self.zlog = Variable('Coulomb Logarithm', cdfvar='CLOGE', label=r'$\ln\, \Lambda_\mathrm{e}$')
         self.zvthe = Variable('Electron Thermal Velocity')
         self.zvthi = Variable('Ion Thermal Velocity')
 
@@ -240,7 +241,7 @@ class Variable:
     # Variable smoothing using a Gaussian filter
     def apply_smoothing(self):
         if self.smooth is not None and settings.APPLY_SMOOTHING:
-            self.values = scipy.ndimage.gaussian_filter(self.values, sigma=self.smooth)
+            self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(self.smooth, 0))
 
     # Clamps values between -value and value, and sets origin value to apprximately 0
     def clamp_gradient(self, value):
@@ -254,6 +255,11 @@ class Variable:
     def reject_outliers(self, m=4):
         if settings.REMOVE_OUTLIERS:
             self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
+
+    def remove_nan(self):
+        if np.isnan(self.values).any():
+            print('nan values found for var ' + self.name)
+            self.values[np.isnan(self.values)] = 0
 
 class InputOptions:
     def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None):

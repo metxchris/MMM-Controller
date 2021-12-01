@@ -22,7 +22,7 @@ def plot(input_options, x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
     plt.title('{0}, t={1}s'.format(input_options.runid, input_options.time), fontsize=14)
     plt.xlabel(x1var.label, labelpad=0, fontsize=12)
     plt.ylabel(y1var.units, labelpad=0, fontsize=12)
-    plt.legend(borderpad=0, labelspacing=0, frameon=False, prop=fm.FontProperties(size=12))
+    plt.legend(borderpad=0, labelspacing=0, frameon=False, prop=fm.FontProperties(size=14))
     plt.show()
 
 if __name__ == '__main__':

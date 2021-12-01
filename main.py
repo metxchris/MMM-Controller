@@ -115,15 +115,15 @@ if __name__ == '__main__':
     Set var_to_scan = None to skip the variable scan
     E.g.: var_to_scan = 'te'
     """
-    var_to_scan = 'te'
+    var_to_scan = None
     scan_range = np.arange(start=0.5, stop=2.1, step=0.1)
 
     # Save Input Options
     input_options = variables.InputOptions(cdf_name, shot_type, input_time, input_points)
     input_options.set_scan_values(var_to_scan, scan_range)
 
-    # Run MMM Controller
-    initialize_controller(input_options)
-
     # (Optional) Compare calculated profiles with those found in the CDF
     execute_profile_comparison(input_options)
+
+    # Run MMM Controller
+    initialize_controller(input_options)

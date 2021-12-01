@@ -20,36 +20,37 @@ def vpol(vars):
 
 # Hydrogenic Ion Density
 def nh(vars):
+    nd = vars.nd.values
     ne = vars.ne.values
     nf = vars.nf.values
     nz = vars.nz.values
     zimp = vars.zimp.values
 
-    nh = ne - zimp * nz - nf
+    nh = ne - zimp * nz - nf - nd
 
     vars.nh.set_variable(nh, vars.ne.units, ['XBO', 'TIME'])
 
 # Thermal Ion Density
 def ni(vars):
-    ne = vars.ne.values
     nd = vars.nd.values
-    
-    ni = ne + nd
+    nz = vars.nz.values
+
+    ni = nd + nz
 
     vars.ni.set_variable(ni, vars.ne.units, ['XBO', 'TIME'])
 
-# AIMASS
-def aimass(vars):
+# AHYD 
+def ahyd(vars):
     nh = vars.nh.values
     nd = vars.nd.values
 
-    aimass = (nh + 2 * nd) / (nh + nd)
+    ahyd = (nh + 2 * nd) / (nh + nd)
 
-    vars.aimass.set_variable(aimass, vars.nh.units, ['XBO', 'TIME'])
+    vars.ahyd.set_variable(ahyd, '', ['XBO', 'TIME'])
 
-# AHYD (Setting equal to AIMASS is approximately correct)
-def ahyd(vars):
-    vars.ahyd.set_variable(vars.aimass.values, vars.aimass.units, ['XBO', 'TIME'])
+# AIMASS (Setting equal to AHYD is approximately correct)
+def aimass(vars):
+    vars.aimass.set_variable(vars.ahyd.values, '', ['XBO', 'TIME'])
 
 # Minor Radius, and set origin value to 0
 def rmin(vars):
@@ -325,6 +326,14 @@ def etaih(vars):
 
     vars.etaih.set_variable(etaih, '', ['XBO', 'TIME'])
 
+def etaie(vars):
+    gti = vars.gti.values
+    gne = vars.gne.values
+
+    etaie = gti / gne
+
+    vars.etaie.set_variable(etaie, '', ['XBO', 'TIME'])
+
 def calculate_gradient(gvar_name, var_name, drmin, vars):
     rmaj = vars.rmaj.values
     x = vars.x.values[:, 0]
@@ -338,22 +347,18 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
     dxvar = np.diff(var.values, axis=0) / drmin
 
     # intepolate from x to xb
-    set_interp = interp1d(x, dxvar.T, kind='cubic', fill_value="extrapolate")
-    dxvar = set_interp(xb).T
+    set_interp = interp1d(x, dxvar, kind='cubic', fill_value="extrapolate", axis=0)
+    dxvar = set_interp(xb)
 
     # take gradient
     gradient_values = rmaj * dxvar / var.values
 
     gvar.set_variable(gradient_values, '', ['XBO', 'TIME'])
 
-    # Apply smoothing using a Gaussian Filter
     gvar.apply_smoothing()
-
-    # Clamp gradient values
     gvar.clamp_gradient(100)
-
-    # Remove outliers
     gvar.reject_outliers()
+    gvar.remove_nan()
 
 # Calculate the variable specified by it's corresponding function
 def calculate_variable(var_function, vars):
@@ -362,11 +367,9 @@ def calculate_variable(var_function, vars):
     # Get the variable name specified by var_function
     var_name = var_function.__name__
 
-    # Apply smoothing using a Gaussian Filter
     getattr(vars, var_name).apply_smoothing()
-
-    # Remove outliers
     getattr(vars, var_name).reject_outliers()
+    getattr(vars, var_name).remove_nan()
 
 # Calculates new variables needed for MMM and data display from CDF variables
 # Values are stored to vars within each function call
@@ -376,8 +379,8 @@ def calculate_inputs(vars):
     calculate_variable(vpol, vars)
     calculate_variable(nh, vars)
     calculate_variable(ni, vars)
-    calculate_variable(aimass, vars)
     calculate_variable(ahyd, vars)
+    calculate_variable(aimass, vars)
     calculate_variable(rmin, vars)
     calculate_variable(rho, vars)
     calculate_variable(tau, vars)
