@@ -77,7 +77,8 @@ def print_cdf_dimensions(cdf_name):
 
 if __name__ == '__main__':
     # For testing purposes
-    cdf_name = '129041A10'
-    read_cdf(variables.InputOptions(cdf_name), True)
+    cdf_name = '132017T01'
+    cdf_vars = read_cdf(variables.InputOptions(cdf_name), True)
+    
     print_cdf_dimensions(cdf_name)
     print_cdf_variables(cdf_name)

@@ -25,6 +25,7 @@ class PlotType:
     input = 'Input'
     output = 'Output'
     compared = 'Compared'
+    additional = 'Additional'
 
 # Initializes the figure and subplots
 def init_figure(input_options, profile_type):
@@ -52,8 +53,14 @@ def make_plot(ax, data, plot_type, time_idx=None):
         yvals = yvar.values if time_idx is None else yvar.values[:, time_idx]
         ax.plot(xvals, yvals, label=yvar.label)
 
-    ax.set(title=data.title, xlabel=data.xvar.label, ylabel=data.yvars[0].units, xlim=(0, 1))
+    ax.set(title=data.title, xlabel=data.xvar.label, ylabel=data.yvars[0].units_label, xlim=(0, 1))
     ax.axis('on')
+
+    # Check for ylim adjustment (needed when y-values are nearly constant)
+    ymax = yvar.values[:, time_idx].max()
+    ymin = yvar.values[:, time_idx].min()
+    if round(ymax - ymin, 3) == 0:
+        ax.set(ylim=(ymin - 1, ymax + 1))
 
     if plot_type != PlotType().output:
         ax.legend() # Legend disabled for output type plots
@@ -79,7 +86,7 @@ def run_plotting_loop(plotdata, input_options, plot_type):
 
         # Create subplot and enable axis.  Setting data to None will leave the subplot position empty
         if data is not None:
-            if plot_type in [PlotType().input, PlotType().compared]:
+            if plot_type in [PlotType().input, PlotType().compared, PlotType().additional]:
                 make_plot(axs[row, col], data, plot_type, input_options.time_idx)
             elif plot_type == PlotType().output:
                 make_plot(axs[row, col], data, plot_type)
@@ -102,25 +109,40 @@ def run_plotting_loop(plotdata, input_options, plot_type):
 def plot_input_profiles(vars, input_options):
     plotdata = [
         PlotData('Temperatures, Safety Factor', vars.rho, [vars.te, vars.ti, vars.q]),
+        PlotData(r'$T, q$ Gradients', vars.rho, [vars.gte, vars.gti, vars.gq]),
+        PlotData(vars.zeff.name, vars.rho, [vars.zeff]),
+        PlotData(vars.btor.name, vars.rho, [vars.btor]),
+        PlotData(vars.elong.name, vars.rho, [vars.elong]),
+        PlotData(vars.rmaj.name, vars.rho, [vars.rmaj]),
         PlotData('Densities', vars.rho, [vars.ne, vars.ni, vars.nf, vars.nd]),
         PlotData(vars.nz.name, vars.rho, [vars.nz]),
-        PlotData(vars.nh.name, vars.rho, [vars.nh]),
-        PlotData(r'$T, q$ Gradients', vars.rho, [vars.gte, vars.gti, vars.gq]),
         PlotData('Density Gradients', vars.rho, [vars.gne, vars.gni, vars.gnz]),
+        PlotData(vars.nh.name, vars.rho, [vars.nh]),
+        PlotData(vars.gnh.name, vars.rho, [vars.gnh]),
         PlotData(vars.wexbs.name, vars.rho, [vars.wexbs]),
+        PlotData(vars.vpol.name, vars.rho, [vars.vpol]),
+        PlotData(vars.vtor.name, vars.rho, [vars.vtor]),
+        PlotData(vars.vpar.name, vars.rho, [vars.vpar]),
+        PlotData(vars.gvpol.name, vars.rho, [vars.gvpol]),
+        PlotData(vars.gvtor.name, vars.rho, [vars.gvtor]),
+        PlotData(vars.gvpar.name, vars.rho, [vars.gvpar]),
+        PlotData(vars.ahyd.name, vars.rho, [vars.ahyd]),
+        PlotData(vars.aimass.name, vars.rho, [vars.aimass]),
+        PlotData(vars.aimp.name, vars.rho, [vars.aimp]),
+        PlotData(vars.zimp.name, vars.rho, [vars.zimp]),]
+
+    run_plotting_loop(plotdata, input_options, PlotType().input)
+
+def plot_additional_profiles(vars, input_options):
+    plotdata = [
         PlotData(vars.tau.name, vars.rho, [vars.tau]),
-        PlotData(vars.elong.name, vars.rho, [vars.elong]),
         PlotData(vars.beta.name, vars.rho, [vars.beta, vars.betae]),
         PlotData('Gradient Ratios', vars.rho, [vars.etae, vars.etai]),
         PlotData('Collisionalities', vars.rho, [vars.nuste, vars.nusti]),
         PlotData('Magnetic Shear', vars.rho, [vars.shear, vars.shat]),
-        PlotData(vars.alphamhd.name, vars.rho, [vars.alphamhd]),
-        PlotData(vars.vpol.name, vars.rho, [vars.vpol]),
-        PlotData(vars.gvpol.name, vars.rho, [vars.gvpol]),
-        PlotData(vars.vtor.name, vars.rho, [vars.vtor]),
-        PlotData(vars.gvtor.name, vars.rho, [vars.gvtor])]
+        PlotData(vars.alphamhd.name, vars.rho, [vars.alphamhd])]
 
-    run_plotting_loop(plotdata, input_options, PlotType().input)
+    run_plotting_loop(plotdata, input_options, PlotType().additional)
 
 def plot_output_profiles(vars, input_options):
     plotdata = [

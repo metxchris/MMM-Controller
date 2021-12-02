@@ -90,6 +90,7 @@ def initialize_controller(input_options):
 
     # Plot input profiles being sent to the MMM driver and save as PDF
     plot_profiles.plot_input_profiles(input_vars, input_options)
+    plot_profiles.plot_additional_profiles(input_vars, input_options)
 
     # TODO: add option to plot all variables calculatd from input variables
 

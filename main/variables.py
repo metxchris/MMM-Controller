@@ -40,7 +40,7 @@ class InputVariables(Variables):
         self.xb = Variable('XB', cdfvar='XB', label=r'$x_\mathrm{B}$')
 
         # CDF Variables needed for calculations
-        self.aimp = Variable('AIMP', cdfvar='AIMP', label=r'$\overline{M}_\mathrm{imp}$', smooth=1)
+        self.aimp = Variable('Impurity Mean AMU', cdfvar='AIMP', label=r'$\overline{M}_\mathrm{imp}$', smooth=1)
         self.arat = Variable('Aspect Ratio', cdfvar='ARAT', smooth=1)
         self.bz = Variable('BZ', cdfvar='BZ', smooth=1)
         self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=1)
@@ -65,20 +65,20 @@ class InputVariables(Variables):
         self.betat = Variable('BETAT', cdfvar='BETAT', smooth=1)
 
         # Calculated Variables (some are also in the CDF)
-        self.aimass = Variable('Thermal Ion Mean Atomic Mass', label=r'$\overline{M}_\mathrm{i}$')
-        self.ahyd = Variable('Hydrogenic Ion Mean Atomic Mass', label=r'$\overline{M}_\mathrm{h}$')
+        self.aimass = Variable('Thermal Ion Mean AMU', label=r'$\overline{M}_\mathrm{i}$')
+        self.ahyd = Variable('Hydrogenic Ion Mean AMU', label=r'$\overline{M}_\mathrm{h}$')
         self.alphamhd = Variable('Alpha MHD', label=r'$\alpha_\mathrm{MHD}$')
         self.beta = Variable('Pressure Ratio', cdfvar='BETAT', label=r'$\beta$')
         self.betae = Variable('Electron Pressure Ratio', cdfvar='BETAE', label=r'$\beta_\mathrm{\,e}$') 
         self.btor = Variable('Toroidal Magnetic Field', label=r'$B_\mathrm{T}$')
-        self.eps = Variable('Inverse Aspect Ratio')
+        self.eps = Variable('Inverse Aspect Ratio', label='eps')
         self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$')
         self.etai = Variable('Ion Gradient Ratio', cdfvar='ETAI', label=r'$\eta_\mathrm{\,i}$')
         self.etaih = Variable('Hydrogenic Gradient Ratio', cdfvar='ETAIH', label=r'$\eta_\mathrm{\,ih}$')
-        self.etaid = Variable('ETAID', cdfvar='', label=r'$\eta_\mathrm{\,id}$')
+        self.etaid = Variable('ETAID', label=r'$\eta_\mathrm{\,id}$')
         self.etaie = Variable('ETAIE', cdfvar='ETAIE', label=r'$\eta_\mathrm{\,ie}$')
         self.nh = Variable('Hydrogenic Ion Density', cdfvar='NH', smooth=1, label=r'$n_\mathrm{h}$')
-        self.nuei = Variable('Collision Frequency')
+        self.nuei = Variable('Collision Frequency', label=r'$\nu_\mathrm{ei}$')
         self.nuei2 = Variable('NUEI2')
         self.nuste = Variable('Electron Collisionality', cdfvar='NUSTE', label=r'$\nu^{*}_\mathrm{e}$')
         self.nusti = Variable('Ion Collisionality', cdfvar='NUSTI', label=r'$\nu^{*}_\mathrm{i}$')
@@ -88,16 +88,16 @@ class InputVariables(Variables):
         self.rmin = Variable('Minor Radius', label=r'$r$')
         self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$')
         self.shear = Variable('Magnetic Shear', label=r'$s$')
-        self.vpar = Variable('Parallel Velocity')
+        self.vpar = Variable('Parallel Velocity', label=r'$v_\mathrm{par}$')
         self.vpol = Variable('Poloidal Velocity', label=r'$v_\theta$')
         self.vtor = Variable('Toroidal Velocity', label=r'$v_\phi$')
         self.tau = Variable('Temperature Ratio', label=r'$\tau$')
         self.zeff = Variable('Effective Charge', cdfvar='ZEFF', label=r'$Z_\mathrm{eff}$')
-        self.zgmax = Variable('ZGMAX')
-        self.zgyrfi = Variable('Ion Gyrofrequency')
+        self.zgmax = Variable('ZGMAX', label='zgmax')
+        self.zgyrfi = Variable('Ion Gyrofrequency', label='zgyrfi')
         self.zlog = Variable('Coulomb Logarithm', cdfvar='CLOGE', label=r'$\ln\, \Lambda_\mathrm{e}$')
-        self.zvthe = Variable('Electron Thermal Velocity')
-        self.zvthi = Variable('Ion Thermal Velocity')
+        self.zvthe = Variable('Electron Thermal Velocity', label='zvthe')
+        self.zvthi = Variable('Ion Thermal Velocity', label='zvthi')
 
         # Calculated Gradients
         self.gne = Variable('Electron Density Gradient', label=r'$g_{n_\mathrm{e}}$')
@@ -108,9 +108,9 @@ class InputVariables(Variables):
         self.gq = Variable('Safety Factor Gradient', label=r'$g_{q}$')
         self.gte = Variable('Electron Temperature Gradient', label=r'$g_{T_\mathrm{e}}$')
         self.gti = Variable('Thermal Ion Temperature Gradient', smooth=0, label=r'$g_{T_\mathrm{i}}$')
-        self.gvpar = Variable('Parallel Velocity Gradient', )
-        self.gvpol = Variable('Poloidal Velocity Gradient', label=r'$g_{\nu_\theta}$')
-        self.gvtor = Variable('Toroidal Velocity Gradient', label=r'$g_{\nu_\phi}$')
+        self.gvpar = Variable('Parallel Velocity Gradient', label=r'$g_{v_\mathrm{par}}$')
+        self.gvpol = Variable('Poloidal Velocity Gradient', label=r'$g_{v_\theta}$')
+        self.gvtor = Variable('Toroidal Velocity Gradient', label=r'$g_{v_\phi}$')
 
         # Test Variables
         self.test = Variable('Test Variable')
@@ -143,12 +143,12 @@ class OutputVariables(Variables):
     def __init__(self):
         self.rho = Variable('rho', label=r'$\rho$')
         self.rmin = Variable('rmin', label=r'$r_\mathrm{min}$')
-        self.xti = Variable('xti', label='xti', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
-        self.xdi = Variable('xdi', label='xdi', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
-        self.xte = Variable('xte', label='xte', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
-        self.xdz = Variable('xdz', label='xdz', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
-        self.xvt = Variable('xvt', label='xvt', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
-        self.xvp = Variable('xvp', label='xvp', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
+        self.xti = Variable('xti', label='xti')
+        self.xdi = Variable('xdi', label='xdi')
+        self.xte = Variable('xte', label='xte')
+        self.xdz = Variable('xdz', label='xdz')
+        self.xvt = Variable('xvt', label='xvt')
+        self.xvp = Variable('xvp', label='xvp')
         self.xtiW20 = Variable('xtiW20', label='xtiW20')
         self.xdiW20 = Variable('xdiW20', label='xdiW20')
         self.xteW20 = Variable('xteW20', label='xteW20')
@@ -159,14 +159,14 @@ class OutputVariables(Variables):
         self.xteMTM = Variable('xteMTM', label='xteMTM')
         self.xteETGM = Variable('xteETGM', label='xteETGM')
         self.xdiETGM = Variable('xdiETGM', label='xdiETGM')
-        self.gmaW20ii = Variable('gmaW20ii', label='gmaW20ii', units=r'$\left(\mathrm{s}^{-1}\right)$')
-        self.omgW20ii = Variable('omgW20ii', label='omgW20ii', units=r'$\left(\mathrm{s}^{-1}\right)$')
-        self.gmaW20ie = Variable('gmaW20ie', label='gmaW20ie', units=r'$\left(\mathrm{s}^{-1}\right)$')
-        self.omgW20ie = Variable('omgW20ie', label='omgW20ie', units=r'$\left(\mathrm{s}^{-1}\right)$')
-        self.gmaW20ei = Variable('gmaW20ei', label='gmaW20ei', units=r'$\left(\mathrm{s}^{-1}\right)$')
-        self.omgW20ei = Variable('omgW20ei', label='omgW20ei', units=r'$\left(\mathrm{s}^{-1}\right)$')
-        self.gmaW20ee = Variable('gmaW20ee', label='gmaW20ee', units=r'$\left(\mathrm{s}^{-1}\right)$')
-        self.omgW20ee = Variable('omgW20ee', label='omgW20ee', units=r'$\left(\mathrm{s}^{-1}\right)$')
+        self.gmaW20ii = Variable('gmaW20ii', label='gmaW20ii')
+        self.omgW20ii = Variable('omgW20ii', label='omgW20ii')
+        self.gmaW20ie = Variable('gmaW20ie', label='gmaW20ie')
+        self.omgW20ie = Variable('omgW20ie', label='omgW20ie')
+        self.gmaW20ei = Variable('gmaW20ei', label='gmaW20ei')
+        self.omgW20ei = Variable('omgW20ei', label='omgW20ei')
+        self.gmaW20ee = Variable('gmaW20ee', label='gmaW20ee')
+        self.omgW20ee = Variable('omgW20ee', label='omgW20ee')
         self.gmaDBM = Variable('gmaDBM', label='gmaDBM')
         self.omgDBM = Variable('omgDBM', label='omgDBM')
         self.gmaMTM = Variable('gmaMTM', label='gmaMTM')
@@ -184,6 +184,7 @@ class Variable:
         self.label = label if label is not None else '' # Plot label in LaTeX Format
         self.desc = desc if desc is not None else ''
         # Private
+        self._units_label = None
         self._units = units if units is not None else ''
         self._dimensions = dimensions if dimensions is not None else ['','']
         self._values = values
@@ -201,6 +202,42 @@ class Variable:
             raise ValueError(f'Failed to set xdim on variable {self.name}')
 
     @property
+    def units_label(self):
+        return self._units_label if self._units_label is not None else self._units
+
+    @property
+    def units(self):
+        return self._units
+
+    @units.setter
+    def units(self, units):
+        self._units = units
+
+        # Set units_label in LaTeX format
+        if units != '':
+            # First item is the search string, second item is the replacement string
+            unit_strs = [
+                ['N/M**3', r'$\mathrm{m}^{-3}$'],
+                ['M**2/SEC', r'$\mathrm{m}^{2}/s$'],
+                ['M/SEC', r'm/s'],
+                ['M', r'm'],
+                ['MAMPS', r'MA'],
+                ['RAD/SEC', r'rad/s'],
+                ['PASCALS', r'Pa'],
+                ['SECONDS', r's'],
+                ['TESLA', r'T'],
+                ['EV', r'eV'],
+                ['kEV', r'keV'],
+                ['m/s^2', r'm/s$^2$'],
+                ['m^2/s', r'm$^2$/s'],
+                ['s^-1', r's$^{-1}$']]
+
+            for unit_str in unit_strs:
+                if (unit_str[0] == self._units):
+                    self._units_label = unit_str[1]
+                    break
+
+    @property
     def dimensions(self):
         return self._dimensions
 
@@ -210,14 +247,6 @@ class Variable:
             self._dimensions = dimensions
         else:
             raise ValueError(f'Variable dimensions must be {list} and not {type(dimensions)}')
-    
-    @property
-    def units(self):
-        return self._units
-
-    @units.setter
-    def units(self, units):
-        self._units = units
 
     @property
     def values(self):
@@ -347,3 +376,25 @@ class InputOptions:
     @scan_factor_str.setter
     def scan_factor_str(self, scan_factor_str):
         self._scan_factor_str = '{:.3f}'.format(scan_factor_str)
+
+    '''
+    REGEX Search Testing
+    '''
+    # @units_label.setter
+    # def units_label(self):
+    #     print('units_label')
+    #     # Convert self.units into LaTeX format
+    #     search_strs = ['\^\d', '\^\-\d', '\*\*\d', '\*\*\-\d']
+    #     for s in search_strs:
+    #         search_result = re.compile(s).search(self._units)
+    #         print(self.__name__, search_result)
+
+    # search_strs = ['\^\d', '\^\-\d', '\*\*\d', '\*\*\-\d']
+    # for s in search_strs:
+    #     search_result = re.compile(s).search(self._units)
+    #     if search_result is not None:
+    #         search_str = search_result.group()
+    #         number_in_str = re.compile('\d').search(search_str).group()
+    #         print(number_in_str)
+    #         print(self._units.replace(search_result.group(), r'\$\^\{' + number_in_str + r'\}\$'))
+    #     print(self.name, search_result)
