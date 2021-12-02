@@ -334,6 +334,32 @@ def etaie(vars):
 
     vars.etaie.set_variable(etaie, '', ['XBO', 'TIME'])
 
+def etaid(vars):
+    gti = vars.gti.values
+    gnd = vars.gnd.values
+
+    etaid = gti / gnd
+
+    vars.etaid.set_variable(etaid, '', ['XBO', 'TIME'])
+
+# Test variables are just used for testing calculations, and are not sent to the MMM driver
+def test(vars):
+    nh = vars.nh.values
+    nd = vars.nd.values
+
+    ni = nh + nd
+
+    vars.test.set_variable(ni)
+
+# Test variables are just used for testing calculations, and are not sent to the MMM driver
+def test2(vars):
+    gti = vars.gti.values
+    gni = vars.gtest.values
+
+    test2 = gti / gni
+
+    vars.test2.set_variable(test2)
+
 def calculate_gradient(gvar_name, var_name, drmin, vars):
     rmaj = vars.rmaj.values
     x = vars.x.values[:, 0]
@@ -410,6 +436,7 @@ def calculate_inputs(vars):
     calculate_gradient('gnh',   'nh',   -drmin, vars)
     calculate_gradient('gni',   'ni',   -drmin, vars)
     calculate_gradient('gnz',   'nz',   -drmin, vars)
+    calculate_gradient('gnd',   'nd',   -drmin, vars)
     calculate_gradient('gq',    'q',     drmin, vars)
     calculate_gradient('gte',   'te',   -drmin, vars)
     calculate_gradient('gti',   'ti',   -drmin, vars)
@@ -424,6 +451,12 @@ def calculate_inputs(vars):
     calculate_variable(etae, vars)
     calculate_variable(etai, vars)
     calculate_variable(etaih, vars)
+    calculate_variable(etaid, vars)
+
+    # Test variables are just used for testing calculations, and are not sent to the MMM driver
+    calculate_variable(test, vars)
+    calculate_gradient('gtest', 'test', -drmin, vars)
+    calculate_variable(test2, vars)
 
 # Returns function names of calculated variables in this module, other than gradient calculations
 def get_calculated_vars():

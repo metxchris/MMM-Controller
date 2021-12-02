@@ -47,7 +47,7 @@ class InputVariables(Variables):
         self.omega = Variable('OMEGA', cdfvar='OMEGA', smooth=1)
         self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', smooth=1)
         self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', smooth=1)
-        self.nd = Variable('ND', cdfvar='ND', label=r'$n_d$', smooth=1)
+        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', smooth=1)
         self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', smooth=1)
         self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', smooth=1)
         self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', smooth=2)
@@ -67,7 +67,7 @@ class InputVariables(Variables):
         # Calculated Variables (some are also in the CDF)
         self.aimass = Variable('Thermal Ion Mean Atomic Mass', label=r'$\overline{M}_\mathrm{i}$')
         self.ahyd = Variable('Hydrogenic Ion Mean Atomic Mass', label=r'$\overline{M}_\mathrm{h}$')
-        self.alphamhd = Variable('Alpha_MHD', label=r'$\alpha_\mathrm{MHD}$')
+        self.alphamhd = Variable('Alpha MHD', label=r'$\alpha_\mathrm{MHD}$')
         self.beta = Variable('Pressure Ratio', cdfvar='BETAT', label=r'$\beta$')
         self.betae = Variable('Electron Pressure Ratio', cdfvar='BETAE', label=r'$\beta_\mathrm{\,e}$') 
         self.btor = Variable('Toroidal Magnetic Field', label=r'$B_\mathrm{T}$')
@@ -75,6 +75,7 @@ class InputVariables(Variables):
         self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$')
         self.etai = Variable('Ion Gradient Ratio', cdfvar='ETAI', label=r'$\eta_\mathrm{\,i}$')
         self.etaih = Variable('Hydrogenic Gradient Ratio', cdfvar='ETAIH', label=r'$\eta_\mathrm{\,ih}$')
+        self.etaid = Variable('ETAID', cdfvar='', label=r'$\eta_\mathrm{\,id}$')
         self.etaie = Variable('ETAIE', cdfvar='ETAIE', label=r'$\eta_\mathrm{\,ie}$')
         self.nh = Variable('Hydrogenic Ion Density', cdfvar='NH', smooth=1, label=r'$n_\mathrm{h}$')
         self.nuei = Variable('Collision Frequency')
@@ -103,12 +104,18 @@ class InputVariables(Variables):
         self.gnh = Variable('Hydrogenic Ion Density Gradient', label=r'$g_{n_\mathrm{h}}$')
         self.gni = Variable('Thermal Ion Density Gradient', smooth=0, label=r'$g_{n_\mathrm{i}}$')
         self.gnz = Variable('Impurity Density Gradient', label=r'$g_{n_\mathrm{z}}$')
+        self.gnd = Variable('Deuterium Ion Density Gradient', label=r'$g_{n_\mathrm{d}}$')
         self.gq = Variable('Safety Factor Gradient', label=r'$g_{q}$')
         self.gte = Variable('Electron Temperature Gradient', label=r'$g_{T_\mathrm{e}}$')
         self.gti = Variable('Thermal Ion Temperature Gradient', smooth=0, label=r'$g_{T_\mathrm{i}}$')
         self.gvpar = Variable('Parallel Velocity Gradient', )
         self.gvpol = Variable('Poloidal Velocity Gradient', label=r'$g_{\nu_\theta}$')
         self.gvtor = Variable('Toroidal Velocity Gradient', label=r'$g_{\nu_\phi}$')
+
+        # Test Variables
+        self.test = Variable('Test Variable')
+        self.test2 = Variable('Test Variable 2')
+        self.gtest = Variable('Test Variable Gradient')
 
     def get_cdf_variables(self):
         vars = self.get_variables()
@@ -136,12 +143,12 @@ class OutputVariables(Variables):
     def __init__(self):
         self.rho = Variable('rho', label=r'$\rho$')
         self.rmin = Variable('rmin', label=r'$r_\mathrm{min}$')
-        self.xti = Variable('xti', label='xti')
-        self.xdi = Variable('xdi', label='xdi')
-        self.xte = Variable('xte', label='xte')
-        self.xdz = Variable('xdz', label='xdz')
-        self.xvt = Variable('xvt', label='xvt')
-        self.xvp = Variable('xvp', label='xvp')
+        self.xti = Variable('xti', label='xti', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
+        self.xdi = Variable('xdi', label='xdi', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
+        self.xte = Variable('xte', label='xte', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
+        self.xdz = Variable('xdz', label='xdz', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
+        self.xvt = Variable('xvt', label='xvt', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
+        self.xvp = Variable('xvp', label='xvp', units=r'$\left(\mathrm{m}^2/\mathrm{s}\right)$')
         self.xtiW20 = Variable('xtiW20', label='xtiW20')
         self.xdiW20 = Variable('xdiW20', label='xdiW20')
         self.xteW20 = Variable('xteW20', label='xteW20')
@@ -152,14 +159,14 @@ class OutputVariables(Variables):
         self.xteMTM = Variable('xteMTM', label='xteMTM')
         self.xteETGM = Variable('xteETGM', label='xteETGM')
         self.xdiETGM = Variable('xdiETGM', label='xdiETGM')
-        self.gmaW20ii = Variable('gmaW20ii', label='gmaW20ii')
-        self.omgW20ii = Variable('omgW20ii', label='omgW20ii')
-        self.gmaW20ie = Variable('gmaW20ie', label='gmaW20ie')
-        self.omgW20ie = Variable('omgW20ie', label='omgW20ie')
-        self.gmaW20ei = Variable('gmaW20ei', label='gmaW20ei')
-        self.omgW20ei = Variable('omgW20ei', label='omgW20ei')
-        self.gmaW20ee = Variable('gmaW20ee', label='gmaW20ee')
-        self.omgW20ee = Variable('omgW20ee', label='omgW20ee')
+        self.gmaW20ii = Variable('gmaW20ii', label='gmaW20ii', units=r'$\left(\mathrm{s}^{-1}\right)$')
+        self.omgW20ii = Variable('omgW20ii', label='omgW20ii', units=r'$\left(\mathrm{s}^{-1}\right)$')
+        self.gmaW20ie = Variable('gmaW20ie', label='gmaW20ie', units=r'$\left(\mathrm{s}^{-1}\right)$')
+        self.omgW20ie = Variable('omgW20ie', label='omgW20ie', units=r'$\left(\mathrm{s}^{-1}\right)$')
+        self.gmaW20ei = Variable('gmaW20ei', label='gmaW20ei', units=r'$\left(\mathrm{s}^{-1}\right)$')
+        self.omgW20ei = Variable('omgW20ei', label='omgW20ei', units=r'$\left(\mathrm{s}^{-1}\right)$')
+        self.gmaW20ee = Variable('gmaW20ee', label='gmaW20ee', units=r'$\left(\mathrm{s}^{-1}\right)$')
+        self.omgW20ee = Variable('omgW20ee', label='omgW20ee', units=r'$\left(\mathrm{s}^{-1}\right)$')
         self.gmaDBM = Variable('gmaDBM', label='gmaDBM')
         self.omgDBM = Variable('omgDBM', label='omgDBM')
         self.gmaMTM = Variable('gmaMTM', label='gmaMTM')
@@ -191,7 +198,7 @@ class Variable:
         if self.dimensions is not None and len(self.dimensions) > 0:
             self.dimensions[0] = xdim
         else:
-            raise ValueError('Failed to set xdim on variable {0}'.format(self.name))
+            raise ValueError(f'Failed to set xdim on variable {self.name}')
 
     @property
     def dimensions(self):
@@ -202,7 +209,7 @@ class Variable:
         if type(dimensions) == list:
             self._dimensions = dimensions
         else:
-            raise ValueError('Variable dimensions must be {0} and not {1}'.format(list, type(dimensions)))
+            raise ValueError(f'Variable dimensions must be {list} and not {type(dimensions)}')
     
     @property
     def units(self):
@@ -221,7 +228,7 @@ class Variable:
         if type(values) == np.ndarray:
             self._values = values
         else:
-            raise ValueError('Variable values must be {0} and not {1}'.format(np.ndarray, type(values)))
+            raise ValueError(f'Variable values must be {np.ndarray} and not {type(values)}')
     
     @dispatch(np.ndarray)
     def set_variable(self, values):
@@ -285,18 +292,17 @@ class InputOptions:
     def runid(self, runid):
         self._runid = runid.strip()
         if self._runid != self.cdf_name:
-            print('*** WARNING: runid {0} does not match cdf_name {1}'.format(self.runid, self.cdf_name))
+            print(f'*** WARNING: runid {self.runid} does not match cdf_name {self.cdf_name}')
 
     @property
     def interp_points(self):
-        return self._interp_points
+        return self._interp_points if self._interp_points is not None else self.input_points
 
     @interp_points.setter
     def interp_points(self, points):
         self._interp_points = points
         if self._interp_points < self.input_points:
-            print('*** WARNING: possible interpolation points ({0}) is less than specified input points ({1})'
-                .format(self.interp_points, self.input_points))
+            print(f'*** WARNING: Interpolation points ({self.interp_points}) is less than specified input points ({self.input_points})')
 
     @property
     def time_idx(self):
@@ -326,9 +332,9 @@ class InputOptions:
             return
         # Error checking
         elif not hasattr(InputVariables(), var_to_scan):
-            raise ValueError('Variable {0} is not a valid InputVariable to scan.  Please use a variable defined under InputVariable.')
+            raise ValueError(f'Variable {var_to_scan} is not an InputVariable.  Please use a variable defined under InputVariable.')
         elif type(scan_range) is not np.ndarray:
-            raise ValueError('Specified scan range must be a Numpy array (type np.ndarray')
+            raise ValueError('Specified scan range must be a Numpy array (type np.ndarray)')
         # Set scan inputs
         else:
             self._var_to_scan = var_to_scan
