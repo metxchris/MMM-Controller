@@ -157,7 +157,6 @@ def plot_output_profiles(vars, input_options):
         PlotData(vars.xteW20.name, vars.rho, [vars.xteW20]),
         PlotData(vars.xtiDBM.name, vars.rho, [vars.xtiDBM]),
         PlotData(vars.xdiDBM.name, vars.rho, [vars.xdiDBM]),
-        PlotData(vars.xtiDBM.name, vars.rho, [vars.xtiDBM]),
         PlotData(vars.xteDBM.name, vars.rho, [vars.xteDBM]),
         PlotData(vars.xteETG.name, vars.rho, [vars.xteETG]),
         PlotData(vars.xteMTM.name, vars.rho, [vars.xteMTM]),
