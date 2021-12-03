@@ -40,21 +40,21 @@ class InputVariables(Variables):
         self.xb = Variable('XB', cdfvar='XB', label=r'$x_\mathrm{B}$')
 
         # CDF Variables needed for calculations
-        self.aimp = Variable('Impurity Mean Mass', cdfvar='AIMP', label=r'$\overline{M}_\mathrm{imp}$', minvalue=1e-2, smooth=1)
+        self.aimp = Variable('Impurity Mean Mass', cdfvar='AIMP', label=r'$\overline{M}_\mathrm{imp}$', minvalue=1e-6, smooth=1)
         self.arat = Variable('Aspect Ratio', cdfvar='ARAT', smooth=1)
         self.bz = Variable('BZ', cdfvar='BZ', smooth=1)
         self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=1)
         self.omega = Variable('Toroidal Angular Velocity', cdfvar='OMEGA', smooth=1)
-        self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', minvalue=1e-2, smooth=1)
-        self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', minvalue=1e-2, smooth=1)
-        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-2, smooth=1)
-        self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-2, smooth=1)
-        self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-2, smooth=2)
+        self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', minvalue=1e-6, smooth=1)
+        self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', minvalue=1e-6, smooth=1)
+        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-6, smooth=1)
+        self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=1)
+        self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=2)
         self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$', smooth=None)
-        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-2, smooth=1)
-        self.tepro = Variable('Electron Temperature', cdfvar='TEPRO', label=r'$T_\mathrm{e}$', minvalue=1e-2, smooth=1)
-        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI',label=r'$T_\mathrm{i}$', minvalue=1e-2, smooth=1)
-        self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO', label=r'$T_\mathrm{i}$', minvalue=1e-2, smooth=1)
+        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=1)
+        self.tepro = Variable('Electron Temperature', cdfvar='TEPRO', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=1)
+        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI',label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=1)
+        self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=1)
         self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=1)
         self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC', smooth=1)
         self.wexbs = Variable(r'ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$', smooth=1)
@@ -93,9 +93,9 @@ class InputVariables(Variables):
         self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$')
         self.shear = Variable('Magnetic Shear', label=r'$s$')
         self.tau = Variable('Temperature Ratio', label=r'$\tau$')
-        self.vpar = Variable('Parallel Velocity', label=r'$v_\mathrm{par}$', absminvalue=1e-2, smooth=2)
-        self.vpol = Variable('Poloidal Velocity', label=r'$v_\theta$', absminvalue=1e-2, smooth=2)
-        self.vtor = Variable('Toroidal Velocity', label=r'$v_\phi$', absminvalue=1e-2, smooth=2)
+        self.vpar = Variable('Parallel Velocity', label=r'$v_\mathrm{par}$', absminvalue=1e-6, smooth=2)
+        self.vpol = Variable('Poloidal Velocity', label=r'$v_\theta$', absminvalue=1e-6, smooth=2)
+        self.vtor = Variable('Toroidal Velocity', label=r'$v_\phi$', absminvalue=1e-6, smooth=2)
         self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{T_\mathrm{e}}$')
         self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{T_\mathrm{i}}$')
         self.zeff = Variable('Effective Charge', cdfvar='ZEFF', label=r'$Z_\mathrm{eff}$')
@@ -321,17 +321,16 @@ class InputOptions:
         self.cdf_name = cdf_name
         self.shot_type = shot_type
         self.input_time = input_time
-        self.input_points = input_points
         # Private
+        self._input_points = input_points
         self._runid = None
-        self._interp_points = None
         self._time = None
         self._time_idx = None
         self._var_to_scan = None
         self._scan_range = None
         self._scan_factor_str = None
 
-        # self.set_scan_values(var_to_scan, scan_range)
+        self.set_scan_values(var_to_scan, scan_range)
 
     @property
     def runid(self):
@@ -344,14 +343,13 @@ class InputOptions:
             print(f'*** WARNING: runid {self.runid} does not match cdf_name {self.cdf_name}')
 
     @property
-    def interp_points(self):
-        return self._interp_points if self._interp_points is not None else self.input_points
+    def input_points(self):
+        return self._input_points
 
-    @interp_points.setter
-    def interp_points(self, points):
-        self._interp_points = points
-        if self._interp_points < self.input_points:
-            print(f'*** WARNING: Interpolation points ({self.interp_points}) is less than specified input points ({self.input_points})')
+    @input_points.setter
+    def input_points(self, points):
+        if points is not None:
+            self._input_points = max(points, 5)
 
     @property
     def time_idx(self):

@@ -88,6 +88,10 @@ def initial_conversion(cdf_vars, input_options):
     # Set the array index and measurement time value corresponding to the input time
     input_options.set_measurement_time(input_vars.time)
 
+    # Update the number of input points, if needed
+    if input_options.input_points is None:
+        input_options.input_points = input_vars.get_nboundaries()
+
     # Get list of CDF variables to convert to the format needed for MMM
     cdf_var_list = cdf_vars.get_cdf_variables()
 
@@ -111,29 +115,28 @@ def initial_conversion(cdf_vars, input_options):
 def final_conversion(input_vars, input_options):
     mmm_vars = deepcopy(input_vars)
 
-    # Set and check that interpolation points is not smaller than the number of boundary points
-    input_options.interp_points = max(input_options.input_points, mmm_vars.get_nboundaries())
+    # Interpolation only needed if input_points != xb points
+    if input_options.input_points != input_vars.get_nboundaries():
+        # Single column arrays for interpolation
+        xb = mmm_vars.xb.values[:, 0]
+        xb_mmm = np.arange(input_options.input_points) / (input_options.input_points - 1)
 
-    # Single column arrays for interpolation
-    xb = mmm_vars.xb.values[:, 0]
-    xb_mmm = np.arange(input_options.interp_points) / (input_options.interp_points - 1)
+        # Get list of CDF variables to convert to the format needed for MMM
+        full_var_list = mmm_vars.get_nonzero_variables()
 
-    # Get list of CDF variables to convert to the format needed for MMM
-    full_var_list = mmm_vars.get_nonzero_variables()
+        # Remove independent variables
+        for var in ['time', 'x']:
+            full_var_list.remove(var)
 
-    # Remove independent variables
-    for var in ['time', 'x']:
-        full_var_list.remove(var)
-
-    # Interpolate variables onto grid specified by input_options.interp_points
-    for var in full_var_list:
-        mmm_var = getattr(mmm_vars, var)
-        if mmm_var.values is not None:
-            set_interp = interp1d(xb, mmm_var.values, kind='cubic', fill_value="extrapolate", axis=0)
-            mmm_var.set_variable(set_interp(xb_mmm))
-            mmm_var.set_minvalue()
-        else:
-            print(f'ERROR: Trying to interpolate variable {var} with values equal to None')
+        # Interpolate variables onto grid specified by input_options.input_points
+        for var in full_var_list:
+            mmm_var = getattr(mmm_vars, var)
+            if mmm_var.values is not None:
+                set_interp = interp1d(xb, mmm_var.values, kind='cubic', fill_value="extrapolate", axis=0)
+                mmm_var.set_variable(set_interp(xb_mmm))
+                mmm_var.set_minvalue()
+            else:
+                print(f'ERROR: Trying to interpolate variable {var} with values equal to None')
 
     return mmm_vars
 

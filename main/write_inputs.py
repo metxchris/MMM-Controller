@@ -103,7 +103,7 @@ def write_input_file(input_vars, input_options):
     f = open(file_name, 'w')
 
     # Write mmm input file header
-    f.write(MMM_HEADER.format(npoints=input_options.interp_points))
+    f.write(MMM_HEADER.format(npoints=input_options.input_points))
 
     # Loop through mmm variables and write input file values
     for var_name in MMM_LABELS.keys():

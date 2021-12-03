@@ -29,11 +29,11 @@ class PlotType(Enum):
     ADDITIONAL = 4
 
 # Initializes the figure and subplots
-def init_figure(input_options, profile_type):
+def init_figure(input_options, profile_type, xvar_points):
     runid = input_options.runid
     shot_type = input_options.shot_type
     time = input_options.time
-    points = input_options.interp_points
+    points = xvar_points
 
     # Init figure and subplots
     fig, axs = plt.subplots(ROWS, COLS)
@@ -42,7 +42,7 @@ def init_figure(input_options, profile_type):
     modifier = 'Smoothed' if settings.APPLY_SMOOTHING else 'Unsmoothed'
     plt.figtext(*ps.TITLEPOS, f'MMM {profile_type.name.capitalize()} Profiles Using {modifier} Input Profiles',
         fontsize=15, ha='center')
-    plt.figtext(*ps.SUBTITLEPOS, f'{shot_type} Shot {runid}, Measurement Time {time}s, {points} Input Points', 
+    plt.figtext(*ps.SUBTITLEPOS, f'{shot_type} Shot {runid}, Measurement Time {time}s, {points} Radial Points', 
         fontsize=10, ha='center')
 
     return fig, axs
@@ -82,7 +82,7 @@ def run_plotting_loop(plotdata, input_options, plot_type):
 
         # Create a new figure when we're on the first subplot
         if row == 0 and col == 0:
-            fig, axs = init_figure(input_options, plot_type)
+            fig, axs = init_figure(input_options, plot_type, data.xvar.values.shape[0])
 
             # Disable all subplot axes until they are used
             for sub_axs in axs:
