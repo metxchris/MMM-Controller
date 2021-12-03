@@ -62,8 +62,9 @@ def convert_variable(cdf_var, xvals):
         var.set_xdim('XBO')
     else:
         print('[initial_conversion] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
-
-    # Apply smoothing with a Gaussian filter
+    
+    # Verify values for errors due to interpolation, then apply smoothing with a Gaussian filter
+    var.verify_values()
     var.apply_smoothing()
 
     return var

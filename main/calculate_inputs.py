@@ -390,6 +390,7 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
 
     gvar.set_variable(gradient_values, '', ['XBO', 'TIME'])
 
+    gvar.verify_values()
     gvar.apply_smoothing()
     gvar.clamp_gradient(100)
     gvar.reject_outliers()
@@ -402,6 +403,7 @@ def calculate_variable(var_function, vars):
     # Get the variable name specified by var_function
     var_name = var_function.__name__
 
+    getattr(vars, var_name).verify_values()
     getattr(vars, var_name).apply_smoothing()
     getattr(vars, var_name).reject_outliers()
     getattr(vars, var_name).remove_nan()

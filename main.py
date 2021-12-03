@@ -92,8 +92,6 @@ def initialize_controller(input_options):
     plot_profiles.plot_input_profiles(input_vars, input_options)
     plot_profiles.plot_additional_profiles(input_vars, input_options)
 
-    # TODO: add option to plot all variables calculatd from input variables
-
     # Execute a basic run to plot output profiles and base output values csv
     execute_basic_run(input_vars, input_options)
 

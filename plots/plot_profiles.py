@@ -57,14 +57,15 @@ def make_plot(ax, data, plot_type, time_idx=None):
     ax.set(title=data.title, xlabel=data.xvar.label, ylabel=data.yvars[0].units_label, xlim=(0, 1))
     ax.axis('on')
 
-    # Check for ylim adjustment (needed when y-values are nearly constant)
-    # ymax = yvar.values[:, time_idx].max()
-    # ymin = yvar.values[:, time_idx].min()
-    # if round(ymax - ymin, 3) == 0:
-    #     ax.set(ylim=(ymin - 1, ymax + 1))
+    # Check for ylim adjustment (needed when y-values are nearly constant and not nearly 0)
+    ymax = yvar.values[:, time_idx].max()
+    ymin = yvar.values[:, time_idx].min()
+    if round(ymax - ymin, 3) == 0 and round(ymax, 3) > 0:
+        ax.set(ylim=(ymin - 5, ymax + 5))
 
+    # Legend disabled for output type plots
     if plot_type != PlotType.OUTPUT:
-        ax.legend() # Legend disabled for output type plots
+        ax.legend() 
 
 # Creates plots for each PlotData() object defined in the input plotdata list
 def run_plotting_loop(plotdata, input_options, plot_type):
