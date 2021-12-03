@@ -1,6 +1,7 @@
 # Standard Packages
 from dataclasses import dataclass
 from cycler import cycler
+from enum import Enum
 import copy
 import sys
 sys.path.insert(0, '../')
@@ -21,11 +22,11 @@ class PlotData:
     xvar: np.ndarray
     yvars: list
 
-class PlotType:
-    input = 'Input'
-    output = 'Output'
-    compared = 'Compared'
-    additional = 'Additional'
+class PlotType(Enum):
+    INPUT = 1
+    OUTPUT = 2
+    COMPARED = 3
+    ADDITIONAL = 4
 
 # Initializes the figure and subplots
 def init_figure(input_options, profile_type):
@@ -39,7 +40,7 @@ def init_figure(input_options, profile_type):
     
     # Set figure title and subtitle
     modifier = 'Smoothed' if settings.APPLY_SMOOTHING else 'Unaltered'
-    plt.figtext(*ps.TITLEPOS, f'MMM {profile_type} Profiles Using {modifier} Input Profiles',
+    plt.figtext(*ps.TITLEPOS, f'MMM {profile_type.name.capitalize()} Profiles Using {modifier} Input Profiles',
         fontsize=15, ha='center')
     plt.figtext(*ps.SUBTITLEPOS, f'{shot_type} Shot {runid}, Measurement Time {time}s, {points} Input Points', 
         fontsize=10, ha='center')
@@ -57,17 +58,17 @@ def make_plot(ax, data, plot_type, time_idx=None):
     ax.axis('on')
 
     # Check for ylim adjustment (needed when y-values are nearly constant)
-    ymax = yvar.values[:, time_idx].max()
-    ymin = yvar.values[:, time_idx].min()
-    if round(ymax - ymin, 3) == 0:
-        ax.set(ylim=(ymin - 1, ymax + 1))
+    # ymax = yvar.values[:, time_idx].max()
+    # ymin = yvar.values[:, time_idx].min()
+    # if round(ymax - ymin, 3) == 0:
+    #     ax.set(ylim=(ymin - 1, ymax + 1))
 
-    if plot_type != PlotType().output:
+    if plot_type != PlotType.OUTPUT:
         ax.legend() # Legend disabled for output type plots
 
 # Creates plots for each PlotData() object defined in the input plotdata list
 def run_plotting_loop(plotdata, input_options, plot_type):
-    print(f'Creating {plot_type.lower()} profile figures...')
+    print(f'Creating {plot_type.name.lower()} profile figures...')
 
     for i, data in enumerate(plotdata):
 
@@ -86,22 +87,22 @@ def run_plotting_loop(plotdata, input_options, plot_type):
 
         # Create subplot and enable axis.  Setting data to None will leave the subplot position empty
         if data is not None:
-            if plot_type in [PlotType().input, PlotType().compared, PlotType().additional]:
+            if plot_type in [PlotType.INPUT, PlotType.COMPARED, PlotType.ADDITIONAL]:
                 make_plot(axs[row, col], data, plot_type, input_options.time_idx)
-            elif plot_type == PlotType().output:
+            elif plot_type == PlotType.OUTPUT:
                 make_plot(axs[row, col], data, plot_type)
 
         # Figure is full of subplots, so save the sheet
         if (i + 1) % (ROWS * COLS) == 0:
-            fig.savefig(utils.get_temp_path(f'{plot_type.lower()}_profiles_{int((i + 1) / 6)}.pdf'))
+            fig.savefig(utils.get_temp_path(f'{plot_type.name.lower()}_profiles_{int((i + 1) / 6)}.pdf'))
 
 
     # Save any remaining subplots to one final sheet
     if (i + 1) % (ROWS * COLS) != 0:
-       fig.savefig(utils.get_temp_path(f'{plot_type.lower()}_profiles_{int((i + 1) / 6) + 1}.pdf'))
+       fig.savefig(utils.get_temp_path(f'{plot_type.name.lower()}_profiles_{int((i + 1) / 6) + 1}.pdf'))
 
     # Merge individual pdf sheets with pdftk, then open file (may only open on Windows OS)
-    utils.open_file(utils.merge_profile_sheets(input_options, plot_type))
+    utils.open_file(utils.merge_profile_sheets(input_options, plot_type.name.capitalize()))
 
     # Clear plots from memory
     plt.close('all')
@@ -131,18 +132,24 @@ def plot_input_profiles(vars, input_options):
         PlotData(vars.aimp.name, vars.rho, [vars.aimp]),
         PlotData(vars.zimp.name, vars.rho, [vars.zimp]),]
 
-    run_plotting_loop(plotdata, input_options, PlotType().input)
+    run_plotting_loop(plotdata, input_options, PlotType.INPUT)
 
 def plot_additional_profiles(vars, input_options):
     plotdata = [
         PlotData(vars.tau.name, vars.rho, [vars.tau]),
         PlotData(vars.beta.name, vars.rho, [vars.beta, vars.betae]),
         PlotData('Gradient Ratios', vars.rho, [vars.etae, vars.etai]),
+        PlotData(vars.nuei.name, vars.rho, [vars.nuei]),
         PlotData('Collisionalities', vars.rho, [vars.nuste, vars.nusti]),
         PlotData('Magnetic Shear', vars.rho, [vars.shear, vars.shat]),
-        PlotData(vars.alphamhd.name, vars.rho, [vars.alphamhd])]
+        PlotData(vars.alphamhd.name, vars.rho, [vars.alphamhd]),
+        PlotData(vars.gave.name, vars.rho, [vars.gave]),
+        PlotData(vars.gmax.name, vars.rho, [vars.gmax]),
+        PlotData(vars.gyrfi.name, vars.rho, [vars.gyrfi]),
+        PlotData(vars.vthe.name, vars.rho, [vars.vthe]),
+        PlotData(vars.vthi.name, vars.rho, [vars.vthi])]
 
-    run_plotting_loop(plotdata, input_options, PlotType().additional)
+    run_plotting_loop(plotdata, input_options, PlotType.ADDITIONAL)
 
 def plot_output_profiles(vars, input_options):
     plotdata = [
@@ -178,7 +185,7 @@ def plot_output_profiles(vars, input_options):
         PlotData(vars.omgETGM.name, vars.rho, [vars.omgETGM]),
         PlotData(vars.dbsqprf.name, vars.rho, [vars.dbsqprf])]
 
-    run_plotting_loop(plotdata, input_options, PlotType().output)
+    run_plotting_loop(plotdata, input_options, PlotType.OUTPUT)
 
 # Compares profiles of calculated values with values found in the CDF
 def plot_profile_comparison(cdf_vars, input_vars, input_options):
@@ -205,7 +212,7 @@ def plot_profile_comparison(cdf_vars, input_vars, input_options):
 
         plotdata.append(PlotData(cdf_var.name, input_vars.rho, [cdf_var, calc_var]))
 
-    run_plotting_loop(plotdata, input_options, PlotType().compared)
+    run_plotting_loop(plotdata, input_options, PlotType.COMPARED)
 
 if __name__ == '__main__':
     # For testing purposes

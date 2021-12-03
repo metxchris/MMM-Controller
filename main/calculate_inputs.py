@@ -33,9 +33,10 @@ def nh(vars):
 # Thermal Ion Density
 def ni(vars):
     nd = vars.nd.values
+    nh = vars.nh.values
     nz = vars.nz.values
 
-    ni = nd + nz
+    ni = nd + nz + nh
 
     vars.ni.set_variable(ni, vars.ne.units, ['XBO', 'TIME'])
 
@@ -157,13 +158,13 @@ def betae(vars):
     vars.betae.set_variable(betae, '%', ['XBO', 'TIME'])
 
 # Coulomb Logarithm TODO: what is 37.8? what are units?
-def zlog(vars):
+def loge(vars):
     ne = vars.ne.values
     te = vars.te.values
 
-    zlog = 37.8 - np.log(ne**(1/2) / te)
+    loge = 37.8 - np.log(ne**(1/2) / te)
 
-    vars.zlog.set_variable(zlog, '', ['XBO', 'TIME'])
+    vars.loge.set_variable(loge, '', ['XBO', 'TIME'])
 
 # Collision Frequency (NU_{ei}) TODO: units?
 def nuei(vars):
@@ -171,9 +172,9 @@ def nuei(vars):
     ne = vars.ne.values
     te = vars.te.values
     zeff = vars.zeff.values
-    zlog = vars.zlog.values
+    loge = vars.loge.values
 
-    nuei = zcf * 2**(1/2) * ne * zlog * zeff / te**(3/2)
+    nuei = zcf * 2**(1/2) * ne * loge * zeff / te**(3/2)
 
     vars.nuei.set_variable(nuei, '', ['XBO', 'TIME'])
 
@@ -183,46 +184,46 @@ def nuei2(vars):
     ni = vars.ni.values
     ti = vars.ti.values
     zeff = vars.zeff.values
-    zlog = vars.zlog.values
+    loge = vars.loge.values
 
-    nuei2 = zcf * 2**(1/2) * ni * zlog * zeff / ti**(3/2)
+    nuei2 = zcf * 2**(1/2) * ni * loge * zeff / ti**(3/2)
 
     vars.nuei2.set_variable(nuei2, '', ['XBO', 'TIME'])
 
 # Thermal Velocity of Electrons TODO: units?
-def zvthe(vars):
+def vthe(vars):
     zckb = constants.ZCKB
     zcme = constants.ZCME
     te = vars.te.values
 
-    zvthe = (2 * zckb * te / zcme)**(1/2)
+    vthe = (2 * zckb * te / zcme)**(1/2)
 
-    vars.zvthe.set_variable(zvthe, '', ['XBO', 'TIME'])
+    vars.vthe.set_variable(vthe, '', ['XBO', 'TIME'])
 
 # Thermal Velocity of Ions TODO: units?
-def zvthi(vars):
+def vthi(vars):
     zckb = constants.ZCKB
     zcmp = constants.ZCMP
     aimass = vars.aimass.values
     ti = vars.ti.values
 
-    zvthi = (zckb * ti / (zcmp * aimass))**(1/2)
+    vthi = (zckb * ti / (zcmp * aimass))**(1/2)
 
-    vars.zvthi.set_variable(zvthi, '', ['XBO', 'TIME'])
+    vars.vthi.set_variable(vthi, '', ['XBO', 'TIME'])
 
 # Electron Collisionality (NU^{*}_{e}) TODO: units?
 # OLD NOTE: This is in approximate
 # agreement with NUSTE in transp.  One source of the disagreement is
-# likely because the modmmm7_1.f90 Coulomb logarithm (zlog) does not
+# likely because the modmmm7_1.f90 Coulomb logarithm (loge) does not
 # match perfectly with the TRANSP version (CLOGE).
 def nuste(vars):
     eps = vars.eps.values
     nuei = vars.nuei.values
     q = vars.q.values
     rmaj = vars.rmaj.values
-    zvthe = vars.zvthe.values
+    vthe = vars.vthe.values
 
-    nuste = nuei * eps**(-3/2) * q * rmaj / zvthe
+    nuste = nuei * eps**(-3/2) * q * rmaj / vthe
 
     vars.nuste.set_variable(nuste, '', ['XBO', 'TIME'])
 
@@ -238,34 +239,34 @@ def nusti(vars):
     q = vars.q.values
     nuei2 = vars.nuei2.values
     rmaj = vars.rmaj.values
-    zvthi = vars.zvthi.values
+    vthi = vars.vthi.values
 
-    nusti = nuei2 * eps**(-3/2) * q * rmaj / (2 * zvthi) * (zcme / zcmp)**(1/2)
+    nusti = nuei2 * eps**(-3/2) * q * rmaj / (2 * vthi) * (zcme / zcmp)**(1/2)
 
     vars.nusti.set_variable(nusti, '', ['XBO', 'TIME'])
 
 # Ion Gyrofrequency TODO: units
-def zgyrfi(vars):
+def gyrfi(vars):
     zce = constants.ZCE
     zcmp = constants.ZCMP
     aimass = vars.aimass.values
     btor = vars.btor.values
 
-    zgyrfi = zce * btor / (zcmp * aimass)
+    gyrfi = zce * btor / (zcmp * aimass)
 
-    vars.zgyrfi.set_variable(zgyrfi, '', ['XBO', 'TIME'])
+    vars.gyrfi.set_variable(gyrfi, '', ['XBO', 'TIME'])
 
 # Upper bound for ne, nh, te, and ti gradients in DRBM model (modmmm7_1.f90) TODO: units
-def zgmax(vars):
+def gmax(vars):
     eps = vars.eps.values
     q = vars.q.values
     rmaj = vars.rmaj.values
-    zgyrfi = vars.zgyrfi.values
-    zvthi = vars.zvthi.values
+    gyrfi = vars.gyrfi.values
+    vthi = vars.vthi.values
 
-    zgmax = rmaj / (zvthi / zgyrfi * q / eps)
+    gmax = rmaj / (vthi / gyrfi * q / eps)
 
-    vars.zgmax.set_variable(zgmax, '', ['XBO', 'TIME'])
+    vars.gmax.set_variable(gmax, '', ['XBO', 'TIME'])
 
 # Magnetic Shear
 def shear(vars):
@@ -287,9 +288,9 @@ def shat(vars):
 
     vars.shat.set_variable(shat, '', ['XBO', 'TIME'])
 
-# Alpha MHD, convert BETAE from % to number (w20mod.f90)
+# Alpha MHD, convert BETAE from % to number (Weiland Definition)
 def alphamhd(vars):
-    betae = vars.betae.values
+    betae = vars.betae.values / 100
     gne = vars.gne.values
     gni = vars.gni.values
     gte = vars.gte.values
@@ -298,9 +299,17 @@ def alphamhd(vars):
     te = vars.te.values
     ti = vars.ti.values
 
-    alphamhd = q**2 * betae / 100 * (gne + gte + ti / te * (gni + gti))
+    alphamhd = q**2 * betae * (gne + gte + ti / te * (gni + gti))
 
     vars.alphamhd.set_variable(alphamhd, '', ['XBO', 'TIME'])
+
+def gave(vars):
+    shear = vars.shear.values
+    alphamhd = vars.alphamhd.values
+
+    gave = 2/3 + 5/9 * shear - 5/12 * alphamhd
+
+    vars.gave.set_variable(gave, '', ['XBO', 'TIME'])
 
 def etae(vars):
     gte = vars.gte.values
@@ -418,15 +427,15 @@ def calculate_inputs(vars):
     calculate_variable(p, vars)
     calculate_variable(beta, vars)
     calculate_variable(betae, vars)
-    calculate_variable(zlog, vars)
+    calculate_variable(loge, vars)
     calculate_variable(nuei, vars)
     calculate_variable(nuei2, vars)
-    calculate_variable(zvthe, vars)
-    calculate_variable(zvthi, vars)
+    calculate_variable(vthe, vars)
+    calculate_variable(vthi, vars)
     calculate_variable(nuste, vars)
     calculate_variable(nusti, vars)
-    calculate_variable(zgyrfi, vars)
-    calculate_variable(zgmax, vars)
+    calculate_variable(gyrfi, vars)
+    calculate_variable(gmax, vars)
 
     # Differential rmin needed for gradient calculations
     drmin = np.diff(vars.rmin.values, axis=0)
@@ -448,6 +457,7 @@ def calculate_inputs(vars):
     calculate_variable(shear, vars)
     calculate_variable(shat, vars)
     calculate_variable(alphamhd, vars)
+    calculate_variable(gave, vars)
     calculate_variable(etae, vars)
     calculate_variable(etai, vars)
     calculate_variable(etaih, vars)
