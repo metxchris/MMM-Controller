@@ -1,4 +1,5 @@
 # Standard Packages
+import copy
 import inspect
 import sys
 sys.path.insert(0, '../')
@@ -410,7 +411,8 @@ def calculate_variable(var_function, vars):
 
 # Calculates new variables needed for MMM and data display from CDF variables
 # Values are stored to vars within each function call
-def calculate_inputs(vars):
+def calculate_inputs(cdf_vars):
+    vars = copy.deepcopy(cdf_vars)
 
     # Some calculations depend on values from previous calculations
     calculate_variable(vpol, vars)
@@ -469,6 +471,8 @@ def calculate_inputs(vars):
     calculate_variable(test, vars)
     calculate_gradient('gtest', 'test', -drmin, vars)
     calculate_variable(test2, vars)
+
+    return vars
 
 # Returns function names of calculated variables in this module, other than gradient calculations
 def get_calculated_vars():

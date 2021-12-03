@@ -228,6 +228,7 @@ class Variable:
                 ['M**2/SEC', r'$\mathrm{m}^{2}/s$'],
                 ['M/SEC', r'm/s'],
                 ['M', r'm'],
+                ['SEC**-1', r's$^{-1}$'],
                 ['MAMPS', r'MA'],
                 ['RAD/SEC', r'rad/s'],
                 ['PASCALS', r'Pa'],
@@ -305,7 +306,7 @@ class Variable:
             self.values[np.isnan(self.values)] = 0
 
 class InputOptions:
-    def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None):
+    def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None, var_to_scan=None, scan_range=None):
         # Public
         self.cdf_name = cdf_name
         self.shot_type = shot_type
@@ -319,6 +320,8 @@ class InputOptions:
         self._var_to_scan = None
         self._scan_range = None
         self._scan_factor_str = None
+
+        # self.set_scan_values(var_to_scan, scan_range)
 
     @property
     def runid(self):

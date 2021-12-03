@@ -39,7 +39,7 @@ def init_figure(input_options, profile_type):
     fig, axs = plt.subplots(ROWS, COLS)
     
     # Set figure title and subtitle
-    modifier = 'Smoothed' if settings.APPLY_SMOOTHING else 'Unaltered'
+    modifier = 'Smoothed' if settings.APPLY_SMOOTHING else 'Unsmoothed'
     plt.figtext(*ps.TITLEPOS, f'MMM {profile_type.name.capitalize()} Profiles Using {modifier} Input Profiles',
         fontsize=15, ha='center')
     plt.figtext(*ps.SUBTITLEPOS, f'{shot_type} Shot {runid}, Measurement Time {time}s, {points} Input Points', 
@@ -69,6 +69,9 @@ def make_plot(ax, data, plot_type, time_idx=None):
 
 # Creates plots for each PlotData() object defined in the input plotdata list
 def run_plotting_loop(plotdata, input_options, plot_type):
+    from plots.styles import standard as ps
+    from plots.colors import mmm
+
     print(f'Creating {plot_type.name.lower()} profile figures...')
 
     for i, data in enumerate(plotdata):
@@ -110,18 +113,18 @@ def run_plotting_loop(plotdata, input_options, plot_type):
 
 def plot_input_profiles(vars, input_options):
     plotdata = [
-        PlotData('Temperatures, Safety Factor', vars.rho, [vars.te, vars.ti, vars.q]),
-        PlotData(r'$T, q$ Gradients', vars.rho, [vars.gte, vars.gti, vars.gq]),
-        PlotData(vars.zeff.name, vars.rho, [vars.zeff]),
+        PlotData('Temperatures', vars.rho, [vars.te, vars.ti]),
+        PlotData(vars.q.name, vars.rho, [vars.q]),
+        PlotData(vars.wexbs.name, vars.rho, [vars.wexbs]),
+        PlotData(r'Temperature Gradients', vars.rho, [vars.gte, vars.gti]),
+        PlotData(vars.gq.name, vars.rho, [vars.gq]),
         PlotData(vars.btor.name, vars.rho, [vars.btor]),
-        PlotData(vars.elong.name, vars.rho, [vars.elong]),
-        PlotData(vars.rmaj.name, vars.rho, [vars.rmaj]),
         PlotData('Densities', vars.rho, [vars.ne, vars.ni, vars.nf, vars.nd]),
         PlotData(vars.nz.name, vars.rho, [vars.nz]),
-        PlotData('Density Gradients', vars.rho, [vars.gne, vars.gni, vars.gnz]),
         PlotData(vars.nh.name, vars.rho, [vars.nh]),
+        PlotData('Density Gradients', vars.rho, [vars.gne, vars.gni]),
+        PlotData(vars.gnz.name, vars.rho, [vars.gnz]),
         PlotData(vars.gnh.name, vars.rho, [vars.gnh]),
-        PlotData(vars.wexbs.name, vars.rho, [vars.wexbs]),
         PlotData(vars.vpol.name, vars.rho, [vars.vpol]),
         PlotData(vars.vtor.name, vars.rho, [vars.vtor]),
         PlotData(vars.vpar.name, vars.rho, [vars.vpar]),
@@ -131,7 +134,10 @@ def plot_input_profiles(vars, input_options):
         PlotData(vars.ahyd.name, vars.rho, [vars.ahyd]),
         PlotData(vars.aimass.name, vars.rho, [vars.aimass]),
         PlotData(vars.aimp.name, vars.rho, [vars.aimp]),
-        PlotData(vars.zimp.name, vars.rho, [vars.zimp]),]
+        PlotData(vars.zimp.name, vars.rho, [vars.zimp]),
+        PlotData(vars.zeff.name, vars.rho, [vars.zeff]),
+        PlotData(vars.elong.name, vars.rho, [vars.elong]),
+        PlotData(vars.rmaj.name, vars.rho, [vars.rmaj])]
 
     run_plotting_loop(plotdata, input_options, PlotType.INPUT)
 

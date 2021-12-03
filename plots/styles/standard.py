@@ -1,21 +1,15 @@
-from cycler import cycler
-import matplotlib.pyplot as plt
+# Standard Packages
 import sys
 sys.path.insert(0, '../')
 sys.path.insert(0, '../../')
-from main import constants
-
-line_cycle = (  cycler(color=[constants.BLUE, constants.RED, constants.ORANGE, constants.GREEN, constants.PURPLE, constants.YELLOW])
-          # cycler(color=['#008fd5', '#fc4f30', '#e5ae38', '#6d904f', '#8b8b8b', '#810f7c'])
-        + cycler(dashes=[(1, 0), (6, 2, 1, 2), (5, 2), (1.5, 1), (2, 1), (4, 1)])
-        + cycler(lw=[1.75, 1.75, 1.75, 2.0, 2.0, 2.0]))
+# 3rd Party Packages
+import matplotlib.pyplot as plt
 
 plt.rcParams.update({
         'font.family': 'serif',
         'mathtext.fontset': 'cm',
         'mathtext.bf': 'cmb10',
         'font.serif': 'cmr10',
-        'axes.prop_cycle': line_cycle,
         'axes.unicode_minus': False, # unicode_minus does not work in Computer Modern font (cm, cmr10)
         'axes.formatter.limits': [-2, 3], # Forces exponent notation below 10**(-2) and above 10**3
         'axes.grid': True,
