@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, '../')
 # 3rd Party Packages
 import numpy as np
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d # TODO: use Akima1DInterpolator?
 # Local Packages
 from main import variables, constants
 
@@ -391,9 +391,9 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
 
     gvar.set_variable(gradient_values, '', ['XBO', 'TIME'])
 
-    gvar.verify_values()
     gvar.apply_smoothing()
     gvar.clamp_gradient(100)
+    gvar.set_minvalue()
     gvar.reject_outliers()
     gvar.remove_nan()
 
@@ -404,8 +404,8 @@ def calculate_variable(var_function, vars):
     # Get the variable name specified by var_function
     var_name = var_function.__name__
 
-    getattr(vars, var_name).verify_values()
     getattr(vars, var_name).apply_smoothing()
+    getattr(vars, var_name).set_minvalue()
     getattr(vars, var_name).reject_outliers()
     getattr(vars, var_name).remove_nan()
 

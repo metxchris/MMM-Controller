@@ -46,7 +46,7 @@ if __name__ == '__main__':
         cdf_name=cdf_name, 
         shot_type=shot_type, 
         input_time=input_time, 
-        input_points=81, # Interpolation points used for creating mmm input file
+        input_points=51, # Interpolation points used for creating mmm input file
         var_to_scan=None, 
         scan_range=np.arange(start=0.5, stop=2.1, step=0.1))
 

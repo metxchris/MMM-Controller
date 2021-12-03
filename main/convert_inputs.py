@@ -63,9 +63,9 @@ def convert_variable(cdf_var, xvals):
     else:
         print('[initial_conversion] *** Warning: Unsupported interpolation xdim type for variable', var.name, xdim)
     
-    # Verify values for errors due to interpolation, then apply smoothing with a Gaussian filter
-    var.verify_values()
+    # Apply smoothing, then verify minimum values
     var.apply_smoothing()
+    var.set_minvalue()
 
     return var
 
@@ -131,7 +131,7 @@ def final_conversion(input_vars, input_options):
         if mmm_var.values is not None:
             set_interp = interp1d(xb, mmm_var.values, kind='cubic', fill_value="extrapolate", axis=0)
             mmm_var.set_variable(set_interp(xb_mmm))
-            mmm_var.verify_values()
+            mmm_var.set_minvalue()
         else:
             print(f'ERROR: Trying to interpolate variable {var} with values equal to None')
 

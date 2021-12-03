@@ -49,7 +49,7 @@ class InputVariables(Variables):
         self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', minvalue=1e-2, smooth=1)
         self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-2, smooth=1)
         self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-2, smooth=1)
-        self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', smooth=2)
+        self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-2, smooth=2)
         self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$', smooth=None)
         self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-2, smooth=1)
         self.tepro = Variable('Electron Temperature', cdfvar='TEPRO', label=r'$T_\mathrm{e}$', minvalue=1e-2, smooth=1)
@@ -93,9 +93,9 @@ class InputVariables(Variables):
         self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$')
         self.shear = Variable('Magnetic Shear', label=r'$s$')
         self.tau = Variable('Temperature Ratio', label=r'$\tau$')
-        self.vpar = Variable('Parallel Velocity', label=r'$v_\mathrm{par}$', smooth=2)
-        self.vpol = Variable('Poloidal Velocity', label=r'$v_\theta$', smooth=2)
-        self.vtor = Variable('Toroidal Velocity', label=r'$v_\phi$', smooth=2)
+        self.vpar = Variable('Parallel Velocity', label=r'$v_\mathrm{par}$', absminvalue=1e-2, smooth=2)
+        self.vpol = Variable('Poloidal Velocity', label=r'$v_\theta$', absminvalue=1e-2, smooth=2)
+        self.vtor = Variable('Toroidal Velocity', label=r'$v_\phi$', absminvalue=1e-2, smooth=2)
         self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{T_\mathrm{e}}$')
         self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{T_\mathrm{i}}$')
         self.zeff = Variable('Effective Charge', cdfvar='ZEFF', label=r'$Z_\mathrm{eff}$')
@@ -177,7 +177,7 @@ class OutputVariables(Variables):
         self.dbsqprf = Variable('dbsqprf', label='dbsqprf')
 
 class Variable:
-    def __init__(self, name, cdfvar=None, smooth=None, label=None, desc=None, minvalue=None, units=None, dimensions=None, values=None):
+    def __init__(self, name, cdfvar=None, smooth=None, label=None, desc=None, minvalue=None, absminvalue=None, units=None, dimensions=None, values=None):
         # Public
         self.name = name
         self.cdfvar = cdfvar # Name of variable as used in CDF's
@@ -185,6 +185,7 @@ class Variable:
         self.label = label if label is not None else '' # Plot label in LaTeX Format
         self.desc = desc if desc is not None else ''
         self.minvalue = minvalue
+        self.absminvalue = absminvalue
         # Private
         self._units_label = None
         self._units = units if units is not None else ''
@@ -194,10 +195,18 @@ class Variable:
     def __str__(self):
         return str(self.name)
 
-    # Min values are used to correct errors after interpolation (such as negative Temperature values)
-    def verify_values(self):
+    # Minimum values are used to handle variables that cannot take values below a minimum amount (such as negative Temperature)
+    # Absolute minimum values are used to handle variables that can be negative, but get too close to zero
+    def set_minvalue(self):
         if self.minvalue is not None:
             self.values[self.values < self.minvalue] = self.minvalue
+        if self.absminvalue is not None:
+            too_small = np.absolute(self.values) < self.absminvalue
+            if too_small.any():
+                # np.sign(0) = 0, so set these to +1
+                value_signs = np.sign(self.values[too_small])
+                value_signs[value_signs == 0] = 1
+                self.values[too_small] = self.absminvalue * value_signs
 
     def get_xdim(self):
         return self.dimensions[0] if self.dimensions is not None and len(self.dimensions) > 0 else None
@@ -304,6 +313,7 @@ class Variable:
         if np.isnan(self.values).any():
             print('nan values found for var ' + self.name)
             self.values[np.isnan(self.values)] = 0
+            self.set_minvalue()
 
 class InputOptions:
     def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None, var_to_scan=None, scan_range=None):

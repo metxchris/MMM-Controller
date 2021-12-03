@@ -50,11 +50,9 @@ def read_output_file(input_options):
     units_line = lines[data_start - 2]
     data_lines = lines[data_start: data_end + 1]
 
-    # Strip extra characters from units and vars line, and drop the first item (comment character)
+    # Strip extra characters from vars and units line, and drop the first item (comment character)
     vars_list = vars_line.replace('    ', ' ').replace('   ', ' ').replace('  ', ' ').replace('\n', '').split(' ')[1:]
-
-    # The units list may have an extra item (due to an output formatting error), so we are matching the length of the variable list
-    units_list = units_line.replace('    ', ' ').replace('   ', ' ').replace('  ', ' ').replace('\n', '').split(' ')[1: len(vars_list) + 1]
+    units_list = units_line.replace('    ', ' ').replace('   ', ' ').replace('  ', ' ').replace('\n', '').split(' ')[1:]
 
     # Split data lines into numpy array
     data_array = np.array([line.replace('   ', '').replace(' -', '  -').replace('\n', '').split('  ') 
