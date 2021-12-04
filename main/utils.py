@@ -1,80 +1,125 @@
 # Standard Packages
 import os
 import glob
-from os.path import exists, dirname
 import sys
 sys.path.insert(0, '../')
 # Local Packages
 import pdftk, output, temp, cdfs
 
-# Returns the path to the CDF folder
 def get_cdf_path(file_name):
-    return "{0}\\{1}.CDF".format(dirname(cdfs.__file__), file_name)
+    '''Returns the path to the CDF folder (str)'''
+    return f'{os.path.dirname(cdfs.__file__)}\\{file_name}.CDF'
 
-# Returns the path to the temp folder
 def get_temp_path(file_name=''):
-    return '{0}\\{1}'.format(dirname(temp.__file__), file_name)
+    '''Returns the path to the temp folder (str)'''
+    return f'{os.path.dirname(temp.__file__)}\\{file_name}'
 
-# Returns the path to the output folder
 def get_output_path(file_name=''):
-    return '{0}\\{1}'.format(dirname(output.__file__), file_name)
+    '''Returns the path to the output folder (str)'''
+    return f'{os.path.dirname(output.__file__)}\\{file_name}'
 
-# Returns the path to the output folder
-def get_mmm_path(file_name=''):
-    return '{0}\\{1}'.format(dirname(mmm.__file__), file_name)
-
-# Returns the path to the pdftk executable
 def get_pdftk_path():
-    return '{0}\\pdftk.exe'.format(dirname(pdftk.__file__))
+    '''Returns the path to the pdftk executable (str)'''
+    return f'{os.path.dirname(pdftk.__file__)}\\pdftk.exe'
 
-# checks if output dir exists and creates it if needed
 def create_directory(dir_name):
+    '''
+    Checks if output dir exists and creates it if needed.
+
+    Parameters:
+    * dir_name (str): Path of directory
+    '''
+
     if not os.path.exists(dir_name):
         os.mkdir(dir_name)
 
-# Returns original file_path if no duplicate files exist
-# Otherwise appends (#) to the end of the file name to avoid overwritting a file
-# TODO: this fails when the path starts with any '.'
 def check_filename(file_path):
-    if not os.path.exists(file_path):
-        return file_path
+    '''
+    Checks if file exists and returns a new file path if the checked file exists.
 
-    for i in range(2, 1000):
-        path_split = file_path.split('.')
-        new_file_path = '{0} ({1}).{2}'.format(path_split[0], i, path_split[1])
-        if not os.path.exists(new_file_path):
-            return new_file_path
+    A number in the form of (#) is appended to the end of the file path in the event that
+    the file already exists.  This is done so that files are not overwritten in an existing directory.
+    An exception is raised if too many duplicate files already exist.
 
-    # Throw an exception if this many duplicate files exist
-    raise NameError('Too many duplicate files exist to save {0}'.format(file_path))
+    TODO: this fails when the path starts with any '.'
 
-# Returns original dir_path if no duplicate directories exist
-# Otherwise appends (#) to the end of the dir name to avoid adding files to an existing directory
+    Parameters:
+    * file_path (str): Path to file
+
+    Returns:
+    * file_path (str): Path to file that does not exist
+
+    '''
+
+    if os.path.exists(file_path):
+        num_range = range(2, 1000)
+        for i in num_range:
+            path_split = file_path.split('.')
+            new_file_path = f'{path_split[0]} ({i}).{path_split[1]}'
+            if not os.path.exists(new_file_path):
+                file_path = new_file_path
+                break
+
+        if i == max(num_range):
+            raise NameError(f'Too many duplicate files exist to save {file_path}')
+
+    return file_path
+
 def check_dirname(dir_path):
-    if not os.path.isdir(dir_path):
-        return dir_path
+    '''
+    Checks if directory exists and returns a new directory name if the checked directory exists.
 
-    for i in range(2, 1000):
-        new_dir_path = '{0} ({1})'.format(dir_path, i)
-        if not os.path.isdir(new_dir_path):
-            return new_dir_path
+    A number in the form of (#) is appended to the end of the directory name in the event that
+    the directory already exists.  This is done so that files are not overwritten in an existing directory.
+    An exception is raised if too many duplicate directories already exist.
 
-    # Throw an exception if this many duplicate files exist
-    raise NameError('Too many duplicate directories exist to save directory {0}'.format(dir_path))
+    Parameters:
+    * dir_path (str): Path to directory
 
-# Opens the output pdf (likely only works on Windows)
+    Returns:
+    * dir_path (str): Path to directory that does not exist yet
+    '''
+
+    if os.path.isdir(dir_path):
+        num_range = range(2, 1000)
+        for i in num_range:
+            new_dir_path = f'{dir_path} ({i})'
+            if not os.path.isdir(new_dir_path):
+                dir_path = new_dir_path
+                break
+
+        if i == max(num_range):
+            raise NameError(f'Too many duplicate directories exist to save directory {dir_path}')
+
+    return dir_path    
+
 def open_file(file_path):
+    '''
+    Opens the specified file (likely only works on Windows)
+
+    Parameters:
+    * file_path (str): Path of file to open
+    '''
+
     os.startfile(file_path)
 
-# Clears all files in a specified folder of the specified file_type
 def clear_folder(dir_path, file_type):
-    folder = '{0}\\{1}'.format(dir_path, file_type)
+    '''
+    Clears all files in a specified folder of the specified file_type.
+
+    Parameters:
+    * dir_path (str): Path of directory
+    * file_type (str): Type of file to clear (include * in the string)
+    '''
+
+    folder = f'{dir_path}\\{file_type}'
     for file in glob.glob(folder):
         os.remove(file)
-    print('Cleared all files of type {0} from {1}\n'.format(file_type, dir_path))
+    print(f'Cleared all files of type {file_type} from {dir_path}\n')
 
-# Clears temporary files from the temp folder
 def clear_temp_folder():
+    '''Clears temporary files from the temp folder.'''
+
     # Clear individual pdf sheets
     temp_files = get_temp_path('*.pdf')
     for file in glob.glob(temp_files):
@@ -86,21 +131,58 @@ def clear_temp_folder():
     if os.path.exists(get_temp_path('output')):
         os.remove(get_temp_path('output'))
 
-# Merge pdf sheets using pdftk in the temp folder into a single pdf and place in the output folder
+def get_files_in_dir(dir_path, file_type=''):
+    '''
+    Lists all files in dir_path of file_type.
+
+    Parameters:
+    * dir_path (str): Path of directory
+    * file_type (str): Type of file to search for (include * in the string)
+
+    Returns:
+    * file_names (list): List of file names
+    '''
+
+    files = f'{dir_path}\\{file_type}'
+    file_names = [file for file in glob.glob(files)]
+
+    if len(file_names) == 0:
+        print(f'*** Warning: No files found for {files}')
+
+    return file_names
+
 def merge_profile_sheets(input_options, profile_type):
+    '''
+    Merge PDF sheets using Pdftk in the temp folder into a single PDF, then place the merged PDF in the output folder.
+
+    Pdftk is a 3rd party executable that is used to merge individual PDF sheets into one PDF, 
+    and is called using a shell command.
+
+    Parameters:
+    * input_options (InputOptions): Stores options for the scan
+    * profile_type (str): The type of profile to merge (Input, Output, etc.)
+
+    Returns:
+    * output_file (str): Path to merged PDF
+    '''
+
     create_directory(get_output_path(input_options.runid))
 
-    merged_name = '{0}\\{1} {2} Profiles.pdf'.format(input_options.runid, input_options.runid, profile_type)
+    merged_name = f'{input_options.runid}\\{input_options.runid} {profile_type} Profiles.pdf'
     output_file = check_filename(get_output_path(merged_name))
     temp_path = get_temp_path()
     pdftk_path = get_pdftk_path()
     
-    # Shell command to use pdftk.exe
-    os.system('cd {0} & {1} *{2}*.pdf cat output \"{3}\"'.format(temp_path, pdftk_path, profile_type, output_file))
-
-    print('Profiles saved to {0}\n'.format(output_file))
+    # Shell command to use pdftk.exe 
+    # TODO: Replace os.system with subprocess.run()
+    os.system(f'cd {temp_path} & {pdftk_path} *{profile_type}*.pdf cat output \"{output_file}\"')
+    print(f'Profiles saved to {output_file}\n')
 
     return output_file
 
 if __name__ == '__main__':
+    '''
+    For testing purposes
+    '''
+
     clear_temp_folder()

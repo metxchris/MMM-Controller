@@ -72,7 +72,7 @@ class InputVariables(Variables):
         self.btor = Variable('Toroidal Magnetic Field', cdfvar='BTTOT', label=r'$B_\mathrm{T}$')
         self.eps = Variable('Inverse Aspect Ratio', label=r'$\epsilon$')
         self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$')
-        self.etai = Variable('Ion Gradient Ratio', cdfvar='ETAI', label=r'$\eta_\mathrm{\,i}$') # ETAI in CDF is not gTI/gNI
+        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$') # ETAI in CDF is not gTI/gNI
         self.etaih = Variable('Hydrogenic Gradient Ratio', cdfvar='ETAIH', label=r'$\eta_\mathrm{\,ih}$')
         self.etaid = Variable('ETAID', label=r'$\eta_\mathrm{\,id}$')
         self.etaie = Variable('ETAIE', cdfvar='ETAIE', label=r'$\eta_\mathrm{\,ie}$')

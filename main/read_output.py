@@ -1,5 +1,4 @@
 # Standard Packages
-import time
 import sys
 sys.path.insert(0, '../')
 # 3rd Party Packages
@@ -136,6 +135,5 @@ def read_output_file(input_options):
 if __name__ == '__main__':
     # For testing purposes, make sure input_points is correct for existing output file in temp folder
     input_options = variables.InputOptions('132017T01', input_points=41)
-    input_options.input_points = input_options.input_points
     input_options.runid = input_options.cdf_name
     read_output_file(input_options)
