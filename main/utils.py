@@ -48,7 +48,6 @@ def check_filename(file_path):
 
     Returns:
     * file_path (str): Path to file that does not exist
-
     '''
 
     if os.path.exists(file_path):
@@ -180,9 +179,7 @@ def merge_profile_sheets(input_options, profile_type):
 
     return output_file
 
+# For testing purposes
 if __name__ == '__main__':
-    '''
-    For testing purposes
-    '''
 
     clear_temp_folder()

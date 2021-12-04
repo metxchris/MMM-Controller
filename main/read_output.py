@@ -54,6 +54,8 @@ def save_data_csvs(data_input, data_output, vars_input, vars_output, units_input
     csv_header_output = ','.join(vars_output) + '\n' + ','.join(units_output)
     np.savetxt(file_name_input, data_input, header=csv_header_input, fmt='%.4e', delimiter=',')
     np.savetxt(file_name_output, data_output, header=csv_header_output, fmt='%.4e', delimiter=',')
+
+    print(f'Output data saved to:\n    {file_name_input}\n    {file_name_output}\n')
  
 def split_names(names_str):
     '''
@@ -132,8 +134,8 @@ def read_output_file(input_options):
 
     return output_vars
 
+# For testing purposes, make sure input_points is correct for existing output file in temp folder
 if __name__ == '__main__':
-    # For testing purposes, make sure input_points is correct for existing output file in temp folder
     input_options = variables.InputOptions('132017T01', input_points=41)
     input_options.runid = input_options.cdf_name
     read_output_file(input_options)

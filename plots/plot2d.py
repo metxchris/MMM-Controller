@@ -27,11 +27,15 @@ def simple_plot(input_options, x1var, y1var, l1='', x2var=None, y2var=None, l2='
     plt.title(f'{input_options.runid}, t={input_options.time}s')
     plt.show()
 
+# Run this file directly to call mmm_controller.py and make a simple plot of variable profiles
 if __name__ == '__main__':
     from main import variables
     import mmm_controller
+
     '''
-    CDF Options (Uncomment the line you wish to use)
+    CDF Options:
+    * Uncomment the line you wish to use
+    * Edit enums.py to view or add additional ShotTypes
     '''
     cdf_name, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
     # cdf_name, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
