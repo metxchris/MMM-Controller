@@ -106,7 +106,7 @@ def zeff(vars):
 
     vars.zeff.set_variable(zeff, '', ['XBO', 'TIME'])
 
-# Calculate BTOR
+# BTOR
 def btor(vars):
     bz = vars.bz.values
     raxis = vars.rmaj.values[0, :]
@@ -116,7 +116,7 @@ def btor(vars):
 
     vars.btor.set_variable(btor, vars.bz.units, ['XBO', 'TIME'])
 
-# Calculate Inverse Aspect Ratio
+# Inverse Aspect Ratio
 def eps(vars):
     arat = vars.arat.values
 
