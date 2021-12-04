@@ -64,7 +64,6 @@ def execute_variable_scan(mmm_vars, input_options):
 
     print('Variable scan complete!')
 
-# Initializes all input variables needed to run the MMM Driver
 def initialize_controller(input_options):
     '''
     Initializes all input variables needed to run the MMM Driver and plot variable profiles.
@@ -140,7 +139,7 @@ if __name__ == '__main__':
         cdf_name=cdf_name,
         shot_type=shot_type,
         input_time=input_time,
-        input_points=201,
+        input_points=None,
         var_to_scan='te',
         scan_range=np.arange(start=0.5, stop=2.1, step=0.5))
 
