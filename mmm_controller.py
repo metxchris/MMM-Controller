@@ -4,6 +4,7 @@ from copy import deepcopy
 import numpy as np
 # Local Packages
 from main import *
+from main.enums import ShotType
 from plots import plot_profiles
 
 # Run the MMM Driver once, and show output profile plots

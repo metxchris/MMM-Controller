@@ -1,7 +1,7 @@
 # Standard Packages
 from dataclasses import dataclass
 from cycler import cycler
-from enum import Enum
+
 import copy
 import sys
 sys.path.insert(0, '../')
@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 # Local Packages
 from main import constants, utils, calculate_inputs
+from main.enums import PlotType, ShotType
 from plots.styles import standard as ps
 import settings
 
@@ -21,12 +22,6 @@ class PlotData:
     title: str
     xvar: np.ndarray
     yvars: list
-
-class PlotType(Enum):
-    INPUT = 1
-    OUTPUT = 2
-    COMPARED = 3
-    ADDITIONAL = 4
 
 # Initializes the figure and subplots
 def init_figure(input_options, profile_type, xvar_points):
@@ -40,10 +35,10 @@ def init_figure(input_options, profile_type, xvar_points):
     
     # Set figure title and subtitle
     modifier = 'Smoothed' if settings.APPLY_SMOOTHING else 'Unsmoothed'
-    plt.figtext(*ps.TITLEPOS, f'MMM {profile_type.name.capitalize()} Profiles Using {modifier} Input Profiles',
-        fontsize=15, ha='center')
-    plt.figtext(*ps.SUBTITLEPOS, f'{shot_type} Shot {runid}, Measurement Time {time}s, {points} Radial Points', 
-        fontsize=10, ha='center')
+    title_txt = f'MMM {profile_type.name.capitalize()} Profiles Using {modifier} Input Profiles'
+    subtitle_txt = f'{shot_type.name} Shot {runid}, Measurement Time {time}s, {points} Radial Points'
+    plt.figtext(*ps.TITLEPOS, title_txt, fontsize=15, ha='center')
+    plt.figtext(*ps.SUBTITLEPOS, subtitle_txt, fontsize=10, ha='center')
 
     return fig, axs
 

@@ -3,6 +3,7 @@ import sys
 sys.path.insert(0, '../')
 # Local Packages
 from main import utils
+from main.enums import ShotType
 
 MMM_LABELS = {
     'rmin'     :'! Half-width of the magnetic surface, r [m]',
@@ -50,7 +51,7 @@ MMM_HEADER = '''&testmmm_input_control
 !   1D0 - ON, 0D0 - OFF
 cmodel  =
    1D0     ! Weiland
-   1D0     ! DRIBM
+   {cmodel_dribm}     ! DRIBM
    1D0     ! ETG
    1D0     ! ETGM
    1D0     ! MTM  
@@ -103,7 +104,10 @@ def write_input_file(input_vars, input_options):
     f = open(file_name, 'w')
 
     # Write mmm input file header
-    f.write(MMM_HEADER.format(npoints=input_options.input_points))
+    mmm_header = MMM_HEADER.format(
+      npoints=input_options.input_points,
+      cmodel_dribm='0D0' if input_options.shot_type == ShotType.NSTX else '1D0')
+    f.write(mmm_header)
 
     # Loop through mmm variables and write input file values
     for var_name in MMM_LABELS.keys():
