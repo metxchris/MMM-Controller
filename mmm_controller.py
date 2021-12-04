@@ -95,7 +95,7 @@ def initialize_controller(input_options):
     raw_cdf_vars = read_cdf.read_cdf(input_options)
     cdf_vars = convert_inputs.initial_conversion(raw_cdf_vars, input_options)
     input_vars = calculate_inputs.calculate_inputs(cdf_vars)
-    mmm_vars = convert_inputs.final_conversion(input_vars, input_options)
+    mmm_vars = convert_inputs.final_interpolation(input_vars, input_options)
 
     return mmm_vars, input_vars, cdf_vars, raw_cdf_vars
 
@@ -140,6 +140,7 @@ if __name__ == '__main__':
     '''
     Input Options:
     * input_points is the number of points to use when making the MMM input file
+    * Set uniform_rho = True to interpolate to a grid of evenly spaced rho values (takes longer)
     * Set input_points = None to match the number of points used in the CDF
     * Set var_to_scan = var_name (str) to run a scan of the specified variable
     * Set var_to_scan = None to skip the variable scan
@@ -150,7 +151,8 @@ if __name__ == '__main__':
         shot_type=shot_type,
         input_time=input_time,
         input_points=51,
-        var_to_scan='gti',
+        uniform_rho=True,
+        var_to_scan='gte',
         scan_range=np.arange(start=0.1, stop=3.1, step=0.1))
 
     run_controller(input_options)

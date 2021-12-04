@@ -316,11 +316,12 @@ class Variable:
             self.set_minvalue()
 
 class InputOptions:
-    def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None, var_to_scan=None, scan_range=None):
+    def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None, uniform_rho=False, var_to_scan=None, scan_range=None):
         # Public
         self.cdf_name = cdf_name
         self.shot_type = shot_type
         self.input_time = input_time
+        self.uniform_rho = uniform_rho
         # Private
         self._input_points = input_points
         self._runid = None
