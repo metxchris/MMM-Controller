@@ -1,7 +1,6 @@
 # Standard Packages
 from dataclasses import dataclass
 from cycler import cycler
-
 import copy
 import sys
 sys.path.insert(0, '../')

@@ -394,25 +394,3 @@ class InputOptions:
     @scan_factor_str.setter
     def scan_factor_str(self, scan_factor_str):
         self._scan_factor_str = '{:.3f}'.format(scan_factor_str)
-
-    '''
-    REGEX Search Testing
-    '''
-    # @units_label.setter
-    # def units_label(self):
-    #     print('units_label')
-    #     # Convert self.units into LaTeX format
-    #     search_strs = ['\^\d', '\^\-\d', '\*\*\d', '\*\*\-\d']
-    #     for s in search_strs:
-    #         search_result = re.compile(s).search(self._units)
-    #         print(self.__name__, search_result)
-
-    # search_strs = ['\^\d', '\^\-\d', '\*\*\d', '\*\*\-\d']
-    # for s in search_strs:
-    #     search_result = re.compile(s).search(self._units)
-    #     if search_result is not None:
-    #         search_str = search_result.group()
-    #         number_in_str = re.compile('\d').search(search_str).group()
-    #         print(number_in_str)
-    #         print(self._units.replace(search_result.group(), r'\$\^\{' + number_in_str + r'\}\$'))
-    #     print(self.name, search_result)
