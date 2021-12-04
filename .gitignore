@@ -127,3 +127,15 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Personal files
+cdfs/*.cdf
+input_profiles_*
+output/*
+temp/*
+mmm/*
+*.sublime*
+
+# Keep this at the bottom
+!*__init__.py
+!README.md
