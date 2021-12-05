@@ -2,12 +2,12 @@
 from copy import deepcopy
 import sys
 sys.path.insert(0, '../')
+
 # 3rd Party Packages
 import numpy as np
 import scipy.ndimage
 from multipledispatch import dispatch
-# Local Packages
-import settings
+
 
 # Parent class for input and output variables
 class Variables:
@@ -30,6 +30,7 @@ class Variables:
                   + str(getattr(self, var).units) + ", "
                   + str(getattr(self, var).values.shape) + ", "
                   + str(getattr(self, var).dimensions))
+
 
 # Variables obtained from a CDF
 class InputVariables(Variables):
@@ -139,6 +140,7 @@ class InputVariables(Variables):
         else:
             raise ValueError('Failed to set TIPRO since TIPRO is None')
 
+
 # Variables obtained from MMM output
 class OutputVariables(Variables):
     def __init__(self):
@@ -175,6 +177,7 @@ class OutputVariables(Variables):
         self.gmaETGM = Variable('gmaETGM', label='gmaETGM')
         self.omgETGM = Variable('omgETGM', label='omgETGM')
         self.dbsqprf = Variable('dbsqprf', label='dbsqprf')
+
 
 class Variable:
     def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None, absminvalue=None, units='', dimensions=None, values=None):
@@ -293,7 +296,7 @@ class Variable:
 
     # Variable smoothing using a Gaussian filter
     def apply_smoothing(self):
-        if self.smooth is not None and settings.APPLY_SMOOTHING:
+        if self.smooth is not None:
             self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(self.smooth, 0))
 
     # Clamps values between -value and value, and sets origin value to apprximately 0
@@ -306,8 +309,7 @@ class Variable:
     # TODO: Currently not ideal since removed values are replaced with None,
     # which turns everything into nan after smoothing or intepolating again
     def reject_outliers(self, m=4):
-        if settings.REMOVE_OUTLIERS:
-            self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
+        self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
 
     def remove_nan(self):
         if np.isnan(self.values).any():

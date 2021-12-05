@@ -1,11 +1,14 @@
 # Standard Packages
 import sys
 sys.path.insert(0, '../')
+
 # 3rd Party Packages
 import numpy as np
+
 # Local Packages
 from main import utils, variables
 from main.options import Options
+
 
 def read_from_files(file_list):
     '''
@@ -87,10 +90,8 @@ def parse_scan_csv():
     be a function of the scanned parameter.  
     '''
 
-    input_options = Options.instance
-
     # Get list of input and output files from parameter scan
-    scanned_dir = utils.get_output_path(f'{input_options.runid}\\{input_options.var_to_scan}')
+    scanned_dir = utils.get_output_path(f'{Options.instance.runid}\\{Options.instance.var_to_scan}')
     input_files = utils.get_files_in_dir(scanned_dir, 'Input*')
     output_files = utils.get_files_in_dir(scanned_dir, 'Output*')
 
@@ -110,6 +111,7 @@ def parse_scan_csv():
     # Save reshaped data to new CSVs
     save_reshaped_csv(reshaped_input_data, input_var_names, save_dir, 'Input')
     save_reshaped_csv(reshaped_output_data, output_var_names, save_dir, 'Output')
+
 
 '''
 For testing purposes:

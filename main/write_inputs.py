@@ -1,10 +1,12 @@
 # Standard Packages
 import sys
 sys.path.insert(0, '../')
+
 # Local Packages
 from main import utils
 from main.enums import ShotType
 from main.options import Options
+
 
 MMM_LABELS = {
     'rmin'     :'! Half-width of the magnetic surface, r [m]',
@@ -127,6 +129,7 @@ def write_input_file(input_vars):
         f.write('\n')
 
     f.write('/\n') # Needed to end the input file
+
 
 if __name__ == '__main__':
     ...

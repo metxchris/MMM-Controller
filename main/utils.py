@@ -3,8 +3,10 @@ import os
 import glob
 import sys
 sys.path.insert(0, '../')
+
 # Local Packages
 import pdftk, output, temp, cdfs
+
 
 def get_cdf_path(file_name):
     '''Returns the path to the CDF folder (str)'''
@@ -178,7 +180,7 @@ def merge_profile_sheets(runid, profile_type):
 
     return output_file
 
+
 # For testing purposes
 if __name__ == '__main__':
-
     clear_temp_folder()

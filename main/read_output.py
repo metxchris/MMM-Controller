@@ -1,11 +1,14 @@
 # Standard Packages
 import sys
 sys.path.insert(0, '../')
+
 # 3rd Party Packages
 import numpy as np
+
 # Local Packages
 from main import utils, variables
 from main.options import Options
+
 
 # The number of comment lines in the output file before data starts
 # These will need to be updated if the mmm output file format changes
@@ -32,23 +35,23 @@ def save_data_csvs(data_input, data_output, vars_input, vars_output, units_input
     * units_output (list): List of output units
     '''
 
-    input_options = Options.instance
+    opts = Options.instance
 
     # Set save_dir directory for a basic run
-    if input_options.scan_factor_str is None:
-        save_dir = utils.get_output_path(input_options.runid)
-        file_name_output = f'{save_dir}\\{input_options.runid} Output Profiles.csv'
-        file_name_input = f'{save_dir}\\{input_options.runid} Input Profiles.csv'
+    if opts.scan_factor_str is None:
+        save_dir = utils.get_output_path(opts.runid)
+        file_name_output = f'{save_dir}\\{opts.runid} Output Profiles.csv'
+        file_name_input = f'{save_dir}\\{opts.runid} Input Profiles.csv'
     # Set save_dir directory for a variable scan (creates an additional sub folder)
     else:
-        save_dir = utils.get_output_path(f'{input_options.runid}\\{input_options.var_to_scan}')
-        file_name_output = f'{save_dir}\\Output {input_options.var_to_scan} = {input_options.scan_factor_str}.csv'
-        file_name_input = f'{save_dir}\\Input {input_options.var_to_scan} = {input_options.scan_factor_str}.csv'
+        save_dir = utils.get_output_path(f'{opts.runid}\\{opts.var_to_scan}')
+        file_name_output = f'{save_dir}\\Output {opts.var_to_scan} = {opts.scan_factor_str}.csv'
+        file_name_input = f'{save_dir}\\Input {opts.var_to_scan} = {opts.scan_factor_str}.csv'
 
     utils.create_directory(save_dir)
 
     # When doing a variable scan, clear save_dir directory at the start of each scan
-    if input_options.scan_factor_str is not None and float(input_options.scan_factor_str) == input_options.scan_range.min():
+    if opts.scan_factor_str is not None and float(opts.scan_factor_str) == opts.scan_range.min():
         utils.clear_folder(save_dir, '*.csv')
 
     # Creates two header rows in each CSV
@@ -97,7 +100,7 @@ def read_output_file():
     * output_vars (OutputVariables): All output variable data read from the output file of the MMM driver
     '''
 
-    input_options = Options.instance
+    opts = Options.instance
     output_vars = variables.OutputVariables()
 
     output_file = utils.get_temp_path('output')
@@ -106,9 +109,9 @@ def read_output_file():
 
     # Start and end line numbers for input and output data
     data_start_input = NUM_INPUT_COMMENT_LINES
-    data_end_input = data_start_input + input_options.input_points - 1
-    data_start_output = NUM_INPUT_COMMENT_LINES + NUM_OUTPUT_COMMENT_LINES + input_options.input_points
-    data_end_output = data_start_output + input_options.input_points - 1
+    data_end_input = data_start_input + opts.input_points - 1
+    data_start_output = NUM_INPUT_COMMENT_LINES + NUM_OUTPUT_COMMENT_LINES + opts.input_points
+    data_end_output = data_start_output + opts.input_points - 1
 
     # Store var names, unit values, and data
     # TODO: Input var units are not being parsed correctly due to formatting issues in the input file
@@ -133,6 +136,7 @@ def read_output_file():
     save_data_csvs(data_input, data_output, vars_input, vars_output, units_input, units_output)
 
     return output_vars
+
 
 # For testing purposes, make sure input_points is correct for existing output file in temp folder
 if __name__ == '__main__':

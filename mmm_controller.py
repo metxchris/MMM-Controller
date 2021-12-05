@@ -1,13 +1,16 @@
 # Standard Packages
 from copy import deepcopy
+
 # 3rd Party Packages
 import numpy as np
+
 # Local Packages
 from main import *
 from main.enums import ShotType
 from main.options import Options
 from plots import plot_profiles
 from tests import test
+
 
 def execute_basic_run(mmm_vars):
     '''
@@ -119,6 +122,7 @@ def run_controller():
     if Options.instance.var_to_scan is not None:
         execute_variable_scan(mmm_vars)
 
+
 # Run this file directly to plot variable profiles and run the MMM driver
 if __name__ == '__main__':
     '''
@@ -146,6 +150,7 @@ if __name__ == '__main__':
         input_time = input_time,
         input_points = 51,
         uniform_rho = False,
+        apply_smoothing = False,
         var_to_scan = 'gte',
         scan_range = np.arange(start=0.1, stop=3.1, step=0.1))
 

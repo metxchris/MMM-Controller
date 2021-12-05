@@ -1,12 +1,15 @@
 # Standard Packages
 import sys
 sys.path.insert(0, '../')
+
 # 3rd Party Packages
 import numpy as np
 import matplotlib.pyplot as plt
+
 # Local Packages
 from main.enums import ShotType
 from main.options import Options
+
 
 def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
     from plots.styles import standard as ps
@@ -29,6 +32,7 @@ def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
     plt.legend()
     plt.title(f'{input_options.runid}, t={input_options.time_str}s')
     plt.show()
+
 
 # Run this file directly to call mmm_controller.py and make a simple plot of variable profiles
 if __name__ == '__main__':

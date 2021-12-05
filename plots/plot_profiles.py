@@ -4,15 +4,17 @@ from cycler import cycler
 import copy
 import sys
 sys.path.insert(0, '../')
+
 # 3rd Party Packages
 import numpy as np
 import matplotlib.pyplot as plt
+
 # Local Packages
 from main import constants, utils, calculate_inputs
 from main.enums import PlotType, ShotType
 from main.options import Options
 from plots.styles import standard as ps
-import settings
+
 
 # Subplot row and column counts
 ROWS, COLS = ps.ROWS, ps.COLS
@@ -22,6 +24,7 @@ class PlotData:
     title: str
     xvar: np.ndarray
     yvars: list
+
 
 # Initializes the figure and subplots
 def init_figure(profile_type, xvar_points):
@@ -34,7 +37,7 @@ def init_figure(profile_type, xvar_points):
     fig, axs = plt.subplots(ROWS, COLS)
     
     # Set figure title and subtitle
-    modifier = 'Smoothed' if settings.APPLY_SMOOTHING else 'Unsmoothed'
+    modifier = 'Smoothed' if Options.instance.apply_smoothing else 'Unsmoothed'
     title_txt = f'MMM {profile_type.name.capitalize()} Profiles Using {modifier} Input Profiles'
     subtitle_txt = f'{shot_type.name} Shot {runid}, Measurement Time {time}s, {points} Radial Points'
     plt.figtext(*ps.TITLEPOS, title_txt, fontsize=15, ha='center')
@@ -218,7 +221,7 @@ def plot_profile_comparison(cdf_vars, input_vars):
 
     run_plotting_loop(plotdata, PlotType.COMPARED)
 
+
 if __name__ == '__main__':
     # For testing purposes
     print(plt.rcParams.keys())
-    pass
