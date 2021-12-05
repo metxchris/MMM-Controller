@@ -7,20 +7,24 @@ from netCDF4 import Dataset
 import numpy as np
 # Local Packages
 from main import variables, utils
+from main.options import Options
 
 # Reads CDF variables specified by Variables().cdfname and a Variables() object
-def read_cdf(input_options, print_warnings=False):
-    cdf_file = utils.get_cdf_path(input_options.cdf_name)
+def read_cdf(print_warnings=False):
+    input_options = Options.instance
+
+    cdf_file = utils.get_cdf_path(input_options.runid)
 
     # Check if file exists
     if not exists(cdf_file):
-        raise FileNotFoundError("CDF {0} could not be found in the cdf folder".format(input_options.cdf_name))
+        raise FileNotFoundError("CDF {0} could not be found in the cdf folder".format(input_options.runid))
 
     # Load CDF into memory
     cdf = Dataset(cdf_file)
 
-    # Set runid from CDF (should match cdf_name)
-    input_options.runid = cdf.Runid
+    # Runid from CDF should match input runid
+    if (cdf.Runid.strip() != input_options.runid):
+        print(f'Warning: cdf.Runid {cdf.Runid.strip()} does not match input_options.runid {input_options.runid}')
 
     # Variables object to store CDF values
     vars = variables.InputVariables()
@@ -77,8 +81,9 @@ def print_cdf_dimensions(cdf_name):
 
 if __name__ == '__main__':
     # For testing purposes
-    cdf_name = '132017T01'
-    cdf_vars = read_cdf(variables.InputOptions(cdf_name), True)
+    from main.options import Options
+    Options.instance.runid = '132017T01'
+    cdf_vars = read_cdf(True)
     
-    print_cdf_dimensions(cdf_name)
-    print_cdf_variables(cdf_name)
+    print_cdf_dimensions(Options.instance.runid)
+    print_cdf_variables(Options.instance.runid)

@@ -6,9 +6,12 @@ import sys
 sys.path.insert(0, '../')
 # Local Packages
 from main import utils
+from main.options import Options
 import settings
 
-def run_mmm_driver(input_options):
+def run_mmm_driver():
+    input_options = Options.instance
+
     # Shell command to run mmm driver through Cygwin
     cygwin_cmd = '\"{0}\" -c -l {1}{2}'.format(settings.CYGWIN_BASH_PATH, settings.CYGWIN_HOME_PATH, settings.MMM_DRIVER_PATH)
 
@@ -37,7 +40,5 @@ def run_mmm_driver(input_options):
 
 if __name__ == '__main__':
     # For testing purposes
-    from main import variables
-    input_options = variables.InputOptions('132017T01')
-    input_options.runid = input_options.cdf_name
-    run_mmm_driver(input_options)
+    Options.instance.runid = '132017T01'
+    run_mmm_driver()

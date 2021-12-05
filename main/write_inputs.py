@@ -4,6 +4,7 @@ sys.path.insert(0, '../')
 # Local Packages
 from main import utils
 from main.enums import ShotType
+from main.options import Options
 
 MMM_LABELS = {
     'rmin'     :'! Half-width of the magnetic surface, r [m]',
@@ -99,7 +100,8 @@ cETGM =
 lprint   = 0      ! Verbose level\n\n'''
 
 # Writes the input file used by the MMM driver
-def write_input_file(input_vars, input_options):
+def write_input_file(input_vars):
+    input_options = Options.instance
     file_name = utils.get_temp_path('input')
     f = open(file_name, 'w')
 
@@ -127,4 +129,4 @@ def write_input_file(input_vars, input_options):
     f.write('/\n') # Needed to end the input file
 
 if __name__ == '__main__':
-    pass
+    ...

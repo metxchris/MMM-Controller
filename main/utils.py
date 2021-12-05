@@ -150,7 +150,7 @@ def get_files_in_dir(dir_path, file_type=''):
 
     return file_names
 
-def merge_profile_sheets(input_options, profile_type):
+def merge_profile_sheets(runid, profile_type):
     '''
     Merge PDF sheets using Pdftk in the temp folder into a single PDF, then place the merged PDF in the output folder.
 
@@ -158,16 +158,15 @@ def merge_profile_sheets(input_options, profile_type):
     and is called using a shell command.
 
     Parameters:
-    * input_options (InputOptions): Stores options for the scan
     * profile_type (str): The type of profile to merge (Input, Output, etc.)
 
     Returns:
     * output_file (str): Path to merged PDF
     '''
 
-    create_directory(get_output_path(input_options.runid))
+    create_directory(get_output_path(runid))
 
-    merged_name = f'{input_options.runid}\\{input_options.runid} {profile_type} Profiles.pdf'
+    merged_name = f'{runid}\\{runid} {profile_type} Profiles.pdf'
     output_file = check_filename(get_output_path(merged_name))
     temp_path = get_temp_path()
     pdftk_path = get_pdftk_path()

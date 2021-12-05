@@ -5,6 +5,7 @@ sys.path.insert(0, '../')
 import numpy as np
 # Local Packages
 from main import utils, variables
+from main.options import Options
 
 def read_from_files(file_list):
     '''
@@ -77,17 +78,16 @@ def save_reshaped_csv(reshaped_data, var_names, save_dir, save_type):
 
     print(f'Saved reshaped scan CSV to {save_dir}')
 
-def parse_scan_csv(input_options):
+def parse_scan_csv():
     '''
     Parses all CSV from a scan of var_to_scan and creates new CSVs for each rho point.
 
     The new output CSV are stored in './output/cdf_name/var_to_scan/rho', relative to the top level directory.
     Each CSV in the rho folder will correspond to one rho value of the scan, where data in these CSV will
     be a function of the scanned parameter.  
-
-    Parameters:
-    * input_options (InputOptions): Stores options for the scan
     '''
+
+    input_options = Options.instance
 
     # Get list of input and output files from parameter scan
     scanned_dir = utils.get_output_path(f'{input_options.runid}\\{input_options.var_to_scan}')
@@ -117,6 +117,7 @@ For testing purposes:
 * var_to_scan needs to match an existing folder containing scans
 '''
 if __name__ == '__main__':
-    input_options = variables.InputOptions('129041A10', var_to_scan='te', scan_range=np.arange(1))
-    input_options.runid = input_options.cdf_name
-    parse_scan_csv(input_options)
+    Options.instance.runid = '129041A10'
+    Options.instance.var_to_scan = 'te'
+    Options.instance.scan_range = np.arange(1)
+    parse_scan_csv()

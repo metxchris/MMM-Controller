@@ -5,13 +5,14 @@ sys.path.insert(0, '../')
 import numpy as np
 # Local Packages
 from main import utils, variables
+from main.options import Options
 
 # The number of comment lines in the output file before data starts
 # These will need to be updated if the mmm output file format changes
 NUM_INPUT_COMMENT_LINES = 4
 NUM_OUTPUT_COMMENT_LINES = 3
 
-def save_data_csvs(data_input, data_output, vars_input, vars_output, units_input, units_output, input_options):
+def save_data_csvs(data_input, data_output, vars_input, vars_output, units_input, units_output):
     '''
     Save input and output values from the MMM driver output file to separate CSVs.
 
@@ -29,8 +30,9 @@ def save_data_csvs(data_input, data_output, vars_input, vars_output, units_input
     * vars_output (list): List of output variable names
     * units_input (list): List of input units
     * units_output (list): List of output units
-    * input_options (InputOptions): Stores options for the scan
     '''
+
+    input_options = Options.instance
 
     # Set save_dir directory for a basic run
     if input_options.scan_factor_str is None:
@@ -83,7 +85,7 @@ def split_values(values_str):
 
     return values_str.replace('   ', '  ').replace(' -', '  -').replace('\n', '').split('  ')[1:]
 
-def read_output_file(input_options):
+def read_output_file():
     '''
     Read output file from MMM driver and store values
 
@@ -91,13 +93,11 @@ def read_output_file(input_options):
     data are also written to CSV, so that they can later be quickly parsed when plotting parameter scans.
     Note: This code is incredibly hacky, and would be much cleaner if the MMM driver produced out CSV files
 
-    Parameters:
-    * input_options (InputOptions): Stores options for the scan
-
     Returns:
     * output_vars (OutputVariables): All output variable data read from the output file of the MMM driver
     '''
 
+    input_options = Options.instance
     output_vars = variables.OutputVariables()
 
     output_file = utils.get_temp_path('output')
@@ -130,12 +130,11 @@ def read_output_file(input_options):
     output_vars.rho.set_variable(output_vars.rmin.values / output_vars.rmin.values[-1])
 
     # Save both input and output variables to CSV
-    save_data_csvs(data_input, data_output, vars_input, vars_output, units_input, units_output, input_options)
+    save_data_csvs(data_input, data_output, vars_input, vars_output, units_input, units_output)
 
     return output_vars
 
 # For testing purposes, make sure input_points is correct for existing output file in temp folder
 if __name__ == '__main__':
-    input_options = variables.InputOptions('132017T01', input_points=41)
-    input_options.runid = input_options.cdf_name
-    read_output_file(input_options)
+    Options.instance.runid = '132017T01'
+    read_output_file()

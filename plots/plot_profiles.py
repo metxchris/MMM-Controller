@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 # Local Packages
 from main import constants, utils, calculate_inputs
 from main.enums import PlotType, ShotType
+from main.options import Options
 from plots.styles import standard as ps
 import settings
 
@@ -23,10 +24,10 @@ class PlotData:
     yvars: list
 
 # Initializes the figure and subplots
-def init_figure(input_options, profile_type, xvar_points):
-    runid = input_options.runid
-    shot_type = input_options.shot_type
-    time = input_options.time
+def init_figure(profile_type, xvar_points):
+    runid = Options.instance.runid
+    shot_type = Options.instance.shot_type
+    time = Options.instance.time_str
     points = xvar_points
 
     # Init figure and subplots
@@ -62,9 +63,11 @@ def make_plot(ax, data, plot_type, time_idx=None):
         ax.legend() 
 
 # Creates plots for each PlotData() object defined in the input plotdata list
-def run_plotting_loop(plotdata, input_options, plot_type):
+def run_plotting_loop(plotdata, plot_type):
     from plots.styles import standard as ps
     from plots.colors import mmm
+
+    input_options = Options.instance
 
     print(f'Creating {plot_type.name.lower()} profile figures...')
 
@@ -76,7 +79,7 @@ def run_plotting_loop(plotdata, input_options, plot_type):
 
         # Create a new figure when we're on the first subplot
         if row == 0 and col == 0:
-            fig, axs = init_figure(input_options, plot_type, data.xvar.values.shape[0])
+            fig, axs = init_figure(plot_type, data.xvar.values.shape[0])
 
             # Disable all subplot axes until they are used
             for sub_axs in axs:
@@ -100,12 +103,12 @@ def run_plotting_loop(plotdata, input_options, plot_type):
        fig.savefig(utils.get_temp_path(f'{plot_type.name.lower()}_profiles_{int((i + 1) / 6) + 1}.pdf'))
 
     # Merge individual pdf sheets with pdftk, then open file (may only open on Windows OS)
-    utils.open_file(utils.merge_profile_sheets(input_options, plot_type.name.capitalize()))
+    utils.open_file(utils.merge_profile_sheets(input_options.runid, plot_type.name.capitalize()))
 
     # Clear plots from memory
     plt.close('all')
 
-def plot_input_profiles(vars, input_options):
+def plot_input_profiles(vars):
     plotdata = [
         PlotData('Temperatures', vars.rho, [vars.te, vars.ti]),
         PlotData(vars.q.name, vars.rho, [vars.q]),
@@ -133,9 +136,9 @@ def plot_input_profiles(vars, input_options):
         PlotData(vars.elong.name, vars.rho, [vars.elong]),
         PlotData(vars.rmaj.name, vars.rho, [vars.rmaj])]
 
-    run_plotting_loop(plotdata, input_options, PlotType.INPUT)
+    run_plotting_loop(plotdata, PlotType.INPUT)
 
-def plot_additional_profiles(vars, input_options):
+def plot_additional_profiles(vars):
     plotdata = [
         PlotData(vars.tau.name, vars.rho, [vars.tau]),
         PlotData(vars.beta.name, vars.rho, [vars.beta, vars.betae]),
@@ -150,9 +153,9 @@ def plot_additional_profiles(vars, input_options):
         PlotData(vars.vthe.name, vars.rho, [vars.vthe]),
         PlotData(vars.vthi.name, vars.rho, [vars.vthi])]
 
-    run_plotting_loop(plotdata, input_options, PlotType.ADDITIONAL)
+    run_plotting_loop(plotdata, PlotType.ADDITIONAL)
 
-def plot_output_profiles(vars, input_options):
+def plot_output_profiles(vars):
     plotdata = [
         PlotData(vars.xti.name, vars.rho, [vars.xti]),
         PlotData(vars.xdi.name, vars.rho, [vars.xdi]),
@@ -186,10 +189,10 @@ def plot_output_profiles(vars, input_options):
         PlotData(vars.omgETGM.name, vars.rho, [vars.omgETGM]),
         PlotData(vars.dbsqprf.name, vars.rho, [vars.dbsqprf])]
 
-    run_plotting_loop(plotdata, input_options, PlotType.OUTPUT)
+    run_plotting_loop(plotdata, PlotType.OUTPUT)
 
 # Compares profiles of calculated values with values found in the CDF
-def plot_profile_comparison(cdf_vars, input_vars, input_options):
+def plot_profile_comparison(cdf_vars, input_vars):
     # Get list of variables that were both calculated and found in the CDF
     calculated_vars_list = calculate_inputs.get_calculated_vars()
     cdf_var_list = cdf_vars.get_cdf_variables()
@@ -213,7 +216,7 @@ def plot_profile_comparison(cdf_vars, input_vars, input_options):
 
         plotdata.append(PlotData(cdf_var.name, input_vars.rho, [cdf_var, calc_var]))
 
-    run_plotting_loop(plotdata, input_options, PlotType.COMPARED)
+    run_plotting_loop(plotdata, PlotType.COMPARED)
 
 if __name__ == '__main__':
     # For testing purposes

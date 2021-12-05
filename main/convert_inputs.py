@@ -7,6 +7,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 # Local Packages
 from main import variables
+from main.options import Options
 import settings
 
 class XValues:
@@ -80,7 +81,7 @@ def convert_variable(cdf_var, xvals):
 
     return input_var
 
-def initial_conversion(cdf_vars, input_options):
+def initial_conversion(cdf_vars):
     '''
     Initializes the process of converting variables from CDF format to MMM format
 
@@ -90,12 +91,12 @@ def initial_conversion(cdf_vars, input_options):
 
     Parameters:
     * cdf_vars (InputVariables): Raw data from the CDF of all InputVariables with a specifed cdf_var value
-    * input_options (InputOptions): Stores options for the scan
 
     Returns:
     * input_vars (InputVariables): Data from the CDF converted into a format needed to run MMM
     '''
 
+    input_options = Options.instance
     input_vars = variables.InputVariables()
 
     # Directly copy independent variables, which don't need to be converted
@@ -133,7 +134,7 @@ def initial_conversion(cdf_vars, input_options):
 
     return input_vars
 
-def interp_to_input_points(input_vars, input_options):
+def interp_to_input_points(input_vars):
     '''
     Interpolates from XB to a grid determined by input_points, if the input_point grid differs from XB
 
@@ -142,12 +143,12 @@ def interp_to_input_points(input_vars, input_options):
 
     Parameters:
     * input_vars (InputVariables): Contains all variables from CDF + extra calculated variables
-    * input_options (InputOptions): Stores options for the scan
 
     Returns:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
     '''
 
+    input_options = Options.instance
     mmm_vars = deepcopy(input_vars)
 
     # Interpolation only needed if input_points != xb points
@@ -175,22 +176,22 @@ def interp_to_input_points(input_vars, input_options):
 
     return mmm_vars
 
-def interp_to_uniform_rho(input_vars, input_options):
+def interp_to_uniform_rho(input_vars):
     '''
     Interpolates each timeslice onto an evenly spaced rho, determined by input_points
 
     Since the value of rmin varies over time, the interpolation onto a grid of evenly spaced rho values
-    requires that interpolation be carried individually over each timeslice of variable data, which increases
-    the time needed to interpolate the data by a factor of 10.
+    requires that interpolation be carried out over each individual timeslice of variable data, which can 
+    increase the time needed to interpolate the data by a factor of 10.
 
     Parameters:
     * input_vars (InputVariables): Contains all variables from CDF + extra calculated variables
-    * input_options (InputOptions): Stores options for the scan
 
     Returns:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
     '''
 
+    input_options = Options.instance
     mmm_vars = deepcopy(input_vars)
 
     # Single column arrays for interpolation
@@ -220,20 +221,19 @@ def interp_to_uniform_rho(input_vars, input_options):
 
     return mmm_vars
 
-def final_interpolation(input_vars, input_options):
+def final_interpolation(input_vars):
     '''
     Interpolates to either a new grid of input_points, or a grid of uniform rho values
 
     Parameters:
     * input_vars (InputVariables): Contains all variables from CDF + extra calculated variables
-    * input_options (InputOptions): Stores options for the scan
 
     Returns:
     * (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
     '''
 
-    args = (input_vars, input_options)
-    return interp_to_uniform_rho(*args) if input_options.uniform_rho else interp_to_input_points(*args)
+    uniform_rho = Options.instance.uniform_rho
+    return interp_to_uniform_rho(input_vars) if uniform_rho else interp_to_input_points(input_vars)
 
 if __name__ == '__main__':
     pass

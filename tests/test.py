@@ -1,7 +1,12 @@
+# Standard Packages
+import sys
+sys.path.insert(0, '../')
 # 3rd Party Packages
 import numpy as np 
 import matplotlib.pyplot as plt
 import scipy.ndimage
+# Local Packages
+from main.options import Options
 
 def movingaverage_test():
     window_width = 3
@@ -42,8 +47,12 @@ def plot_etai(vars):
     plt.plot(rho, vars.etai.values[:,-1], rho, ETAI)
     plt.show()
 
+def test_options():
+    print(Options.runid, Options.runid)
+    # Options.time=7
+
 if __name__ == '__main__':
-    pass
+    ...
 
 
     '''

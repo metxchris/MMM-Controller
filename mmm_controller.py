@@ -5,9 +5,11 @@ import numpy as np
 # Local Packages
 from main import *
 from main.enums import ShotType
+from main.options import Options
 from plots import plot_profiles
+from tests import test
 
-def execute_basic_run(mmm_vars, input_options):
+def execute_basic_run(mmm_vars):
     '''
     Executes a single MMM run, without varying any input parameters
   
@@ -17,15 +19,14 @@ def execute_basic_run(mmm_vars, input_options):
   
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
-    * input_options (InputOptions): Stores options for the scan
     '''
 
-    write_inputs.write_input_file(mmm_vars, input_options)
-    run_driver.run_mmm_driver(input_options)
-    output_vars = read_output.read_output_file(input_options)
-    plot_profiles.plot_output_profiles(output_vars, input_options)
+    write_inputs.write_input_file(mmm_vars)
+    run_driver.run_mmm_driver()
+    output_vars = read_output.read_output_file()
+    plot_profiles.plot_output_profiles(output_vars)
 
-def execute_variable_scan(mmm_vars, input_options):
+def execute_variable_scan(mmm_vars):
     '''
     Executes an input variable scan, where the values of an input variable are varied 
     over a specified range and are then sent to the MMM driver for each value of the range
@@ -43,10 +44,10 @@ def execute_variable_scan(mmm_vars, input_options):
   
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
-    * input_options (InputOptions): Stores options for the scan
     '''
 
     modified_vars = deepcopy(mmm_vars)
+    input_options = Options.instance
     var_to_scan = input_options.var_to_scan
     scan_range = input_options.scan_range
 
@@ -63,16 +64,16 @@ def execute_variable_scan(mmm_vars, input_options):
         scanned_var.set_variable(scan_factor * base_var.values)
         input_options.scan_factor_str = scan_factor
 
-        write_inputs.write_input_file(modified_vars, input_options)
-        run_driver.run_mmm_driver(input_options)
-        read_output.read_output_file(input_options)
+        write_inputs.write_input_file(modified_vars)
+        run_driver.run_mmm_driver()
+        read_output.read_output_file()
 
     # Reshaped scanned CSV into new CSV dependent on the scanned parameter
-    parse_scans.parse_scan_csv(input_options)
+    parse_scans.parse_scan_csv()
 
     print('\nVariable scan complete!')
 
-def initialize_controller(input_options):
+def initialize_controller():
     '''
     Initializes all input variables needed to run the MMM Driver and plot variable profiles
   
@@ -80,9 +81,6 @@ def initialize_controller(input_options):
     cleaned out at the start of each initialization.  The CDF is then read for variables needed
     to create the MMM input file, and then various conversions and calculations are made to
     create the mmm_vars object needed to write the MMM Driver input file.
-  
-    Parameters:
-    * input_options (InputOptions): Stores options for the scan
 
     Returns:
     * mmm_vars (InputVariables): All calculated variables, interpolated onto a grid of size input_points 
@@ -92,14 +90,14 @@ def initialize_controller(input_options):
     '''
 
     utils.clear_temp_folder()
-    raw_cdf_vars = read_cdf.read_cdf(input_options)
-    cdf_vars = convert_inputs.initial_conversion(raw_cdf_vars, input_options)
+    raw_cdf_vars = read_cdf.read_cdf()
+    cdf_vars = convert_inputs.initial_conversion(raw_cdf_vars)
     input_vars = calculate_inputs.calculate_inputs(cdf_vars)
-    mmm_vars = convert_inputs.final_interpolation(input_vars, input_options)
+    mmm_vars = convert_inputs.final_interpolation(input_vars)
 
     return mmm_vars, input_vars, cdf_vars, raw_cdf_vars
 
-def run_controller(input_options):
+def run_controller():
     '''
     Main function which controls the MMM driver
 
@@ -108,22 +106,18 @@ def run_controller(input_options):
     does not exist on the same grid as other variable objects created here, and is only saved for
     debugging purposes.  Both input_vars and cdf_vars are guaranteed to be on the same grid, so
     these are used for profile comparisons.  mmm_vars is only on the same grid as input_vars if 
-    input_points is set to the same value as the size of XB+1 from the CDF.
-
-    Parameters:
-    * input_options (InputOptions): Stores options for the scan
-
+    input_points is set to the same value as the size of XB+1 from the CDF, and if uniform_rho = False.
     '''
 
-    mmm_vars, input_vars, cdf_vars, raw_cdf_vars = initialize_controller(input_options)
-    plot_profiles.plot_profile_comparison(cdf_vars, input_vars, input_options)
-    plot_profiles.plot_input_profiles(mmm_vars, input_options)
-    plot_profiles.plot_additional_profiles(mmm_vars, input_options)
+    mmm_vars, input_vars, cdf_vars, raw_cdf_vars = initialize_controller()
+    plot_profiles.plot_profile_comparison(cdf_vars, input_vars)
+    plot_profiles.plot_input_profiles(mmm_vars)
+    plot_profiles.plot_additional_profiles(mmm_vars)
+    
+    execute_basic_run(mmm_vars)
 
-    execute_basic_run(mmm_vars, input_options)
-
-    if input_options.var_to_scan is not None:
-        execute_variable_scan(mmm_vars, input_options)
+    if Options.instance.var_to_scan is not None:
+        execute_variable_scan(mmm_vars)
 
 # Run this file directly to plot variable profiles and run the MMM driver
 if __name__ == '__main__':
@@ -146,13 +140,13 @@ if __name__ == '__main__':
     * Set var_to_scan = None to skip the variable scan
     * E.g.: var_to_scan = 'te'
     '''
-    input_options = variables.InputOptions(
-        cdf_name=cdf_name,
-        shot_type=shot_type,
-        input_time=input_time,
-        input_points=51,
-        uniform_rho=True,
-        var_to_scan='gte',
-        scan_range=np.arange(start=0.1, stop=3.1, step=0.1))
+    Options.instance.set_options(
+        runid = cdf_name,
+        shot_type = shot_type,
+        input_time = input_time,
+        input_points = 51,
+        uniform_rho = False,
+        var_to_scan = 'gte',
+        scan_range = np.arange(start=0.1, stop=3.1, step=0.1))
 
-    run_controller(input_options)
+    run_controller()
