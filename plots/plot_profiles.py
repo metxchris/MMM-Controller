@@ -47,17 +47,18 @@ def init_figure(profile_type, xvar_points):
 
 # Creates one individual plot on the specified axis
 def make_plot(ax, data, plot_type, time_idx=None):
+
+    xvals = data.xvar.values if time_idx is None else data.xvar.values[:, time_idx]
+
     for i, yvar in enumerate(data.yvars):
-        xvals = data.xvar.values if time_idx is None else data.xvar.values[:, time_idx]
         yvals = yvar.values if time_idx is None else yvar.values[:, time_idx]
         ax.plot(xvals, yvals, label=yvar.label)
 
-    ax.set(title=data.title, xlabel=data.xvar.label, ylabel=data.yvars[0].units_label, xlim=(0, 1))
+    ax.set(title=data.title, xlabel=data.xvar.label, ylabel=data.yvars[0].units_label, xlim=(xvals.min(), xvals.max()))
     ax.axis('on')
 
     # Check for ylim adjustment (needed when y-values are nearly constant and not nearly 0)
-    ymax = yvar.values[:, time_idx].max()
-    ymin = yvar.values[:, time_idx].min()
+    ymax, ymin = yvals.max(), yvals.min()
     if round(ymax - ymin, 3) == 0 and round(ymax, 3) > 0:
         ax.set(ylim=(ymin - 5, ymax + 5))
 

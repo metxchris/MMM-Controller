@@ -112,7 +112,6 @@ def run_controller():
     mmm_vars, input_vars, cdf_vars, raw_cdf_vars = initialize_variables()
 
     Options.instance.save_options() # TODO: Create an event to save Options
-
     plot_profiles.plot_profile_comparison(cdf_vars, input_vars)
     plot_profiles.plot_input_profiles(mmm_vars)
     plot_profiles.plot_additional_profiles(mmm_vars)
@@ -132,8 +131,8 @@ if __name__ == '__main__':
     '''
     cdf_name, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
     # cdf_name, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
-    # cdf_name, shot_type, input_time = '132017T01', ShotType.D3D, 2.1
-    # cdf_name, shot_type, input_time = '141552A01', ShotType.D3D, 2.1
+    # cdf_name, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
+    # cdf_name, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
 
     '''
     Input Options:
@@ -142,7 +141,7 @@ if __name__ == '__main__':
     * Set input_points = None to match the number of points used in the CDF
     * Set var_to_scan = var_name (str) to run a scan of the specified variable
     * Set var_to_scan = None to skip the variable scan
-    * E.g.: var_to_scan = 'te'
+    * E.g.: var_to_scan = 'gte' or var_to_scan = None
     '''
     Options.instance.set_options(
         runid = cdf_name,
