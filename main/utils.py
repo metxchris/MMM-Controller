@@ -9,20 +9,80 @@ import pdftk, output, temp, cdfs
 
 
 def get_cdf_path(file_name):
-    '''Returns the path to the CDF folder (str)'''
+    '''Returns: (str) the path to specified CDF within the CDF folder'''
     return f'{os.path.dirname(cdfs.__file__)}\\{file_name}.CDF'
 
 def get_temp_path(file_name=''):
-    '''Returns the path to the temp folder (str)'''
+    '''Returns: (str) the path to the temp folder'''
     return f'{os.path.dirname(temp.__file__)}\\{file_name}'
 
 def get_output_path(file_name=''):
-    '''Returns the path to the output folder (str)'''
+    '''Returns: (str) the path to the output folder'''
     return f'{os.path.dirname(output.__file__)}\\{file_name}'
 
 def get_pdftk_path():
-    '''Returns the path to the pdftk executable (str)'''
+    '''Returns: (str) the path to the pdftk executable'''
     return f'{os.path.dirname(pdftk.__file__)}\\pdftk.exe'
+
+def get_scan_num_path(runid, scan_num):
+    '''Returns: (str) the path to the scan number folder'''
+    return get_output_path(f'{runid}\\scan {scan_num}')
+
+def get_var_to_scan_path(runid, scan_num, var_to_scan):
+    '''Returns: (str) the path of the scanned variable'''
+    return get_output_path(f'{runid}\\scan {scan_num}\\{var_to_scan}')
+
+def get_rho_path(runid, scan_num, var_to_scan):
+    return f'{get_var_to_scan_path(runid, scan_num, var_to_scan)}\\rho'
+
+
+def init_output_dirs(options):
+    '''
+    Initializes all output directories needed for storing output data
+
+    Created Directories (relative to top-level directory):
+    * ./output/runid/
+    * ./output/runid/scan_num/
+    * ./output/runid/scan_num/var_to_scan/
+    * ./output/runid/scan_num/var_to_scan/rho/
+
+    Parameters:
+    * options (_Options): A reference to Options.instance
+    '''
+
+    if options.runid is None:
+        raise ValueError('Cannot initialize output directories since the runid has not been set in Options')
+
+    create_directory(get_output_path(options.runid))
+    options.scan_num = set_scan_num(options.runid)
+
+    if options.var_to_scan is not None:
+        create_directory(get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan))
+        create_directory(get_rho_path(options.runid, options.scan_num, options.var_to_scan))
+
+def set_scan_num(runid):
+    '''
+    Initializes the directory for the current scan by always creating a new folder
+
+    Parameters:
+    * runid (str): The name of the CDF
+
+    Returns:
+    * scan_num (int): The chosen scan number
+    '''
+
+    num_range = range(1, 10000)
+
+    for scan_num in num_range:
+        scan_num_path = get_scan_num_path(runid, scan_num)
+        if not os.path.exists(scan_num_path):
+            create_directory(scan_num_path)
+            break
+
+    if scan_num == max(num_range):
+        raise NameError(f'Maximum scan number reached {max(num_range)}! Clear some directories to continue')
+
+    return scan_num
 
 def create_directory(dir_name):
     '''
@@ -152,7 +212,7 @@ def get_files_in_dir(dir_path, file_type=''):
 
     return file_names
 
-def merge_profile_sheets(runid, profile_type):
+def merge_profile_sheets(runid, scan_num, profile_type):
     '''
     Merge PDF sheets using Pdftk in the temp folder into a single PDF, then place the merged PDF in the output folder.
 
@@ -166,10 +226,11 @@ def merge_profile_sheets(runid, profile_type):
     * output_file (str): Path to merged PDF
     '''
 
+    # Output directory creation only needed if sheets are being created outside of main mmm_controller.py execution
     create_directory(get_output_path(runid))
 
-    merged_name = f'{runid}\\{runid} {profile_type} Profiles.pdf'
-    output_file = check_filename(get_output_path(merged_name))
+    merged_name = f'{runid} {profile_type} Profiles.pdf'
+    output_file = f'{get_scan_num_path(runid, scan_num)}\\{merged_name}'
     temp_path = get_temp_path()
     pdftk_path = get_pdftk_path()
     

@@ -38,6 +38,9 @@ def run_mmm_driver():
     os.remove(output_file)
 
 
+'''
+For testing purposes:
+* There needs to be an existing MMM input file in the temp folder
+'''
 if __name__ == '__main__':
-    # For testing purposes
     run_mmm_driver()

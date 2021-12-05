@@ -17,7 +17,7 @@ def execute_basic_run(mmm_vars):
   
     Creates an input file for the MMM driver using mmm_vars.  The MMM driver is then
     ran, which produces an output file.  This output file is parsed and a CSV of both
-    the input and output data are stored, then an output profile PDF is created.
+    the input and output data are stored, and an output profile PDF is created.
   
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
@@ -61,28 +61,21 @@ def execute_variable_scan(mmm_vars):
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing variable scan {i + 1} of {len(scan_range)} for variable {var_to_scan}')
 
-        # Modifiy values of variable being scanned, and store the scan_factor
+        # Modifiy values of variable being scanned
         # Note: Dependent variables will be handled on a case-by-case basis
         scanned_var.set_variable(scan_factor * base_var.values)
-        input_options.scan_factor_str = scan_factor
-
         write_inputs.write_input_file(modified_vars)
         run_driver.run_mmm_driver()
-        read_output.read_output_file()
+        read_output.read_output_file(scan_factor)
 
     # Reshaped scanned CSV into new CSV dependent on the scanned parameter
     parse_scans.parse_scan_csv()
 
     print('\nVariable scan complete!')
 
-def initialize_controller():
+def initialize_variables():
     '''
     Initializes all input variables needed to run the MMM Driver and plot variable profiles
-  
-    The temp folder is used to store individual PDF sheets before they are merged, and is 
-    cleaned out at the start of each initialization.  The CDF is then read for variables needed
-    to create the MMM input file, and then various conversions and calculations are made to
-    create the mmm_vars object needed to write the MMM Driver input file.
 
     Returns:
     * mmm_vars (InputVariables): All calculated variables, interpolated onto a grid of size input_points 
@@ -91,7 +84,6 @@ def initialize_controller():
     * raw_cdf_vars (InputVariables): All unedited CDF variables (saved for troubleshooting)
     '''
 
-    utils.clear_temp_folder()
     raw_cdf_vars = read_cdf.read_cdf()
     cdf_vars = convert_inputs.initial_conversion(raw_cdf_vars)
     input_vars = calculate_inputs.calculate_inputs(cdf_vars)
@@ -103,6 +95,7 @@ def run_controller():
     '''
     Main function which controls the MMM driver
 
+    Needed output folders are created and a unique scan number is chosen for storing output data.
     All input variable objects are initialized and corresponding plot PDFs are created.  The MMM driver
     is then ran once, and then an optional variable scan can be ran afterwards.  Note that raw_cdf_vars
     does not exist on the same grid as other variable objects created here, and is only saved for
@@ -111,7 +104,15 @@ def run_controller():
     input_points is set to the same value as the size of XB+1 from the CDF, and if uniform_rho = False.
     '''
 
-    mmm_vars, input_vars, cdf_vars, raw_cdf_vars = initialize_controller()
+    print('Running MMM Controller...\n')
+
+    utils.clear_temp_folder()
+    utils.init_output_dirs(Options.instance)
+
+    mmm_vars, input_vars, cdf_vars, raw_cdf_vars = initialize_variables()
+
+    Options.instance.save_options() # TODO: Create an event to save Options
+
     plot_profiles.plot_profile_comparison(cdf_vars, input_vars)
     plot_profiles.plot_input_profiles(mmm_vars)
     plot_profiles.plot_additional_profiles(mmm_vars)
@@ -148,9 +149,10 @@ if __name__ == '__main__':
         shot_type = shot_type,
         input_time = input_time,
         input_points = 51,
-        uniform_rho = False,
-        apply_smoothing = False,
-        var_to_scan = 'gte',
-        scan_range = np.arange(start=0.1, stop=3.1, step=0.1))
+        uniform_rho = True,
+        apply_smoothing = True,
+        var_to_scan = 'gni',
+        scan_range = np.arange(start=0.1, stop=3.1, step=0.1),
+        )
 
     run_controller()

@@ -70,7 +70,7 @@ def run_plotting_loop(plotdata, plot_type):
     from plots.styles import standard as ps
     from plots.colors import mmm
 
-    input_options = Options.instance
+    opts = Options.instance
 
     print(f'Creating {plot_type.name.lower()} profile figures...')
 
@@ -92,7 +92,7 @@ def run_plotting_loop(plotdata, plot_type):
         # Create subplot and enable axis.  Setting data to None will leave the subplot position empty
         if data is not None:
             if plot_type in [PlotType.INPUT, PlotType.COMPARED, PlotType.ADDITIONAL]:
-                make_plot(axs[row, col], data, plot_type, input_options.time_idx)
+                make_plot(axs[row, col], data, plot_type, opts.time_idx)
             elif plot_type == PlotType.OUTPUT:
                 make_plot(axs[row, col], data, plot_type)
 
@@ -106,7 +106,7 @@ def run_plotting_loop(plotdata, plot_type):
        fig.savefig(utils.get_temp_path(f'{plot_type.name.lower()}_profiles_{int((i + 1) / 6) + 1}.pdf'))
 
     # Merge individual pdf sheets with pdftk, then open file (may only open on Windows OS)
-    utils.open_file(utils.merge_profile_sheets(input_options.runid, plot_type.name.capitalize()))
+    utils.open_file(utils.merge_profile_sheets(opts.runid, opts.scan_num, plot_type.name.capitalize()))
 
     # Clear plots from memory
     plt.close('all')

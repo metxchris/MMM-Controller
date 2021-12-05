@@ -23,6 +23,7 @@ class _Options:
     * reject_outliers (bool): replaces outliers with values of 0
     * runid (str): the Runid in the CDF, usually also the name of the CDF
     * scan_factor_str (str): the string of the scan factor, rounded for better visual presentation
+    * scan_num (int): the number identifying where data is stored within the ./output/runid/ directory
     * scan_range (np.ndarray): the range of factors to multiply the var_to_scan by
     * shot_type (ShotType): the shot type of the CDF
     * temperature_profiles (bool): replace temperature variables with experimental profiles
@@ -38,7 +39,7 @@ class _Options:
     _input_time = None
     _reject_outliers = False
     _runid = None
-    _scan_factor_str = None
+    _scan_num = None
     _scan_range = None
     _shot_type = ShotType.NONE
     _temperature_profiles = False
@@ -89,12 +90,11 @@ class _Options:
             self._runid = runid.strip()
 
     @property
-    def scan_factor_str(self):
-        return self._scan_factor_str
-    @scan_factor_str.setter
-    def scan_factor_str(self, scan_factor_str):
-        if scan_factor_str is not None:
-            self._scan_factor_str = '{:.3f}'.format(scan_factor_str)
+    def scan_num(self):
+        return self._scan_num
+    @scan_num.setter
+    def scan_num(self, scan_num):
+        self._scan_num = scan_num
 
     @property
     def scan_range(self):
@@ -151,12 +151,14 @@ class _Options:
             raise ValueError(f'Variable {var_to_scan} is not defined under InputVariables')
 
     # Methods
-    def get_options(self):
+    def get_keys(self):
         return [o[1:] for o in dir(self) if not callable(getattr(self, o)) and o.startswith("_") and not o.startswith("__")]
 
-    def get_options_values(self):
-        options = self.get_options()
-        return [str(o) + ',' + str(getattr(self, o)).replace('\n', '') for o in options]
+    def get_key_value_pairs(self):
+        '''Returns (list): All key-value pairs of options'''
+
+        options = self.get_keys()
+        return [str(o) + ': ' + str(getattr(self, o)).replace('\n', '') for o in options]
 
     def set_options(self, **kwargs):
         for key, value in kwargs.items():
@@ -165,32 +167,44 @@ class _Options:
             else:
                 print(f'Error: Options does not have attribute {key}')
 
-    def load_options(self, file_path):
+    def load_options(self):
         '''Loads _Options object from a pickle file'''
 
-        pickle_path = file_path.replace('.csv', '.pickle')
+        pickle_path = self.get_options_path()
+
         with open(pickle_path, 'rb') as handle:
             loaded_options = pickle.load(handle)
 
         # Setting options values one-by-one will not break any existing references to Options
-        options_to_set = loaded_options.get_options()
+        options_to_set = loaded_options.get_keys()
         for o in options_to_set:
             option_value = getattr(loaded_options, o)
             setattr(self, o, option_value)
 
-    def save_options(self, file_path, csv_path=''):
-        '''Saves _Options object to a pickle file, as well as a CSV'''
+    def save_options(self):
+        '''Saves _Options object to a pickle file (CSV also saved to make saved options viewable)'''
 
-        pickle_path = file_path.replace('.csv', '.pickle')
-        with open(file_path, 'wb') as handle:
+        pickle_path = self.get_options_path()
+
+        with open(pickle_path, 'wb') as handle:
             pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-        # Options can also be written to a CSV to make viewing their values easier
-        if csv_path != '':
-            options_values = self.get_options_values()
-            f = open(csv_path, 'w')
-            for option in options_values:
-                f.write(f'{option}\n')
+        # Options are also written to a CSV to make viewing their values easier
+        csv_path = pickle_path.replace('.pickle', '.csv')
+        options_values = self.get_key_value_pairs()
+        f = open(csv_path, 'w')
+        for option in options_values:
+            f.write(f'{option}\n')
+
+        print(f'Options saved to {pickle_path}\n')
+
+    def get_options_path(self):
+        '''Returns: (str) the path to the Options pickle file'''
+        if self._runid is None:
+            raise ValueError('Cannot retrieve options.pickle file since runid has not been set')
+        if self._scan_num is None:
+            raise ValueError('Cannot retrieve options.pickle file since scan_num has not been set')
+        return f'{utils.get_scan_num_path(self._runid, self._scan_num)}\\options.pickle'
 
     def set_measurement_time(self, tvar):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''

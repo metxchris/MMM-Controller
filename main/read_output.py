@@ -15,7 +15,7 @@ from main.options import Options
 NUM_INPUT_COMMENT_LINES = 4
 NUM_OUTPUT_COMMENT_LINES = 3
 
-def save_data_csvs(data_input, data_output, vars_input, vars_output, units_input, units_output):
+def save_data_csvs(scan_factor, data_input, data_output, vars_input, vars_output, units_input, units_output):
     '''
     Save input and output values from the MMM driver output file to separate CSVs.
 
@@ -27,6 +27,7 @@ def save_data_csvs(data_input, data_output, vars_input, vars_output, units_input
     be created as a result of the most recent scan.
 
     Parameters:
+    * scan_factor (float or None): The current factor when doing a parameter scan
     * data_input (np.ndarray): Array of all input values
     * data_output (np.ndarray): Array of all output values
     * vars_input (list): List of input variable names
@@ -38,20 +39,19 @@ def save_data_csvs(data_input, data_output, vars_input, vars_output, units_input
     opts = Options.instance
 
     # Set save_dir directory for a basic run
-    if opts.scan_factor_str is None:
-        save_dir = utils.get_output_path(opts.runid)
+    if scan_factor is None:
+        save_dir = utils.get_scan_num_path(opts.runid, opts.scan_num)
         file_name_output = f'{save_dir}\\{opts.runid} Output Profiles.csv'
         file_name_input = f'{save_dir}\\{opts.runid} Input Profiles.csv'
     # Set save_dir directory for a variable scan (creates an additional sub folder)
     else:
-        save_dir = utils.get_output_path(f'{opts.runid}\\{opts.var_to_scan}')
-        file_name_output = f'{save_dir}\\Output {opts.var_to_scan} = {opts.scan_factor_str}.csv'
-        file_name_input = f'{save_dir}\\Input {opts.var_to_scan} = {opts.scan_factor_str}.csv'
-
-    utils.create_directory(save_dir)
+        scan_factor_str = '{:.3f}'.format(scan_factor)
+        save_dir = utils.get_var_to_scan_path(opts.runid, opts.scan_num, opts.var_to_scan)
+        file_name_output = f'{save_dir}\\Output {opts.var_to_scan} = {scan_factor_str}.csv'
+        file_name_input = f'{save_dir}\\Input {opts.var_to_scan} = {scan_factor_str}.csv'
 
     # When doing a variable scan, clear save_dir directory at the start of each scan
-    if opts.scan_factor_str is not None and float(opts.scan_factor_str) == opts.scan_range.min():
+    if scan_factor is not None and scan_factor == opts.scan_range.min():
         utils.clear_folder(save_dir, '*.csv')
 
     # Creates two header rows in each CSV
@@ -88,7 +88,7 @@ def split_values(values_str):
 
     return values_str.replace('   ', '  ').replace(' -', '  -').replace('\n', '').split('  ')[1:]
 
-def read_output_file():
+def read_output_file(scan_factor=None):
     '''
     Read output file from MMM driver and store values
 
@@ -133,12 +133,20 @@ def read_output_file():
     output_vars.rho.set_variable(output_vars.rmin.values / output_vars.rmin.values[-1])
 
     # Save both input and output variables to CSV
-    save_data_csvs(data_input, data_output, vars_input, vars_output, units_input, units_output)
+    save_data_csvs(scan_factor, data_input, data_output, vars_input, vars_output, units_input, units_output)
 
     return output_vars
 
 
-# For testing purposes, make sure input_points is correct for existing output file in temp folder
+'''
+For testing purposes:
+* There needs to be an existing MMM output file in the temp folder
+* Options.instance.runid needs to match an existing ./output/runid folder
+* Options.instance.scan_num needs to match an existing scan number in the ./output/runid folder
+* Options.instance.input_points needs to match points used in existing output file in the temp folder
+'''
 if __name__ == '__main__':
-    Options.instance.runid = '132017T01'
+    Options.instance.runid = '129041A10'
+    Options.instance.input_points = 51
+    Options.instance.scan_num = 2
     read_output_file()

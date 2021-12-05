@@ -67,5 +67,5 @@ if __name__ == '__main__':
         scan_range = None)
 
     # Initialize variable objects and call simple_plot function
-    mmm_vars, input_vars, cdf_vars, raw_cdf_vars = mmm_controller.initialize_controller()
+    mmm_vars, input_vars, cdf_vars, raw_cdf_vars = mmm_controller.initialize_variables()
     simple_plot(cdf_vars.xb, cdf_vars.nz, r' (CDF)', mmm_vars.xb, mmm_vars.nz)

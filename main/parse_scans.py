@@ -90,14 +90,15 @@ def parse_scan_csv():
     be a function of the scanned parameter.  
     '''
 
+    opts = Options.instance
+
     # Get list of input and output files from parameter scan
-    scanned_dir = utils.get_output_path(f'{Options.instance.runid}\\{Options.instance.var_to_scan}')
+    scanned_dir = utils.get_var_to_scan_path(opts.runid, opts.scan_num, opts.var_to_scan)
     input_files = utils.get_files_in_dir(scanned_dir, 'Input*')
     output_files = utils.get_files_in_dir(scanned_dir, 'Output*')
 
-    # Check and clear directory to save reshaped data to, if needed
-    save_dir = f'{scanned_dir}\\rho'
-    utils.create_directory(save_dir)
+    # Set and clear directory to save reshaped data to, if needed
+    save_dir = utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan)
     utils.clear_folder(save_dir, '*.csv')
 
     # Read in data from parameter scan, then construct lists of new data to save
@@ -115,11 +116,14 @@ def parse_scan_csv():
 
 '''
 For testing purposes:
-* Scan range doesn't matter, but needs to be some np.ndarray
-* var_to_scan needs to match an existing folder containing scans
+* Options.instance.runid needs to match an existing ./output/runid folder
+* Options.instance.scan_num needs to match an existing scan number in the ./output/runid folder
+* Options.instance.var_to_scan needs to match an existing var_to_scan folder within the scan_num folder
+* Options.instance.scan_range just needs to be some np.ndarray
 '''
 if __name__ == '__main__':
     Options.instance.runid = '129041A10'
-    Options.instance.var_to_scan = 'te'
+    Options.instance.scan_num = 2
+    Options.instance.var_to_scan = 'gte'
     Options.instance.scan_range = np.arange(1)
     parse_scan_csv()
