@@ -9,7 +9,6 @@ from main import *
 from main.enums import ShotType
 from main.options import Options
 from plots import plot_profiles
-from tests import test
 
 
 def execute_basic_run(mmm_vars):

@@ -1,10 +1,10 @@
 # Standard Packages
+import pickle
 import sys
 sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
-import pickle
 
 # Local Packages
 from main import utils
@@ -14,7 +14,7 @@ from main.variables import InputVariables
 
 class _Options:
     '''
-    Options for MMM Controller (private class)
+    Store options for MMM Controller (private class)
 
     Properties:
     * apply_smoothing (bool): killswitch to disable smoothing of all variables
@@ -199,7 +199,7 @@ class _Options:
 
 
 class Options:
-    '''Stores a public instance of the _Options class (Singleton pattern)'''
+    '''Stores a public instance of the _Options class'''
 
     instance = _Options()
 
