@@ -78,8 +78,8 @@ class _Options:
     def reject_outliers(self):
         return self._reject_outliers
     @reject_outliers.setter
-    def reject_outlilers(self, reject_outlilers):
-        self._reject_outliers = reject_outlilers
+    def reject_outliers(self, reject_outliers):
+        self._reject_outliers = reject_outliers
 
     @property
     def runid(self):
@@ -167,10 +167,10 @@ class _Options:
             else:
                 print(f'Error: Options does not have attribute {key}')
 
-    def load_options(self):
+    def load_options(self, runid, scan_num):
         '''Loads _Options object from a pickle file'''
 
-        pickle_path = self.get_options_path()
+        pickle_path = self.get_options_path(runid, scan_num)
 
         with open(pickle_path, 'rb') as handle:
             loaded_options = pickle.load(handle)
@@ -184,7 +184,7 @@ class _Options:
     def save_options(self):
         '''Saves _Options object to a pickle file (CSV also saved to make saved options viewable)'''
 
-        pickle_path = self.get_options_path()
+        pickle_path = self.get_options_path(self.runid, self.scan_num)
 
         with open(pickle_path, 'wb') as handle:
             pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -198,13 +198,13 @@ class _Options:
 
         print(f'Options saved to {pickle_path}\n')
 
-    def get_options_path(self):
+    def get_options_path(self, runid, scan_num):
         '''Returns: (str) the path to the Options pickle file'''
-        if self._runid is None:
+        if runid is None:
             raise ValueError('Cannot retrieve options.pickle file since runid has not been set')
-        if self._scan_num is None:
+        if scan_num is None:
             raise ValueError('Cannot retrieve options.pickle file since scan_num has not been set')
-        return f'{utils.get_scan_num_path(self._runid, self._scan_num)}\\options.pickle'
+        return f'{utils.get_scan_num_path(runid, scan_num)}\\options.pickle'
 
     def set_measurement_time(self, tvar):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''

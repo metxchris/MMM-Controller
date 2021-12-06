@@ -26,7 +26,10 @@ def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
     if x2var is not None and y2var is not None:
         plt.plot(x2var.values[:, t_idx], y2var.values[:, t_idx], label=y2var.label + l2)
 
-    plt.xlim(0, 1)
+    xmin = min(x1var.values.min(), x2var.values.min()) if x2var is not None else x1var.values.min()
+    xmax = max(x1var.values.max(), x2var.values.max()) if x2var is not None else x1var.values.max()
+
+    plt.xlim(xmin, xmax)
     plt.xlabel(x1var.label)
     plt.ylabel(y1var.units_label)
     plt.legend()
