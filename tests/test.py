@@ -76,3 +76,14 @@ if __name__ == '__main__':
     #         print(number_in_str)
     #         print(self._units.replace(search_result.group(), r'\$\^\{' + number_in_str + r'\}\$'))
     #     print(self.name, search_result)
+
+
+    '''print text next to xaxis label'''
+
+    # from matplotlib import transforms
+    # xlabel = plt.xlabel(x1var.label)
+    # fig.draw(fig.canvas.get_renderer())
+    # ex = xlabel.get_window_extent()
+    # t = transforms.offset_copy(xlabel._transform, x=ex.width, y=ex.y0 + 0.2 * ex.height, units='dots')
+    # xy = fig.transFigure.inverted().transform((ex.x0, ex.y0))
+    # text = plt.text(*xy, x1var.units_label, transform=t, fontsize=8, color='#333')

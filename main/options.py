@@ -12,9 +12,9 @@ from main.enums import ShotType
 from main.variables import InputVariables
 
 
-class _Options:
+class OptionsData:
     '''
-    Store options for MMM Controller (private class)
+    Store options for MMM Controller
 
     Properties:
     * apply_smoothing (bool): killswitch to disable smoothing of all variables
@@ -168,7 +168,7 @@ class _Options:
                 print(f'Error: Options does not have attribute {key}')
 
     def load_options(self, runid, scan_num):
-        '''Loads _Options object from a pickle file'''
+        '''Loads OptionsData object from a pickle file'''
 
         pickle_path = self.get_options_path(runid, scan_num)
 
@@ -182,7 +182,7 @@ class _Options:
             setattr(self, o, option_value)
 
     def save_options(self):
-        '''Saves _Options object to a pickle file (CSV also saved to make saved options viewable)'''
+        '''Saves OptionsData object to a pickle file (CSV also saved to make saved options viewable)'''
 
         pickle_path = self.get_options_path(self.runid, self.scan_num)
 
@@ -213,9 +213,9 @@ class _Options:
 
 
 class Options:
-    '''Stores a public instance of the _Options class'''
+    '''Stores a public instance of the OptionsData class'''
 
-    instance = _Options()
+    instance = OptionsData()
 
 
 if __name__ == '__main__':

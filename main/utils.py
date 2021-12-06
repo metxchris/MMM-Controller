@@ -47,7 +47,7 @@ def init_output_dirs(options):
     * ./output/runid/scan_num/var_to_scan/rho/
 
     Parameters:
-    * options (_Options): A reference to Options.instance
+    * options (OptionsData): A reference to Options.instance
     '''
 
     if options.runid is None:
@@ -95,7 +95,7 @@ def create_directory(dir_name):
     if not os.path.exists(dir_name):
         os.mkdir(dir_name)
 
-def check_filename(file_path):
+def check_filename(file_path, file_extension):
     '''
     Checks if file exists and returns a new file path if the checked file exists.
 
@@ -103,10 +103,9 @@ def check_filename(file_path):
     the file already exists.  This is done so that files are not overwritten in an existing directory.
     An exception is raised if too many duplicate files already exist.
 
-    TODO: this fails when the path starts with any '.'
-
     Parameters:
-    * file_path (str): Path to file
+    * file_path (str): Path to where the file might exist
+    * file_extension (str): The extension of the file (e.g.: '.pdf')
 
     Returns:
     * file_path (str): Path to file that does not exist
@@ -115,8 +114,8 @@ def check_filename(file_path):
     if os.path.exists(file_path):
         num_range = range(2, 1000)
         for i in num_range:
-            path_split = file_path.split('.')
-            new_file_path = f'{path_split[0]} ({i}).{path_split[1]}'
+            path_split = file_path.split(file_extension)
+            new_file_path = f'{path_split[0]} ({i}){file_extension}'
             if not os.path.exists(new_file_path):
                 file_path = new_file_path
                 break
@@ -231,6 +230,7 @@ def merge_profile_sheets(runid, scan_num, profile_type):
 
     merged_name = f'{runid} {profile_type} Profiles.pdf'
     output_file = f'{get_scan_num_path(runid, scan_num)}\\{merged_name}'
+    output_file = check_filename(output_file, '.pdf')
     temp_path = get_temp_path()
     pdftk_path = get_pdftk_path()
     

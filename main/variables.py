@@ -8,6 +8,9 @@ import numpy as np
 import scipy.ndimage
 from multipledispatch import dispatch
 
+# Local Packages
+from main import constants
+
 
 # Parent class for input and output variables
 class Variables:
@@ -144,39 +147,45 @@ class InputVariables(Variables):
 # Variables obtained from MMM output
 class OutputVariables(Variables):
     def __init__(self):
-        self.rho = Variable('rho', label=r'$\rho$')
-        self.rmin = Variable('rmin', label=r'$r_\mathrm{min}$')
-        self.xti = Variable('xti', label='xti')
-        self.xdi = Variable('xdi', label='xdi')
-        self.xte = Variable('xte', label='xte')
-        self.xdz = Variable('xdz', label='xdz')
-        self.xvt = Variable('xvt', label='xvt')
-        self.xvp = Variable('xvp', label='xvp')
-        self.xtiW20 = Variable('xtiW20', label='xtiW20')
-        self.xdiW20 = Variable('xdiW20', label='xdiW20')
-        self.xteW20 = Variable('xteW20', label='xteW20')
-        self.xtiDBM = Variable('xtiDBM', label='xtiDBM')
-        self.xdiDBM = Variable('xdiDBM', label='xdiDBM')
-        self.xteDBM = Variable('xteDBM', label='xteDBM')
-        self.xteETG = Variable('xteETG', label='xteETG')
-        self.xteMTM = Variable('xteMTM', label='xteMTM')
-        self.xteETGM = Variable('xteETGM', label='xteETGM')
-        self.xdiETGM = Variable('xdiETGM', label='xdiETGM')
-        self.gmaW20ii = Variable('gmaW20ii', label='gmaW20ii')
-        self.omgW20ii = Variable('omgW20ii', label='omgW20ii')
-        self.gmaW20ie = Variable('gmaW20ie', label='gmaW20ie')
-        self.omgW20ie = Variable('omgW20ie', label='omgW20ie')
-        self.gmaW20ei = Variable('gmaW20ei', label='gmaW20ei')
-        self.omgW20ei = Variable('omgW20ei', label='omgW20ei')
-        self.gmaW20ee = Variable('gmaW20ee', label='gmaW20ee')
-        self.omgW20ee = Variable('omgW20ee', label='omgW20ee')
-        self.gmaDBM = Variable('gmaDBM', label='gmaDBM')
-        self.omgDBM = Variable('omgDBM', label='omgDBM')
-        self.gmaMTM = Variable('gmaMTM', label='gmaMTM')
-        self.omgMTM = Variable('omgMTM', label='omgMTM')
-        self.gmaETGM = Variable('gmaETGM', label='gmaETGM')
-        self.omgETGM = Variable('omgETGM', label='omgETGM')
+        self.rho = Variable('rho', units='', label=r'$\rho$')
+        self.rmin = Variable('rmin', units='m', label=r'$r_\mathrm{min}$')
+        self.xti = Variable('xti', units='m^2/s', label='xti')
+        self.xdi = Variable('xdi', units='m^2/s', label='xdi')
+        self.xte = Variable('xte', units='m^2/s', label='xte')
+        self.xdz = Variable('xdz', units='m^2/s', label='xdz')
+        self.xvt = Variable('xvt', units='m^2/s', label='xvt')
+        self.xvp = Variable('xvp', units='m^2/s', label='xvp')
+        self.xtiW20 = Variable('xtiW20', units='m^2/s', label='xtiW20')
+        self.xdiW20 = Variable('xdiW20', units='m^2/s', label='xdiW20')
+        self.xteW20 = Variable('xteW20', units='m^2/s', label='xteW20')
+        self.xtiDBM = Variable('xtiDBM', units='m^2/s', label='xtiDBM')
+        self.xdiDBM = Variable('xdiDBM', units='m^2/s', label='xdiDBM')
+        self.xteDBM = Variable('xteDBM', units='m^2/s', label='xteDBM')
+        self.xteETG = Variable('xteETG', units='m^2/s', label='xteETG')
+        self.xteMTM = Variable('xteMTM', units='m^2/s', label='xteMTM')
+        self.xteETGM = Variable('xteETGM', units='m^2/s', label='xteETGM')
+        self.xdiETGM = Variable('xdiETGM', units='m^2/s', label='xdiETGM')
+        self.gmaW20ii = Variable('gmaW20ii', units='s^-1', label='gmaW20ii')
+        self.omgW20ii = Variable('omgW20ii', units='s^-1', label='omgW20ii')
+        self.gmaW20ie = Variable('gmaW20ie', units='s^-1', label='gmaW20ie')
+        self.omgW20ie = Variable('omgW20ie', units='s^-1', label='omgW20ie')
+        self.gmaW20ei = Variable('gmaW20ei', units='s^-1', label='gmaW20ei')
+        self.omgW20ei = Variable('omgW20ei', units='s^-1', label='omgW20ei')
+        self.gmaW20ee = Variable('gmaW20ee', units='s^-1', label='gmaW20ee')
+        self.omgW20ee = Variable('omgW20ee', units='s^-1', label='omgW20ee')
+        self.gmaDBM = Variable('gmaDBM', units='s^-1', label='gmaDBM')
+        self.omgDBM = Variable('omgDBM', units='s^-1', label='omgDBM')
+        self.gmaMTM = Variable('gmaMTM', units='s^-1', label='gmaMTM')
+        self.omgMTM = Variable('omgMTM', units='s^-1', label='omgMTM')
+        self.gmaETGM = Variable('gmaETGM', units='s^-1', label='gmaETGM')
+        self.omgETGM = Variable('omgETGM', units='s^-1', label='omgETGM')
         self.dbsqprf = Variable('dbsqprf', label='dbsqprf')
+
+    def get_vars_to_plot(self):
+        vars_to_plot = self.get_variables()
+        vars_to_plot.remove('rho')
+        vars_to_plot.remove('rmin')
+        return vars_to_plot
 
 
 class Variable:
@@ -191,9 +200,12 @@ class Variable:
         self.absminvalue = absminvalue
         # Private
         self._units_label = ''
-        self._units = units
+        self._units = ''
         self._dimensions = dimensions if dimensions is not None else ['','']
         self._values = values
+
+        # Call units setter to also set units_label
+        self.units = units
 
     def __str__(self):
         return str(self.name)
@@ -234,25 +246,7 @@ class Variable:
 
         # Set units_label in LaTeX format
         if units != '':
-            # First item is the search string, second item is the replacement string
-            unit_strs = [
-                ['N/M**3', r'$\mathrm{m}^{-3}$'],
-                ['M**2/SEC', r'$\mathrm{m}^{2}/s$'],
-                ['M/SEC', r'm/s'],
-                ['M', r'm'],
-                ['SEC**-1', r's$^{-1}$'],
-                ['MAMPS', r'MA'],
-                ['RAD/SEC', r'rad/s'],
-                ['PASCALS', r'Pa'],
-                ['SECONDS', r's'],
-                ['TESLA', r'T'],
-                ['EV', r'eV'],
-                ['kEV', r'keV'],
-                ['m/s^2', r'm/s$^2$'],
-                ['m^2/s', r'm$^2$/s'],
-                ['s^-1', r's$^{-1}$']]
-
-            for unit_str in unit_strs:
+            for unit_str in constants.UNIT_STRINGS:
                 if (unit_str[0] == self._units):
                     self._units_label = unit_str[1]
                     break

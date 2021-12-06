@@ -8,12 +8,14 @@ import numpy as np
 # Local Packages
 from main import utils, variables
 from main.options import Options
+from main.enums import DataType
 
 
 # The number of comment lines in the output file before data starts
 # These will need to be updated if the mmm output file format changes
 NUM_INPUT_COMMENT_LINES = 4
 NUM_OUTPUT_COMMENT_LINES = 3
+
 
 def save_data_csvs(scan_factor, data_input, data_output, vars_input, vars_output, units_input, units_output):
     '''
@@ -37,18 +39,20 @@ def save_data_csvs(scan_factor, data_input, data_output, vars_input, vars_output
     '''
 
     opts = Options.instance
+    output_str = DataType.OUTPUT.name.capitalize()
+    input_str = DataType.INPUT.name.capitalize()
 
     # Set save_dir directory for a basic run
     if scan_factor is None:
         save_dir = utils.get_scan_num_path(opts.runid, opts.scan_num)
-        file_name_output = f'{save_dir}\\{opts.runid} Output Profiles.csv'
-        file_name_input = f'{save_dir}\\{opts.runid} Input Profiles.csv'
+        file_name_output = f'{save_dir}\\{opts.runid} {output_str} Profiles.csv'
+        file_name_input = f'{save_dir}\\{opts.runid} {input_str} Profiles.csv'
     # Set save_dir directory for a variable scan (creates an additional sub folder)
     else:
         scan_factor_str = '{:.3f}'.format(scan_factor)
         save_dir = utils.get_var_to_scan_path(opts.runid, opts.scan_num, opts.var_to_scan)
-        file_name_output = f'{save_dir}\\Output {opts.var_to_scan} = {scan_factor_str}.csv'
-        file_name_input = f'{save_dir}\\Input {opts.var_to_scan} = {scan_factor_str}.csv'
+        file_name_output = f'{save_dir}\\{output_str} {opts.var_to_scan} = {scan_factor_str}.csv'
+        file_name_input = f'{save_dir}\\{input_str} {opts.var_to_scan} = {scan_factor_str}.csv'
 
     # When doing a variable scan, clear save_dir directory at the start of each scan
     if scan_factor is not None and scan_factor == opts.scan_range.min():
@@ -103,7 +107,7 @@ def read_output_file(scan_factor=None):
     opts = Options.instance
     output_vars = variables.OutputVariables()
 
-    output_file = utils.get_temp_path('output')
+    output_file = utils.get_temp_path(DataType.OUTPUT.name.lower())
     with open(output_file) as file:
         lines = file.readlines()
 
@@ -147,6 +151,6 @@ For testing purposes:
 '''
 if __name__ == '__main__':
     Options.instance.runid = '129041A10'
-    Options.instance.input_points = 51
-    Options.instance.scan_num = 2
+    Options.instance.input_points = 101
+    Options.instance.scan_num = 1
     read_output_file()
