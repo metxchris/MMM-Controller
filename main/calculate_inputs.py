@@ -3,11 +3,15 @@ import copy
 import inspect
 import sys
 sys.path.insert(0, '../')
+
 # 3rd Party Packages
 import numpy as np
 from scipy.interpolate import interp1d # TODO: use Akima1DInterpolator?
+
 # Local Packages
 from main import variables, constants
+from main.options import Options
+
 
 # Set VPOL using VPOLD or VPOLH, if possible # TODO: handle this better
 def vpol(vars):
@@ -391,10 +395,15 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
 
     gvar.set_variable(gradient_values, '', ['XBO', 'TIME'])
 
-    gvar.apply_smoothing()
+    if Options.instance.apply_smoothing:
+        gvar.apply_smoothing()
+
     gvar.clamp_gradient(100)
     gvar.set_minvalue()
-    gvar.reject_outliers()
+
+    if Options.instance.reject_outliers:
+        gvar.reject_outliers()
+
     gvar.remove_nan()
 
 # Calculate the variable specified by it's corresponding function
@@ -404,9 +413,14 @@ def calculate_variable(var_function, vars):
     # Get the variable name specified by var_function
     var_name = var_function.__name__
 
-    getattr(vars, var_name).apply_smoothing()
+    if Options.instance.apply_smoothing:
+        getattr(vars, var_name).apply_smoothing()
+
     getattr(vars, var_name).set_minvalue()
-    getattr(vars, var_name).reject_outliers()
+
+    if Options.instance.reject_outliers:
+        getattr(vars, var_name).reject_outliers()
+
     getattr(vars, var_name).remove_nan()
 
 # Calculates new variables needed for MMM and data display from CDF variables
@@ -474,9 +488,10 @@ def calculate_inputs(cdf_vars):
 
     return vars
 
-# Returns function names of calculated variables in this module, other than gradient calculations
 def get_calculated_vars():
+    '''Returns function names of calculated variables in this module, other than gradient calculations'''
     return [o[0] for o in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(o[1]) and not 'calculate' in o[0]]
 
+
 if __name__ == '__main__':
-    pass
+    ...

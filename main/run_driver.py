@@ -4,11 +4,13 @@ import subprocess
 import shutil
 import sys
 sys.path.insert(0, '../')
+
 # Local Packages
 from main import utils
 import settings
 
-def run_mmm_driver(input_options):
+
+def run_mmm_driver():
     # Shell command to run mmm driver through Cygwin
     cygwin_cmd = '\"{0}\" -c -l {1}{2}'.format(settings.CYGWIN_BASH_PATH, settings.CYGWIN_HOME_PATH, settings.MMM_DRIVER_PATH)
 
@@ -35,9 +37,10 @@ def run_mmm_driver(input_options):
     # Delete output file from Cygwin folder
     os.remove(output_file)
 
+
+'''
+For testing purposes:
+* There needs to be an existing MMM input file in the temp folder
+'''
 if __name__ == '__main__':
-    # For testing purposes
-    from main import variables
-    input_options = variables.InputOptions('132017T01')
-    input_options.runid = input_options.cdf_name
-    run_mmm_driver(input_options)
+    run_mmm_driver()

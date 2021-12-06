@@ -2,12 +2,15 @@
 from copy import deepcopy
 import sys
 sys.path.insert(0, '../')
+
 # 3rd Party Packages
 import numpy as np
 import scipy.ndimage
 from multipledispatch import dispatch
+
 # Local Packages
-import settings
+from main import constants
+
 
 # Parent class for input and output variables
 class Variables:
@@ -30,6 +33,7 @@ class Variables:
                   + str(getattr(self, var).units) + ", "
                   + str(getattr(self, var).values.shape) + ", "
                   + str(getattr(self, var).dimensions))
+
 
 # Variables obtained from a CDF
 class InputVariables(Variables):
@@ -72,7 +76,7 @@ class InputVariables(Variables):
         self.btor = Variable('Toroidal Magnetic Field', cdfvar='BTTOT', label=r'$B_\mathrm{T}$')
         self.eps = Variable('Inverse Aspect Ratio', label=r'$\epsilon$')
         self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$')
-        self.etai = Variable('Ion Gradient Ratio', cdfvar='ETAI', label=r'$\eta_\mathrm{\,i}$') # ETAI in CDF is not gTI/gNI
+        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$') # ETAI in CDF is not gTI/gNI
         self.etaih = Variable('Hydrogenic Gradient Ratio', cdfvar='ETAIH', label=r'$\eta_\mathrm{\,ih}$')
         self.etaid = Variable('ETAID', label=r'$\eta_\mathrm{\,id}$')
         self.etaie = Variable('ETAIE', cdfvar='ETAIE', label=r'$\eta_\mathrm{\,ie}$')
@@ -139,58 +143,69 @@ class InputVariables(Variables):
         else:
             raise ValueError('Failed to set TIPRO since TIPRO is None')
 
+
 # Variables obtained from MMM output
 class OutputVariables(Variables):
     def __init__(self):
-        self.rho = Variable('rho', label=r'$\rho$')
-        self.rmin = Variable('rmin', label=r'$r_\mathrm{min}$')
-        self.xti = Variable('xti', label='xti')
-        self.xdi = Variable('xdi', label='xdi')
-        self.xte = Variable('xte', label='xte')
-        self.xdz = Variable('xdz', label='xdz')
-        self.xvt = Variable('xvt', label='xvt')
-        self.xvp = Variable('xvp', label='xvp')
-        self.xtiW20 = Variable('xtiW20', label='xtiW20')
-        self.xdiW20 = Variable('xdiW20', label='xdiW20')
-        self.xteW20 = Variable('xteW20', label='xteW20')
-        self.xtiDBM = Variable('xtiDBM', label='xtiDBM')
-        self.xdiDBM = Variable('xdiDBM', label='xdiDBM')
-        self.xteDBM = Variable('xteDBM', label='xteDBM')
-        self.xteETG = Variable('xteETG', label='xteETG')
-        self.xteMTM = Variable('xteMTM', label='xteMTM')
-        self.xteETGM = Variable('xteETGM', label='xteETGM')
-        self.xdiETGM = Variable('xdiETGM', label='xdiETGM')
-        self.gmaW20ii = Variable('gmaW20ii', label='gmaW20ii')
-        self.omgW20ii = Variable('omgW20ii', label='omgW20ii')
-        self.gmaW20ie = Variable('gmaW20ie', label='gmaW20ie')
-        self.omgW20ie = Variable('omgW20ie', label='omgW20ie')
-        self.gmaW20ei = Variable('gmaW20ei', label='gmaW20ei')
-        self.omgW20ei = Variable('omgW20ei', label='omgW20ei')
-        self.gmaW20ee = Variable('gmaW20ee', label='gmaW20ee')
-        self.omgW20ee = Variable('omgW20ee', label='omgW20ee')
-        self.gmaDBM = Variable('gmaDBM', label='gmaDBM')
-        self.omgDBM = Variable('omgDBM', label='omgDBM')
-        self.gmaMTM = Variable('gmaMTM', label='gmaMTM')
-        self.omgMTM = Variable('omgMTM', label='omgMTM')
-        self.gmaETGM = Variable('gmaETGM', label='gmaETGM')
-        self.omgETGM = Variable('omgETGM', label='omgETGM')
+        self.rho = Variable('rho', units='', label=r'$\rho$')
+        self.rmin = Variable('rmin', units='m', label=r'$r_\mathrm{min}$')
+        self.xti = Variable('xti', units='m^2/s', label='xti')
+        self.xdi = Variable('xdi', units='m^2/s', label='xdi')
+        self.xte = Variable('xte', units='m^2/s', label='xte')
+        self.xdz = Variable('xdz', units='m^2/s', label='xdz')
+        self.xvt = Variable('xvt', units='m^2/s', label='xvt')
+        self.xvp = Variable('xvp', units='m^2/s', label='xvp')
+        self.xtiW20 = Variable('xtiW20', units='m^2/s', label='xtiW20')
+        self.xdiW20 = Variable('xdiW20', units='m^2/s', label='xdiW20')
+        self.xteW20 = Variable('xteW20', units='m^2/s', label='xteW20')
+        self.xtiDBM = Variable('xtiDBM', units='m^2/s', label='xtiDBM')
+        self.xdiDBM = Variable('xdiDBM', units='m^2/s', label='xdiDBM')
+        self.xteDBM = Variable('xteDBM', units='m^2/s', label='xteDBM')
+        self.xteETG = Variable('xteETG', units='m^2/s', label='xteETG')
+        self.xteMTM = Variable('xteMTM', units='m^2/s', label='xteMTM')
+        self.xteETGM = Variable('xteETGM', units='m^2/s', label='xteETGM')
+        self.xdiETGM = Variable('xdiETGM', units='m^2/s', label='xdiETGM')
+        self.gmaW20ii = Variable('gmaW20ii', units='s^-1', label='gmaW20ii')
+        self.omgW20ii = Variable('omgW20ii', units='s^-1', label='omgW20ii')
+        self.gmaW20ie = Variable('gmaW20ie', units='s^-1', label='gmaW20ie')
+        self.omgW20ie = Variable('omgW20ie', units='s^-1', label='omgW20ie')
+        self.gmaW20ei = Variable('gmaW20ei', units='s^-1', label='gmaW20ei')
+        self.omgW20ei = Variable('omgW20ei', units='s^-1', label='omgW20ei')
+        self.gmaW20ee = Variable('gmaW20ee', units='s^-1', label='gmaW20ee')
+        self.omgW20ee = Variable('omgW20ee', units='s^-1', label='omgW20ee')
+        self.gmaDBM = Variable('gmaDBM', units='s^-1', label='gmaDBM')
+        self.omgDBM = Variable('omgDBM', units='s^-1', label='omgDBM')
+        self.gmaMTM = Variable('gmaMTM', units='s^-1', label='gmaMTM')
+        self.omgMTM = Variable('omgMTM', units='s^-1', label='omgMTM')
+        self.gmaETGM = Variable('gmaETGM', units='s^-1', label='gmaETGM')
+        self.omgETGM = Variable('omgETGM', units='s^-1', label='omgETGM')
         self.dbsqprf = Variable('dbsqprf', label='dbsqprf')
 
+    def get_vars_to_plot(self):
+        vars_to_plot = self.get_variables()
+        vars_to_plot.remove('rho')
+        vars_to_plot.remove('rmin')
+        return vars_to_plot
+
+
 class Variable:
-    def __init__(self, name, cdfvar=None, smooth=None, label=None, desc=None, minvalue=None, absminvalue=None, units=None, dimensions=None, values=None):
+    def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None, absminvalue=None, units='', dimensions=None, values=None):
         # Public
         self.name = name
         self.cdfvar = cdfvar # Name of variable as used in CDF's
         self.smooth = smooth # None to disable smoothing, or n = 1, 2, 3, ...  
-        self.label = label if label is not None else '' # Plot label in LaTeX Format
-        self.desc = desc if desc is not None else ''
+        self.label = label # Plot label in LaTeX Format
+        self.desc = desc
         self.minvalue = minvalue
         self.absminvalue = absminvalue
         # Private
-        self._units_label = None
-        self._units = units if units is not None else ''
+        self._units_label = ''
+        self._units = ''
         self._dimensions = dimensions if dimensions is not None else ['','']
         self._values = values
+
+        # Call units setter to also set units_label
+        self.units = units
 
     def __str__(self):
         return str(self.name)
@@ -231,25 +246,7 @@ class Variable:
 
         # Set units_label in LaTeX format
         if units != '':
-            # First item is the search string, second item is the replacement string
-            unit_strs = [
-                ['N/M**3', r'$\mathrm{m}^{-3}$'],
-                ['M**2/SEC', r'$\mathrm{m}^{2}/s$'],
-                ['M/SEC', r'm/s'],
-                ['M', r'm'],
-                ['SEC**-1', r's$^{-1}$'],
-                ['MAMPS', r'MA'],
-                ['RAD/SEC', r'rad/s'],
-                ['PASCALS', r'Pa'],
-                ['SECONDS', r's'],
-                ['TESLA', r'T'],
-                ['EV', r'eV'],
-                ['kEV', r'keV'],
-                ['m/s^2', r'm/s$^2$'],
-                ['m^2/s', r'm$^2$/s'],
-                ['s^-1', r's$^{-1}$']]
-
-            for unit_str in unit_strs:
+            for unit_str in constants.UNIT_STRINGS:
                 if (unit_str[0] == self._units):
                     self._units_label = unit_str[1]
                     break
@@ -293,7 +290,7 @@ class Variable:
 
     # Variable smoothing using a Gaussian filter
     def apply_smoothing(self):
-        if self.smooth is not None and settings.APPLY_SMOOTHING:
+        if self.smooth is not None:
             self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(self.smooth, 0))
 
     # Clamps values between -value and value, and sets origin value to apprximately 0
@@ -306,91 +303,10 @@ class Variable:
     # TODO: Currently not ideal since removed values are replaced with None,
     # which turns everything into nan after smoothing or intepolating again
     def reject_outliers(self, m=4):
-        if settings.REMOVE_OUTLIERS:
-            self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
+        self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
 
     def remove_nan(self):
         if np.isnan(self.values).any():
             print('nan values found for var ' + self.name)
             self.values[np.isnan(self.values)] = 0
             self.set_minvalue()
-
-class InputOptions:
-    def __init__(self, cdf_name, shot_type=None, input_time=None, input_points=None, var_to_scan=None, scan_range=None):
-        # Public
-        self.cdf_name = cdf_name
-        self.shot_type = shot_type
-        self.input_time = input_time
-        # Private
-        self._input_points = input_points
-        self._runid = None
-        self._time = None
-        self._time_idx = None
-        self._var_to_scan = None
-        self._scan_range = None
-        self._scan_factor_str = None
-
-        self.set_scan_values(var_to_scan, scan_range)
-
-    @property
-    def runid(self):
-        return self._runid
-
-    @runid.setter
-    def runid(self, runid):
-        self._runid = runid.strip()
-        if self._runid != self.cdf_name:
-            print(f'*** WARNING: runid {self.runid} does not match cdf_name {self.cdf_name}')
-
-    @property
-    def input_points(self):
-        return self._input_points
-
-    @input_points.setter
-    def input_points(self, points):
-        if points is not None:
-            self._input_points = max(points, 5)
-
-    @property
-    def time_idx(self):
-        return self._time_idx
-
-    @property
-    def time(self):
-        return self._time
-
-    # Find the index of the measurement time closest to the input_time and index and the value
-    def set_measurement_time(self, tvar):
-        self._time_idx = np.argmin(np.abs(tvar.values - self.input_time))
-        self._time = "{:.3f}".format(tvar.values[self.time_idx])
-
-    @property
-    def var_to_scan(self):
-        return self._var_to_scan
-
-    @property
-    def scan_range(self):
-        return self._scan_range
-
-    # Sets values needed for conducting a variable scan
-    def set_scan_values(self, var_to_scan, scan_range):
-        # Condition to skip variable scan
-        if var_to_scan is None:
-            return
-        # Error checking
-        elif not hasattr(InputVariables(), var_to_scan):
-            raise ValueError(f'Variable {var_to_scan} is not an InputVariable.  Please use a variable defined under InputVariable.')
-        elif type(scan_range) is not np.ndarray:
-            raise ValueError('Specified scan range must be a Numpy array (type np.ndarray)')
-        # Set scan inputs
-        else:
-            self._var_to_scan = var_to_scan
-            self._scan_range = scan_range
-
-    @property
-    def scan_factor_str(self):
-        return self._scan_factor_str
-
-    @scan_factor_str.setter
-    def scan_factor_str(self, scan_factor_str):
-        self._scan_factor_str = '{:.3f}'.format(scan_factor_str)
