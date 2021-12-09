@@ -99,7 +99,7 @@ class InputVariables(Variables):
         self.raxis = Variable('RAXIS')
         self.rho = Variable('Radius', label=r'$\rho$')
         self.rmin = Variable('Minor Radius', cdfvar='RMNMP', label=r'$r$')
-        self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$')
+        self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$') # MMM uses a different definition of shat than what cdfvar='SHAT' uses
         self.shear = Variable('Magnetic Shear', label=r'$s$')
         self.tau = Variable('Temperature Ratio', label=r'$\tau$')
         self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-6, smooth=2)
@@ -107,7 +107,7 @@ class InputVariables(Variables):
         self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-6, smooth=2) # cdfvar='VTOR_AVG' is a slightly different VTOR than what we are using
         self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{T_\mathrm{e}}$')
         self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{T_\mathrm{i}}$')
-        self.zeff = Variable('Effective Charge', cdfvar='ZEFF', label=r'$Z_\mathrm{eff}$')
+        self.zeff = Variable('Effective Charge', cdfvar='ZEFFP', label=r'$Z_\mathrm{eff}$')
 
         # Calculated Gradients
         self.gne = Variable('Electron Density Gradient', label=r'$g_{n_\mathrm{e}}$')
