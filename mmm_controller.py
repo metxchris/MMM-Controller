@@ -130,6 +130,7 @@ if __name__ == '__main__':
     * Edit enums.py to view or add additional ShotTypes
     '''
     cdf_name, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
+    # cdf_name, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
     # cdf_name, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
     # cdf_name, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
     # cdf_name, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1

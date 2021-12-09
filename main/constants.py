@@ -10,6 +10,7 @@ UNIT_STRINGS = [
     ['PASCALS', r'Pa'],
     ['SECONDS', r's'],
     ['TESLA', r'T'],
+    ['TESLA*M', r'T\,m'],
     ['EV', r'eV'],
     ['kEV', r'keV'],
     ['m/s^2', r'm/s$^2$'],

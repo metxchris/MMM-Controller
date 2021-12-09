@@ -55,6 +55,8 @@ def convert_variable(cdf_var, xvals):
         input_var.set_variable(input_var.values / 10**4, 'M**2/SEC')
     elif units == 'AMPS':
         input_var.set_variable(input_var.values / 10**6, 'MAMPS')
+    elif units == 'TESLA*CM':
+        input_var.set_variable(input_var.values / 100, 'TESLA*M')
 
     # Reshape all non-scalar variables so that their shape matches (XBo, TIME)
     xdim = input_var.get_xdim()
