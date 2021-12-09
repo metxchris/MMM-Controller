@@ -41,77 +41,15 @@ MMM_LABELS = {
     'vpar'     :'! Parallel velocity profile [m/s]'
     }
 
-# Header for MMM input file.  Add additional formatting options as needed
-MMM_HEADER = '''&testmmm_input_control
- npoints = {npoints}    ! Number of radial points
- input_kind = 1
-/
-&testmmm_input_1stkind
-! This is a sample input file of the first kind
-! of an NSTX discharge
-
-!.. Switches for component models
-!   1D0 - ON, 0D0 - OFF
-cmodel  =
-   1D0     ! Weiland
-   {cmodel_dribm}     ! DRIBM
-   1D0     ! ETG
-   1D0     ! ETGM
-   1D0     ! MTM  
-    
-!.. Weiland real options
-cW20 =
-   1D0     ! ExB shear coefficient
-   1D0     ! Momentum pinch scaling factor
-   0D0     ! Lower bound of electron thermal diffusivity
-   1D2     ! Upper bound of electron thermal diffusivity
-   0D0     ! Lower bound of ion thermal diffusivity
-   1D2     ! Upper bound of ion thermal diffusivity
-
-!.. DRIBM real options
-cDBM =
-   1D0     ! ExB shear coefficient
-   0.1D0   ! kyrhos
-   
-!.. MTM real options
-cMTM =
-   0.2D0   ! ky/kx for MTM
-   1.0D0   ! calibration factor
-   
-
-!.. ETG integer options
-lETG =
-   2       ! Jenko threshold
-           ! applied to both electrostatic and electromagnetic regimes
-
-!.. ETG real options
-cETG =
-   6D-2    ! CEES scale
-   6D-2    ! CEEM scale
-   
-!.. ETGM integer options
-lETGM =
-   1      ! Collisionless limit
-
-!.. ETGM real options
-cETGM =
-   0.0D0     ! ExB shear coefficient
-   0.330D0   ! kyrhos
-   0.250D0   ! kyrhoe
-   
-lprint   = 0      ! Verbose level\n\n'''
 
 # Writes the input file used by the MMM driver
-def write_input_file(input_vars):
+def write_input_file(input_vars, controls):
     input_options = Options.instance
     file_name = utils.get_temp_path('input')
     f = open(file_name, 'w')
 
     # Write mmm input file header
-    mmm_header = MMM_HEADER.format(
-      npoints=input_options.input_points,
-      cmodel_dribm='0D0' if input_options.shot_type == ShotType.NSTX else '1D0')
-    f.write(mmm_header)
+    f.write(controls.get_mmm_header())
 
     # Loop through mmm variables and write input file values
     for var_name in MMM_LABELS.keys():

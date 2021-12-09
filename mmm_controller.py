@@ -23,7 +23,8 @@ def execute_basic_run(mmm_vars):
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
     '''
 
-    write_inputs.write_input_file(mmm_vars)
+    controls = input_controls.InputControls(Options.instance)
+    write_inputs.write_input_file(mmm_vars, controls)
     run_driver.run_mmm_driver()
     output_vars = read_output.read_output_file()
     plot_profiles.plot_output_profiles(output_vars)
@@ -57,14 +58,15 @@ def execute_variable_scan(mmm_vars):
     # Modifying scanned_var values will modify its corresponding values in modified_vars
     base_var = getattr(mmm_vars, var_to_scan)
     scanned_var = getattr(modified_vars, var_to_scan)
+    controls = input_controls.InputControls(Options.instance)
 
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing variable scan {i + 1} of {len(scan_range)} for variable {var_to_scan}')
 
         # Modifiy values of variable being scanned
         # Note: Dependent variables will be handled on a case-by-case basis
-        scanned_var.set_variable(scan_factor * base_var.values)
-        write_inputs.write_input_file(modified_vars)
+        scanned_var.values = scan_factor * base_var.values
+        write_inputs.write_input_file(modified_vars, controls)
         run_driver.run_mmm_driver()
         read_output.read_output_file(scan_factor)
 
@@ -91,7 +93,7 @@ def initialize_variables():
 
     return mmm_vars, input_vars, cdf_vars, raw_cdf_vars
 
-def run_controller():
+def main():
     '''
     Main function which controls the MMM driver
 
@@ -155,4 +157,4 @@ if __name__ == '__main__':
         scan_range = np.arange(start=0.1, stop=3.1, step=0.1),
         )
 
-    run_controller()
+    main()

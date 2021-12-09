@@ -171,11 +171,11 @@ def interp_to_input_points(input_vars):
         # Interpolate variables onto grid specified by Options.instance.input_points
         for var in full_var_list:
             mmm_var = getattr(mmm_vars, var)
-            if mmm_var.values is not None:
+            if mmm_var.values is not None and mmm_var.values.size > 1:
                 set_interp = interp1d(xb, mmm_var.values, kind='cubic', fill_value="extrapolate", axis=0)
                 mmm_var.set_variable(set_interp(xb_mmm))
                 mmm_var.set_minvalue()
-            else:
+            elif mmm_var.values is None:
                 print(f'ERROR: Trying to interpolate variable {var} with values equal to None')
 
     return mmm_vars
@@ -212,14 +212,14 @@ def interp_to_uniform_rho(input_vars):
     for var in full_var_list:
         mmm_var = getattr(mmm_vars, var)
         interp_values = np.empty((len(new_rho), mmm_var.values.shape[1]))
-        if mmm_var.values is not None:
+        if mmm_var.values is not None and mmm_var.values.size > 1:
             for time_idx in range(mmm_var.values.shape[1]):
                 set_interp = interp1d(old_rho[:, time_idx], mmm_var.values[:, time_idx], 
                     kind='cubic', fill_value="extrapolate", axis=0)
                 interp_values[:, time_idx] = set_interp(new_rho)
             mmm_var.set_variable(interp_values)
             mmm_var.set_minvalue()
-        else:
+        elif mmm_var.values is None:
             print(f'ERROR: Trying to interpolate variable {var} with values equal to None')
 
     return mmm_vars
