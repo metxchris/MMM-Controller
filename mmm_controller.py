@@ -8,6 +8,7 @@ import numpy as np
 from main import *
 from main.enums import ShotType, ScanType
 from main.options import Options
+from main.input_controls import InputControls
 from plots import plot_profiles
 
 
@@ -23,7 +24,7 @@ def execute_basic_run(mmm_vars):
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
     '''
 
-    controls = input_controls.InputControls(Options.instance)
+    controls = InputControls(Options.instance)
     controls.save_controls(Options.instance)
     write_inputs.write_input_file(mmm_vars, controls)
     run_driver.run_mmm_driver()
@@ -58,7 +59,7 @@ def execute_variable_scan(mmm_vars):
     # Modifying scanned_var values will modify its corresponding values in modified_vars
     base_var = getattr(mmm_vars, var_to_scan)
     scanned_var = getattr(modified_vars, var_to_scan)
-    controls = input_controls.InputControls(Options.instance)
+    controls = InputControls(Options.instance)
     controls.save_controls(Options.instance)
 
     for i, scan_factor in enumerate(scan_range):
@@ -93,7 +94,7 @@ def execute_control_scan(mmm_vars):
 
     # Create references to control being scanned in InputControls
     # Modifying scanned_control values will modify its corresponding values in controls
-    controls = input_controls.InputControls(Options.instance)
+    controls = InputControls(Options.instance)
     scanned_control = getattr(controls, var_to_scan)
     base_control = deepcopy(scanned_control)
 
@@ -102,7 +103,7 @@ def execute_control_scan(mmm_vars):
 
         # Modifiy values of variable being scanned
         # Note: Dependent variables will be handled on a case-by-case basis
-        scanned_control.value = scan_factor * base_control.value
+        scanned_control.values = scan_factor * base_control.values
         controls.save_controls(Options.instance, scan_factor)
         write_inputs.write_input_file(mmm_vars, controls)
         run_driver.run_mmm_driver()

@@ -154,22 +154,17 @@ class OutputVariables(Variables):
     def __init__(self):
         self.rho = Variable('rho', units='', label=r'$\rho$')
         self.rmin = Variable('rmin', units='m', label=r'$r_\mathrm{min}$')
+        # Total Diffusivities
         self.xti = Variable('xti', units='m^2/s', label='xti')
         self.xdi = Variable('xdi', units='m^2/s', label='xdi')
         self.xte = Variable('xte', units='m^2/s', label='xte')
-        self.xdz = Variable('xdz', units='m^2/s', label=r'$D_\mathrm{nw}$')
+        self.xdz = Variable('xdz', units='m^2/s', label=r'$D_\mathrm{n, w}$')
         self.xvt = Variable('xvt', units='m^2/s', label=r'$\chi_{v_\phi}$')
         self.xvp = Variable('xvp', units='m^2/s', label=r'$\chi_{v_\theta}$')
-        self.xtiW20 = Variable('xtiW20', units='m^2/s', label=r'$\chi_\mathrm{iw}$')
+        # Weiland Components
+        self.xtiW20 = Variable('xtiW20', units='m^2/s', label=r'$\chi_\mathrm{i, w}$')
         self.xdiW20 = Variable('xdiW20', units='m^2/s', label='xdiW20')
         self.xteW20 = Variable('xteW20', units='m^2/s', label='xteW20')
-        self.xtiDBM = Variable('xtiDBM', units='m^2/s', label='xtiDBM')
-        self.xdiDBM = Variable('xdiDBM', units='m^2/s', label='xdiDBM')
-        self.xteDBM = Variable('xteDBM', units='m^2/s', label='xteDBM')
-        self.xteETG = Variable('xteETG', units='m^2/s', label='xteETG')
-        self.xteMTM = Variable('xteMTM', units='m^2/s', label='xteMTM')
-        self.xteETGM = Variable('xteETGM', units='m^2/s', label='xteETGM')
-        self.xdiETGM = Variable('xdiETGM', units='m^2/s', label='xdiETGM')
         self.gmaW20ii = Variable('gmaW20ii', units='s^-1', label='gmaW20ii')
         self.omgW20ii = Variable('omgW20ii', units='s^-1', label='omgW20ii')
         self.gmaW20ie = Variable('gmaW20ie', units='s^-1', label='gmaW20ie')
@@ -178,19 +173,51 @@ class OutputVariables(Variables):
         self.omgW20ei = Variable('omgW20ei', units='s^-1', label='omgW20ei')
         self.gmaW20ee = Variable('gmaW20ee', units='s^-1', label='gmaW20ee')
         self.omgW20ee = Variable('omgW20ee', units='s^-1', label='omgW20ee')
+        # DBM Components
+        self.xtiDBM = Variable('xtiDBM', units='m^2/s', label='xtiDBM')
+        self.xdiDBM = Variable('xdiDBM', units='m^2/s', label='xdiDBM')
+        self.xteDBM = Variable('xteDBM', units='m^2/s', label='xteDBM')
         self.gmaDBM = Variable('gmaDBM', units='s^-1', label='gmaDBM')
         self.omgDBM = Variable('omgDBM', units='s^-1', label='omgDBM')
+        # ETG Component
+        self.xteETG = Variable('xteETG', units='m^2/s', label='xteETG')
+        # MTM Components
+        self.xteMTM = Variable('xteMTM', units='m^2/s', label='xteMTM')
         self.gmaMTM = Variable('gmaMTM', units='s^-1', label='gmaMTM')
         self.omgMTM = Variable('omgMTM', units='s^-1', label='omgMTM')
-        self.gmaETGM = Variable('gmaETGM', units='s^-1', label='gmaETGM')
-        self.omgETGM = Variable('omgETGM', units='s^-1', label='omgETGM')
+        # ETGM Components
+        self.xteETGM = Variable('xteETGM', units='m^2/s', label=r'$\chi_\mathrm{e, etgm}$')
+        self.xdiETGM = Variable('xdiETGM', units='m^2/s', label=r'$D_\mathrm{n, etgm}$')
+        self.gmaETGM = Variable('gmaETGM', units='s^-1', label=r'$\gamma_\mathrm{etgm}$')
+        self.omgETGM = Variable('omgETGM', units='s^-1', label=r'$\omega_\mathrm{etgm}$')
+
         self.dbsqprf = Variable('dbsqprf', units='', label='dbsqprf')
 
-    def get_vars_to_plot(self):
-        vars_to_plot = self.get_variables()
-        vars_to_plot.remove('rho')
-        vars_to_plot.remove('rmin')
-        return vars_to_plot
+    def get_all_output_vars(self):
+        all_vars = self.get_variables()
+        all_vars.remove('rho')
+        all_vars.remove('rmin')
+        return all_vars
+
+    def get_etgm_vars(self):
+        output_vars = self.get_all_output_vars()
+        return [var for var in output_vars if 'ETGM' in var]
+
+    def get_mtm_vars(self):
+        output_vars = self.get_all_output_vars()
+        return [var for var in output_vars if 'MTM' in var]
+
+    def get_dbm_vars(self):
+        output_vars = self.get_all_output_vars()
+        return [var for var in output_vars if 'DBM' in var]
+
+    def get_etg_vars(self):
+        output_vars = self.get_all_output_vars()
+        return [var for var in output_vars if 'ETG' in var and not 'ETGM' in var]
+
+    def get_weiland_vars(self):
+        output_vars = self.get_all_output_vars()
+        return [var for var in output_vars if 'W20' in var]
 
 
 class Variable:

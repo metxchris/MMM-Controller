@@ -213,10 +213,10 @@ class OptionsData:
     def get_options_path(self, runid, scan_num):
         '''Returns: (str) the path to the Options pickle file'''
         if runid is None:
-            raise ValueError('Cannot retrieve options.pickle file since runid has not been set')
+            raise ValueError('Cannot retrieve Options.pickle file since runid has not been set')
         if scan_num is None:
-            raise ValueError('Cannot retrieve options.pickle file since scan_num has not been set')
-        return f'{utils.get_scan_num_path(runid, scan_num)}\\options.pickle'
+            raise ValueError('Cannot retrieve Options.pickle file since scan_num has not been set')
+        return f'{utils.get_scan_num_path(runid, scan_num)}\\Options.pickle'
 
     def set_measurement_time(self, tvar):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''
