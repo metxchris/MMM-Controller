@@ -40,7 +40,7 @@ def plot_parameter_scan(vars_to_plot):
         # rho_values are the same for both input and output variables
         rho_values = input_vars_dict.keys()
         profile_type = f'{var_to_plot}_{var_to_scan}'
-        
+
         for i, rho_value in enumerate(rho_values):
             sheet_num = '{:03d}'.format(i)
 
@@ -53,7 +53,7 @@ def plot_parameter_scan(vars_to_plot):
             plt.title(f'{yvar.name}' + r' ($\rho = {0}$)'.format(rho_value))
 
             fig.savefig(utils.get_temp_path(f'{profile_type} {sheet_num}.pdf'))
-            plt.clf() # Clear figure data
+            plt.clf()  # Clear figure data
 
         utils.open_file(utils.merge_profile_sheets(runid, scan_num, profile_type, is_scan=True))
 
@@ -95,7 +95,7 @@ def get_scanned_data():
     Creates dictionaries that map rho values to InputVariables and OutputVariables objects
 
     Data is loaded from CSVs stored in the rho folder of the runid, scan_num, and var_to_scan
-    currently stored in Options.instance. A list of rho values for the scan is created from 
+    currently stored in Options.instance. A list of rho values for the scan is created from
     the filenames of the CSVs.
 
     Returns:
@@ -108,7 +108,7 @@ def get_scanned_data():
     input_vars_dict, output_vars_dict = {}, {}
     input_type_name = DataType.INPUT.name.capitalize()
     output_type_name = DataType.OUTPUT.name.capitalize()
-    
+
     rho_path = get_rho_path()
     rho_values = get_rho_values(rho_path)
 
@@ -195,6 +195,6 @@ if __name__ == '__main__':
     '''
     vars_to_plot = ['xteETGM']
     runid = '129041A10'
-    scan_num = 58
+    scan_num = 64
 
     main(vars_to_plot, runid, scan_num)

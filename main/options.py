@@ -42,7 +42,7 @@ class OptionsData:
     _runid = None
     _scan_num = None
     _scan_range = None
-    _scan_type = None
+    _scan_type = ScanType.NONE
     _shot_type = ShotType.NONE
     _temperature_profiles = False
     _time_str = None
@@ -113,7 +113,7 @@ class OptionsData:
     @scan_type.setter
     def scan_type(self, scan_type):
         self._scan_type = scan_type
-    
+
     @property
     def shot_type(self):
         return self._shot_type
@@ -154,12 +154,14 @@ class OptionsData:
         return self._var_to_scan
     @var_to_scan.setter
     def var_to_scan(self, var_to_scan):
-        if hasattr(InputVariables(), var_to_scan):
-            self.scan_type = ScanType.VARIABLE
-        elif hasattr(InputControls(), var_to_scan):
-            self.scan_type = ScanType.CONTROL
-        elif var_to_scan is not None:
-            raise ValueError(f'Variable {var_to_scan} is not defined under InputVariables or InputControls')
+        if var_to_scan is not None:
+            if hasattr(InputVariables(), var_to_scan):
+                self.scan_type = ScanType.VARIABLE
+            elif hasattr(InputControls(), var_to_scan):
+                self.scan_type = ScanType.CONTROL
+            else:
+                raise ValueError(f'Variable {var_to_scan} is not defined under InputVariables or InputControls')
+
         self._var_to_scan = var_to_scan
 
     # Methods

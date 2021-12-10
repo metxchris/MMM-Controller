@@ -21,7 +21,7 @@ def run_mmm_driver():
     print('Running MMM Driver...')
     result = subprocess.run(cygwin_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, shell=True)
 
-    # result.stdout is only meaningful if the mmm driver ran successfully 
+    # result.stdout is only meaningful if the mmm driver ran successfully
     print(result.stdout)
 
     # Path of output file, if produced
@@ -29,8 +29,11 @@ def run_mmm_driver():
 
     # Error check: no output file is produced when the mmm driver fails
     if not os.path.exists(output_file):
-        raise FileNotFoundError('MMM Driver did not produce an output file.  Run the MMM Driver through bash to determine the issue.')
-    
+        raise FileNotFoundError('No output file produced: run the MMM Driver directly to determine the issue.')
+    # Error check: bad input values can cause the mmm driver to produce a blank output file
+    if os.stat(output_file).st_size == 0:
+        raise ValueError('Output file was empty: run the MMM Driver directly to determine the issue.')
+
     # Copy output file from Cygwin directory to mmm directory
     shutil.copy(output_file, utils.get_temp_path())
 

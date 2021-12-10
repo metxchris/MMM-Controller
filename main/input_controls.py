@@ -13,7 +13,7 @@ class InputControls:
     Input Controls for the MMM input file
 
     Values defined here will be placed into the header of the MMM input file.  Any options defined as 'real'
-    correspond to decimal precision in Fortran and must be defined as floats here (use decimal points).  
+    correspond to decimal precision in Fortran and must be defined as floats here (use decimal points).
     Any options defined as 'integer' correspond to integers in Fortran and must also be defined as integers here.
     '''
 
@@ -143,13 +143,13 @@ class Control:
 # Header for MMM input file
 MMM_HEADER = (
     '''&testmmm_input_control
-     npoints = {npoints}    ! Number of radial points
-     input_kind = 1
+    npoints = {npoints}    ! Number of radial points
+    input_kind = 1
     /
     &testmmm_input_1stkind
     ! This is a sample input file of the first kind
     ! of an NSTX discharge
-    
+
     !.. Switches for component models
     !   1D0 - ON, 0D0 - OFF
     cmodel  =
@@ -157,8 +157,8 @@ MMM_HEADER = (
        {cmodel_dribm}    ! DRIBM
        {cmodel_etg}    ! ETG
        {cmodel_etgm}    ! ETGM
-       {cmodel_mtm}    ! MTM  
-        
+       {cmodel_mtm}    ! MTM
+
     !.. Weiland real options
     cW20 =
        {exbs_weiland}     ! ExB shear coefficient
@@ -167,37 +167,37 @@ MMM_HEADER = (
        {ubetd_weiland}     ! Upper bound of electron thermal diffusivity
        {lbitd_weiland}     ! Lower bound of ion thermal diffusivity
        {ubitd_weiland}     ! Upper bound of ion thermal diffusivity
-    
+
     !.. DRIBM real options
     cDBM =
        {exbs_dribm}     ! ExB shear coefficient
        {kyrhos_dribm}   ! kyrhos
-       
+
     !.. MTM real options
     cMTM =
        {ky_kx_mtm}   ! ky/kx for MTM
        {cf_mtm}   ! calibration factor
-    
+
     !.. ETG integer options
     lETG =
        {jenko_threshold_etg}       ! Jenko threshold
                ! applied to both electrostatic and electromagnetic regimes
-    
+
     !.. ETG real options
     cETG =
        {cees_scale_etg}    ! CEES scale
        {ceem_scale_etg}    ! CEEM scale
-       
+
     !.. ETGM integer options
     lETGM =
        {cl_etgm}      ! Collisionless limit
-    
+
     !.. ETGM real options
     cETGM =
        {exbs_etgm}     ! ExB shear coefficient
        {kyrhos_etgm}   ! kyrhos
        {kyrhoe_etgm}   ! kyrhoe
-       
+
     lprint   = {lprint}      ! Verbose level\n\n''')
 
 '''

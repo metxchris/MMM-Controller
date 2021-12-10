@@ -15,11 +15,11 @@ from plots import plot_profiles
 def execute_basic_run(mmm_vars):
     '''
     Executes a single MMM run, without varying any input parameters
-  
+
     Creates an input file for the MMM driver using mmm_vars.  The MMM driver is then
     ran, which produces an output file.  This output file is parsed and a CSV of both
     the input and output data are stored, and an output profile PDF is created.
-  
+
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
     '''
@@ -31,22 +31,23 @@ def execute_basic_run(mmm_vars):
     output_vars = read_output.read_output_file()
     plot_profiles.plot_output_profiles(output_vars)
 
+
 def execute_variable_scan(mmm_vars):
     '''
-    Executes an input variable scan, where the values of an input variable are varied 
+    Executes an input variable scan, where the values of an input variable are varied
     over a specified range and are then sent to the MMM driver for each value of the range
-  
+
     Create a copy of mmm_vars as modified_vars to keep variables that are modified over the
     course of the scan separate from base MMM input variables.  For each factor of the scan_range,
     we modify the value of the specified var_to_scan, and then adjust any dependent variables.
     The MMM driver is ran each time var_to_scan is adjusted, and all input and output variable data
     is saved to a subfolder named after var_to_scan.  Afterwards, the saved CSV data is reshaped
-    into data dependent on the scanned parameter, and is saved to another set of CSV within a 
+    into data dependent on the scanned parameter, and is saved to another set of CSV within a
     new subfolder labeled rho.
 
-    Parameter scan PDFs are not produced here, and the output data is intended to be plotted by 
+    Parameter scan PDFs are not produced here, and the output data is intended to be plotted by
     a separate process after the scan is complete.
-  
+
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
     '''
@@ -77,14 +78,15 @@ def execute_variable_scan(mmm_vars):
 
     print('\nVariable scan complete!')
 
+
 def execute_control_scan(mmm_vars):
     '''
-    Executes an input control scan, where the values of an input control are varied 
+    Executes an input control scan, where the values of an input control are varied
     over a specified range and are then sent to the MMM driver for each value of the range
 
-    Parameter scan PDFs are not produced here, and the output data is intended to be plotted by 
+    Parameter scan PDFs are not produced here, and the output data is intended to be plotted by
     a separate process after the scan is complete.
-  
+
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
     '''
@@ -114,12 +116,13 @@ def execute_control_scan(mmm_vars):
 
     print('\nVariable scan complete!')
 
+
 def initialize_variables():
     '''
     Initializes all input variables needed to run the MMM Driver and plot variable profiles
 
     Returns:
-    * mmm_vars (InputVariables): All calculated variables, interpolated onto a grid of size input_points 
+    * mmm_vars (InputVariables): All calculated variables, interpolated onto a grid of size input_points
     * input_vars (InputVariables): All calculated variables, interpolated onto XB+1 obtained from the CDF
     * cdf_vars (InputVariables): All CDF variables, interpolated onto XB+1 obtained from the CDF
     * raw_cdf_vars (InputVariables): All unedited CDF variables (saved for troubleshooting)
@@ -132,6 +135,7 @@ def initialize_variables():
 
     return mmm_vars, input_vars, cdf_vars, raw_cdf_vars
 
+
 def main():
     '''
     Main function which controls the MMM driver
@@ -141,7 +145,7 @@ def main():
     is then ran once, and then an optional variable scan can be ran afterwards.  Note that raw_cdf_vars
     does not exist on the same grid as other variable objects created here, and is only saved for
     debugging purposes.  Both input_vars and cdf_vars are guaranteed to be on the same grid, so
-    these are used for profile comparisons.  mmm_vars is only on the same grid as input_vars if 
+    these are used for profile comparisons.  mmm_vars is only on the same grid as input_vars if
     input_points is set to the same value as the size of XB+1 from the CDF, and if uniform_rho = False.
     '''
 
@@ -152,11 +156,11 @@ def main():
 
     mmm_vars, input_vars, cdf_vars, raw_cdf_vars = initialize_variables()
 
-    Options.instance.save_options() # TODO: Create an event to save Options
+    Options.instance.save_options()  # TODO: Create an event to save Options
     plot_profiles.plot_profile_comparison(cdf_vars, input_vars)
     plot_profiles.plot_input_profiles(mmm_vars)
     plot_profiles.plot_additional_profiles(mmm_vars)
-    
+
     execute_basic_run(mmm_vars)
 
     if Options.instance.scan_type == ScanType.VARIABLE:
@@ -168,7 +172,7 @@ def main():
 # Run this file directly to plot variable profiles and run the MMM driver
 if __name__ == '__main__':
     '''
-    CDF Options: 
+    CDF Options:
     * Uncomment the line you wish to use
     * Edit enums.py to view or add additional ShotTypes
     '''
@@ -188,14 +192,14 @@ if __name__ == '__main__':
     * E.g.: var_to_scan = 'gte' or var_to_scan = None
     '''
     Options.instance.set_options(
-        runid = cdf_name,
-        shot_type = shot_type,
-        input_time = input_time,
-        input_points = 51,
-        uniform_rho = True,
-        apply_smoothing = True,
-        var_to_scan = 'gni',
-        scan_range = np.arange(start=0.1, stop=3.1, step=0.1),
-        )
+        runid=cdf_name,
+        shot_type=shot_type,
+        input_time=input_time,
+        input_points=51,
+        uniform_rho=True,
+        apply_smoothing=True,
+        var_to_scan='gte',
+        scan_range=np.arange(start=0.1, stop=4 + 1e-6, step=0.1),
+    )
 
     main()

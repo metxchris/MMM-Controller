@@ -61,7 +61,8 @@ def save_data_csvs(scan_factor, data_input, data_output, vars_input, vars_output
     np.savetxt(file_name_output, data_output, header=csv_header_output, fmt='%.4e', delimiter=',')
 
     print(f'Output data saved to:\n    {file_name_input}\n    {file_name_output}\n')
- 
+
+
 def split_names(names_str):
     '''
     Returns a list of names for either vars or units. The first item is a comment character, so it is skipped
@@ -74,6 +75,7 @@ def split_names(names_str):
     '''
 
     return names_str.replace('    ', ' ').replace('   ', ' ').replace('  ', ' ').replace('\n', '').split(' ')[1:]
+
 
 def split_values(values_str):
     '''
@@ -88,11 +90,12 @@ def split_values(values_str):
 
     return values_str.replace('   ', '  ').replace(' -', '  -').replace('\n', '').split('  ')[1:]
 
+
 def read_output_file(scan_factor=None):
     '''
     Read output file from MMM driver and store values
 
-    Output data from the output file is stored to an OutputVariables object. Both input and output 
+    Output data from the output file is stored to an OutputVariables object. Both input and output
     data are also written to CSV, so that they can later be quickly parsed when plotting parameter scans.
     Note: This code is incredibly hacky, and would be much cleaner if the MMM driver produced out CSV files
 
