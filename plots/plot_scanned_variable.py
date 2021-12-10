@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from main import utils, variables
 from main.enums import ShotType, DataType
 from main.options import Options
+from main.input_controls import InputControls
 from plots.styles import rho_layout as ps
 from plots.colors import mmm
 
@@ -146,10 +147,10 @@ def verify_vars_to_plot(vars_to_plot):
 
     output_vars = variables.OutputVariables()
     for var_to_plot in vars_to_plot:
-        if not hasattr(output_vars, var_to_plot):
-            raise NameError(f'OutputVariables does not contain the variable named {var_to_plot}')
+        if not hasattr(output_vars, var_to_plot) and not hasattr(InputControls(), var_to_plot):
+            raise NameError(f'Neither OutputVariables nor InputControls contain the variable named {var_to_plot}')
 
-def init_plotting_loop(vars_to_plot, runid, scan_num):
+def main(vars_to_plot, runid, scan_num):
     '''
     Loads options, clears the temp folder, and verifies vars_to_plot, then runs the plotting loop
 
@@ -177,8 +178,8 @@ if __name__ == '__main__':
     * vars_to_plot = ['xteMTM', 'xteETGM', 'xteETG', 'gmaMTM', 'omgMTM', 'dbsqprf']
     * vars_to_plot = variables.OutputVariables().get_vars_to_plot()
     '''
-    vars_to_plot = ['xteETGM']
+    vars_to_plot = ['kyrhoe_etgm']
     runid = '129041A10'
-    scan_num = 4
+    scan_num = 45
 
-    init_plotting_loop(vars_to_plot, runid, scan_num)
+    main(vars_to_plot, runid, scan_num)

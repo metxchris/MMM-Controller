@@ -12,6 +12,12 @@ class DataType(Enum):
     NONE = 0
     INPUT = 1
     OUTPUT = 2
+    CONTROL = 3
+
+class ScanType(Enum):
+    NONE = 0
+    VARIABLE = 1
+    CONTROL = 2
 
 class ShotType(Enum):
     NONE = 0

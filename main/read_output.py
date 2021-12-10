@@ -54,10 +54,6 @@ def save_data_csvs(scan_factor, data_input, data_output, vars_input, vars_output
         file_name_output = f'{save_dir}\\{output_str} {opts.var_to_scan} = {scan_factor_str}.csv'
         file_name_input = f'{save_dir}\\{input_str} {opts.var_to_scan} = {scan_factor_str}.csv'
 
-    # When doing a variable scan, clear save_dir directory at the start of each scan
-    if scan_factor is not None and scan_factor == opts.scan_range.min():
-        utils.clear_folder(save_dir, '*.csv')
-
     # Creates two header rows in each CSV
     csv_header_input = ','.join(vars_input) + '\n' + ','.join(units_input)
     csv_header_output = ','.join(vars_output) + '\n' + ','.join(units_output)

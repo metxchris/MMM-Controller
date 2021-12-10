@@ -191,7 +191,7 @@ def clear_temp_folder():
     if os.path.exists(get_temp_path('output')):
         os.remove(get_temp_path('output'))
 
-def get_files_in_dir(dir_path, file_type=''):
+def get_files_in_dir(dir_path, file_type='', show_warning=True):
     '''
     Lists all files in dir_path of file_type.
 
@@ -206,7 +206,7 @@ def get_files_in_dir(dir_path, file_type=''):
     files = f'{dir_path}\\{file_type}'
     file_names = [file for file in glob.glob(files)]
 
-    if len(file_names) == 0:
+    if len(file_names) == 0 and show_warning:
         print(f'*** Warning: No files found for {files}')
 
     return file_names

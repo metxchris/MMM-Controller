@@ -8,8 +8,9 @@ import numpy as np
 
 # Local Packages
 from main import utils
-from main.enums import ShotType
+from main.enums import ShotType, ScanType
 from main.variables import InputVariables
+from main.input_controls import InputControls
 
 
 class OptionsData:
@@ -41,6 +42,7 @@ class OptionsData:
     _runid = None
     _scan_num = None
     _scan_range = None
+    _scan_type = None
     _shot_type = ShotType.NONE
     _temperature_profiles = False
     _time_str = None
@@ -106,6 +108,13 @@ class OptionsData:
         self._scan_range = scan_range
 
     @property
+    def scan_type(self):
+        return self._scan_type
+    @scan_type.setter
+    def scan_type(self, scan_type):
+        self._scan_type = scan_type
+    
+    @property
     def shot_type(self):
         return self._shot_type
     @shot_type.setter
@@ -145,10 +154,13 @@ class OptionsData:
         return self._var_to_scan
     @var_to_scan.setter
     def var_to_scan(self, var_to_scan):
-        if var_to_scan is None or hasattr(InputVariables(), var_to_scan):
-            self._var_to_scan = var_to_scan
-        else:
-            raise ValueError(f'Variable {var_to_scan} is not defined under InputVariables')
+        if hasattr(InputVariables(), var_to_scan):
+            self.scan_type = ScanType.VARIABLE
+        elif hasattr(InputControls(), var_to_scan):
+            self.scan_type = ScanType.CONTROL
+        elif var_to_scan is not None:
+            raise ValueError(f'Variable {var_to_scan} is not defined under InputVariables or InputControls')
+        self._var_to_scan = var_to_scan
 
     # Methods
     def get_keys(self):

@@ -6,7 +6,7 @@ import numpy as np
 
 # Local Packages
 from main import *
-from main.enums import ShotType
+from main.enums import ShotType, ScanType
 from main.options import Options
 from plots import plot_profiles
 
@@ -24,6 +24,7 @@ def execute_basic_run(mmm_vars):
     '''
 
     controls = input_controls.InputControls(Options.instance)
+    controls.save_controls(Options.instance)
     write_inputs.write_input_file(mmm_vars, controls)
     run_driver.run_mmm_driver()
     output_vars = read_output.read_output_file()
@@ -50,15 +51,15 @@ def execute_variable_scan(mmm_vars):
     '''
 
     modified_vars = deepcopy(mmm_vars)
-    input_options = Options.instance
-    var_to_scan = input_options.var_to_scan
-    scan_range = input_options.scan_range
+    var_to_scan = Options.instance.var_to_scan
+    scan_range = Options.instance.scan_range
 
     # Create references to variable being scanned in mmm_vars and modified_vars
     # Modifying scanned_var values will modify its corresponding values in modified_vars
     base_var = getattr(mmm_vars, var_to_scan)
     scanned_var = getattr(modified_vars, var_to_scan)
     controls = input_controls.InputControls(Options.instance)
+    controls.save_controls(Options.instance)
 
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing variable scan {i + 1} of {len(scan_range)} for variable {var_to_scan}')
@@ -67,6 +68,43 @@ def execute_variable_scan(mmm_vars):
         # Note: Dependent variables will be handled on a case-by-case basis
         scanned_var.values = scan_factor * base_var.values
         write_inputs.write_input_file(modified_vars, controls)
+        run_driver.run_mmm_driver()
+        read_output.read_output_file(scan_factor)
+
+    # Reshaped scanned CSV into new CSV dependent on the scanned parameter
+    parse_scans.parse_scan_csv()
+
+    print('\nVariable scan complete!')
+
+def execute_control_scan(mmm_vars):
+    '''
+    Executes an input control scan, where the values of an input control are varied 
+    over a specified range and are then sent to the MMM driver for each value of the range
+
+    Parameter scan PDFs are not produced here, and the output data is intended to be plotted by 
+    a separate process after the scan is complete.
+  
+    Parameters:
+    * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
+    '''
+
+    var_to_scan = Options.instance.var_to_scan
+    scan_range = Options.instance.scan_range
+
+    # Create references to control being scanned in InputControls
+    # Modifying scanned_control values will modify its corresponding values in controls
+    controls = input_controls.InputControls(Options.instance)
+    scanned_control = getattr(controls, var_to_scan)
+    base_control = deepcopy(scanned_control)
+
+    for i, scan_factor in enumerate(scan_range):
+        print(f'Executing control scan {i + 1} of {len(scan_range)} for control {var_to_scan}')
+
+        # Modifiy values of variable being scanned
+        # Note: Dependent variables will be handled on a case-by-case basis
+        scanned_control.value = scan_factor * base_control.value
+        controls.save_controls(Options.instance, scan_factor)
+        write_inputs.write_input_file(mmm_vars, controls)
         run_driver.run_mmm_driver()
         read_output.read_output_file(scan_factor)
 
@@ -120,8 +158,10 @@ def main():
     
     execute_basic_run(mmm_vars)
 
-    if Options.instance.var_to_scan is not None:
+    if Options.instance.scan_type == ScanType.VARIABLE:
         execute_variable_scan(mmm_vars)
+    elif Options.instance.scan_type == ScanType.CONTROL:
+        execute_control_scan(mmm_vars)
 
 
 # Run this file directly to plot variable profiles and run the MMM driver
