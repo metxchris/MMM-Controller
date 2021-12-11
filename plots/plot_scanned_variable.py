@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from main import utils
 from main.enums import DataType, ScanType
 from main.options import Options
-from main.input_controls import InputControls
+from main.controls import InputControls
 from main.variables import InputVariables, OutputVariables
 from plots.styles import rho_layout as ps
 from plots.colors import mmm
@@ -193,8 +193,8 @@ if __name__ == '__main__':
     * vars_to_plot = OutputVariables().get_all_output_vars()
     * vars_to_plot = OutputVariables().get_etgm_vars()
     '''
-    vars_to_plot = ['xteETGM']
-    runid = '129041A10'
-    scan_num = 64
+    vars_to_plot = ['gmaETGM']
+    runid = '120982A09'
+    scan_num = 39
 
     main(vars_to_plot, runid, scan_num)

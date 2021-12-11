@@ -10,7 +10,7 @@ import numpy as np
 from main import utils
 from main.enums import ShotType, ScanType
 from main.variables import InputVariables
-from main.input_controls import InputControls
+from main.controls import InputControls
 
 
 class OptionsData:
@@ -174,12 +174,9 @@ class OptionsData:
         options = self.get_keys()
         return [str(o) + ': ' + str(getattr(self, o)).replace('\n', '') for o in options]
 
-    def set_options(self, **kwargs):
+    def set(self, **kwargs):
         for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-            else:
-                print(f'Error: Options does not have attribute {key}')
+            setattr(self, key, value)
 
     def load_options(self, runid, scan_num):
         '''Loads OptionsData object from a pickle file'''

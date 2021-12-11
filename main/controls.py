@@ -1,6 +1,5 @@
 # Standard Packages
 import sys
-
 sys.path.insert(0, '../')
 
 # Local Packages
@@ -12,60 +11,74 @@ class InputControls:
     '''
     Input Controls for the MMM input file
 
-    Values defined here will be placed into the header of the MMM input file.  Any options defined as 'real'
-    correspond to decimal precision in Fortran and must be defined as floats here (use decimal points).
-    Any options defined as 'integer' correspond to integers in Fortran and must also be defined as integers here.
+    Notes:
+    * Controls defined here are will be placed into the header of the MMM input file
+    * Controls with vtype=int are expected as Fortran Integer types in the input file
+    * Controls with vtype=float are expected as Fortran Real types in the input file
     '''
 
     def __init__(self, options=None):
-        self.npoints = Control('npoints', 'Number of radial points', values=51)
-        # Switches for component models (Real)
-        self.cmodel_weiland = Control('cmodel_weiland', 'Weiland', values=1.0)
-        self.cmodel_dribm = Control('cmodel_dribm', 'DRIBM', values=1.0)
-        self.cmodel_etg = Control('cmodel_etg', 'ETG', values=1.0)
-        self.cmodel_etgm = Control('cmodel_etgm', 'ETGM', values=1.0)
-        self.cmodel_mtm = Control('cmodel_mtm', 'MTM', values=1.0)
-        # Weiland options (Real)
-        self.exbs_weiland = Control('exbs_weiland', 'ExB shear coefficient', values=1.0)
-        self.mpsf_weiland = Control('mpsf_weiland', 'Momentum pinch scaling factor', values=1.0)
-        self.lbetd_weiland = Control('lbetd_weiland', 'Lower bound of electron thermal diffusivity', values=0.0)
-        self.ubetd_weiland = Control('ubetd_weiland', 'Upper bound of electron thermal diffusivity', values=100.0)
-        self.lbitd_weiland = Control('lbitd_weiland', 'Lower bound of ion thermal diffusivity', values=0.0)
-        self.ubitd_weiland = Control('ubitd_weiland', 'Upper bound of ion thermal diffusivity', values=100.0)
-        # DRIBM options (Real)
-        self.exbs_dribm = Control('exbs_dribm', 'ExB shear coefficient', values=1.0)
-        self.kyrhos_dribm = Control('kyrhos_dribm', 'kyrhos', values=0.1)
-        # MTM options (Real)
-        self.ky_kx_mtm = Control('ky_kx_mtm', 'ky/kx for MTM', values=0.2, label=r'$k_y/k_x$')
-        self.cf_mtm = Control('cf_mtm', 'calibration factor', values=1.0)
-        # ETG options (Integer)
-        self.jenko_threshold_etg = Control('jenko_threshold_etg', 'Jenko threshold', values=2)
-        # ETG options (Real)
-        self.cees_scale_etg = Control('cees_scale_etg', 'CEES scale', values=0.06)
-        self.ceem_scale_etg = Control('ceem_scale_etg', 'CEEM scale', values=0.06)
-        # ETGM options (Integer)
-        self.cl_etgm = Control('cl_etgm', 'Collisionless limit', values=1)
-        # ETGM options (Real)
-        self.exbs_etgm = Control('exbs_etgm', 'ExB shear coefficient', values=0.0)
-        self.kyrhoe_etgm = Control('kyrhoe_etgm', 'kyrhoe', values=0.25, label=r'$k_y \rho_e$')  # 0.25 base
-        self.kyrhos_etgm = Control('kyrhos_etgm', 'kyrhos', values=0.33, label=r'$k_y \rho_s$')  # 0.33 base
-        # Verbose level (integer)
-        self.lprint = Control('lprint', 'Verbose Level', values=0)
+        self.npoints = Control('npoints', 'Number of radial points', values=51, vtype=int)
+        # Switches for component models
+        self.cmodel_weiland = Control('cmodel_weiland', 'Weiland', values=1, vtype=float)
+        self.cmodel_dribm = Control('cmodel_dribm', 'DRIBM', values=1, vtype=float)
+        self.cmodel_etg = Control('cmodel_etg', 'ETG', values=1, vtype=float)
+        self.cmodel_etgm = Control('cmodel_etgm', 'ETGM', values=1, vtype=float)
+        self.cmodel_mtm = Control('cmodel_mtm', 'MTM', values=1, vtype=float)
+        # Weiland options
+        self.exbs_weiland = Control('exbs_weiland', 'ExB shear coefficient', values=1, vtype=float)
+        self.mpsf_weiland = Control('mpsf_weiland', 'Momentum pinch scaling factor', values=1, vtype=float)
+        self.lbetd_weiland = Control('lbetd_weiland', 'Lower bound of electron thermal diffusivity', values=0, vtype=float)
+        self.ubetd_weiland = Control('ubetd_weiland', 'Upper bound of electron thermal diffusivity', values=100, vtype=float)
+        self.lbitd_weiland = Control('lbitd_weiland', 'Lower bound of ion thermal diffusivity', values=0, vtype=float)
+        self.ubitd_weiland = Control('ubitd_weiland', 'Upper bound of ion thermal diffusivity', values=100, vtype=float)
+        # DRIBM options
+        self.exbs_dribm = Control('exbs_dribm', 'ExB shear coefficient', values=1, vtype=float)
+        self.kyrhos_dribm = Control('kyrhos_dribm', 'kyrhos', values=0.1, vtype=float, label=r'$k_y \rho_s$')
+        # MTM options
+        self.ky_kx_mtm = Control('ky_kx_mtm', 'ky/kx for MTM', values=0.2, vtype=float, label=r'$k_y/k_x$')
+        self.cf_mtm = Control('cf_mtm', 'calibration factor', values=1.0, vtype=float)
+        # ETG options
+        self.jenko_threshold_etg = Control('jenko_threshold_etg', 'Jenko threshold', values=2, vtype=int)
+        self.cees_scale_etg = Control('cees_scale_etg', 'CEES scale', values=0.06, vtype=float)
+        self.ceem_scale_etg = Control('ceem_scale_etg', 'CEEM scale', values=0.06, vtype=float)
+        # ETGM options
+        self.cl_etgm = Control('cl_etgm', 'Collisionless limit', values=1, vtype=int)
+        self.exbs_etgm = Control('exbs_etgm', 'ExB shear coefficient', values=0.0, vtype=float)
+        self.kyrhoe_etgm = Control('kyrhoe_etgm', 'kyrhoe', values=0.25, vtype=float, label=r'$k_y \rho_e$')
+        self.kyrhos_etgm = Control('kyrhos_etgm', 'kyrhos', values=0.33, vtype=float, label=r'$k_y \rho_s$')
+        # Verbose level
+        self.lprint = Control('lprint', 'Verbose Level', values=0, vtype=int)
 
+        # Private members are not input controls, but are used to help verify control values
+        self._shot_type = ShotType.NONE
+
+        # Update values from options, if available
         if options is not None:
-            self.init_from_options(options)
+            self.update_from_options(options)
 
-    def init_from_options(self, options):
-        '''
-        Updates any controls dependent on options values
-
-        The DRIBM model is currently disabled for NSTX discharges
-        '''
-
+    def update_from_options(self, options):
+        '''Updates any controls dependent on options values, then verifies values'''
         self.npoints.values = options.input_points
+        self._shot_type = options.shot_type
+        self.verify_values()
 
-        if options.shot_type == ShotType.NSTX:
+    def set(self, **kwargs):
+        '''Sets all control values, then verifies values'''
+        for key, value in kwargs.items():
+            getattr(self, key).values = value
+
+        self.verify_values()
+
+    def verify_values(self):
+        '''Verifies that certain values are correct and fixes them if needed'''
+
+        # Note: The DRIBM model is currently disabled for NSTX discharges
+        if self._shot_type == ShotType.NSTX:
             self.cmodel_dribm.values = 0
+
+        self.kyrhos_etgm.values = max(1e-6, self.kyrhos_etgm.values)
+        self.kyrhoe_etgm.values = max(0, self.kyrhos_etgm.values)
 
     def get_mmm_header(self):
         return MMM_HEADER.format(
@@ -96,7 +109,7 @@ class InputControls:
         )
 
     def get_keys(self):
-        return [o for o in dir(self) if not callable(getattr(self, o)) and not o.startswith("__")]
+        return [o for o in dir(self) if not callable(getattr(self, o)) and not o.startswith("_")]
 
     def get_values(self):
         keys = self.get_keys()
@@ -129,15 +142,16 @@ class InputControls:
 
 
 class Control:
-    def __init__(self, name, desc, values, label='', units_label=''):
+    def __init__(self, name, desc, values, vtype, label='', units_label=''):
         self.name = name
         self.desc = desc
         self.values = values
+        self.vtype = vtype
         self.label = label
         self.units_label = units_label
 
     def get_value_str(self):
-        return self.values if type(self.values) is int else f'{self.values}D0'
+        return int(self.values) if self.vtype is int else f'{self.values}D0'
 
 
 # Header for MMM input file
@@ -207,12 +221,18 @@ For testing purposes:
 if __name__ == '__main__':
     from main.options import Options
 
-    Options.instance.set_options(
+    Options.instance.set(
         runid='129041A10',
         shot_type=ShotType.NSTX,
         input_points=51,
         scan_num=1)
     controls = InputControls(Options.instance)
+    controls.set(
+        kyrhos_etgm=0.65,
+        kyrhoe_etgm=0.05,
+    )
+
+    print(controls.get_keys())
     print(controls.get_mmm_header())
     print(controls.get_key_values_pairs())
     # controls.save_controls(Options.instance)
