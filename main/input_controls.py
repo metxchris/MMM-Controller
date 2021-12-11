@@ -36,7 +36,7 @@ class InputControls:
         self.exbs_dribm = Control('exbs_dribm', 'ExB shear coefficient', values=1.0)
         self.kyrhos_dribm = Control('kyrhos_dribm', 'kyrhos', values=0.1)
         # MTM options (Real)
-        self.ky_kx_mtm = Control('ky_kx_mtm', 'ky/kx for MTM', values=0.2)
+        self.ky_kx_mtm = Control('ky_kx_mtm', 'ky/kx for MTM', values=0.2, label=r'$k_y/k_x$')
         self.cf_mtm = Control('cf_mtm', 'calibration factor', values=1.0)
         # ETG options (Integer)
         self.jenko_threshold_etg = Control('jenko_threshold_etg', 'Jenko threshold', values=2)
@@ -47,8 +47,8 @@ class InputControls:
         self.cl_etgm = Control('cl_etgm', 'Collisionless limit', values=1)
         # ETGM options (Real)
         self.exbs_etgm = Control('exbs_etgm', 'ExB shear coefficient', values=0.0)
-        self.kyrhoe_etgm = Control('kyrhoe_etgm', 'kyrhoe', values=0.25, label='kyrhoe')
-        self.kyrhos_etgm = Control('kyrhos_etgm', 'kyrhos', values=0.33, label='kyrhos')
+        self.kyrhoe_etgm = Control('kyrhoe_etgm', 'kyrhoe', values=0.25, label=r'$k_y \rho_e$')  # 0.25 base
+        self.kyrhos_etgm = Control('kyrhos_etgm', 'kyrhos', values=0.33, label=r'$k_y \rho_s$')  # 0.33 base
         # Verbose level (integer)
         self.lprint = Control('lprint', 'Verbose Level', values=0)
 
@@ -156,8 +156,8 @@ MMM_HEADER = (
        {cmodel_weiland}    ! Weiland
        {cmodel_dribm}    ! DRIBM
        {cmodel_etg}    ! ETG
-       {cmodel_etgm}    ! ETGM
        {cmodel_mtm}    ! MTM
+       {cmodel_etgm}    ! ETGM
 
     !.. Weiland real options
     cW20 =

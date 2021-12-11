@@ -74,15 +74,15 @@ class InputVariables(Variables):
         self.ahyd = Variable('Mean Mass of Hydrogenic Ions', label=r'$\overline{M}_\mathrm{h}$')
         self.alphamhd = Variable('Alpha MHD', label=r'$\alpha_\mathrm{MHD}$')
         self.beta = Variable('Pressure Ratio', cdfvar='BTPL', label=r'$\beta$')
-        self.betae = Variable('Electron Pressure Ratio', cdfvar='BTE', label=r'$\beta_\mathrm{\,e}$') # cdfvar='BETAE' is a scalar
+        self.betae = Variable('Electron Pressure Ratio', cdfvar='BTE', label=r'$\beta_\mathrm{\,e}$')  # cdfvar='BETAE' is a scalar
         self.bpol = Variable('Poloidal Magnetic Field', cdfvar='BPOL', label=r'$B_\theta$')
         self.btor = Variable('Toroidal Magnetic Field', cdfvar='', label=r'$B_\phi$')
         self.eps = Variable('Inverse Aspect Ratio', label=r'$\epsilon$')
         self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$')
-        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$') # cdfvar='ETAI' in CDF is not gTI/gNI
+        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$')  # cdfvar='ETAI' in CDF is not gTI/gNI
         self.etaih = Variable('Hydrogenic Gradient Ratio', cdfvar='ETAIH', label=r'$\eta_\mathrm{\,ih}$')
         self.etaid = Variable('ETAID', label=r'$\eta_\mathrm{\,id}$')
-        self.etaie = Variable('ETAIE', cdfvar='ETAIE', label=r'$\eta_\mathrm{\,ie}$')
+        self.etaie = Variable('ETAIE', label=r'$\eta_\mathrm{\,ie}$')  # cdfvar='ETAIE' in CDF is not gTI/gNE
         self.gave = Variable('Avg Curvature of Magnetic Field', label=r'$G_\mathrm{ave}$')
         self.gmax = Variable('Max Gradient', label=r'$g_\mathrm{max}$')
         self.gyrfi = Variable('Ion Gyrofrequency', label=r'$\omega_\mathrm{ci}$')
@@ -95,16 +95,15 @@ class InputVariables(Variables):
         self.nuei2 = Variable('NUEI2')
         self.nuste = Variable('Electron Collisionality', cdfvar='NUSTE', label=r'$\nu^{*}_\mathrm{e}$')
         self.nusti = Variable('Ion Collisionality', cdfvar='NUSTI', label=r'$\nu^{*}_\mathrm{i}$')
-        self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$') 
-        self.raxis = Variable('RAXIS')
-        self.rho = Variable('Radius', label=r'$\rho$')
+        self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$')
+        self.rho = Variable('Normalized Radius', label=r'$\rho$')
         self.rmin = Variable('Minor Radius', cdfvar='RMNMP', label=r'$r$')
-        self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$') # MMM uses a different definition of shat than what cdfvar='SHAT' uses
+        self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$')  # MMM uses a different definition of shat than what cdfvar='SHAT' uses
         self.shear = Variable('Magnetic Shear', label=r'$s$')
         self.tau = Variable('Temperature Ratio', label=r'$\tau$')
         self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-6, smooth=2)
         self.vpol = Variable('Poloidal Velocity', label=r'$v_\theta$', absminvalue=1e-6, smooth=2)
-        self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-6, smooth=2) # cdfvar='VTOR_AVG' is a slightly different VTOR than what we are using
+        self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-6, smooth=2)  # cdfvar='VTOR_AVG' is a slightly different VTOR than what we are using
         self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{T_\mathrm{e}}$')
         self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{T_\mathrm{i}}$')
         self.zeff = Variable('Effective Charge', cdfvar='ZEFFP', label=r'$Z_\mathrm{eff}$')
@@ -191,7 +190,7 @@ class OutputVariables(Variables):
         self.gmaETGM = Variable('gmaETGM', units='s^-1', label=r'$\gamma_\mathrm{etgm}$')
         self.omgETGM = Variable('omgETGM', units='s^-1', label=r'$\omega_\mathrm{etgm}$')
 
-        self.dbsqprf = Variable('dbsqprf', units='', label='dbsqprf')
+        self.dbsqprf = Variable('dbsqprf', units='', label=r'$|\delta B/B|^2$')
 
     def get_all_output_vars(self):
         all_vars = self.get_variables()

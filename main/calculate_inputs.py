@@ -145,7 +145,7 @@ def btor(vars):
     raxis = vars.rmaj.values[0, :]
     rmaj = vars.rmaj.values
 
-    btor = rmaj / raxis * bz 
+    btor = raxis / rmaj * bz
 
     vars.btor.set_variable(btor, vars.bz.units, ['XBO', 'TIME'])
 
@@ -163,7 +163,7 @@ def bpol(vars):
 def eps(vars):
     arat = vars.arat.values
 
-    eps = arat**(-1)
+    eps = 1 / arat
 
     vars.eps.set_variable(eps, '', ['XBO', 'TIME'])
 
@@ -185,7 +185,7 @@ def beta(vars):
     btor = vars.btor.values
     p = vars.p.values
 
-    beta = 2 * zcmu0 * p / btor**2 
+    beta = 2 * zcmu0 * p / btor**2
 
     vars.beta.set_variable(beta, '', ['XBO', 'TIME'])
 
@@ -531,6 +531,7 @@ def calculate_inputs(cdf_vars):
     calculate_variable(test2, vars)
 
     return vars
+
 
 def get_calculated_vars():
     '''Returns function names of calculated variables in this module, other than gradient calculations'''
