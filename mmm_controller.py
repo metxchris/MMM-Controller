@@ -218,12 +218,13 @@ if __name__ == '__main__':
     controls = InputControls(Options.instance)
     controls.set(
         cmodel_weiland=0,
-        cmodel_dribm=1,
-        cmodel_etg=1,
+        cmodel_dribm=0,
+        cmodel_etg=0,
         cmodel_etgm=1,
         cmodel_mtm=0,
-        kyrhoe_etgm=0.25,
-        kyrhos_etgm=0.33,
+        etgm_kyrhoe=0.25,
+        etgm_kyrhos=0.33,
+        etgm_cl=1,
     )
 
     main(controls)

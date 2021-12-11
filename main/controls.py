@@ -26,27 +26,27 @@ class InputControls:
         self.cmodel_etgm = Control('cmodel_etgm', 'ETGM', values=1, vtype=float)
         self.cmodel_mtm = Control('cmodel_mtm', 'MTM', values=1, vtype=float)
         # Weiland options
-        self.exbs_weiland = Control('exbs_weiland', 'ExB shear coefficient', values=1, vtype=float)
-        self.mpsf_weiland = Control('mpsf_weiland', 'Momentum pinch scaling factor', values=1, vtype=float)
-        self.lbetd_weiland = Control('lbetd_weiland', 'Lower bound of electron thermal diffusivity', values=0, vtype=float)
-        self.ubetd_weiland = Control('ubetd_weiland', 'Upper bound of electron thermal diffusivity', values=100, vtype=float)
-        self.lbitd_weiland = Control('lbitd_weiland', 'Lower bound of ion thermal diffusivity', values=0, vtype=float)
-        self.ubitd_weiland = Control('ubitd_weiland', 'Upper bound of ion thermal diffusivity', values=100, vtype=float)
+        self.weiland_exbs = Control('weiland_exbs', 'ExB shear coefficient', values=1, vtype=float)
+        self.weiland_mpsf = Control('weiland_mpsf', 'Momentum pinch scaling factor', values=1, vtype=float)
+        self.weiland_lbetd = Control('weiland_lbetd', 'Lower bound of electron thermal diffusivity', values=0, vtype=float)
+        self.weiland_ubetd = Control('weiland_ubetd', 'Upper bound of electron thermal diffusivity', values=100, vtype=float)
+        self.weiland_lbitd = Control('weiland_lbitd', 'Lower bound of ion thermal diffusivity', values=0, vtype=float)
+        self.weiland_ubitd = Control('weiland_ubitd', 'Upper bound of ion thermal diffusivity', values=100, vtype=float)
         # DRIBM options
-        self.exbs_dribm = Control('exbs_dribm', 'ExB shear coefficient', values=1, vtype=float)
-        self.kyrhos_dribm = Control('kyrhos_dribm', 'kyrhos', values=0.1, vtype=float, label=r'$k_y \rho_s$')
+        self.dribm_exbs = Control('dribm_exbs', 'ExB shear coefficient', values=1, vtype=float)
+        self.dribm_kyrhos = Control('dribm_kyrhos', 'kyrhos', values=0.1, vtype=float, label=r'$k_y \rho_s$')
         # MTM options
-        self.ky_kx_mtm = Control('ky_kx_mtm', 'ky/kx for MTM', values=0.2, vtype=float, label=r'$k_y/k_x$')
-        self.cf_mtm = Control('cf_mtm', 'calibration factor', values=1.0, vtype=float)
+        self.mtm_ky_kx = Control('mtm_ky_kx', 'ky/kx for MTM', values=0.2, vtype=float, label=r'$k_y/k_x$')
+        self.mtm_cf = Control('mtm_cf', 'calibration factor', values=1.0, vtype=float)
         # ETG options
-        self.jenko_threshold_etg = Control('jenko_threshold_etg', 'Jenko threshold', values=2, vtype=int)
-        self.cees_scale_etg = Control('cees_scale_etg', 'CEES scale', values=0.06, vtype=float)
-        self.ceem_scale_etg = Control('ceem_scale_etg', 'CEEM scale', values=0.06, vtype=float)
+        self.etg_jenko_threshold = Control('etg_jenko_threshold', 'Jenko threshold', values=2, vtype=int)
+        self.etg_cees_scale = Control('etg_cees_scale', 'CEES scale', values=0.06, vtype=float)
+        self.etg_ceem_scale = Control('etg_ceem_scale', 'CEEM scale', values=0.06, vtype=float)
         # ETGM options
-        self.cl_etgm = Control('cl_etgm', 'Collisionless limit', values=1, vtype=int)
-        self.exbs_etgm = Control('exbs_etgm', 'ExB shear coefficient', values=0.0, vtype=float)
-        self.kyrhoe_etgm = Control('kyrhoe_etgm', 'kyrhoe', values=0.25, vtype=float, label=r'$k_y \rho_e$')
-        self.kyrhos_etgm = Control('kyrhos_etgm', 'kyrhos', values=0.33, vtype=float, label=r'$k_y \rho_s$')
+        self.etgm_cl = Control('etgm_cl', 'Collisionless limit', values=1, vtype=int)
+        self.etgm_exbs = Control('etgm_exbs', 'ExB shear coefficient', values=0.0, vtype=float)
+        self.etgm_kyrhoe = Control('etgm_kyrhoe', 'kyrhoe', values=0.25, vtype=float, label=r'$k_y \rho_e$')
+        self.etgm_kyrhos = Control('etgm_kyrhos', 'kyrhos', values=0.33, vtype=float, label=r'$k_y \rho_s$')
         # Verbose level
         self.lprint = Control('lprint', 'Verbose Level', values=0, vtype=int)
 
@@ -77,8 +77,8 @@ class InputControls:
         if self._shot_type == ShotType.NSTX:
             self.cmodel_dribm.values = 0
 
-        self.kyrhos_etgm.values = max(1e-6, self.kyrhos_etgm.values)
-        self.kyrhoe_etgm.values = max(0, self.kyrhos_etgm.values)
+        self.etgm_kyrhos.values = max(1e-6, self.etgm_kyrhos.values)
+        self.etgm_kyrhoe.values = max(0, self.etgm_kyrhoe.values)
 
     def get_mmm_header(self):
         return MMM_HEADER.format(
@@ -88,23 +88,23 @@ class InputControls:
             cmodel_etg=self.cmodel_etg.get_value_str(),
             cmodel_etgm=self.cmodel_etgm.get_value_str(),
             cmodel_mtm=self.cmodel_mtm.get_value_str(),
-            exbs_weiland=self.exbs_weiland.get_value_str(),
-            mpsf_weiland=self.mpsf_weiland.get_value_str(),
-            lbetd_weiland=self.lbetd_weiland.get_value_str(),
-            ubetd_weiland=self.ubetd_weiland.get_value_str(),
-            lbitd_weiland=self.lbitd_weiland.get_value_str(),
-            ubitd_weiland=self.ubitd_weiland.get_value_str(),
-            exbs_dribm=self.exbs_dribm.get_value_str(),
-            kyrhos_dribm=self.kyrhos_dribm.get_value_str(),
-            ky_kx_mtm=self.ky_kx_mtm.get_value_str(),
-            cf_mtm=self.cf_mtm.get_value_str(),
-            jenko_threshold_etg=self.jenko_threshold_etg.get_value_str(),
-            cees_scale_etg=self.cees_scale_etg.get_value_str(),
-            ceem_scale_etg=self.ceem_scale_etg.get_value_str(),
-            cl_etgm=self.cl_etgm.get_value_str(),
-            exbs_etgm=self.exbs_etgm.get_value_str(),
-            kyrhos_etgm=self.kyrhos_etgm.get_value_str(),
-            kyrhoe_etgm=self.kyrhoe_etgm.get_value_str(),
+            weiland_exbs=self.weiland_exbs.get_value_str(),
+            weiland_mpsf=self.weiland_mpsf.get_value_str(),
+            weiland_lbetd=self.weiland_lbetd.get_value_str(),
+            weiland_ubetd=self.weiland_ubetd.get_value_str(),
+            weiland_lbitd=self.weiland_lbitd.get_value_str(),
+            weiland_ubitd=self.weiland_ubitd.get_value_str(),
+            dribm_exbs=self.dribm_exbs.get_value_str(),
+            dribm_kyrhos=self.dribm_kyrhos.get_value_str(),
+            mtm_ky_kx=self.mtm_ky_kx.get_value_str(),
+            mtm_cf=self.mtm_cf.get_value_str(),
+            etg_jenko_threshold=self.etg_jenko_threshold.get_value_str(),
+            etg_cees_scale=self.etg_cees_scale.get_value_str(),
+            etg_ceem_scale=self.etg_ceem_scale.get_value_str(),
+            etgm_cl=self.etgm_cl.get_value_str(),
+            etgm_exbs=self.etgm_exbs.get_value_str(),
+            etgm_kyrhoe=self.etgm_kyrhoe.get_value_str(),
+            etgm_kyrhos=self.etgm_kyrhos.get_value_str(),
             lprint=self.lprint.get_value_str(),
         )
 
@@ -175,42 +175,42 @@ MMM_HEADER = (
 
     !.. Weiland real options
     cW20 =
-       {exbs_weiland}     ! ExB shear coefficient
-       {mpsf_weiland}     ! Momentum pinch scaling factor
-       {lbetd_weiland}     ! Lower bound of electron thermal diffusivity
-       {ubetd_weiland}     ! Upper bound of electron thermal diffusivity
-       {lbitd_weiland}     ! Lower bound of ion thermal diffusivity
-       {ubitd_weiland}     ! Upper bound of ion thermal diffusivity
+       {weiland_exbs}     ! ExB shear coefficient
+       {weiland_mpsf}     ! Momentum pinch scaling factor
+       {weiland_lbetd}     ! Lower bound of electron thermal diffusivity
+       {weiland_ubetd}     ! Upper bound of electron thermal diffusivity
+       {weiland_lbitd}     ! Lower bound of ion thermal diffusivity
+       {weiland_ubitd}     ! Upper bound of ion thermal diffusivity
 
     !.. DRIBM real options
     cDBM =
-       {exbs_dribm}     ! ExB shear coefficient
-       {kyrhos_dribm}   ! kyrhos
+       {dribm_exbs}     ! ExB shear coefficient
+       {dribm_kyrhos}   ! kyrhos
 
     !.. MTM real options
     cMTM =
-       {ky_kx_mtm}   ! ky/kx for MTM
-       {cf_mtm}   ! calibration factor
+       {mtm_ky_kx}   ! ky/kx for MTM
+       {mtm_cf}   ! calibration factor
 
     !.. ETG integer options
     lETG =
-       {jenko_threshold_etg}       ! Jenko threshold
+       {etg_jenko_threshold}       ! Jenko threshold
                ! applied to both electrostatic and electromagnetic regimes
 
     !.. ETG real options
     cETG =
-       {cees_scale_etg}    ! CEES scale
-       {ceem_scale_etg}    ! CEEM scale
+       {etg_cees_scale}    ! CEES scale
+       {etg_ceem_scale}    ! CEEM scale
 
     !.. ETGM integer options
     lETGM =
-       {cl_etgm}      ! Collisionless limit
+       {etgm_cl}      ! Collisionless limit
 
     !.. ETGM real options
     cETGM =
-       {exbs_etgm}     ! ExB shear coefficient
-       {kyrhos_etgm}   ! kyrhos
-       {kyrhoe_etgm}   ! kyrhoe
+       {etgm_exbs}     ! ExB shear coefficient
+       {etgm_kyrhoe}   ! kyrhos
+       {etgm_kyrhos}   ! kyrhoe
 
     lprint   = {lprint}      ! Verbose level\n\n''')
 
@@ -228,8 +228,8 @@ if __name__ == '__main__':
         scan_num=1)
     controls = InputControls(Options.instance)
     controls.set(
-        kyrhos_etgm=0.65,
-        kyrhoe_etgm=0.05,
+        etgm_kyrhos=0.65,
+        etgm_kyrhoe=0.05,
     )
 
     print(controls.get_keys())
