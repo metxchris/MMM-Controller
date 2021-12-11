@@ -15,48 +15,70 @@ from main.options import Options
 
 # Set VPOL using VPOLD or VPOLH, if possible # TODO: handle this better
 def vpol(vars):
+    '''Poloidal Velocity'''
     vpol = np.zeros((vars.xb.values.shape[0], vars.time.values.shape[0]))
-    if vars.vpold.values is not None:
+    if vars.vpolavg.values is not None:
+        vpol = vars.vpolavg.values
+    elif vars.vpold.values is not None:
         vpol = vars.vpold.values
     elif vars.vpolh.values is not None:
         vpol = vars.vpolh.values
 
     vars.vpol.set_variable(vpol, 'M/SEC', ['XBO', 'TIME'])
 
-# Hydrogenic Ion Density
-def nh(vars):
+def nh0(vars):
+    '''Hydrogen Ion Density'''
     nd = vars.nd.values
     ne = vars.ne.values
     nf = vars.nf.values
     nz = vars.nz.values
     zimp = vars.zimp.values
 
-    nh = ne - zimp * nz - nf - nd
+    nh0 = ne - zimp * nz - nf - nd
 
-    vars.nh.set_variable(nh, vars.ne.units, ['XBO', 'TIME'])
+    vars.nh0.set_variable(nh0, vars.ne.units, ['XBO', 'TIME'])
 
-# Thermal Ion Density
-def ni(vars):
+def nh(vars):
+    '''Total Hydrogenic Ion Density'''
+    nh0 = vars.nh0.values
     nd = vars.nd.values
-    nh = vars.nh.values
+
+    nh = nh0 + nd
+
+    vars.nh.set_variable(nh, '', ['XBO', 'TIME'])
+
+def ni(vars):
+    '''Thermal Ion Density'''
+    nd = vars.nd.values
+    nh0 = vars.nh0.values
     nz = vars.nz.values
 
-    ni = nd + nz + nh
+    ni = nd + nz + nh0
 
     vars.ni.set_variable(ni, vars.ne.units, ['XBO', 'TIME'])
 
-# AHYD 
 def ahyd(vars):
-    nh = vars.nh.values
+    '''Mean atomic mass of hydrogenic ions (hydrogen + dueterium)'''
+    nh0 = vars.nh0.values
     nd = vars.nd.values
 
-    ahyd = (nh + 2 * nd) / (nh + nd)
+    ahyd = (nh0 + 2 * nd) / (nh0 + nd)
 
     vars.ahyd.set_variable(ahyd, '', ['XBO', 'TIME'])
 
-# AIMASS (Setting equal to AHYD is approximately correct)
+# Note: We take ahyd as the weighted average of nh0 and nd, yet only use nh as max(nh0, nd)
+# This is because in MMM equations, we can take approximations where the primary ion is much greater than other ions
+# for ion density.  But these approximations are not correct for mean atomic mass.
 def aimass(vars):
-    vars.aimass.set_variable(vars.ahyd.values, '', ['XBO', 'TIME'])
+    '''# Mean Atomic Mass of Thermal Ions'''
+    ahyd = vars.ahyd.values
+    aimp = vars.aimp.values
+    nh = vars.nh.values
+    nz = vars.nz.values
+
+    aimass = (ahyd * nh + aimp * nz) / (nh + nz)
+
+    vars.aimass.set_variable(aimass, '', ['XBO', 'TIME'])
 
 # Minor Radius, and set origin value to 0
 def rmin(vars):
@@ -68,7 +90,7 @@ def rmin(vars):
 
     vars.rmin.set_variable(rmin, vars.rmaj.units, ['XBO', 'TIME'])
 
-# Minor Radius (normalized)
+# Rho (Approximation for rho)
 def rho(vars):
     rmin = vars.rmin.values
 
@@ -85,8 +107,8 @@ def tau(vars):
 
     vars.tau.set_variable(tau, '', ['XBO', 'TIME'])
 
-# VTOR
 def vtor(vars):
+    '''Toroidal Velocity'''
     rmaj = vars.rmaj.values
     omega = vars.omega.values
 
@@ -94,9 +116,16 @@ def vtor(vars):
 
     vars.vtor.set_variable(vtor, 'M/SEC', ['XBO', 'TIME'])
 
-# VPAR (setting equal to VTOR for now)
 def vpar(vars):
-    vars.vpar.set_variable(vars.vtor.values, vars.vtor.units, ['XBO', 'TIME'])
+    '''Parallel Velocity'''
+    bpol = vars.bpol.values
+    btor = vars.btor.values
+    vpol = vars.vpol.values
+    vtor = vars.vtor.values
+
+    vpar = vtor + vpol * bpol / btor
+
+    vars.vpar.set_variable(vpar, vars.vtor.units, ['XBO', 'TIME'])
 
 # Effective Charge
 def zeff(vars):
@@ -110,21 +139,31 @@ def zeff(vars):
 
     vars.zeff.set_variable(zeff, '', ['XBO', 'TIME'])
 
-# BTOR
 def btor(vars):
+    '''Toroidal Magnetic Field'''
     bz = vars.bz.values
     raxis = vars.rmaj.values[0, :]
     rmaj = vars.rmaj.values
 
-    btor = rmaj / raxis * bz
+    btor = raxis / rmaj * bz
 
     vars.btor.set_variable(btor, vars.bz.units, ['XBO', 'TIME'])
+
+def bpol(vars):
+    btor = vars.btor.values
+    q = vars.q.values
+    rmaj = vars.rmaj.values
+    rmin = vars.rmin.values
+
+    bpol = rmin / rmaj * btor / q
+
+    vars.bpol.set_variable(bpol, vars.btor.units, ['XBO', 'TIME'])
 
 # Inverse Aspect Ratio
 def eps(vars):
     arat = vars.arat.values
 
-    eps = arat**(-1)
+    eps = 1 / arat
 
     vars.eps.set_variable(eps, '', ['XBO', 'TIME'])
 
@@ -140,17 +179,17 @@ def p(vars):
 
     vars.p.set_variable(p, 'PA', ['XBO', 'TIME'])
 
-# Beta (in %)
+# Beta
 def beta(vars):
     zcmu0 = constants.ZCMU0
     btor = vars.btor.values
     p = vars.p.values
 
-    beta = 2 * zcmu0 * p / btor**2 * 100
+    beta = 2 * zcmu0 * p / btor**2
 
-    vars.beta.set_variable(beta, '%', ['XBO', 'TIME'])
+    vars.beta.set_variable(beta, '', ['XBO', 'TIME'])
 
-# Electron Beta (in %)
+# Electron Beta
 def betae(vars):
     zckb = constants.ZCKB
     zcmu0 = constants.ZCMU0
@@ -158,16 +197,18 @@ def betae(vars):
     ne = vars.ne.values
     te = vars.te.values
 
-    betae = 2 * zcmu0 * ne * te * zckb / btor**2 * 100
+    betae = 2 * zcmu0 * ne * te * zckb / btor**2
 
-    vars.betae.set_variable(betae, '%', ['XBO', 'TIME'])
+    vars.betae.set_variable(betae, '', ['XBO', 'TIME'])
 
-# Coulomb Logarithm TODO: what is 37.8? what are units?
 def loge(vars):
+    '''Electron Coulomb Logarithm: Definition matches CLOGE from TRANSP (Dec 2021)'''
     ne = vars.ne.values
     te = vars.te.values
+    zeff = vars.zeff.values
 
-    loge = 37.8 - np.log(ne**(1/2) / te)
+    loge = 39.23 - np.log(zeff*ne**(1/2) / te)
+    # TODO: Need to add equations for different TE ranges
 
     vars.loge.set_variable(loge, '', ['XBO', 'TIME'])
 
@@ -293,9 +334,9 @@ def shat(vars):
 
     vars.shat.set_variable(shat, '', ['XBO', 'TIME'])
 
-# Alpha MHD, convert BETAE from % to number (Weiland Definition)
+# Alpha MHD (Weiland Definition)
 def alphamhd(vars):
-    betae = vars.betae.values / 100
+    betae = vars.betae.values
     gne = vars.gne.values
     gni = vars.gni.values
     gte = vars.gte.values
@@ -430,6 +471,7 @@ def calculate_inputs(cdf_vars):
 
     # Some calculations depend on values from previous calculations
     calculate_variable(vpol, vars)
+    calculate_variable(nh0, vars)
     calculate_variable(nh, vars)
     calculate_variable(ni, vars)
     calculate_variable(ahyd, vars)
@@ -437,10 +479,11 @@ def calculate_inputs(cdf_vars):
     calculate_variable(rmin, vars)
     calculate_variable(rho, vars)
     calculate_variable(tau, vars)
+    calculate_variable(btor, vars)
+    calculate_variable(bpol, vars)
     calculate_variable(vtor, vars)
     calculate_variable(vpar, vars)
     calculate_variable(zeff, vars)
-    calculate_variable(btor, vars)
     calculate_variable(eps, vars)
     calculate_variable(p, vars)
     calculate_variable(beta, vars)
@@ -478,6 +521,7 @@ def calculate_inputs(cdf_vars):
     calculate_variable(gave, vars)
     calculate_variable(etae, vars)
     calculate_variable(etai, vars)
+    calculate_variable(etaie, vars)
     calculate_variable(etaih, vars)
     calculate_variable(etaid, vars)
 
@@ -487,6 +531,7 @@ def calculate_inputs(cdf_vars):
     calculate_variable(test2, vars)
 
     return vars
+
 
 def get_calculated_vars():
     '''Returns function names of calculated variables in this module, other than gradient calculations'''

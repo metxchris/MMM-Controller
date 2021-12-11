@@ -8,9 +8,10 @@ import numpy as np
 # Local Packages
 from main import utils, variables
 from main.options import Options
+from main.enums import DataType
 
 
-def read_from_files(file_list):
+def read_from_files(file_list, dtype):
     '''
     Reads in data from a list of files.
 
@@ -23,7 +24,7 @@ def read_from_files(file_list):
 
     data_list = [] 
     for file in file_list:
-        data_list.append(np.genfromtxt(file, delimiter=',', dtype=float))
+        data_list.append(np.genfromtxt(file, delimiter=',', dtype=dtype))
 
     return np.array(data_list)
 
@@ -41,7 +42,7 @@ def reshape_data(data_array, var_names):
     * var_names (list): List of names from the header of the CSV
 
     Returns:
-    * reshaped_data (list): List of arrays, where each array corresponds to a new CSV to write
+    * reshaped_data (list): List of arrays, where each array corresponds to a different rho value and CSV to write
     '''
 
     num_radial_points = data_array.shape[1]
@@ -79,39 +80,55 @@ def save_reshaped_csv(reshaped_data, var_names, save_dir, save_type):
         file_name = f'{base_file_name}{rho_value}.csv'
         np.savetxt(file_name, data, fmt='%.4e', delimiter=',', header=header_str)
 
-    print(f'Saved reshaped scan CSV to {save_dir}')
+def save_simple_csv(data, var_names, save_dir, save_type):
+    file_name = f'{save_dir}\\{save_type}'
+    header_str = ','.join(var_names)
+    np.savetxt(f'{file_name}.csv', data, fmt='%.4e', delimiter=',', header=header_str)
 
 def parse_scan_csv():
     '''
-    Parses all CSV from a scan of var_to_scan and creates new CSVs for each rho point.
+    Parses all CSVs from a scan of var_to_scan and creates new CSVs for each rho point.
 
-    The new output CSV are stored in './output/cdf_name/var_to_scan/rho', relative to the top level directory.
+    The new CSVs are stored in './output/cdf_name/var_to_scan/rho', relative to the top level directory.
     Each CSV in the rho folder will correspond to one rho value of the scan, where data in these CSV will
-    be a function of the scanned parameter.  
+    be a function of the scanned parameter.  When doing a control scan, only one CSV of controls will
+    be created in the rho folder, since input controls are independent of rho.
     '''
 
     opts = Options.instance
 
-    # Get list of input and output files from parameter scan
+    # Get list of input, output, and control files from parameter scan (There may not be control files)
     scanned_dir = utils.get_var_to_scan_path(opts.runid, opts.scan_num, opts.var_to_scan)
-    input_files = utils.get_files_in_dir(scanned_dir, 'Input*')
-    output_files = utils.get_files_in_dir(scanned_dir, 'Output*')
-
-    # Set and clear directory to save reshaped data to, if needed
-    save_dir = utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan)
-    utils.clear_folder(save_dir, '*.csv')
+    input_files = utils.get_files_in_dir(scanned_dir, f'{DataType.INPUT.name.capitalize()}*')
+    output_files = utils.get_files_in_dir(scanned_dir, f'{DataType.OUTPUT.name.capitalize()}*')
+    control_files = utils.get_files_in_dir(scanned_dir, f'{DataType.CONTROL.name.capitalize()}*', show_warning=False)
 
     # Read in data from parameter scan, then construct lists of new data to save
-    input_data = read_from_files(input_files)
-    output_data = read_from_files(output_files)
+    input_data = read_from_files(input_files, float)
+    output_data = read_from_files(output_files, float)
     input_var_names = np.genfromtxt(input_files[0], delimiter=',', names=True).dtype.names
     output_var_names = np.genfromtxt(output_files[0], delimiter=',', names=True).dtype.names
     reshaped_input_data = reshape_data(input_data, input_var_names)
     reshaped_output_data = reshape_data(output_data, output_var_names)
 
     # Save reshaped data to new CSVs
-    save_reshaped_csv(reshaped_input_data, input_var_names, save_dir, 'Input')
-    save_reshaped_csv(reshaped_output_data, output_var_names, save_dir, 'Output')
+    save_dir = utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan)
+    save_reshaped_csv(reshaped_input_data, input_var_names, save_dir, DataType.INPUT.name.capitalize())
+    save_reshaped_csv(reshaped_output_data, output_var_names, save_dir, DataType.OUTPUT.name.capitalize())
+
+    '''
+    Read in control data (if any):
+    * Additional control data is only saved when a control value is scanned
+    * Controls are unpacked differently than how input and output data were handled above
+    * Control data does not need to be reshaped, since it is not a function of rho
+    '''
+    if len(control_files) > 0:
+        control_names_data = read_from_files(control_files, str)
+        control_names = [name[0] for name in control_names_data[0]]
+        control_data = np.array([[float(data[1]) for data in data_file] for data_file in control_names_data])
+        save_simple_csv(control_data, control_names, save_dir, DataType.CONTROL.name.capitalize())
+
+    print(f'Saved reshaped scan CSV to {save_dir}')
 
 
 '''
@@ -122,8 +139,10 @@ For testing purposes:
 * Options.instance.scan_range just needs to be some np.ndarray
 '''
 if __name__ == '__main__':
-    Options.instance.runid = '129041A10'
-    Options.instance.scan_num = 2
-    Options.instance.var_to_scan = 'gte'
-    Options.instance.scan_range = np.arange(1)
+    opts = Options.instance
+    opts.runid = '129041A10'
+    opts.scan_num = 45
+    opts.var_to_scan = 'kyrhoe_etgm'
+    opts.scan_range = np.arange(1)
+    utils.clear_folder(utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan), '*.csv')
     parse_scan_csv()

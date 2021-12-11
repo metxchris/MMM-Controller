@@ -6,27 +6,32 @@ sys.path.insert(0, '../')
 
 # Local Packages
 import pdftk, output, temp, cdfs
+from main.enums import ScanType
 
 
 def get_cdf_path(file_name):
-    '''Returns: (str) the path to specified CDF within the CDF folder'''
+    '''Returns (str): the path to specified CDF within the CDF folder'''
     return f'{os.path.dirname(cdfs.__file__)}\\{file_name}.CDF'
 
 def get_temp_path(file_name=''):
-    '''Returns: (str) the path to the temp folder'''
+    '''Returns (str): the path to the temp folder'''
     return f'{os.path.dirname(temp.__file__)}\\{file_name}'
 
 def get_output_path(file_name=''):
-    '''Returns: (str) the path to the output folder'''
+    '''Returns (str): the path to the output folder'''
     return f'{os.path.dirname(output.__file__)}\\{file_name}'
 
 def get_pdftk_path():
-    '''Returns: (str) the path to the pdftk executable'''
+    '''Returns (str): the path to the pdftk executable'''
     return f'{os.path.dirname(pdftk.__file__)}\\pdftk.exe'
 
 def get_scan_num_path(runid, scan_num):
-    '''Returns: (str) the path to the scan number folder'''
+    '''Returns (str): the path to the scan number folder'''
     return get_output_path(f'{runid}\\scan {scan_num}')
+
+def get_merged_scan_path(runid, scan_num):
+    '''Returns (str): the path to merged PDF for parameter scans'''
+    return f'{get_scan_num_path(runid, scan_num)}\\Merged Scans'
 
 def get_var_to_scan_path(runid, scan_num, var_to_scan):
     '''Returns: (str) the path of the scanned variable'''
@@ -191,7 +196,7 @@ def clear_temp_folder():
     if os.path.exists(get_temp_path('output')):
         os.remove(get_temp_path('output'))
 
-def get_files_in_dir(dir_path, file_type=''):
+def get_files_in_dir(dir_path, file_type='', show_warning=True):
     '''
     Lists all files in dir_path of file_type.
 
@@ -206,12 +211,12 @@ def get_files_in_dir(dir_path, file_type=''):
     files = f'{dir_path}\\{file_type}'
     file_names = [file for file in glob.glob(files)]
 
-    if len(file_names) == 0:
+    if len(file_names) == 0 and show_warning:
         print(f'*** Warning: No files found for {files}')
 
     return file_names
 
-def merge_profile_sheets(runid, scan_num, profile_type):
+def merge_profile_sheets(runid, scan_num, profile_type, is_scan=False):
     '''
     Merge PDF sheets using Pdftk in the temp folder into a single PDF, then place the merged PDF in the output folder.
 
@@ -219,17 +224,21 @@ def merge_profile_sheets(runid, scan_num, profile_type):
     and is called using a shell command.
 
     Parameters:
+    * runid (str): The name of the CDF
+    * scan_num (int): The number of the scan
     * profile_type (str): The type of profile to merge (Input, Output, etc.)
+    * is_scan (bool): True when merging sheets from a parameter scan
 
     Returns:
     * output_file (str): Path to merged PDF
     '''
 
-    # Output directory creation only needed if sheets are being created outside of main mmm_controller.py execution
-    create_directory(get_output_path(runid))
+    output_path = get_merged_scan_path(runid, scan_num) if is_scan else get_scan_num_path(runid, scan_num)
 
-    merged_name = f'{runid} {profile_type} Profiles.pdf'
-    output_file = f'{get_scan_num_path(runid, scan_num)}\\{merged_name}'
+    # Output directory creation only needed if sheets are being created outside of main mmm_controller.py execution
+    create_directory(output_path)
+
+    output_file = f'{output_path}\\{runid} {profile_type} Profiles.pdf'
     output_file = check_filename(output_file, '.pdf')
     temp_path = get_temp_path()
     pdftk_path = get_pdftk_path()

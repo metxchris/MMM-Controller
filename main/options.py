@@ -8,8 +8,9 @@ import numpy as np
 
 # Local Packages
 from main import utils
-from main.enums import ShotType
+from main.enums import ShotType, ScanType
 from main.variables import InputVariables
+from main.controls import InputControls
 
 
 class OptionsData:
@@ -41,6 +42,7 @@ class OptionsData:
     _runid = None
     _scan_num = None
     _scan_range = None
+    _scan_type = ScanType.NONE
     _shot_type = ShotType.NONE
     _temperature_profiles = False
     _time_str = None
@@ -106,6 +108,13 @@ class OptionsData:
         self._scan_range = scan_range
 
     @property
+    def scan_type(self):
+        return self._scan_type
+    @scan_type.setter
+    def scan_type(self, scan_type):
+        self._scan_type = scan_type
+
+    @property
     def shot_type(self):
         return self._shot_type
     @shot_type.setter
@@ -145,10 +154,15 @@ class OptionsData:
         return self._var_to_scan
     @var_to_scan.setter
     def var_to_scan(self, var_to_scan):
-        if var_to_scan is None or hasattr(InputVariables(), var_to_scan):
-            self._var_to_scan = var_to_scan
-        else:
-            raise ValueError(f'Variable {var_to_scan} is not defined under InputVariables')
+        if var_to_scan is not None:
+            if hasattr(InputVariables(), var_to_scan):
+                self.scan_type = ScanType.VARIABLE
+            elif hasattr(InputControls(), var_to_scan):
+                self.scan_type = ScanType.CONTROL
+            else:
+                raise ValueError(f'Variable {var_to_scan} is not defined under InputVariables or InputControls')
+
+        self._var_to_scan = var_to_scan
 
     # Methods
     def get_keys(self):
@@ -160,12 +174,9 @@ class OptionsData:
         options = self.get_keys()
         return [str(o) + ': ' + str(getattr(self, o)).replace('\n', '') for o in options]
 
-    def set_options(self, **kwargs):
+    def set(self, **kwargs):
         for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-            else:
-                print(f'Error: Options does not have attribute {key}')
+            setattr(self, key, value)
 
     def load_options(self, runid, scan_num):
         '''Loads OptionsData object from a pickle file'''
@@ -201,10 +212,10 @@ class OptionsData:
     def get_options_path(self, runid, scan_num):
         '''Returns: (str) the path to the Options pickle file'''
         if runid is None:
-            raise ValueError('Cannot retrieve options.pickle file since runid has not been set')
+            raise ValueError('Cannot retrieve Options.pickle file since runid has not been set')
         if scan_num is None:
-            raise ValueError('Cannot retrieve options.pickle file since scan_num has not been set')
-        return f'{utils.get_scan_num_path(runid, scan_num)}\\options.pickle'
+            raise ValueError('Cannot retrieve Options.pickle file since scan_num has not been set')
+        return f'{utils.get_scan_num_path(runid, scan_num)}\\Options.pickle'
 
     def set_measurement_time(self, tvar):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''

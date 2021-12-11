@@ -135,6 +135,7 @@ output/*
 temp/*
 mmm/*
 *.sublime*
+.idea/*
 
 # Keep this at the bottom
 !*__init__.py
