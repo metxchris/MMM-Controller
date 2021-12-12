@@ -4,7 +4,7 @@ from copy import deepcopy
 sys.path.insert(0, '../')
 
 # 3rd Party Packages
-import numpy as np 
+import numpy as np
 from scipy.interpolate import interp1d
 
 # Local Packages
@@ -14,9 +14,10 @@ from main.options import Options
 
 class XValues:
     '''Stores single dimension arrays of the values of X, XB, and XB + origin (xbo)'''
+
     def __init__(self, xvar, xbvar):
         self.x = xvar.values[:, 0]
-        self.xb = xbvar.values[:, 0] # implicitly used in the interpolation step
+        self.xb = xbvar.values[:, 0]  # implicitly used in the interpolation step
         self.xbo = np.append([0], self.xb)
 
 
@@ -24,7 +25,7 @@ def convert_variable(cdf_var, xvals):
     '''
     Converts variable units from CDF format to MMM format, then interpolates data onto the new XBO grid
 
-    A new XB grid which also contains the origin (XBO) is created, since the origin is needed when later 
+    A new XB grid which also contains the origin (XBO) is created, since the origin is needed when later
     calculating gradients. All variables are mapped from their current positional dimension to this
     new XBO grid, which makes plotting and variable comparisons much easier. All variables of a single
     dimension have their values copied over to their missing dimension, which allows for fast vectorized
@@ -63,7 +64,7 @@ def convert_variable(cdf_var, xvals):
     # 0-dimensional variables are not reshaped
     if xdim is None or input_var.values.ndim == 0:
         pass
-    # Tile 1-dim time arrays into 2-dim arrays, in the format of (XBO, TIME) 
+    # Tile 1-dim time arrays into 2-dim arrays, in the format of (XBO, TIME)
     elif xdim in ['TIME', 'TIME3']:
         input_var.set_variable(np.tile(input_var.values, (xvals.xbo.size, 1)))
         input_var.dimensions = ['XBO', xdim]
@@ -79,13 +80,14 @@ def convert_variable(cdf_var, xvals):
         input_var.set_xdim('XBO')
     else:
         print('[initial_conversion] *** Warning: Unsupported interpolation xdim type for variable', input_var.name, xdim)
-    
+
     # Apply smoothing, then verify minimum values (fixes errors due to interpolation)
     if Options.instance.apply_smoothing:
         input_var.apply_smoothing()
     input_var.set_minvalue()
 
     return input_var
+
 
 def initial_conversion(cdf_vars):
     '''
@@ -139,6 +141,7 @@ def initial_conversion(cdf_vars):
 
     return input_vars
 
+
 def interp_to_input_points(input_vars):
     '''
     Interpolates from XB to a grid determined by input_points, if the input_point grid differs from XB
@@ -180,12 +183,13 @@ def interp_to_input_points(input_vars):
 
     return mmm_vars
 
+
 def interp_to_uniform_rho(input_vars):
     '''
     Interpolates each timeslice onto an evenly spaced rho, determined by input_points
 
     Since the value of rmin varies over time, the interpolation onto a grid of evenly spaced rho values
-    requires that interpolation be carried out over each individual timeslice of variable data, which can 
+    requires that interpolation be carried out over each individual timeslice of variable data, which can
     increase the time needed to interpolate the data by a factor of 10.
 
     Parameters:
@@ -214,8 +218,8 @@ def interp_to_uniform_rho(input_vars):
         interp_values = np.empty((len(new_rho), mmm_var.values.shape[1]))
         if mmm_var.values is not None and mmm_var.values.size > 1:
             for time_idx in range(mmm_var.values.shape[1]):
-                set_interp = interp1d(old_rho[:, time_idx], mmm_var.values[:, time_idx], 
-                    kind='cubic', fill_value="extrapolate", axis=0)
+                set_interp = interp1d(old_rho[:, time_idx], mmm_var.values[:, time_idx],
+                                      kind='cubic', fill_value="extrapolate", axis=0)
                 interp_values[:, time_idx] = set_interp(new_rho)
             mmm_var.set_variable(interp_values)
             mmm_var.set_minvalue()
@@ -223,6 +227,7 @@ def interp_to_uniform_rho(input_vars):
             print(f'ERROR: Trying to interpolate variable {var} with values equal to None')
 
     return mmm_vars
+
 
 def final_interpolation(input_vars):
     '''

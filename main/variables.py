@@ -19,7 +19,7 @@ class Variables:
 
     def get_variables(self):
         return [var for var in dir(self) if not callable(getattr(self, var)) and not var.startswith("__")]
-        
+
     def get_nonzero_variables(self):
         vars = self.get_variables()
         return [var for var in vars if getattr(self, var).values is not None]
@@ -29,7 +29,7 @@ class Variables:
         for var in vars:
             print(var + ", "
                   + str(getattr(self, var).name) + ", "
-                  + str(getattr(self, var).desc) + ", " 
+                  + str(getattr(self, var).desc) + ", "
                   + str(getattr(self, var).units) + ", "
                   + str(getattr(self, var).values.shape) + ", "
                   + str(getattr(self, var).dimensions))
@@ -39,7 +39,7 @@ class Variables:
 class InputVariables(Variables):
     def __init__(self):
         # CDF Independent Variables
-        self.time = Variable('Time', cdfvar='TIME') # TODO: What is TIME3 in CDF?
+        self.time = Variable('Time', cdfvar='TIME')  # TODO: What is TIME3 in CDF?
         self.x = Variable('X', cdfvar='X', label=r'$x$')
         self.xb = Variable('XB', cdfvar='XB', label=r'$x_\mathrm{B}$')
 
@@ -57,7 +57,7 @@ class InputVariables(Variables):
         self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$', smooth=None)
         self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=2)
         self.tepro = Variable('Electron Temperature', cdfvar='TEPRO', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=2)
-        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI',label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=2)
+        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=2)
         self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=2)
         self.vpolavg = Variable('VPOL', cdfvar='VPOL_AVG', smooth=3)
         self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=3)
@@ -212,7 +212,7 @@ class OutputVariables(Variables):
 
     def get_etg_vars(self):
         output_vars = self.get_all_output_vars()
-        return [var for var in output_vars if 'ETG' in var and not 'ETGM' in var]
+        return [var for var in output_vars if 'ETG' in var and 'ETGM' not in var]
 
     def get_weiland_vars(self):
         output_vars = self.get_all_output_vars()
@@ -223,16 +223,16 @@ class Variable:
     def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None, absminvalue=None, units='', dimensions=None, values=None):
         # Public
         self.name = name
-        self.cdfvar = cdfvar # Name of variable as used in CDF's
-        self.smooth = smooth # None to disable smoothing, or n = 1, 2, 3, ...  
-        self.label = label # Plot label in LaTeX Format
+        self.cdfvar = cdfvar  # Name of variable as used in CDF's
+        self.smooth = smooth  # None to disable smoothing, or n = 1, 2, 3, ...
+        self.label = label  # Plot label in LaTeX Format
         self.desc = desc
         self.minvalue = minvalue
         self.absminvalue = absminvalue
         # Private
         self._units_label = ''
         self._units = ''
-        self._dimensions = dimensions if dimensions is not None else ['','']
+        self._dimensions = dimensions if dimensions is not None else ['', '']
         self._values = values
 
         # Call units setter to also set units_label
@@ -303,7 +303,7 @@ class Variable:
             self._values = values
         else:
             raise ValueError(f'Variable values must be {np.ndarray} and not {type(values)}')
-    
+
     @dispatch(np.ndarray)
     def set_variable(self, values):
         self.set_variable(values, self.units, self.dimensions)
@@ -341,3 +341,8 @@ class Variable:
             print('nan values found for var ' + self.name)
             self.values[np.isnan(self.values)] = 0
             self.set_minvalue()
+
+
+# For testing purposes
+if __name__ == '__main__':
+    print(OutputVariables().get_weiland_vars())
