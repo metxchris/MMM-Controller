@@ -6,7 +6,7 @@ sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
-from scipy.interpolate import interp1d # TODO: use Akima1DInterpolator?
+from scipy.interpolate import interp1d  # TODO: use Akima1DInterpolator?
 
 # Local Packages
 from main import variables, constants
@@ -98,8 +98,8 @@ def rho(vars):
 
     vars.rho.set_variable(rho, '', ['XBO', 'TIME'])
 
-# Temperature Ratio
 def tau(vars):
+    '''Temperature Ratio'''
     te = vars.te.values
     ti = vars.ti.values
 
@@ -127,8 +127,8 @@ def vpar(vars):
 
     vars.vpar.set_variable(vpar, vars.vtor.units, ['XBO', 'TIME'])
 
-# Effective Charge
 def zeff(vars):
+    '''Effective Charge'''
     ne = vars.ne.values
     nf = vars.nf.values
     nh = vars.nh.values
@@ -150,6 +150,7 @@ def btor(vars):
     vars.btor.set_variable(btor, vars.bz.units, ['XBO', 'TIME'])
 
 def bpol(vars):
+    '''Poloidal Magnetic Field'''
     btor = vars.btor.values
     q = vars.q.values
     rmaj = vars.rmaj.values
@@ -291,8 +292,8 @@ def nusti(vars):
 
     vars.nusti.set_variable(nusti, '', ['XBO', 'TIME'])
 
-# Ion Gyrofrequency TODO: units
 def gyrfi(vars):
+    '''Ion Gyrofrequency'''  # TODO: units
     zce = constants.ZCE
     zcmp = constants.ZCMP
     aimass = vars.aimass.values
@@ -302,8 +303,8 @@ def gyrfi(vars):
 
     vars.gyrfi.set_variable(gyrfi, '', ['XBO', 'TIME'])
 
-# Upper bound for ne, nh, te, and ti gradients in DRBM model (modmmm7_1.f90) TODO: units
 def gmax(vars):
+    '''Upper bound for ne, nh, te, and ti gradients in DRBM model (modmmm.f90)'''
     eps = vars.eps.values
     q = vars.q.values
     rmaj = vars.rmaj.values
@@ -418,7 +419,7 @@ def test2(vars):
 def calculate_gradient(gvar_name, var_name, drmin, vars):
     rmaj = vars.rmaj.values
     x = vars.x.values[:, 0]
-    xb = vars.xb.values[:, 0] # includes origin
+    xb = vars.xb.values[:, 0]  # includes origin
 
     # get variables related to the gradient from variable names
     gvar = getattr(vars, gvar_name)

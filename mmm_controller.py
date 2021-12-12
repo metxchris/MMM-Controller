@@ -130,7 +130,7 @@ def initialize_variables():
 
     raw_cdf_vars = read_cdf.read_cdf()
     cdf_vars = convert_inputs.initial_conversion(raw_cdf_vars)
-    input_vars = calculate_inputs.calculate_inputs(cdf_vars)
+    input_vars = calculations.calculate_inputs(cdf_vars)
     mmm_vars = convert_inputs.final_interpolation(input_vars)
 
     return mmm_vars, input_vars, cdf_vars, raw_cdf_vars

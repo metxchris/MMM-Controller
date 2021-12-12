@@ -209,8 +209,8 @@ MMM_HEADER = (
     !.. ETGM real options
     cETGM =
        {etgm_exbs}     ! ExB shear coefficient
-       {etgm_kyrhoe}   ! kyrhos
-       {etgm_kyrhos}   ! kyrhoe
+       {etgm_kyrhos}   ! kyrhos
+       {etgm_kyrhoe}   ! kyrhoe
 
     lprint   = {lprint}      ! Verbose level\n\n''')
 
