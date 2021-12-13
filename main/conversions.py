@@ -21,28 +21,14 @@ class XValues:
         self.xbo = np.append([0], self.xb)
 
 
-def convert_variable(cdf_var, xvals):
+def convert_units(input_var):
     '''
-    Converts variable units from CDF format to MMM format, then interpolates data onto the new XBO grid
-
-    A new XB grid which also contains the origin (XBO) is created, since the origin is needed when later
-    calculating gradients. All variables are mapped from their current positional dimension to this
-    new XBO grid, which makes plotting and variable comparisons much easier. All variables of a single
-    dimension have their values copied over to their missing dimension, which allows for fast vectorized
-    calculations when later calculating input variables.
+    Converts variable units from CDF format to MMM format
 
     Parameters:
-    * cdf_var (Variable): A single variable object containing data from the CDF
-    * xvals (XValues): Cached x-dimension values needed for the interpolation process
-
-    Returns:
-    * input_var (Variable): A single variable object containing the converted data from cdf_var
+    * input_var (Variable): A reference to a variable object in input_vars, containing data from the CDF
     '''
 
-    # deepcopy needed to create a new variable instead of a reference
-    input_var = deepcopy(cdf_var)
-
-    # Convert units to those needed by MMM
     units = input_var.units
     if units == 'CM':
         input_var.set_variable(input_var.values / 100, 'M')
@@ -59,7 +45,22 @@ def convert_variable(cdf_var, xvals):
     elif units == 'TESLA*CM':
         input_var.set_variable(input_var.values / 100, 'TESLA*M')
 
-    # Reshape all non-scalar variables so that their shape matches (XBo, TIME)
+
+def interp_to_boundarygrid(input_var, xvals):
+    '''
+    Reshape/Interpolate all non-scalar variables so that their shape matches (XBO, TIME), where XBO = XB + origin
+
+    A new XB grid which also contains the origin (XBO) is created, since the origin is needed when later
+    calculating gradients. All variables are mapped from their current positional dimension to this
+    new XBO grid, which makes plotting and variable comparisons much easier. All variables of a single
+    dimension have their values copied over to their missing dimension, which allows for fast vectorized
+    calculations when later calculating input variables.
+
+    Parameters:
+    * input_var (Variable): A reference to a variable object in input_vars, containing data from the CDF
+    * xvals (XValues): Cached x-dimension values needed for the interpolation process
+    '''
+
     xdim = input_var.get_xdim()
     # 0-dimensional variables are not reshaped
     if xdim is None or input_var.values.ndim == 0:
@@ -81,13 +82,6 @@ def convert_variable(cdf_var, xvals):
     else:
         print('[initial_conversion] *** Warning: Unsupported interpolation xdim type for variable', input_var.name, xdim)
 
-    # Apply smoothing, then verify minimum values (fixes errors due to interpolation)
-    if Options.instance.apply_smoothing:
-        input_var.apply_smoothing()
-    input_var.set_minvalue()
-
-    return input_var
-
 
 def initial_conversion(cdf_vars):
     '''
@@ -104,12 +98,7 @@ def initial_conversion(cdf_vars):
     * input_vars (InputVariables): Data from the CDF converted into a format needed to run MMM
     '''
 
-    input_vars = variables.InputVariables()
-
-    # Directly copy independent variables, which don't need to be converted
-    input_vars.time = deepcopy(cdf_vars.time)
-    input_vars.x = deepcopy(cdf_vars.x)
-    input_vars.xb = deepcopy(cdf_vars.xb)
+    input_vars = deepcopy(cdf_vars)
 
     # Cache single column arrays of x-values
     xvals = XValues(input_vars.x, input_vars.xb)
@@ -124,20 +113,25 @@ def initial_conversion(cdf_vars):
     if Options.instance.input_points is None:
         Options.instance.input_points = input_vars.get_nboundaries()
 
-    # Get list of CDF variables to convert to the format needed for MMM, and remove variables already copied
+    # Get list of CDF variables to convert to the format needed for MMM
+    # Independent variables listed below don't need to be converted
     cdf_var_list = cdf_vars.get_cdf_variables()
-    for var in ['time', 'x', 'xb']:
-        cdf_var_list.remove(var)
+    for var_name in ['time', 'x', 'xb']:
+        cdf_var_list.remove(var_name)
 
     # Convert remaining CDF variables into the format needed for MMM
-    for var in cdf_var_list:
-        cdf_var = getattr(cdf_vars, var)
-        if cdf_var.values is not None:
-            setattr(input_vars, var, convert_variable(cdf_var, xvals))
+    for var_name in cdf_var_list:
+        input_var = getattr(input_vars, var_name)
+        if input_var.values is not None:
+            convert_units(input_var)
+            interp_to_boundarygrid(input_var, xvals)
 
     # Use TEPRO, TIPRO in place of TE, TI
     if Options.instance.temperature_profiles:
         input_vars.use_temperature_profiles()
+
+    # Set value of rmin at origin to 0
+    input_vars.rmin.values[0, :] = 0
 
     return input_vars
 
@@ -162,7 +156,7 @@ def interp_to_input_points(input_vars):
     if Options.instance.input_points != input_vars.get_nboundaries():
         # Single column arrays for interpolation
         xb = mmm_vars.xb.values[:, 0]
-        xb_mmm = np.arange(Options.instance.input_points) / (Options.instance.input_points - 1)
+        xb_new = np.arange(Options.instance.input_points) / (Options.instance.input_points - 1)
 
         # Get list of CDF variables to convert to the format needed for MMM
         full_var_list = mmm_vars.get_nonzero_variables()
@@ -174,12 +168,12 @@ def interp_to_input_points(input_vars):
         # Interpolate variables onto grid specified by Options.instance.input_points
         for var in full_var_list:
             mmm_var = getattr(mmm_vars, var)
-            if mmm_var.values is not None and mmm_var.values.size > 1:
+            if mmm_var.values is None:
+                raise ValueError(f'Trying to interpolate variable {var} with values equal to None')
+
+            if mmm_var.values.size > 1:
                 set_interp = interp1d(xb, mmm_var.values, kind='cubic', fill_value="extrapolate", axis=0)
-                mmm_var.set_variable(set_interp(xb_mmm))
-                mmm_var.set_minvalue()
-            elif mmm_var.values is None:
-                print(f'ERROR: Trying to interpolate variable {var} with values equal to None')
+                mmm_var.set_variable(set_interp(xb_new))
 
     return mmm_vars
 
@@ -202,8 +196,8 @@ def interp_to_uniform_rho(input_vars):
     mmm_vars = deepcopy(input_vars)
 
     # Single column arrays for interpolation
-    old_rho = mmm_vars.rho.values
-    new_rho = np.arange(Options.instance.input_points) / (Options.instance.input_points - 1)
+    rho_old = mmm_vars.rho.values
+    rho_new = np.arange(Options.instance.input_points) / (Options.instance.input_points - 1)
 
     # Get list of CDF variables to convert to the format needed for MMM
     full_var_list = mmm_vars.get_nonzero_variables()
@@ -215,33 +209,54 @@ def interp_to_uniform_rho(input_vars):
     # Interpolate variables onto grid specified by Options.instance.input_points
     for var in full_var_list:
         mmm_var = getattr(mmm_vars, var)
-        interp_values = np.empty((len(new_rho), mmm_var.values.shape[1]))
-        if mmm_var.values is not None and mmm_var.values.size > 1:
+        interp_values = np.empty((len(rho_new), mmm_var.values.shape[1]))
+        if mmm_var.values is None:
+                raise ValueError(f'Trying to interpolate variable {var} with values equal to None')
+
+        if mmm_var.values.size > 1:
             for time_idx in range(mmm_var.values.shape[1]):
-                set_interp = interp1d(old_rho[:, time_idx], mmm_var.values[:, time_idx],
+                set_interp = interp1d(rho_old[:, time_idx], mmm_var.values[:, time_idx],
                                       kind='cubic', fill_value="extrapolate", axis=0)
-                interp_values[:, time_idx] = set_interp(new_rho)
+                interp_values[:, time_idx] = set_interp(rho_new)
+
             mmm_var.set_variable(interp_values)
-            mmm_var.set_minvalue()
-        elif mmm_var.values is None:
-            print(f'ERROR: Trying to interpolate variable {var} with values equal to None')
 
     return mmm_vars
 
 
-def final_interpolation(input_vars):
+def convert_variables(cdf_vars):
     '''
-    Interpolates to either a new grid of input_points, or a grid of uniform rho values
+    Initializes the process of converting variables from CDF format to MMM format
+
+    The values of cdf_vars are copied to input_vars, then various values are stored before the conversion
+    process begins.  The measurement time and index of this time are also obtained from the input time, where
+    the time closest to the input time is taken as the measurement time.
 
     Parameters:
-    * input_vars (InputVariables): Contains all variables from CDF + extra calculated variables
+    * cdf_vars (InputVariables): Raw data from the CDF of all InputVariables with a specifed cdf_var value
 
     Returns:
-    * (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
+    * mmm_vars (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
     '''
 
+    input_vars = initial_conversion(cdf_vars)
+    input_vars.set_rho_values()
+
     uniform_rho = Options.instance.uniform_rho
-    return interp_to_uniform_rho(input_vars) if uniform_rho else interp_to_input_points(input_vars)
+    mmm_vars = interp_to_uniform_rho(input_vars) if uniform_rho else interp_to_input_points(input_vars)
+
+    full_var_list = mmm_vars.get_nonzero_variables()
+    # Apply smoothing, then verify minimum values (fixes errors due to interpolation)
+    for var_name in full_var_list:
+        mmm_var = getattr(mmm_vars, var_name)
+        if Options.instance.apply_smoothing:
+            mmm_var.apply_smoothing(Options.instance.input_points)
+        mmm_var.set_minvalue()
+
+    # Update x from xb (x is the grid between xb, and has one fewer point than xb)
+    mmm_vars.x.values = (mmm_vars.xb.values[0:-1, :] + mmm_vars.xb.values[1:, :]) / 2
+
+    return mmm_vars
 
 
 if __name__ == '__main__':

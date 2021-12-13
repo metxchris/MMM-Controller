@@ -14,6 +14,10 @@ from main import constants
 
 # Parent class for input and output variables
 class Variables:
+    def __init__(self):
+        self.rho = None
+        self.rmin = None
+
     def __str__(self):
         return str(self.get_nonzero_variables())
 
@@ -34,6 +38,9 @@ class Variables:
                   + str(getattr(self, var).values.shape) + ", "
                   + str(getattr(self, var).dimensions))
 
+    def set_rho_values(self):
+        self.rho.values = self.rmin.values / self.rmin.values[-1, :]
+
 
 # Variables obtained from a CDF
 class InputVariables(Variables):
@@ -44,29 +51,30 @@ class InputVariables(Variables):
         self.xb = Variable('XB', cdfvar='XB', label=r'$x_\mathrm{B}$')
 
         # CDF Variables needed for calculations
-        self.aimp = Variable('Mean Mass of Impurities', cdfvar='AIMP', label=r'$\overline{M}_\mathrm{imp}$', minvalue=1e-6, smooth=2)
-        self.arat = Variable('Aspect Ratio', cdfvar='ARAT', smooth=1)
-        self.bz = Variable('BZ', cdfvar='BZ', smooth=1)
-        self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=1)
-        self.omega = Variable('Toroidal Angular Velocity', cdfvar='OMEGA', smooth=2)
-        self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', minvalue=1e-6, smooth=2)
-        self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', minvalue=1e-6, smooth=2)
-        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-6, smooth=2)
-        self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=2)
-        self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=2)
+        self.aimp = Variable('Mean Mass of Impurities', cdfvar='AIMP', label=r'$\overline{M}_\mathrm{imp}$', minvalue=1e-6, smooth=5)
+        self.arat = Variable('Aspect Ratio', cdfvar='ARAT', smooth=0)
+        self.bz = Variable('BZ', cdfvar='BZ', smooth=None)
+        self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=5)
+        self.omega = Variable('Toroidal Angular Velocity', cdfvar='OMEGA', smooth=8)
+        self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', minvalue=1e-6, smooth=5)
+        self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', minvalue=1e-6, smooth=5)
+        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-6, smooth=5)
+        self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=5)
+        self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=5)
         self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$', smooth=None)
-        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=2)
-        self.tepro = Variable('Electron Temperature', cdfvar='TEPRO', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=2)
-        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=2)
-        self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=2)
-        self.vpolavg = Variable('VPOL', cdfvar='VPOL_AVG', smooth=3)
-        self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=3)
-        self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC', smooth=3)
-        self.wexbs = Variable(r'ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$', smooth=2)
-        self.zimp = Variable('Mean Charge of Impurities', cdfvar='XZIMP', label=r'$\overline{Z}_\mathrm{imp}$', smooth=2)
+        self.rmin = Variable('Minor Radius', cdfvar='RMNMP', label=r'$r$', smooth=None)
+        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=8)
+        self.tepro = Variable('Electron Temperature', cdfvar='TEPRO', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=8)
+        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=8)
+        self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=8)
+        self.vpolavg = Variable('VPOL', cdfvar='VPOL_AVG', smooth=0)
+        self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=0)
+        self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC', smooth=0)
+        self.wexbs = Variable(r'ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$', smooth=5)
+        self.zimp = Variable('Mean Charge of Impurities', cdfvar='XZIMP', label=r'$\overline{Z}_\mathrm{imp}$', smooth=5)
 
         # Additional CDF variables for comparisons
-        self.betat = Variable('BETAT', cdfvar='BETAT', smooth=1)
+        self.betat = Variable('BETAT', cdfvar='BETAT')
         self.bzxr = Variable('BZXR', cdfvar='BZXR')
 
         # Calculated Variables (some are also in the CDF)
@@ -89,21 +97,20 @@ class InputVariables(Variables):
         self.loge = Variable('Electron Coulomb Logarithm', cdfvar='CLOGE', label=r'$\lambda_\mathrm{e}$')
         self.logi = Variable('Ion Coulomb Logarithm', cdfvar='CLOGI', label=r'$\lambda_\mathrm{i}$')
         self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', smooth=1)
-        self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$', smooth=2)
-        self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h,T}$')
+        self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$', smooth=5)
+        self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h,T}$', smooth=5)
         self.nuei = Variable('Electron Collision Frequency', label=r'$\nu_\mathrm{ei}$')
         self.nuei2 = Variable('NUEI2')
         self.nuste = Variable('Electron Collisionality', cdfvar='NUSTE', label=r'$\nu^{*}_\mathrm{e}$')
         self.nusti = Variable('Ion Collisionality', cdfvar='NUSTI', label=r'$\nu^{*}_\mathrm{i}$')
         self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$')
         self.rho = Variable('Normalized Radius', label=r'$\rho$')
-        self.rmin = Variable('Minor Radius', cdfvar='RMNMP', label=r'$r$')
         self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$')  # MMM uses a different definition of shat than what cdfvar='SHAT' uses
         self.shear = Variable('Magnetic Shear', label=r'$s$')
         self.tau = Variable('Temperature Ratio', label=r'$\tau$')
-        self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-6, smooth=2)
-        self.vpol = Variable('Poloidal Velocity', label=r'$v_\theta$', absminvalue=1e-6, smooth=2)
-        self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-6, smooth=2)  # cdfvar='VTOR_AVG' is a slightly different VTOR than what we are using
+        self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-1, smooth=None)
+        self.vpol = Variable('Poloidal Velocity', label=r'$v_\theta$', absminvalue=1e-1, smooth=15)
+        self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-1, smooth=None)  # cdfvar='VTOR_AVG' is a slightly different VTOR than what we are using
         self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{T_\mathrm{e}}$')
         self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{T_\mathrm{i}}$')
         self.zeff = Variable('Effective Charge', cdfvar='ZEFFP', label=r'$Z_\mathrm{eff}$')
@@ -320,9 +327,10 @@ class Variable:
         self.dimensions = dimensions
 
     # Variable smoothing using a Gaussian filter
-    def apply_smoothing(self):
+    def apply_smoothing(self, input_points):
         if self.smooth is not None:
-            self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(self.smooth, 0))
+            smooth_sigma = int(input_points * self.smooth / 100)
+            self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(smooth_sigma, 0))
 
     # Clamps values between -value and value, and sets origin value to apprximately 0
     def clamp_gradient(self, value):

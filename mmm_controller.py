@@ -53,14 +53,8 @@ def execute_variable_scan(mmm_vars, controls):
     * controls (InputControls): Specifies input control values in the MMM input file
     '''
 
-    modified_vars = deepcopy(mmm_vars)
     var_to_scan = Options.instance.var_to_scan
     scan_range = Options.instance.scan_range
-
-    # Create references to variable being scanned in mmm_vars and modified_vars
-    # Modifying scanned_var values will modify its corresponding values in modified_vars
-    base_var = getattr(mmm_vars, var_to_scan)
-    scanned_var = getattr(modified_vars, var_to_scan)
     controls.save_controls(Options.instance)
 
     for i, scan_factor in enumerate(scan_range):
@@ -68,8 +62,8 @@ def execute_variable_scan(mmm_vars, controls):
 
         # Modifiy values of variable being scanned
         # Note: Dependent variables will be handled on a case-by-case basis
-        scanned_var.values = scan_factor * base_var.values
-        write_inputs.write_input_file(modified_vars, controls)
+        adjusted_vars = adjustments.adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor)
+        write_inputs.write_input_file(adjusted_vars, controls)
         run_driver.run_mmm_driver()
         read_output.read_output_file(scan_factor)
 
@@ -123,17 +117,15 @@ def initialize_variables():
 
     Returns:
     * mmm_vars (InputVariables): All calculated variables, interpolated onto a grid of size input_points
-    * input_vars (InputVariables): All calculated variables, interpolated onto XB+1 obtained from the CDF
-    * cdf_vars (InputVariables): All CDF variables, interpolated onto XB+1 obtained from the CDF
+    * cdf_vars (InputVariables): All CDF variables, interpolated onto a grid of size input_points
     * raw_cdf_vars (InputVariables): All unedited CDF variables (saved for troubleshooting)
     '''
 
     raw_cdf_vars = read_cdf.read_cdf()
-    cdf_vars = conversions.initial_conversion(raw_cdf_vars)
-    input_vars = calculations.calculate_inputs(cdf_vars)
-    mmm_vars = conversions.final_interpolation(input_vars)
+    cdf_vars = conversions.convert_variables(raw_cdf_vars)
+    mmm_vars = calculations.calculate_inputs(cdf_vars)
 
-    return mmm_vars, input_vars, cdf_vars, raw_cdf_vars
+    return mmm_vars, cdf_vars, raw_cdf_vars
 
 
 def main(controls):
@@ -157,10 +149,10 @@ def main(controls):
     utils.clear_temp_folder()
     utils.init_output_dirs(Options.instance)
 
-    mmm_vars, input_vars, cdf_vars, raw_cdf_vars = initialize_variables()
+    mmm_vars, cdf_vars, raw_cdf_vars = initialize_variables()
 
     Options.instance.save_options()  # TODO: Create an event to save Options
-    plot_profiles.plot_profile_comparison(cdf_vars, input_vars)
+    plot_profiles.plot_profile_comparison(cdf_vars, mmm_vars)
     plot_profiles.plot_input_profiles(mmm_vars)
     plot_profiles.plot_additional_profiles(mmm_vars)
 
@@ -178,20 +170,22 @@ if __name__ == '__main__':
     CDF Options:
     * Uncomment the line you wish to use
     '''
-    # cdf_name, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
+    cdf_name, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
     # cdf_name, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
-    cdf_name, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
+    # cdf_name, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
     # cdf_name, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
     # cdf_name, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
+    # cdf_name, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
 
     '''
     Scan Options:
     * Uncomment the line you wish to use
     '''
     # var_to_scan, scan_range = None, None
-    var_to_scan, scan_range = 'gti', np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
+    # var_to_scan, scan_range = 'gti', np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
     # var_to_scan, scan_range = 'gte', np.arange(start=0.025, stop=5 + 1e-6, step=0.025)
-    # var_to_scan, scan_range = 'kyrhoe_etgm', np.arange(start=0, stop=5 + 1e-6, step=0.025)
+    var_to_scan, scan_range = 'nuei', np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # var_to_scan, scan_range = 'etgm_kyrhoe', np.arange(start=0, stop=5 + 1e-6, step=0.025)
 
     '''
     Input Options:
@@ -204,8 +198,8 @@ if __name__ == '__main__':
         runid=cdf_name,
         shot_type=shot_type,
         input_time=input_time,
-        input_points=201,
-        uniform_rho=False,
+        input_points=101,
+        uniform_rho=True,
         apply_smoothing=True,
         var_to_scan=var_to_scan,
         scan_range=scan_range,
@@ -224,7 +218,7 @@ if __name__ == '__main__':
         cmodel_mtm=0,
         etgm_kyrhoe=0.25,
         etgm_kyrhos=0.33,
-        etgm_cl=1,
+        etgm_cl=0,
     )
 
     main(controls)

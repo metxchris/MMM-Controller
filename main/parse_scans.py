@@ -142,7 +142,7 @@ if __name__ == '__main__':
     opts = Options.instance
     opts.runid = '129041A10'
     opts.scan_num = 45
-    opts.var_to_scan = 'kyrhoe_etgm'
+    opts.var_to_scan = 'etgm_kyrhoe'
     opts.scan_range = np.arange(1)
     utils.clear_folder(utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan), '*.csv')
     parse_scan_csv()

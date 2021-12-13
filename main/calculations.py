@@ -13,7 +13,6 @@ from main import variables, constants
 from main.options import Options
 
 
-# Set VPOL using VPOLD or VPOLH, if possible # TODO: handle this better
 def vpol(vars):
     '''Poloidal Velocity'''
     vpol = np.zeros((vars.xb.values.shape[0], vars.time.values.shape[0]))
@@ -66,9 +65,6 @@ def ahyd(vars):
 
     vars.ahyd.set_variable(ahyd, '', ['XBO', 'TIME'])
 
-# Note: We take ahyd as the weighted average of nh0 and nd, yet only use nh as max(nh0, nd)
-# This is because in MMM equations, we can take approximations where the primary ion is much greater than other ions
-# for ion density.  But these approximations are not correct for mean atomic mass.
 def aimass(vars):
     '''# Mean Atomic Mass of Thermal Ions'''
     ahyd = vars.ahyd.values
@@ -79,16 +75,6 @@ def aimass(vars):
     aimass = (ahyd * nh + aimp * nz) / (nh + nz)
 
     vars.aimass.set_variable(aimass, '', ['XBO', 'TIME'])
-
-# Minor Radius, and set origin value to 0
-def rmin(vars):
-    arat = vars.arat.values
-    rmaj = vars.rmaj.values
-
-    rmin = (rmaj / arat)
-    rmin[0, :] = np.zeros(vars.time.values.shape[0])
-
-    vars.rmin.set_variable(rmin, vars.rmaj.units, ['XBO', 'TIME'])
 
 # Rho (Approximation for rho)
 def rho(vars):
@@ -213,7 +199,7 @@ def loge(vars):
 
     vars.loge.set_variable(loge, '', ['XBO', 'TIME'])
 
-# Collision Frequency (NU_{ei}) TODO: units?
+# Collision Frequency (NU_{ei})
 def nuei(vars):
     zcf = constants.ZCF
     ne = vars.ne.values
@@ -223,7 +209,7 @@ def nuei(vars):
 
     nuei = zcf * 2**(1/2) * ne * loge * zeff / te**(3/2)
 
-    vars.nuei.set_variable(nuei, '', ['XBO', 'TIME'])
+    vars.nuei.set_variable(nuei, 's^-1', ['XBO', 'TIME'])
 
 # OLD NOTE: Not sure what to call this, but it leads to the approx the correct NUSTI
 def nuei2(vars):
@@ -235,9 +221,9 @@ def nuei2(vars):
 
     nuei2 = zcf * 2**(1/2) * ni * loge * zeff / ti**(3/2)
 
-    vars.nuei2.set_variable(nuei2, '', ['XBO', 'TIME'])
+    vars.nuei2.set_variable(nuei2, 's^-1', ['XBO', 'TIME'])
 
-# Thermal Velocity of Electrons TODO: units?
+# Thermal Velocity of Electrons
 def vthe(vars):
     zckb = constants.ZCKB
     zcme = constants.ZCME
@@ -245,9 +231,9 @@ def vthe(vars):
 
     vthe = (2 * zckb * te / zcme)**(1/2)
 
-    vars.vthe.set_variable(vthe, '', ['XBO', 'TIME'])
+    vars.vthe.set_variable(vthe, 'm/s', ['XBO', 'TIME'])
 
-# Thermal Velocity of Ions TODO: units?
+# Thermal Velocity of Ions
 def vthi(vars):
     zckb = constants.ZCKB
     zcmp = constants.ZCMP
@@ -256,7 +242,7 @@ def vthi(vars):
 
     vthi = (zckb * ti / (zcmp * aimass))**(1/2)
 
-    vars.vthi.set_variable(vthi, '', ['XBO', 'TIME'])
+    vars.vthi.set_variable(vthi, 'm/s', ['XBO', 'TIME'])
 
 # Electron Collisionality (NU^{*}_{e}) TODO: units?
 # OLD NOTE: This is in approximate
@@ -293,7 +279,7 @@ def nusti(vars):
     vars.nusti.set_variable(nusti, '', ['XBO', 'TIME'])
 
 def gyrfi(vars):
-    '''Ion Gyrofrequency'''  # TODO: units
+    '''Ion Gyrofrequency'''
     zce = constants.ZCE
     zcmp = constants.ZCMP
     aimass = vars.aimass.values
@@ -301,7 +287,7 @@ def gyrfi(vars):
 
     gyrfi = zce * btor / (zcmp * aimass)
 
-    vars.gyrfi.set_variable(gyrfi, '', ['XBO', 'TIME'])
+    vars.gyrfi.set_variable(gyrfi, 's^-1', ['XBO', 'TIME'])
 
 def gmax(vars):
     '''Upper bound for ne, nh, te, and ti gradients in DRBM model (modmmm.f90)'''
@@ -434,11 +420,10 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
 
     # take gradient
     gradient_values = rmaj * dxvar / var.values
-
     gvar.set_variable(gradient_values, '', ['XBO', 'TIME'])
 
     if Options.instance.apply_smoothing:
-        gvar.apply_smoothing()
+        gvar.apply_smoothing(Options.instance.input_points)
 
     gvar.clamp_gradient(100)
     gvar.set_minvalue()
@@ -456,7 +441,7 @@ def calculate_variable(var_function, vars):
     var_name = var_function.__name__
 
     if Options.instance.apply_smoothing:
-        getattr(vars, var_name).apply_smoothing()
+        getattr(vars, var_name).apply_smoothing(Options.instance.input_points)
 
     getattr(vars, var_name).set_minvalue()
 
@@ -477,7 +462,6 @@ def calculate_inputs(cdf_vars):
     calculate_variable(ni, vars)
     calculate_variable(ahyd, vars)
     calculate_variable(aimass, vars)
-    calculate_variable(rmin, vars)
     calculate_variable(rho, vars)
     calculate_variable(tau, vars)
     calculate_variable(btor, vars)
@@ -536,7 +520,7 @@ def calculate_inputs(cdf_vars):
 
 def get_calculated_vars():
     '''Returns function names of calculated variables in this module, other than gradient calculations'''
-    return [o[0] for o in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(o[1]) and not 'calculate' in o[0]]
+    return [o[0] for o in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(o[1]) and 'calculate' not in o[0]]
 
 
 if __name__ == '__main__':
