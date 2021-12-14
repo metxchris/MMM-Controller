@@ -28,7 +28,7 @@ class VarData:
 
 
 def plot_variable_data(data_list, title):
-    fig = plt.figure()
+    plt.figure()
 
     for data in data_list:
         plt.plot(data.xvar.values, data.yvar.values, label=data.label)
@@ -119,7 +119,6 @@ if __name__ == '__main__':
     #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 2$', '129041A10', scan_num=2, var_to_scan='zeff', scan_factor=2),
     #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 3$', '129041A10', scan_num=2, var_to_scan='zeff', scan_factor=3),
     # ]
-
 
     # title, data_list = 'Diffusivity (120968A02, High)', [
     #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=0.5),
