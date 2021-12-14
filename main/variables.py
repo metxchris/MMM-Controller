@@ -38,6 +38,12 @@ class Variables:
                   f'{getattr(self, v).units}, '
                   f'{getattr(self, v).values.shape}, '
                   f'{getattr(self, v).dimensions}')
+    
+    def set_rho_values(self):
+        if self.rmin.values.ndim == 2:
+            self.rho.values = self.rmin.values / self.rmin.values[-1, :]
+        elif self.rmin.values.ndim == 1:
+            self.rho.values = self.rmin.values / self.rmin.values[-1]
 
     def get_data_as_array(self, var_list, time_idx=None):
         '''
@@ -88,7 +94,7 @@ class Variables:
 
         # Save data to the sub folder of the parameter being scanned
         else:
-            scan_factor_str = '{:0>7.3f}'.format(scan_factor)
+            scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
             save_dir = utils.get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan)
             file_name = f'{save_dir}\\{save_type.name.capitalize()} {options.var_to_scan} = {scan_factor_str}.csv'
 
@@ -96,6 +102,40 @@ class Variables:
         np.savetxt(file_name, data, header=header, fmt='%.4e', delimiter=',')
 
         print(f'{save_type.name.capitalize()} data saved to \n    {file_name}\n')
+
+    def load_data_from_csv(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
+        '''
+        Loads data from a CSV into the current Variables subclass object
+
+        Parameters:
+        * save_type (SaveType): The SaveType of the data being saved
+        * runid (str): The runid of the CSV to use
+        * scan_num (int): The scan number of the CSV to use
+        * var_to_scan (str): The scanned variable of the CSV to use (optional)
+        * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
+        * rho_value (str): The rho value of the CSV to use (optional)
+        '''
+
+        if rho_value is not None:
+            rho_str = constants.RHO_VALUE_FMT_STR.format(rho_value)
+            dir_path = utils.get_rho_path(runid, scan_num, var_to_scan)
+            file_path = f'{dir_path}\\{save_type.name.capitalize()} rho = {rho_str}.csv'
+
+        elif scan_factor is not None:
+            scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
+            dir_path = utils.get_var_to_scan_path(runid, scan_num, var_to_scan)
+            file_path = f'{dir_path}\\{save_type.name.capitalize()} {var_to_scan} = {scan_factor_str}.csv'
+
+        else:
+            dir_path = utils.get_scan_num_path(runid, scan_num)
+            file_path = f'{dir_path}\\{runid} {save_type.name.capitalize()} Profiles.csv'
+
+
+        data_array = np.genfromtxt(file_path, delimiter=',', dtype=float, names=True)
+        var_names = data_array.dtype.names
+
+        for var_name in var_names:
+            getattr(self, var_name).values = data_array[var_name]
 
 
 # Variables obtained from a CDF
@@ -216,9 +256,6 @@ class InputVariables(Variables):
         else:
             raise ValueError('Failed to set TIPRO since TIPRO is None')
 
-    def set_rho_values(self):
-        self.rho.values = self.rmin.values / self.rmin.values[-1, :]
-
     def save_vars_of_type(self, save_type, options, scan_factor=None):
         # Put rmin at the front of the variable list
         var_list = self.get_vars_of_type(save_type)
@@ -304,9 +341,6 @@ class OutputVariables(Variables):
     def get_weiland_vars(self):
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'W20' in var]
-
-    def set_rho_values(self):
-        self.rho.values = self.rmin.values / self.rmin.values[-1]
 
     def save_all_vars(self, options, scan_factor=None):
         # Put rmin at the front of the variable list
@@ -462,8 +496,8 @@ if __name__ == '__main__':
     from options import Options
     Options.instance.set(
         runid='TEST',
-        scan_num=1,
-        var_to_scan='te',
+        scan_num=10,
+        var_to_scan='gti',
         time_idx=0,
     )
     
@@ -482,5 +516,11 @@ if __name__ == '__main__':
         getattr(ovars, var_name).set(name='name', desc='desc', units='units', dimensions=['X', 'T'], values=values)
 
     # Save variable data to CSV
-    ivars.save_all_vars(Options.instance)
-    ovars.save_all_vars(Options.instance)
+    # ivars.save_all_vars(Options.instance)
+    # ovars.save_all_vars(Options.instance)
+
+    ivars = InputVariables()
+    ivars.load_data_from_csv(SaveType.INPUT, 'TEST', 10, 'gti', scan_factor=1.5)
+    ivars.load_data_from_csv(SaveType.ADDITIONAL,'TEST', 10, 'gti', scan_factor=1.5, rho_value=0.5)
+
+    ivars.print_nonzero_variables()

@@ -6,7 +6,7 @@ sys.path.insert(0, '../')
 import numpy as np
 
 # Local Packages
-from main import utils, variables
+from main import utils, variables, constants
 from main.options import Options
 from main.enums import SaveType
 
@@ -79,7 +79,7 @@ def save_reshaped_csv(reshaped_data, var_names, save_dir, save_type):
     header_str = ','.join(var_names)
 
     for data in reshaped_data:
-        rho_value = '{:.3f}'.format(data[0, 0] / rmin_max_value)
+        rho_value = constants.RHO_VALUE_FMT_STR.format(data[0, 0] / rmin_max_value)
         file_name = f'{base_file_name}{rho_value}.csv'
         np.savetxt(file_name, data, fmt='%.4e', delimiter=',', header=header_str)
 
@@ -145,9 +145,9 @@ For testing purposes:
 '''
 if __name__ == '__main__':
     opts = Options.instance
-    opts.runid = '129041A10'
-    opts.scan_num = 2
-    opts.var_to_scan = 'zeff'
+    opts.runid = 'TEST'
+    opts.scan_num = 10
+    opts.var_to_scan = 'gti'
     opts.scan_range = np.arange(1)
     utils.clear_folder(utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan), '*.csv')
     parse_scan_csv()
