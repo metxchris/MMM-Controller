@@ -6,14 +6,13 @@ sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
-from scipy.interpolate import interp1d # TODO: use Akima1DInterpolator?
+from scipy.interpolate import interp1d  # TODO: use Akima1DInterpolator?
 
 # Local Packages
 from main import variables, constants
 from main.options import Options
 
 
-# Set VPOL using VPOLD or VPOLH, if possible # TODO: handle this better
 def vpol(vars):
     '''Poloidal Velocity'''
     vpol = np.zeros((vars.xb.values.shape[0], vars.time.values.shape[0]))
@@ -66,9 +65,6 @@ def ahyd(vars):
 
     vars.ahyd.set_variable(ahyd, '', ['XBO', 'TIME'])
 
-# Note: We take ahyd as the weighted average of nh0 and nd, yet only use nh as max(nh0, nd)
-# This is because in MMM equations, we can take approximations where the primary ion is much greater than other ions
-# for ion density.  But these approximations are not correct for mean atomic mass.
 def aimass(vars):
     '''# Mean Atomic Mass of Thermal Ions'''
     ahyd = vars.ahyd.values
@@ -80,16 +76,6 @@ def aimass(vars):
 
     vars.aimass.set_variable(aimass, '', ['XBO', 'TIME'])
 
-# Minor Radius, and set origin value to 0
-def rmin(vars):
-    arat = vars.arat.values
-    rmaj = vars.rmaj.values
-
-    rmin = (rmaj / arat)
-    rmin[0, :] = np.zeros(vars.time.values.shape[0])
-
-    vars.rmin.set_variable(rmin, vars.rmaj.units, ['XBO', 'TIME'])
-
 # Rho (Approximation for rho)
 def rho(vars):
     rmin = vars.rmin.values
@@ -98,8 +84,8 @@ def rho(vars):
 
     vars.rho.set_variable(rho, '', ['XBO', 'TIME'])
 
-# Temperature Ratio
 def tau(vars):
+    '''Temperature Ratio'''
     te = vars.te.values
     ti = vars.ti.values
 
@@ -127,8 +113,8 @@ def vpar(vars):
 
     vars.vpar.set_variable(vpar, vars.vtor.units, ['XBO', 'TIME'])
 
-# Effective Charge
 def zeff(vars):
+    '''Effective Charge'''
     ne = vars.ne.values
     nf = vars.nf.values
     nh = vars.nh.values
@@ -150,6 +136,7 @@ def btor(vars):
     vars.btor.set_variable(btor, vars.bz.units, ['XBO', 'TIME'])
 
 def bpol(vars):
+    '''Poloidal Magnetic Field'''
     btor = vars.btor.values
     q = vars.q.values
     rmaj = vars.rmaj.values
@@ -212,7 +199,7 @@ def loge(vars):
 
     vars.loge.set_variable(loge, '', ['XBO', 'TIME'])
 
-# Collision Frequency (NU_{ei}) TODO: units?
+# Collision Frequency (NU_{ei})
 def nuei(vars):
     zcf = constants.ZCF
     ne = vars.ne.values
@@ -222,7 +209,7 @@ def nuei(vars):
 
     nuei = zcf * 2**(1/2) * ne * loge * zeff / te**(3/2)
 
-    vars.nuei.set_variable(nuei, '', ['XBO', 'TIME'])
+    vars.nuei.set_variable(nuei, 's^-1', ['XBO', 'TIME'])
 
 # OLD NOTE: Not sure what to call this, but it leads to the approx the correct NUSTI
 def nuei2(vars):
@@ -234,9 +221,9 @@ def nuei2(vars):
 
     nuei2 = zcf * 2**(1/2) * ni * loge * zeff / ti**(3/2)
 
-    vars.nuei2.set_variable(nuei2, '', ['XBO', 'TIME'])
+    vars.nuei2.set_variable(nuei2, 's^-1', ['XBO', 'TIME'])
 
-# Thermal Velocity of Electrons TODO: units?
+# Thermal Velocity of Electrons
 def vthe(vars):
     zckb = constants.ZCKB
     zcme = constants.ZCME
@@ -244,9 +231,9 @@ def vthe(vars):
 
     vthe = (2 * zckb * te / zcme)**(1/2)
 
-    vars.vthe.set_variable(vthe, '', ['XBO', 'TIME'])
+    vars.vthe.set_variable(vthe, 'm/s', ['XBO', 'TIME'])
 
-# Thermal Velocity of Ions TODO: units?
+# Thermal Velocity of Ions
 def vthi(vars):
     zckb = constants.ZCKB
     zcmp = constants.ZCMP
@@ -255,7 +242,7 @@ def vthi(vars):
 
     vthi = (zckb * ti / (zcmp * aimass))**(1/2)
 
-    vars.vthi.set_variable(vthi, '', ['XBO', 'TIME'])
+    vars.vthi.set_variable(vthi, 'm/s', ['XBO', 'TIME'])
 
 # Electron Collisionality (NU^{*}_{e}) TODO: units?
 # OLD NOTE: This is in approximate
@@ -291,8 +278,8 @@ def nusti(vars):
 
     vars.nusti.set_variable(nusti, '', ['XBO', 'TIME'])
 
-# Ion Gyrofrequency TODO: units
 def gyrfi(vars):
+    '''Ion Gyrofrequency'''
     zce = constants.ZCE
     zcmp = constants.ZCMP
     aimass = vars.aimass.values
@@ -300,10 +287,10 @@ def gyrfi(vars):
 
     gyrfi = zce * btor / (zcmp * aimass)
 
-    vars.gyrfi.set_variable(gyrfi, '', ['XBO', 'TIME'])
+    vars.gyrfi.set_variable(gyrfi, 's^-1', ['XBO', 'TIME'])
 
-# Upper bound for ne, nh, te, and ti gradients in DRBM model (modmmm7_1.f90) TODO: units
 def gmax(vars):
+    '''Upper bound for ne, nh, te, and ti gradients in DRBM model (modmmm.f90)'''
     eps = vars.eps.values
     q = vars.q.values
     rmaj = vars.rmaj.values
@@ -418,7 +405,7 @@ def test2(vars):
 def calculate_gradient(gvar_name, var_name, drmin, vars):
     rmaj = vars.rmaj.values
     x = vars.x.values[:, 0]
-    xb = vars.xb.values[:, 0] # includes origin
+    xb = vars.xb.values[:, 0]  # includes origin
 
     # get variables related to the gradient from variable names
     gvar = getattr(vars, gvar_name)
@@ -433,11 +420,10 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
 
     # take gradient
     gradient_values = rmaj * dxvar / var.values
-
     gvar.set_variable(gradient_values, '', ['XBO', 'TIME'])
 
     if Options.instance.apply_smoothing:
-        gvar.apply_smoothing()
+        gvar.apply_smoothing(Options.instance.input_points)
 
     gvar.clamp_gradient(100)
     gvar.set_minvalue()
@@ -455,7 +441,7 @@ def calculate_variable(var_function, vars):
     var_name = var_function.__name__
 
     if Options.instance.apply_smoothing:
-        getattr(vars, var_name).apply_smoothing()
+        getattr(vars, var_name).apply_smoothing(Options.instance.input_points)
 
     getattr(vars, var_name).set_minvalue()
 
@@ -476,7 +462,6 @@ def calculate_inputs(cdf_vars):
     calculate_variable(ni, vars)
     calculate_variable(ahyd, vars)
     calculate_variable(aimass, vars)
-    calculate_variable(rmin, vars)
     calculate_variable(rho, vars)
     calculate_variable(tau, vars)
     calculate_variable(btor, vars)
@@ -535,7 +520,7 @@ def calculate_inputs(cdf_vars):
 
 def get_calculated_vars():
     '''Returns function names of calculated variables in this module, other than gradient calculations'''
-    return [o[0] for o in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(o[1]) and not 'calculate' in o[0]]
+    return [o[0] for o in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(o[1]) and 'calculate' not in o[0]]
 
 
 if __name__ == '__main__':

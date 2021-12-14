@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Local Packages
-from main import constants, utils, calculate_inputs
+from main import constants, utils, calculations
 from main.enums import PlotType, ShotType
 from main.options import Options
 from plots.styles import standard as ps
@@ -198,7 +198,7 @@ def plot_output_profiles(vars):
 # Compares profiles of calculated values with values found in the CDF
 def plot_profile_comparison(cdf_vars, input_vars):
     # Get list of variables that were both calculated and found in the CDF
-    calculated_vars_list = calculate_inputs.get_calculated_vars()
+    calculated_vars_list = calculations.get_calculated_vars()
     cdf_var_list = cdf_vars.get_cdf_variables()
     compare_list = [var for var in calculated_vars_list if var in cdf_var_list]
 

@@ -60,7 +60,7 @@ if __name__ == '__main__':
     * Set var_to_scan = None to skip the variable scan
     * E.g.: var_to_scan = 'te'
     '''
-    Options.instance.set_options(
+    Options.instance.set(
         runid = cdf_name,
         shot_type = shot_type,
         input_time = input_time,

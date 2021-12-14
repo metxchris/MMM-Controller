@@ -24,7 +24,7 @@ def read_cdf(print_warnings=False):
     cdf = Dataset(cdf_file)
 
     # Runid from CDF should match input runid
-    if (cdf.Runid.strip() != Options.instance.runid):
+    if cdf.Runid.strip() != Options.instance.runid and Options.instance.runid != 'TEST':
         # TODO: Save all warnings strings and print at the end of code execution
         print(f'Warning: cdf.Runid {cdf.Runid.strip()} does not match Options.instance.runid {Options.instance.runid}')
 
