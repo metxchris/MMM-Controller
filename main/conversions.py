@@ -83,59 +83,6 @@ def interp_to_boundarygrid(input_var, xvals):
         print('[initial_conversion] *** Warning: Unsupported interpolation xdim type for variable', input_var.name, xdim)
 
 
-def initial_conversion(cdf_vars):
-    '''
-    Initializes the process of converting variables from CDF format to MMM format
-
-    The values of cdf_vars are copied to input_vars, then various values are stored before the conversion
-    process begins.  The measurement time and index of this time are also obtained from the input time, where
-    the time closest to the input time is taken as the measurement time.
-
-    Parameters:
-    * cdf_vars (InputVariables): Raw data from the CDF of all InputVariables with a specifed cdf_var value
-
-    Returns:
-    * input_vars (InputVariables): Data from the CDF converted into a format needed to run MMM
-    '''
-
-    input_vars = deepcopy(cdf_vars)
-
-    # Cache single column arrays of x-values
-    xvals = XValues(input_vars.x, input_vars.xb)
-
-    # Add the origin to the boundary grid
-    input_vars.xb.set_variable(np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0))
-
-    # Set the array index and measurement time value corresponding to the input time
-    Options.instance.set_measurement_time(input_vars.time)
-
-    # Update the number of input points, if needed
-    if Options.instance.input_points is None:
-        Options.instance.input_points = input_vars.get_nboundaries()
-
-    # Get list of CDF variables to convert to the format needed for MMM
-    # Independent variables listed below don't need to be converted
-    cdf_var_list = cdf_vars.get_cdf_variables()
-    for var_name in ['time', 'x', 'xb']:
-        cdf_var_list.remove(var_name)
-
-    # Convert remaining CDF variables into the format needed for MMM
-    for var_name in cdf_var_list:
-        input_var = getattr(input_vars, var_name)
-        if input_var.values is not None:
-            convert_units(input_var)
-            interp_to_boundarygrid(input_var, xvals)
-
-    # Use TEPRO, TIPRO in place of TE, TI
-    if Options.instance.temperature_profiles:
-        input_vars.use_temperature_profiles()
-
-    # Set value of rmin at origin to 0
-    input_vars.rmin.values[0, :] = 0
-
-    return input_vars
-
-
 def interp_to_input_points(input_vars):
     '''
     Interpolates from XB to a grid determined by input_points, if the input_point grid differs from XB
@@ -211,7 +158,7 @@ def interp_to_uniform_rho(input_vars):
         mmm_var = getattr(mmm_vars, var)
         interp_values = np.empty((len(rho_new), mmm_var.values.shape[1]))
         if mmm_var.values is None:
-                raise ValueError(f'Trying to interpolate variable {var} with values equal to None')
+            raise ValueError(f'Trying to interpolate variable {var} with values equal to None')
 
         if mmm_var.values.size > 1:
             for time_idx in range(mmm_var.values.shape[1]):
@@ -222,6 +169,59 @@ def interp_to_uniform_rho(input_vars):
             mmm_var.set_variable(interp_values)
 
     return mmm_vars
+
+
+def initial_conversion(cdf_vars):
+    '''
+    Initializes the process of converting variables from CDF format to MMM format
+
+    The values of cdf_vars are copied to input_vars, then various values are stored before the conversion
+    process begins.  The measurement time and index of this time are also obtained from the input time, where
+    the time closest to the input time is taken as the measurement time.
+
+    Parameters:
+    * cdf_vars (InputVariables): Raw data from the CDF of all InputVariables with a specifed cdf_var value
+
+    Returns:
+    * input_vars (InputVariables): Data from the CDF converted into a format needed to run MMM
+    '''
+
+    input_vars = deepcopy(cdf_vars)
+
+    # Cache single column arrays of x-values
+    xvals = XValues(input_vars.x, input_vars.xb)
+
+    # Add the origin to the boundary grid
+    input_vars.xb.set_variable(np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0))
+
+    # Set the array index and measurement time value corresponding to the input time
+    Options.instance.set_measurement_time(input_vars.time)
+
+    # Update the number of input points, if needed
+    if Options.instance.input_points is None:
+        Options.instance.input_points = input_vars.get_nboundaries()
+
+    # Get list of CDF variables to convert to the format needed for MMM
+    # Independent variables listed below don't need to be converted
+    cdf_var_list = cdf_vars.get_cdf_variables()
+    for var_name in ['time', 'x', 'xb']:
+        cdf_var_list.remove(var_name)
+
+    # Convert remaining CDF variables into the format needed for MMM
+    for var_name in cdf_var_list:
+        input_var = getattr(input_vars, var_name)
+        if input_var.values is not None:
+            convert_units(input_var)
+            interp_to_boundarygrid(input_var, xvals)
+
+    # Use TEPRO, TIPRO in place of TE, TI
+    if Options.instance.temperature_profiles:
+        input_vars.use_temperature_profiles()
+
+    # Set value of rmin at origin to 0
+    input_vars.rmin.values[0, :] = 0
+
+    return input_vars
 
 
 def convert_variables(cdf_vars):

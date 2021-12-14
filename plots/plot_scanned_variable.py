@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 # Local Packages
 from main import utils
-from main.enums import DataType, ScanType
+from main.enums import DataType, ScanType, SaveType
 from main.options import Options
 from main.controls import InputControls
 from main.variables import InputVariables, OutputVariables
@@ -32,19 +32,22 @@ def plot_parameter_scan(vars_to_plot):
     var_to_scan = Options.instance.var_to_scan
     scan_type = Options.instance.scan_type
 
-    input_vars_dict, output_vars_dict, input_controls = get_scanned_data()
+    input_vars_dict, additional_vars_dict, output_vars_dict, input_controls = get_scanned_data()
+
+    var_to_scan_type = getattr(InputVariables(), var_to_scan).save_type
+    x_vars_dict = input_vars_dict if var_to_scan_type == SaveType.INPUT else additional_vars_dict
 
     for var_to_plot in vars_to_plot:
         print(f'Creating scanned variable PDF for {var_to_plot}...')
 
         # rho_values are the same for both input and output variables
-        rho_values = input_vars_dict.keys()
+        rho_values = x_vars_dict.keys()
         profile_type = f'{var_to_plot}_{var_to_scan}'
 
         for i, rho_value in enumerate(rho_values):
             sheet_num = '{:03d}'.format(i)
 
-            xvar = getattr(input_vars_dict[rho_value] if scan_type == ScanType.VARIABLE else input_controls, var_to_scan)
+            xvar = getattr(x_vars_dict[rho_value] if scan_type == ScanType.VARIABLE else input_controls, var_to_scan)
             yvar = getattr(output_vars_dict[rho_value], var_to_plot)
 
             plt.plot(xvar.values, yvar.values)
@@ -77,7 +80,7 @@ def load_variables_from_file(file_path, data_type):
     var_names = data_array.dtype.names
 
     data_object = None
-    if data_type == DataType.INPUT:
+    if data_type == DataType.INPUT or data_type == DataType.ADDITIONAL:
         data_object = InputVariables()
     elif data_type == DataType.OUTPUT:
         data_object = OutputVariables()
@@ -99,14 +102,16 @@ def get_scanned_data():
     the filenames of the CSVs.
 
     Returns:
-    * input_vars_dict (dict): Dictionary mapping rho values (str) to InputVariables data
+    * input_vars_dict (dict): Dictionary mapping rho values (str) to InputVariables input data
+    * input_vars_dict (dict): Dictionary mapping rho values (str) to InputVariables additional data
     * output_vars_dict (dict): Dictionary mapping rho values (str) to OutputVariables data
     * input_controls (InputControls or None): InputControls object with np.ndarrays for values
     '''
 
     input_controls = None
-    input_vars_dict, output_vars_dict = {}, {}
+    input_vars_dict, additional_vars_dict, output_vars_dict = {}, {}, {}
     input_type_name = DataType.INPUT.name.capitalize()
+    additional_type_name = DataType.ADDITIONAL.name.capitalize()
     output_type_name = DataType.OUTPUT.name.capitalize()
 
     rho_path = get_rho_path()
@@ -115,8 +120,10 @@ def get_scanned_data():
     # Stores InputVariables and OutputVariables data objects for each rho_value
     for rho in rho_values:
         input_file_path = f'{rho_path}\\{input_type_name} rho = {rho}.csv'
+        additional_file_path = f'{rho_path}\\{additional_type_name} rho = {rho}.csv'
         output_file_path = f'{rho_path}\\{output_type_name} rho = {rho}.csv'
         input_vars_dict[rho] = load_variables_from_file(input_file_path, DataType.INPUT)
+        additional_vars_dict[rho] = load_variables_from_file(additional_file_path, DataType.ADDITIONAL)
         output_vars_dict[rho] = load_variables_from_file(output_file_path, DataType.OUTPUT)
 
     # Get control_file from rho folder (there should be at most one control file)
@@ -125,7 +132,7 @@ def get_scanned_data():
     for file in control_file:
         input_controls = load_variables_from_file(file, DataType.CONTROL)
 
-    return input_vars_dict, output_vars_dict, input_controls
+    return input_vars_dict, additional_vars_dict, output_vars_dict, input_controls
 
 
 def get_rho_path():
@@ -193,8 +200,10 @@ if __name__ == '__main__':
     * vars_to_plot = OutputVariables().get_all_output_vars()
     * vars_to_plot = OutputVariables().get_etgm_vars()
     '''
-    vars_to_plot = ['gmaETGM']
-    runid = '120982A09'
-    scan_num = 39
+    vars_to_plot = ['xteETGM', 'gmaETGM', 'omgETGM']
+    runid = '120968A02'
+    # runid = '120982A09'
+    # runid = '129041A10'
+    scan_num = 2
 
     main(vars_to_plot, runid, scan_num)

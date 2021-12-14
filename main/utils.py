@@ -246,7 +246,7 @@ def merge_profile_sheets(runid, scan_num, profile_type, is_scan=False):
     # Shell command to use pdftk.exe 
     # TODO: Replace os.system with subprocess.run()
     os.system(f'cd {temp_path} & {pdftk_path} *{profile_type}*.pdf cat output \"{output_file}\"')
-    print(f'Profiles saved to {output_file}\n')
+    print(f'Profiles saved to \n    {output_file}\n')
 
     return output_file
 

@@ -19,8 +19,8 @@ def adjust_nuei(mmm_vars, scan_factor):
     * Keeping tau constant also keeps alphamhd and gave constant
     * In order to keep tau and pressure constant, we must also adjust ti, nz, nd, nf, nh, and ni
     * These density adjustments keep average masses and zeff constant as well
-    * Note that normalized gradients are constant when multiplying their base by a constant factor
-    * The adjustment finding loop typically finds the target adjustment within 4 attemps for a tolerance of 1e-3
+    * Note that normalized gradients remain unchanged when multiplying their base variable by a constant factor
+    * The adjustment finding loop typically finds the target adjustment within 4 attempts for a tolerance of 1e-3
 
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file

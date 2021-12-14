@@ -4,7 +4,7 @@ sys.path.insert(0, '../')
 
 # Local Packages
 from main import utils
-from main.enums import ShotType, DataType
+from main.enums import ShotType, SaveType
 
 
 class InputControls:
@@ -126,11 +126,11 @@ class InputControls:
 
         if scan_factor is None:
             save_dir = utils.get_scan_num_path(options.runid, options.scan_num)
-            file_name = f'{save_dir}\\{DataType.CONTROL.name.capitalize()}.csv'
+            file_name = f'{save_dir}\\{SaveType.CONTROLS.name.capitalize()}.csv'
         else:
             scan_factor_str = '{:.3f}'.format(scan_factor)
             save_dir = utils.get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan)
-            file_name = f'{save_dir}\\{DataType.CONTROL.name.capitalize()} {options.var_to_scan} = {scan_factor_str}.csv'
+            file_name = f'{save_dir}\\{SaveType.CONTROLS.name.capitalize()} {options.var_to_scan} = {scan_factor_str}.csv'
 
         control_data = self.get_key_values_pairs()
 
