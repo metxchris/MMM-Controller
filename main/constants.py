@@ -1,3 +1,8 @@
+# Format strings
+SCAN_FACTOR_FMT_STR = '{:0>7.3f}'
+RHO_VALUE_FMT_STR = '{:.3f}'
+SHEET_NUM_FMT_STR = '{:03d}'
+
 # Unit string pairs for creating labels.  First item is the search string, second item is the replacement string
 UNIT_STRINGS = [
     ['N/M**3', r'$\mathrm{m}^{-3}$'],

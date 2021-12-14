@@ -7,7 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Local Packages
-from main import utils
+from main import utils, constants
 from main.enums import DataType, ScanType, SaveType
 from main.options import Options
 from main.controls import InputControls
@@ -45,7 +45,7 @@ def plot_parameter_scan(vars_to_plot):
         profile_type = f'{var_to_plot}_{var_to_scan}'
 
         for i, rho_value in enumerate(rho_values):
-            sheet_num = '{:03d}'.format(i)
+            sheet_num = constants.SHEET_NUM_FMT_STR.format(i)
 
             xvar = getattr(x_vars_dict[rho_value] if scan_type == ScanType.VARIABLE else input_controls, var_to_scan)
             yvar = getattr(output_vars_dict[rho_value], var_to_plot)
@@ -201,9 +201,10 @@ if __name__ == '__main__':
     * vars_to_plot = OutputVariables().get_etgm_vars()
     '''
     vars_to_plot = ['xteETGM', 'gmaETGM', 'omgETGM']
-    runid = '120968A02'
+    # runid = '120968A02'
     # runid = '120982A09'
     # runid = '129041A10'
-    scan_num = 2
+    runid = 'TEST'
+    scan_num = 19
 
     main(vars_to_plot, runid, scan_num)

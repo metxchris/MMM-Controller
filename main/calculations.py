@@ -188,15 +188,16 @@ def betae(vars):
 
     vars.betae.set_variable(betae, '', ['XBO', 'TIME'])
 
+# TODO: Need to add equations for different TE ranges
 def loge(vars):
-    '''Electron Coulomb Logarithm: Definition matches CLOGE from TRANSP (Dec 2021)'''
+    '''Electron Coulomb Logarithm'''
     ne = vars.ne.values
     te = vars.te.values
     zeff = vars.zeff.values
 
-    loge = 39.23 - np.log(zeff*ne**(1/2) / te)
-    # TODO: Need to add equations for different TE ranges
-
+    # loge = 39.23 - np.log(zeff*ne**(1 / 2) / te)  # TRANSP definition
+    loge = 37.8 - np.log(ne**(1 / 2) / te)  # NRL Plasma Formulary Definition
+    
     vars.loge.set_variable(loge, '', ['XBO', 'TIME'])
 
 # Collision Frequency (NU_{ei})
