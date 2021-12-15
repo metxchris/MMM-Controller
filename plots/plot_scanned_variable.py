@@ -14,6 +14,7 @@ from main.controls import InputControls
 from main.variables import InputVariables, OutputVariables
 from plots.styles import rho_layout as ps
 from plots.colors import mmm
+import settings
 
 
 def plot_parameter_scan(vars_to_plot):
@@ -59,7 +60,7 @@ def plot_parameter_scan(vars_to_plot):
         merged_pdf = utils.merge_profile_sheets(runid, scan_num, profile_type, is_scan=True)
 
         # File opening may only work on Windows
-        if Options.instance.auto_open_pdfs:
+        if settings.AUTO_OPEN_PDFS:
             utils.open_file(merged_pdf)
             
     # Remove figure from memory
@@ -168,9 +169,6 @@ if __name__ == '__main__':
     runid = 'TEST'
     scan_num = 25
 
-    # Note, saved options data will be loaded, and overwrite options data set here
-    Options.instance.set(
-        auto_open_pdfs=True,  # This value isn't saved in Options.csv
-    )
+    settings.AUTO_OPEN_PDFS = False
 
     main(vars_to_plot, runid, scan_num)

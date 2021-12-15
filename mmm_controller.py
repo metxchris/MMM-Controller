@@ -10,6 +10,7 @@ from main.enums import ShotType, ScanType
 from main.options import Options
 from main.controls import InputControls
 from plots import plot_profiles
+import settings
 
 
 def execute_basic_run(mmm_vars, controls):
@@ -209,7 +210,6 @@ if __name__ == '__main__':
         apply_smoothing=True,
         var_to_scan=var_to_scan,
         scan_range=scan_range,
-        auto_open_pdfs = False  # Not saved to Options.csv
     )
 
     '''
@@ -227,5 +227,7 @@ if __name__ == '__main__':
         etgm_kyrhos=0.33,
         etgm_cl=1,  # etgm_cl=0 is collisionless, etgm_cl=1 is collisional
     )
+
+    settings.AUTO_OPEN_PDFS = True
 
     main(controls)

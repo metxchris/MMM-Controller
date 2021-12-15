@@ -14,6 +14,7 @@ from main import constants, utils, calculations
 from main.enums import PlotType, ShotType
 from main.options import Options
 from plots.styles import standard as ps
+import settings
 
 
 # Subplot row and column counts
@@ -109,7 +110,7 @@ def run_plotting_loop(plotdata, plot_type):
     merged_pdf = utils.merge_profile_sheets(opts.runid, opts.scan_num, plot_type.name.capitalize())
 
     # File opening may only work on Windows
-    if Options.instance.auto_open_pdfs:
+    if settings.AUTO_OPEN_PDFS:
         utils.open_file(merged_pdf)
 
     # Clear plots from memory

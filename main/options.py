@@ -50,9 +50,6 @@ class OptionsData:
     _uniform_rho = False
     _var_to_scan = None
 
-    # Public members aren't saved
-    auto_open_pdfs = False
-
     # Properties
     @property
     def apply_smoothing(self):
