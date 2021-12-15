@@ -117,7 +117,7 @@ class Variables:
         '''
 
         if rho_value is not None:
-            rho_str = constants.RHO_VALUE_FMT_STR.format(rho_value)
+            rho_str = rho_value if type(rho_value) is str else constants.RHO_VALUE_FMT_STR.format(rho_value)
             dir_path = utils.get_rho_path(runid, scan_num, var_to_scan)
             file_path = f'{dir_path}\\{save_type.name.capitalize()} rho = {rho_str}.csv'
 

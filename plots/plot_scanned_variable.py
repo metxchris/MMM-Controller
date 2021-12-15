@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 # Local Packages
 from main import utils, constants
-from main.enums import DataType, ScanType, SaveType
+from main.enums import ScanType, SaveType
 from main.options import Options
 from main.controls import InputControls
 from main.variables import InputVariables, OutputVariables
@@ -32,65 +32,38 @@ def plot_parameter_scan(vars_to_plot):
     var_to_scan = Options.instance.var_to_scan
     scan_type = Options.instance.scan_type
 
-    input_vars_dict, additional_vars_dict, output_vars_dict, input_controls = get_scanned_data()
-
-    var_to_scan_type = getattr(InputVariables(), var_to_scan).save_type
-    x_vars_dict = input_vars_dict if var_to_scan_type == SaveType.INPUT else additional_vars_dict
+    input_vars_dict, output_vars_dict, input_controls = get_scanned_data()
 
     for var_to_plot in vars_to_plot:
         print(f'Creating scanned variable PDF for {var_to_plot}...')
 
-        # rho_values are the same for both input and output variables
-        rho_values = x_vars_dict.keys()
+        # rho_strs are the same for both input and output variables
+        rho_strs = input_vars_dict.keys()
         profile_type = f'{var_to_plot}_{var_to_scan}'
 
-        for i, rho_value in enumerate(rho_values):
+        for i, rho_str in enumerate(rho_strs):
             sheet_num = constants.SHEET_NUM_FMT_STR.format(i)
 
-            xvar = getattr(x_vars_dict[rho_value] if scan_type == ScanType.VARIABLE else input_controls, var_to_scan)
-            yvar = getattr(output_vars_dict[rho_value], var_to_plot)
+            xvar_data = input_vars_dict[rho_str] if scan_type == ScanType.VARIABLE else input_controls
+            xvar = getattr(xvar_data, var_to_scan)
+            yvar = getattr(output_vars_dict[rho_str], var_to_plot)
 
             plt.plot(xvar.values, yvar.values)
             plt.xlabel(f'{xvar.label}  {xvar.units_label}')
             plt.ylabel(f'{yvar.label}  {yvar.units_label}')
-            plt.title(f'{yvar.name}' + r' ($\rho = {0}$)'.format(rho_value))
+            plt.title(f'{yvar.name}' + r' ($\rho = {0}$)'.format(rho_str))
 
             fig.savefig(utils.get_temp_path(f'{profile_type} {sheet_num}.pdf'))
             plt.clf()  # Clear figure data
 
-        utils.open_file(utils.merge_profile_sheets(runid, scan_num, profile_type, is_scan=True))
+        merged_pdf = utils.merge_profile_sheets(runid, scan_num, profile_type, is_scan=True)
 
+        # File opening may only work on Windows
+        if Options.instance.auto_open_pdfs:
+            utils.open_file(merged_pdf)
+            
     # Remove figure from memory
     plt.close('all')
-
-
-def load_variables_from_file(file_path, data_type):
-    '''
-    Loads data from a CSV into either an InputVariables or OutputVariables object
-
-    Parameters:
-    * file_path (str): The path to the CSV to load
-    * data_type (DataType): The enum pertaining to the type of data in the CSV
-
-    Returns:
-    * data_object (InputVariables, OutputVariables, or InputControls): Object containing data from the CSV
-    '''
-
-    data_array = np.genfromtxt(file_path, delimiter=',', dtype=float, names=True)
-    var_names = data_array.dtype.names
-
-    data_object = None
-    if data_type == DataType.INPUT or data_type == DataType.ADDITIONAL:
-        data_object = InputVariables()
-    elif data_type == DataType.OUTPUT:
-        data_object = OutputVariables()
-    elif data_type == DataType.CONTROL:
-        data_object = InputControls()
-
-    for var_name in var_names:
-        getattr(data_object, var_name).values = data_array[var_name]
-
-    return data_object
 
 
 def get_scanned_data():
@@ -103,57 +76,45 @@ def get_scanned_data():
 
     Returns:
     * input_vars_dict (dict): Dictionary mapping rho values (str) to InputVariables input data
-    * input_vars_dict (dict): Dictionary mapping rho values (str) to InputVariables additional data
     * output_vars_dict (dict): Dictionary mapping rho values (str) to OutputVariables data
     * input_controls (InputControls or None): InputControls object with np.ndarrays for values
     '''
 
-    input_controls = None
-    input_vars_dict, additional_vars_dict, output_vars_dict = {}, {}, {}
-    input_type_name = DataType.INPUT.name.capitalize()
-    additional_type_name = DataType.ADDITIONAL.name.capitalize()
-    output_type_name = DataType.OUTPUT.name.capitalize()
-
-    rho_path = get_rho_path()
-    rho_values = get_rho_values(rho_path)
-
-    # Stores InputVariables and OutputVariables data objects for each rho_value
-    for rho in rho_values:
-        input_file_path = f'{rho_path}\\{input_type_name} rho = {rho}.csv'
-        additional_file_path = f'{rho_path}\\{additional_type_name} rho = {rho}.csv'
-        output_file_path = f'{rho_path}\\{output_type_name} rho = {rho}.csv'
-        input_vars_dict[rho] = load_variables_from_file(input_file_path, DataType.INPUT)
-        additional_vars_dict[rho] = load_variables_from_file(additional_file_path, DataType.ADDITIONAL)
-        output_vars_dict[rho] = load_variables_from_file(output_file_path, DataType.OUTPUT)
-
-    # Get control_file from rho folder (there should be at most one control file)
-    control_file = utils.get_files_in_dir(rho_path, DataType.CONTROL.name.capitalize() + '*', show_warning=False)
-
-    for file in control_file:
-        input_controls = load_variables_from_file(file, DataType.CONTROL)
-
-    return input_vars_dict, additional_vars_dict, output_vars_dict, input_controls
-
-
-def get_rho_path():
-    '''Returns a path to the rho folder for this runid, scan_num, and var_to_scan (str)'''
-
     runid = Options.instance.runid
     scan_num = Options.instance.scan_num
     var_to_scan = Options.instance.var_to_scan
-    return utils.get_rho_path(runid, scan_num, var_to_scan)
 
+    input_vars_dict, output_vars_dict = {}, {}
 
-def get_rho_values(rho_path):
-    '''
-    Returns a list of all rho values used for output files that were saved in the rho_path (list)
+    rho_path = utils.get_rho_path(runid, scan_num, var_to_scan)
+    rho_values = utils.get_rho_values(runid, scan_num, var_to_scan, SaveType.OUTPUT)
 
-    Parameters:
-    * rho_path (str): Path to the rho folder
-    '''
+    # Stores InputVariables and OutputVariables data objects for each rho_value
+    for rho in rho_values:
+        input_vars = InputVariables()
+        output_vars = OutputVariables()
 
-    output_files = utils.get_files_in_dir(rho_path, DataType.OUTPUT.name.capitalize() + '*')
-    return [file.split('rho = ')[1].split('.csv')[0] for file in output_files]
+        args = (runid, scan_num, var_to_scan, None, rho)
+        input_vars.load_data_from_csv(SaveType.INPUT, *args)
+        input_vars.load_data_from_csv(SaveType.ADDITIONAL, *args)
+        output_vars.load_data_from_csv(SaveType.OUTPUT, *args)
+
+        input_vars_dict[rho] = input_vars
+        output_vars_dict[rho] = output_vars
+
+    # Get control_file from rho folder (there should be at most one control file)
+    control_file = utils.get_files_in_dir(rho_path, SaveType.CONTROLS.name.capitalize() + '*', show_warning=False)
+    input_controls = InputControls()
+
+    # Note: This won't run if control_file is an empty list
+    for file in control_file:
+        data_array = np.genfromtxt(file, delimiter=',', dtype=float, names=True)
+        var_names = data_array.dtype.names
+
+        for var_name in var_names:
+            getattr(input_controls, var_name).values = data_array[var_name]
+
+    return input_vars_dict, output_vars_dict, input_controls
 
 
 def verify_vars_to_plot(vars_to_plot):
@@ -200,11 +161,16 @@ if __name__ == '__main__':
     * vars_to_plot = OutputVariables().get_all_output_vars()
     * vars_to_plot = OutputVariables().get_etgm_vars()
     '''
-    vars_to_plot = ['xteETGM', 'gmaETGM', 'omgETGM']
+    vars_to_plot = ['xteETGM']
     # runid = '120968A02'
     # runid = '120982A09'
     # runid = '129041A10'
     runid = 'TEST'
-    scan_num = 19
+    scan_num = 25
+
+    # Note, saved options data will be loaded, and overwrite options data set here
+    Options.instance.set(
+        auto_open_pdfs=True,  # This value isn't saved in Options.csv
+    )
 
     main(vars_to_plot, runid, scan_num)

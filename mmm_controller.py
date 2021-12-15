@@ -209,6 +209,7 @@ if __name__ == '__main__':
         apply_smoothing=True,
         var_to_scan=var_to_scan,
         scan_range=scan_range,
+        auto_open_pdfs = False  # Not saved to Options.csv
     )
 
     '''

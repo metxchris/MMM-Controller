@@ -38,7 +38,17 @@ def get_var_to_scan_path(runid, scan_num, var_to_scan):
     return get_output_path(f'{runid}\\scan {scan_num}\\{var_to_scan}')
 
 def get_rho_path(runid, scan_num, var_to_scan):
+    '''Returns (str): the path of the rho folder'''
     return f'{get_var_to_scan_path(runid, scan_num, var_to_scan)}\\rho'
+
+def get_rho_files(runid, scan_num, var_to_scan, save_type):
+    '''Returns (list): all rho files of save_type in the rho folder'''
+    return get_files_in_dir(get_rho_path(runid, scan_num, var_to_scan), save_type.name.capitalize() + '*')
+
+def get_rho_values(runid, scan_num, var_to_scan, save_type):
+    '''Returns (list): the rho values of all rho files in the rho folder'''
+    rho_files = get_rho_files(runid, scan_num, var_to_scan, save_type)
+    return [file.split('rho = ')[1].split('.csv')[0] for file in rho_files]
 
 
 def init_output_dirs(options):

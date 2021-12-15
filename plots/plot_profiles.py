@@ -106,8 +106,11 @@ def run_plotting_loop(plotdata, plot_type):
     if (i + 1) % (ROWS * COLS) != 0:
        fig.savefig(utils.get_temp_path(f'{plot_type.name.lower()}_profiles_{int((i + 1) / 6) + 1}.pdf'))
 
-    # Merge individual pdf sheets with pdftk, then open file (may only open on Windows OS)
-    utils.open_file(utils.merge_profile_sheets(opts.runid, opts.scan_num, plot_type.name.capitalize()))
+    merged_pdf = utils.merge_profile_sheets(opts.runid, opts.scan_num, plot_type.name.capitalize())
+
+    # File opening may only work on Windows
+    if Options.instance.auto_open_pdfs:
+        utils.open_file(merged_pdf)
 
     # Clear plots from memory
     plt.close('all')
