@@ -62,7 +62,7 @@ def plot_parameter_scan(vars_to_plot):
         # File opening may only work on Windows
         if settings.AUTO_OPEN_PDFS:
             utils.open_file(merged_pdf)
-            
+
     # Remove figure from memory
     plt.close('all')
 
@@ -78,7 +78,7 @@ def get_scanned_data():
     Returns:
     * input_vars_dict (dict): Dictionary mapping rho values (str) to InputVariables input data
     * output_vars_dict (dict): Dictionary mapping rho values (str) to OutputVariables data
-    * input_controls (InputControls or None): InputControls object with np.ndarrays for values
+    * input_controls (InputControls or None): InputControls object with np.ndarray for values
     '''
 
     runid = Options.instance.runid
@@ -86,8 +86,6 @@ def get_scanned_data():
     var_to_scan = Options.instance.var_to_scan
 
     input_vars_dict, output_vars_dict = {}, {}
-
-    rho_path = utils.get_rho_path(runid, scan_num, var_to_scan)
     rho_values = utils.get_rho_values(runid, scan_num, var_to_scan, SaveType.OUTPUT)
 
     # Stores InputVariables and OutputVariables data objects for each rho_value
@@ -103,17 +101,9 @@ def get_scanned_data():
         input_vars_dict[rho] = input_vars
         output_vars_dict[rho] = output_vars
 
-    # Get control_file from rho folder (there should be at most one control file)
-    control_file = utils.get_files_in_dir(rho_path, SaveType.CONTROLS.name.capitalize() + '*', show_warning=False)
+    # Get control_file from rho folder (there's at most one control file, as controls are independent of rho values)
     input_controls = InputControls()
-
-    # Note: This won't run if control_file is an empty list
-    for file in control_file:
-        data_array = np.genfromtxt(file, delimiter=',', dtype=float, names=True)
-        var_names = data_array.dtype.names
-
-        for var_name in var_names:
-            getattr(input_controls, var_name).values = data_array[var_name]
+    input_controls.load_from_csv(runid, scan_num, var_to_scan, use_rho=True)
 
     return input_vars_dict, output_vars_dict, input_controls
 

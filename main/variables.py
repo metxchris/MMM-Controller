@@ -87,16 +87,16 @@ class Variables:
         * scan_factor (float): The scan_factor, if doing a parameter scan
         '''
 
-        # Save data to top level directory of scan folder
-        if scan_factor is None:
-            save_dir = utils.get_scan_num_path(options.runid, options.scan_num)
-            file_name = f'{save_dir}\\{options.runid} {save_type.name.capitalize()} Profiles.csv'
-
         # Save data to the sub folder of the parameter being scanned
-        else:
+        if scan_factor is not None:
             scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
             save_dir = utils.get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan)
             file_name = f'{save_dir}\\{save_type.name.capitalize()} {options.var_to_scan} = {scan_factor_str}.csv'
+
+        # Save data to top level directory of scan folder
+        else:
+            save_dir = utils.get_scan_num_path(options.runid, options.scan_num)
+            file_name = f'{save_dir}\\{options.runid} {save_type.name.capitalize()} Profiles.csv'
 
         utils.create_directory(save_dir)
         np.savetxt(file_name, data, header=header, fmt='%.4e', delimiter=',')
@@ -113,7 +113,7 @@ class Variables:
         * scan_num (int): The scan number of the CSV to use
         * var_to_scan (str): The scanned variable of the CSV to use (optional)
         * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
-        * rho_value (str): The rho value of the CSV to use (optional)
+        * rho_value (str or float): The rho value of the CSV to use (optional)
         '''
 
         if rho_value is not None:
@@ -129,7 +129,6 @@ class Variables:
         else:
             dir_path = utils.get_scan_num_path(runid, scan_num)
             file_path = f'{dir_path}\\{runid} {save_type.name.capitalize()} Profiles.csv'
-
 
         data_array = np.genfromtxt(file_path, delimiter=',', dtype=float, names=True)
         var_names = data_array.dtype.names
@@ -472,7 +471,7 @@ class Variable:
             sigma = int(input_points * self.smooth / 100)
             self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(sigma, 0))
 
-    # Clamps values between -value and value, and sets origin value to apprximately 0
+    # Clamps values between -value and value, and sets origin value to approximately 0
     def clamp_gradient(self, value):
         self.values[0, :] = 1e-6
         self.values[self.values > value] = value
@@ -480,7 +479,7 @@ class Variable:
 
     # Removes values outside of m standard deviations
     # TODO: Currently not ideal since removed values are replaced with None,
-    # which turns everything into nan after smoothing or intepolating again
+    # which turns everything into nan after smoothing or interpolating again
     def reject_outliers(self, m=4):
         self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
 

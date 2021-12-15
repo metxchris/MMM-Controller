@@ -2,8 +2,11 @@
 import sys
 sys.path.insert(0, '../')
 
+# 3rd Party Packages
+import numpy as np
+
 # Local Packages
-from main import utils
+from main import utils, constants
 from main.enums import ShotType, SaveType
 
 
@@ -81,6 +84,9 @@ class InputControls:
         self.etgm_kyrhoe.values = max(0, self.etgm_kyrhoe.values)
 
     def get_mmm_header(self):
+        if type (self.npoints.values) is np.ndarray:
+            raise ValueError('Unable to create MMM header for controls loaded with array values')
+
         return MMM_HEADER.format(
             npoints=self.npoints.get_value_str(),
             cmodel_weiland=self.cmodel_weiland.get_value_str(),
@@ -111,26 +117,26 @@ class InputControls:
     def get_keys(self):
         return [o for o in dir(self) if not callable(getattr(self, o)) and not o.startswith("_")]
 
-    def get_values(self):
-        keys = self.get_keys()
-        return [getattr(self, o).values for o in keys]
-
     def get_key_values_pairs(self):
         '''Returns (list): All key-values pairs of input controls'''
-
         keys = self.get_keys()
         return [str(o) + ', ' + str(getattr(self, o).values).replace('\n', '') for o in keys]
+
+    def print_key_values_pairs(self):
+        kvps = self.get_key_values_pairs()
+        for kvp in kvps:
+            print(kvp)
 
     def save_controls(self, options, scan_factor=None):
         '''Saves InputControls data to CSV'''
 
-        if scan_factor is None:
-            save_dir = utils.get_scan_num_path(options.runid, options.scan_num)
-            file_name = f'{save_dir}\\{SaveType.CONTROLS.name.capitalize()}.csv'
-        else:
+        if scan_factor is not None:
             scan_factor_str = '{:.3f}'.format(scan_factor)
             save_dir = utils.get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan)
             file_name = f'{save_dir}\\{SaveType.CONTROLS.name.capitalize()} {options.var_to_scan} = {scan_factor_str}.csv'
+        else:
+            save_dir = utils.get_scan_num_path(options.runid, options.scan_num)
+            file_name = f'{save_dir}\\{SaveType.CONTROLS.name.capitalize()}.csv'
 
         control_data = self.get_key_values_pairs()
 
@@ -139,6 +145,39 @@ class InputControls:
             f.write(f'{data}\n')
 
         print(f'Input controls saved to \n    {file_name}\n')
+
+    def load_from_csv(self, runid, scan_num, var_to_scan=None, scan_factor=None, use_rho=False):
+        '''
+        Loads Controls data from a CSV into the current Controls object
+
+        Parameters:
+        * runid (str): The runid of the CSV to use
+        * scan_num (int): The scan number of the CSV to use
+        * var_to_scan (str): The scanned variable of the CSV to use (optional)
+        * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
+        * use_rho (bool): True if the CSV to load is in the rho folder (optional)
+        '''
+
+        if use_rho:
+            dir_path = utils.get_rho_path(runid, scan_num, var_to_scan)
+
+        elif scan_factor is not None:
+            # Note: Not implemented yet
+            # scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
+            dir_path = utils.get_var_to_scan_path(runid, scan_num, var_to_scan)
+
+        else:
+            dir_path = utils.get_scan_num_path(runid, scan_num)
+
+        control_files = utils.get_files_in_dir(dir_path, f'{SaveType.CONTROLS.name.capitalize()}*', show_warning=False)
+
+        # There may not be a Controls.CSV file to load in some cases, which is expected
+        for file in control_files:
+            data_array = np.genfromtxt(file, delimiter=',', dtype=float, names=True)
+            control_names = data_array.dtype.names
+
+            for name in control_names:
+                getattr(self, name).values = data_array[name]
 
 
 class Control:
@@ -221,18 +260,29 @@ For testing purposes:
 if __name__ == '__main__':
     from main.options import Options
 
+    '''Print sample MMM Header from user-specified Options'''
     Options.instance.set(
-        runid='129041A10',
+        runid='TEST',
         shot_type=ShotType.NSTX,
         input_points=51,
         scan_num=1)
     controls = InputControls(Options.instance)
-    controls.set(
-        etgm_kyrhos=0.65,
-        etgm_kyrhoe=0.05,
-    )
-
-    print(controls.get_keys())
+    print(f'Example MMM Header:\n{"-"*50}')
     print(controls.get_mmm_header())
-    print(controls.get_key_values_pairs())
+
+    '''Print Controls values from saved Options CSV'''
+    Options.instance.load_options(
+        runid='TEST',
+        scan_num=25,
+    )
+    controls = InputControls(Options.instance)
+    controls.load_from_csv(
+        Options.instance.runid,
+        Options.instance.scan_num,
+        Options.instance.var_to_scan,
+        use_rho=True,
+    )
+    print(f'Controls Values Loaded From CSV:\n{"-"*50}')
+    controls.print_key_values_pairs()
+
     # controls.save_controls(Options.instance)

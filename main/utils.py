@@ -9,6 +9,7 @@ import pdftk, output, temp, cdfs
 from main.enums import ScanType
 
 
+'''Path related functions'''
 def get_cdf_path(file_name):
     '''Returns (str): the path to specified CDF within the CDF folder'''
     return f'{os.path.dirname(cdfs.__file__)}\\{file_name}.CDF'
@@ -43,7 +44,7 @@ def get_rho_path(runid, scan_num, var_to_scan):
 
 def get_rho_files(runid, scan_num, var_to_scan, save_type):
     '''Returns (list): all rho files of save_type in the rho folder'''
-    return get_files_in_dir(get_rho_path(runid, scan_num, var_to_scan), save_type.name.capitalize() + '*')
+    return get_files_in_dir(get_rho_path(runid, scan_num, var_to_scan), f'{save_type.name.capitalize()}*')
 
 def get_rho_values(runid, scan_num, var_to_scan, save_type):
     '''Returns (list): the rho values of all rho files in the rho folder'''

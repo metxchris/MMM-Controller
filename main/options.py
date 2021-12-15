@@ -18,7 +18,7 @@ class OptionsData:
     Store options for MMM Controller
 
     Properties:
-    * apply_smoothing (bool): killswitch to disable smoothing of all variables
+    * apply_smoothing (bool): kill-switch to disable smoothing of all variables
     * input_points (int): the amount of radial points each variable is interpolated to when sent to MMM
     * input_time (float): the time to check the CDF for values
     * reject_outliers (bool): replaces outliers with values of 0
