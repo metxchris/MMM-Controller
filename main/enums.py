@@ -10,14 +10,6 @@ class PlotType(Enum):
     ADDITIONAL = 4
 
 
-class DataType(Enum):
-    NONE = 0
-    INPUT = 1
-    OUTPUT = 2
-    ADDITIONAL = 3
-    CONTROL = 4
-
-
 class SaveType(Enum):
     NONE = 0
     INPUT = 1

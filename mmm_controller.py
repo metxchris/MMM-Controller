@@ -61,7 +61,7 @@ def execute_variable_scan(mmm_vars, controls):
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing variable scan {i + 1} of {len(scan_range)} for variable {var_to_scan}')
 
-        # Modifiy values of variable being scanned
+        # Modify values of variable being scanned
         # Note: Dependent variables will be handled on a case-by-case basis
         adjusted_vars = adjustments.adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor)
         adjusted_vars.save_all_vars(Options.instance, scan_factor)
@@ -100,7 +100,7 @@ def execute_control_scan(mmm_vars, controls):
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing control scan {i + 1} of {len(scan_range)} for control {var_to_scan}')
 
-        # Modifiy values of variable being scanned
+        # Modify values of variable being scanned
         # Note: Dependent variables will be handled on a case-by-case basis
         scanned_control.values = scan_factor * base_control.values
         mmm_vars.save_all_vars(Options.instance, scan_factor)

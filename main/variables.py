@@ -10,7 +10,7 @@ from multipledispatch import dispatch
 
 # Local Packages
 from main import constants, utils
-from main.enums import SaveType, DataType
+from main.enums import SaveType
 
 
 # Parent class for input and output variables
