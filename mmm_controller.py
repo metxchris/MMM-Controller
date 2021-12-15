@@ -6,7 +6,7 @@ import numpy as np
 
 # Local Packages
 from main import *
-from main.enums import ShotType, ScanType
+from main.enums import ShotType, ScanType, ProfileType
 from main.options import Options
 from main.controls import InputControls
 from plots import plot_profiles
@@ -30,7 +30,7 @@ def execute_basic_run(mmm_vars, controls):
     run_driver.run_mmm_driver()
     output_vars = read_output.read_output_file()
     output_vars.save_all_vars(Options.instance)
-    plot_profiles.plot_output_profiles(output_vars)
+    plot_profiles.plot_profiles(output_vars, ProfileType.OUTPUT)
 
 
 def execute_variable_scan(mmm_vars, controls):
@@ -159,8 +159,8 @@ def main(controls):
     mmm_vars.save_all_vars(Options.instance)
 
     plot_profiles.plot_profile_comparison(cdf_vars, mmm_vars)
-    plot_profiles.plot_input_profiles(mmm_vars)
-    plot_profiles.plot_additional_profiles(mmm_vars)
+    plot_profiles.plot_profiles(mmm_vars, ProfileType.INPUT)
+    plot_profiles.plot_profiles(mmm_vars, ProfileType.ADDITIONAL)
 
     execute_basic_run(mmm_vars, controls)
 
