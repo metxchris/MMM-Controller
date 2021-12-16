@@ -356,7 +356,18 @@ class OutputVariables(Variables):
 
 
 class Variable:
-    def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None, absminvalue=None, save_type=None, units='', dimensions=None, values=None):
+    def __init__(self,
+                 name,
+                 cdfvar=None,
+                 smooth=None,
+                 label='',
+                 desc='',
+                 minvalue=None,
+                 absminvalue=None,
+                 save_type=None,
+                 units='',
+                 dimensions=None,
+                 values=None):
         # Public
         self.name = name
         self.cdfvar = cdfvar  # Name of variable as used in CDF's
@@ -459,7 +470,6 @@ class Variable:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-
     def apply_smoothing(self, input_points):
         '''
         Variable smoothing using a Gaussian filter
@@ -503,7 +513,7 @@ if __name__ == '__main__':
         var_to_scan='gti',
         time_idx=0,
     )
-    
+
     # Create InputVariables and OutputVariables, and populate with non-zero values
     ivars = InputVariables()
     print(ivars.nuei.save_type)
@@ -523,7 +533,7 @@ if __name__ == '__main__':
     # ovars.save_all_vars(Options.instance)
 
     ivars = InputVariables()
-    ivars.load_from_csv(SaveType.INPUT, 'TEST', 1, 'gti', scan_factor=1.5)
-    ivars.load_from_csv(SaveType.ADDITIONAL,'TEST', 1, 'gti', scan_factor=1.5, rho_value=0.5)
+    ivars.load_from_csv(SaveType.INPUT, 'TEST', 25, 'tau', scan_factor=1.5)
+    ivars.load_from_csv(SaveType.ADDITIONAL, 'TEST', 25, 'tau', scan_factor=1.5, rho_value=0.5)
 
     ivars.print_nonzero_variables()
