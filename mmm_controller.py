@@ -133,9 +133,9 @@ def initialize_variables():
     return mmm_vars, cdf_vars, raw_cdf_vars
 
 
-def main(controls):
+def run_mmm_controller(controls):
     '''
-    Main function which controls the MMM driver
+    Controller function which runs the MMM driver
 
     Needed output folders are created and a unique scan number is chosen for storing output data.
     All input variable objects are initialized and corresponding plot PDFs are created.  The MMM driver
@@ -170,29 +170,55 @@ def main(controls):
         execute_control_scan(mmm_vars, controls)
 
 
+def main(scanned_vars, controls):
+    '''
+    Main function that loops runs the controller while looping through scanned_vars
+
+    Parameters:
+    * scanned_vars (Dict): Dictionary of variables being scanned
+        - keys (str or None): The variable being scanned
+        - values (np.ndarray or None): The range of factors to scan over
+    * controls (InputControls): Specifies input control values in the MMM input file
+    '''
+
+    # TODO: Add validation for all items in scanned_vars
+
+    for var_to_scan, scan_range in scanned_vars.items():
+        Options.instance.set(var_to_scan=var_to_scan, scan_range=scan_range)
+        controls.update_from_options(Options.instance)
+        run_mmm_controller(controls)
+
+
 # Run this file directly to plot variable profiles and run the MMM driver
 if __name__ == '__main__':
+
+    scanned_vars = {}
+
     '''
     CDF Options:
     * Uncomment the line you wish to use
     '''
-    cdf_name, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
+    # cdf_name, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
     # cdf_name, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
     # cdf_name, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
     # cdf_name, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
     # cdf_name, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
-    # cdf_name, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
+    cdf_name, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
 
     '''
     Scan Options:
-    * Uncomment the line you wish to use
+    * Uncomment the lines you wish to include in scanned_vars
+        - keys (str or None): The variable being scanned
+        - values (np.ndarray or None): The range of factors to scan over
     '''
-    # var_to_scan, scan_range = None, None
-    # var_to_scan, scan_range = 'nuei', np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
-    # var_to_scan, scan_range = 'gte', np.arange(start=0.025, stop=5 + 1e-6, step=0.025)
-    # var_to_scan, scan_range = 'nuei', np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # var_to_scan, scan_range = 'etgm_kyrhoe', np.arange(start=0, stop=5 + 1e-6, step=0.025)
-    var_to_scan, scan_range = 'zeff', np.arange(start=0.1, stop=20 + 1e-6, step=0.1)
+    scanned_vars[None] = None
+    scanned_vars['gti'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
+    scanned_vars['gte'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
+    # scanned_vars['gte'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['nuei'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['tau'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['zeff'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
 
     '''
     Input Options:
@@ -208,13 +234,11 @@ if __name__ == '__main__':
         input_points=201,
         uniform_rho=True,
         apply_smoothing=True,
-        var_to_scan=var_to_scan,
-        scan_range=scan_range,
     )
 
     '''
     Input Control Options:
-    * cmodel controls enable the corresponding model if set to 1, and disable it if set to 0
+    * cmodel enables the corresponding model if set to 1, and disables it if set to 0
     '''
     controls = InputControls(Options.instance)
     controls.set(
@@ -230,4 +254,4 @@ if __name__ == '__main__':
 
     settings.AUTO_OPEN_PDFS = True
 
-    main(controls)
+    main(scanned_vars, controls)
