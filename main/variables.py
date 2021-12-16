@@ -9,7 +9,8 @@ import scipy.ndimage
 from multipledispatch import dispatch
 
 # Local Packages
-from main import constants, utils
+import main.constants as constants
+import main.utils as utils
 from main.enums import SaveType
 
 
@@ -75,7 +76,7 @@ class Variables:
 
         return data, header
 
-    def save_data_to_csv(self, data, header, save_type, options, scan_factor=None):
+    def save_to_csv(self, data, header, save_type, options, scan_factor=None):
         '''
         Saves data in np.ndarray format to a CSV
 
@@ -103,7 +104,7 @@ class Variables:
 
         print(f'{save_type.name.capitalize()} data saved to \n    {file_name}\n')
 
-    def load_data_from_csv(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
+    def load_from_csv(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
         '''
         Loads data from a CSV into the current Variables subclass object
 
@@ -264,7 +265,7 @@ class InputVariables(Variables):
             var_list.insert(0, var_list.pop(var_list.index('rmin')))
 
         data, header = self.get_data_as_array(var_list, options.time_idx)
-        self.save_data_to_csv(data, header, save_type, options, scan_factor)
+        self.save_to_csv(data, header, save_type, options, scan_factor)
 
     def save_all_vars(self, options, scan_factor=None):
         self.save_vars_of_type(SaveType.INPUT, options, scan_factor)
@@ -348,7 +349,7 @@ class OutputVariables(Variables):
         var_list.remove('rho')
 
         data, header = self.get_data_as_array(var_list)
-        self.save_data_to_csv(data, header, SaveType.OUTPUT, options, scan_factor)
+        self.save_to_csv(data, header, SaveType.OUTPUT, options, scan_factor)
 
 
 class Variable:
@@ -519,7 +520,7 @@ if __name__ == '__main__':
     # ovars.save_all_vars(Options.instance)
 
     ivars = InputVariables()
-    ivars.load_data_from_csv(SaveType.INPUT, 'TEST', 10, 'gti', scan_factor=1.5)
-    ivars.load_data_from_csv(SaveType.ADDITIONAL,'TEST', 10, 'gti', scan_factor=1.5, rho_value=0.5)
+    ivars.load_from_csv(SaveType.INPUT, 'TEST', 1, 'gti', scan_factor=1.5)
+    ivars.load_from_csv(SaveType.ADDITIONAL,'TEST', 1, 'gti', scan_factor=1.5, rho_value=0.5)
 
     ivars.print_nonzero_variables()

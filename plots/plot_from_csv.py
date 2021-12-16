@@ -53,9 +53,9 @@ def load_variable_data(data_list):
         output_vars = OutputVariables()
 
         args = (data.runid, data.scan_num, data.var_to_scan, data.scan_factor, data.rho_value)
-        input_vars.load_data_from_csv(SaveType.INPUT, *args)
-        input_vars.load_data_from_csv(SaveType.ADDITIONAL, *args)
-        output_vars.load_data_from_csv(SaveType.OUTPUT, *args)
+        input_vars.load_from_csv(SaveType.INPUT, *args)
+        input_vars.load_from_csv(SaveType.ADDITIONAL, *args)
+        output_vars.load_from_csv(SaveType.OUTPUT, *args)
 
         var_list = [input_vars, output_vars]
         for v in var_list:

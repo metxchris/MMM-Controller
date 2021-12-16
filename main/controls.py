@@ -18,6 +18,7 @@ class InputControls:
     * Controls defined here are will be placed into the header of the MMM input file
     * Controls with vtype=int are expected as Fortran Integer types in the input file
     * Controls with vtype=float are expected as Fortran Real types in the input file
+    * Values defined here are default values
     '''
 
     def __init__(self, options=None):
@@ -115,6 +116,7 @@ class InputControls:
         )
 
     def get_keys(self):
+        '''Returns (list): All keys of input controls'''
         return [o for o in dir(self) if not callable(getattr(self, o)) and not o.startswith("_")]
 
     def get_key_values_pairs(self):
@@ -123,12 +125,19 @@ class InputControls:
         return [str(o) + ', ' + str(getattr(self, o).values).replace('\n', '') for o in keys]
 
     def print_key_values_pairs(self):
+        '''Prints: All key-values pairs of input controls'''
         kvps = self.get_key_values_pairs()
         for kvp in kvps:
             print(kvp)
 
     def save_to_csv(self, options, scan_factor=None):
-        '''Saves InputControls data to CSV'''
+        '''
+        Saves InputControls data to CSV
+
+        Parameters:
+        * options (OptionsData): Options.instance
+        * scan_factor (float): The value of the scan factor (Optional)
+        '''
 
         if scan_factor is not None:
             scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
@@ -158,26 +167,55 @@ class InputControls:
         * use_rho (bool): True if the CSV to load is in the rho folder (optional)
         '''
 
+        controls_name = SaveType.CONTROLS.name.capitalize()
+
         if use_rho:
             dir_path = utils.get_rho_path(runid, scan_num, var_to_scan)
+            control_files = utils.get_files_in_dir(dir_path, f'{controls_name}*', show_warning=False)
 
         elif scan_factor is not None:
-            # Note: Not implemented yet
-            # scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
             dir_path = utils.get_var_to_scan_path(runid, scan_num, var_to_scan)
+            control_files = utils.get_files_in_dir(dir_path, f'{controls_name}*', show_warning=False)
+            scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
+            control_files = [file for file in control_files if scan_factor_str in file]
 
         else:
             dir_path = utils.get_scan_num_path(runid, scan_num)
+            control_files = utils.get_files_in_dir(dir_path, f'{controls_name}*', show_warning=False)
 
-        control_files = utils.get_files_in_dir(dir_path, f'{SaveType.CONTROLS.name.capitalize()}*', show_warning=False)
+        # There may not be a Controls.CSV file to load in some cases, which is expected when
+        # plotting scanned variables, if the scanned variable was not an InputControl
+        if control_files:
+            if use_rho:
+                self._load_from_np_csv(control_files[0])
+            else:
+                self._load_from_simple_csv(control_files[0])
 
-        # There may not be a Controls.CSV file to load in some cases, which is expected
-        for file in control_files:
-            data_array = np.genfromtxt(file, delimiter=',', dtype=float, names=True)
-            control_names = data_array.dtype.names
+    def _load_from_simple_csv(self, file_name):
+        '''
+        Loads a simple CSV where each line is a single (key, value) pair
 
-            for name in control_names:
-                getattr(self, name).values = data_array[name]
+        Parameters:
+        * file_name (str): The name and path of the file to open
+        '''
+
+        file = open(file_name, 'r')
+        for line in file:
+            key, value = line.replace('\n', '').split(',')
+            getattr(self, key).values = float(value)
+
+    def _load_from_np_csv(self, file_name):
+        '''
+        Loads a traditional CSV saved by Numpy where the first row contains all the keys, and values are in columns
+
+        Parameters:
+        * file_name (str): The name and path of the file to open
+        '''
+
+        data_array = np.genfromtxt(file_name, delimiter=',', dtype=float, names=True)
+        control_names = data_array.dtype.names
+        for name in control_names:
+            getattr(self, name).values = data_array[name]
 
 
 class Control:
@@ -253,6 +291,7 @@ MMM_HEADER = (
 
     lprint   = {lprint}      ! Verbose level\n\n''')
 
+
 '''
 For testing purposes:
 * There need to be existing folders corresponding to the runid and scan_num when saving controls
@@ -273,13 +312,14 @@ if __name__ == '__main__':
     '''Print Controls values from saved Options CSV'''
     Options.instance.load_options(
         runid='TEST',
-        scan_num=25,
+        scan_num=5,
     )
     controls = InputControls(Options.instance)
     controls.load_from_csv(
         Options.instance.runid,
         Options.instance.scan_num,
         Options.instance.var_to_scan,
+        scan_factor=3,
         use_rho=True,
     )
     print(f'Controls Values Loaded From CSV:\n{"-"*50}')

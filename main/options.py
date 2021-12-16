@@ -7,7 +7,7 @@ sys.path.insert(0, '../')
 import numpy as np
 
 # Local Packages
-from main import utils
+from main import utils, constants
 from main.enums import ShotType, ScanType
 from main.variables import InputVariables
 from main.controls import InputControls
@@ -54,6 +54,7 @@ class OptionsData:
     @property
     def apply_smoothing(self):
         return self._apply_smoothing
+
     @apply_smoothing.setter
     def apply_smoothing(self, apply_smoothing):
         if type(apply_smoothing) is bool:
@@ -64,14 +65,17 @@ class OptionsData:
     @property
     def input_points(self):
         return self._input_points
+
     @input_points.setter
     def input_points(self, points):
+        '''Setting input_points to None will later match the number of points used in the CDF'''
         if points is not None:
             self._input_points = max(points, 5)
 
     @property
     def input_time(self):
         return self._input_time
+
     @input_time.setter
     def input_time(self, input_time):
         self._input_time = input_time
@@ -79,6 +83,7 @@ class OptionsData:
     @property
     def reject_outliers(self):
         return self._reject_outliers
+
     @reject_outliers.setter
     def reject_outliers(self, reject_outliers):
         self._reject_outliers = reject_outliers
@@ -86,14 +91,17 @@ class OptionsData:
     @property
     def runid(self):
         return self._runid
+
     @runid.setter
     def runid(self, runid):
-        if type(runid) is str:
-            self._runid = runid.strip()
+        if type(runid) is not str:
+            raise TypeError(f'runid must be set to a {str} and not {type(runid)}')
+        self._runid = runid.strip()
 
     @property
     def scan_num(self):
         return self._scan_num
+
     @scan_num.setter
     def scan_num(self, scan_num):
         self._scan_num = scan_num
@@ -101,15 +109,17 @@ class OptionsData:
     @property
     def scan_range(self):
         return self._scan_range
+
     @scan_range.setter
     def scan_range(self, scan_range):
         if type(scan_range) is not np.ndarray and scan_range is not None:
-            raise TypeError(f'scan_range must be type np.ndarray and not {type(scan_range)}')
+            raise TypeError(f'scan_range must be {np.ndarray} or {None} and not {type(scan_range)}')
         self._scan_range = scan_range
 
     @property
     def scan_type(self):
         return self._scan_type
+
     @scan_type.setter
     def scan_type(self, scan_type):
         self._scan_type = scan_type
@@ -117,6 +127,7 @@ class OptionsData:
     @property
     def shot_type(self):
         return self._shot_type
+
     @shot_type.setter
     def shot_type(self, shot_type):
         self._shot_type = shot_type
@@ -124,6 +135,7 @@ class OptionsData:
     @property
     def temperature_profiles(self):
         return self._temperature_profiles
+
     @temperature_profiles.setter
     def temperature_profiles(self, temperature_profiles):
         self._temperature_profiles = temperature_profiles
@@ -131,6 +143,7 @@ class OptionsData:
     @property
     def time_idx(self):
         return self._time_idx
+
     @time_idx.setter
     def time_idx(self, idx):
         self._time_idx = idx
@@ -138,6 +151,7 @@ class OptionsData:
     @property
     def time_str(self):
         return self._time_str
+
     @time_str.setter
     def time_str(self, time_str):
         self._time_str = time_str
@@ -145,6 +159,7 @@ class OptionsData:
     @property
     def uniform_rho(self):
         return self._uniform_rho
+
     @uniform_rho.setter
     def uniform_rho(self, uniform_rho):
         self._uniform_rho = uniform_rho
@@ -152,6 +167,7 @@ class OptionsData:
     @property
     def var_to_scan(self):
         return self._var_to_scan
+
     @var_to_scan.setter
     def var_to_scan(self, var_to_scan):
         if var_to_scan is not None:
@@ -220,7 +236,7 @@ class OptionsData:
     def set_measurement_time(self, tvar):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''
         self._time_idx = np.argmin(np.abs(tvar.values - self.input_time))
-        self._time_str = "{:.3f}".format(tvar.values[self.time_idx])
+        self._time_str = constants.TIME_FMT_STR.format(tvar.values[self.time_idx])
 
 
 class Options:
