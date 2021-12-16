@@ -117,6 +117,8 @@ def run_plotting_loop(plotdata, profile_type):
 
         # Create a new figure when we're on the first subplot
         if row == 0 and col == 0:
+            if data is None:
+                raise TypeError('The first plot on a new figure cannot be set to None')
             fig, axs = init_figure(profile_type, data.xvar.values.shape[0])
 
             # Disable all subplot axes until they are used
@@ -186,6 +188,21 @@ def get_compared_data(mmm_vars, cdf_vars):
         plotdata.append(PlotData(cdf_var.name, mmm_vars.rho, [cdf_var, calc_var]))
 
     return plotdata
+
+
+def remove_empty_vars(plotdata):
+    '''
+    Strips any PlotData from plotdata if the values of the first yvar equal 0 everywhere; None values are
+    kept since None can be used to specify an empty subplot on the figure.
+
+    Parameters:
+    * plotdata (list of PlotData): The list of data to plot
+
+    Returns:
+    * (list of PlotData): The updated list of PlotData with empty data removed
+    '''
+
+    return [data for data in plotdata if data is None or (data.yvars[0].values != 0).any()]
 
 
 def plot_profiles(profile_type, vars, cdf_vars=None):
@@ -277,6 +294,8 @@ def plot_profiles(profile_type, vars, cdf_vars=None):
             PlotData(vars.gmaETGM.name, vars.rho, [vars.gmaETGM]),
             PlotData(vars.omgETGM.name, vars.rho, [vars.omgETGM]),
             PlotData(vars.dbsqprf.name, vars.rho, [vars.dbsqprf])]
+
+        plotdata = remove_empty_vars(plotdata)
 
     elif profile_type == ProfileType.COMPARED:
         plotdata = get_compared_data(vars, cdf_vars)
