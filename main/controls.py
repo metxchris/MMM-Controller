@@ -127,11 +127,11 @@ class InputControls:
         for kvp in kvps:
             print(kvp)
 
-    def save_controls(self, options, scan_factor=None):
+    def save_to_csv(self, options, scan_factor=None):
         '''Saves InputControls data to CSV'''
 
         if scan_factor is not None:
-            scan_factor_str = '{:.3f}'.format(scan_factor)
+            scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
             save_dir = utils.get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan)
             file_name = f'{save_dir}\\{SaveType.CONTROLS.name.capitalize()} {options.var_to_scan} = {scan_factor_str}.csv'
         else:

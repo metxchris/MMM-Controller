@@ -56,7 +56,7 @@ def execute_variable_scan(mmm_vars, controls):
 
     var_to_scan = Options.instance.var_to_scan
     scan_range = Options.instance.scan_range
-    controls.save_controls(Options.instance)
+    controls.save_to_csv(Options.instance)
 
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing variable scan {i + 1} of {len(scan_range)} for variable {var_to_scan}')
@@ -104,7 +104,7 @@ def execute_control_scan(mmm_vars, controls):
         # Note: Dependent variables will be handled on a case-by-case basis
         scanned_control.values = scan_factor * base_control.values
         mmm_vars.save_all_vars(Options.instance, scan_factor)
-        controls.save_controls(Options.instance, scan_factor)
+        controls.save_to_csv(Options.instance, scan_factor)
         write_inputs.write_input_file(mmm_vars, controls)
         run_driver.run_mmm_driver()
         output_vars = read_output.read_output_file(scan_factor)
@@ -153,7 +153,7 @@ def run_mmm_controller(controls):
     mmm_vars, cdf_vars, __ = initialize_variables()
 
     Options.instance.save_options()  # TODO: Create an event to save Options
-    controls.save_controls(Options.instance)
+    controls.save_to_csv(Options.instance)
     mmm_vars.save_all_vars(Options.instance)
 
     plot_profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
