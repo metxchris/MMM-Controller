@@ -30,7 +30,7 @@ def execute_basic_run(mmm_vars, controls):
     run_driver.run_mmm_driver()
     output_vars = read_output.read_output_file()
     output_vars.save_all_vars(Options.instance)
-    plot_profiles.plot_profiles(output_vars, ProfileType.OUTPUT)
+    plot_profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
 
 
 def execute_variable_scan(mmm_vars, controls):
@@ -70,7 +70,7 @@ def execute_variable_scan(mmm_vars, controls):
         output_vars = read_output.read_output_file(scan_factor)
         output_vars.save_all_vars(Options.instance, scan_factor)
 
-    # Reshaped scanned CSV into new CSV dependent on the scanned parameter
+    # Reshape scanned CSV into new CSV dependent on the scanned parameter
     parse_scans.parse_scan_csv()
 
     print('\nVariable scan complete!')
@@ -139,9 +139,7 @@ def run_mmm_controller(controls):
 
     Needed output folders are created and a unique scan number is chosen for storing output data.
     All input variable objects are initialized and corresponding plot PDFs are created.  The MMM driver
-    is then ran once, and then an optional variable scan can be ran afterwards.  Note that raw_cdf_vars
-    does not exist on the same grid as other variable objects created here, and is only saved for
-    debugging purposes.
+    is then ran once, and then an optional variable scan can be ran afterwards.
 
     Parameters:
     * controls (InputControls): Specifies input control values in the MMM input file
@@ -152,15 +150,15 @@ def run_mmm_controller(controls):
     utils.clear_temp_folder()
     utils.init_output_dirs(Options.instance)
 
-    mmm_vars, cdf_vars, raw_cdf_vars = initialize_variables()
+    mmm_vars, cdf_vars, __ = initialize_variables()
 
     Options.instance.save_options()  # TODO: Create an event to save Options
     controls.save_controls(Options.instance)
     mmm_vars.save_all_vars(Options.instance)
 
-    plot_profiles.plot_profile_comparison(cdf_vars, mmm_vars)
-    plot_profiles.plot_profiles(mmm_vars, ProfileType.INPUT)
-    plot_profiles.plot_profiles(mmm_vars, ProfileType.ADDITIONAL)
+    plot_profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
+    plot_profiles.plot_profiles(ProfileType.ADDITIONAL, mmm_vars)
+    plot_profiles.plot_profiles(ProfileType.COMPARED, mmm_vars, cdf_vars)
 
     execute_basic_run(mmm_vars, controls)
 
@@ -195,7 +193,7 @@ if __name__ == '__main__':
     scanned_vars = {}
 
     '''
-    CDF Options:
+    CDFs:
     * Uncomment the line you wish to use
     '''
     # cdf_name, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
@@ -206,10 +204,9 @@ if __name__ == '__main__':
     cdf_name, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
 
     '''
-    Scan Options:
+    Scanned Variables:
     * Uncomment the lines you wish to include in scanned_vars
-        - keys (str or None): The variable being scanned
-        - values (np.ndarray or None): The range of factors to scan over
+    * Using None as the scanned variable will skip the variable scan
     '''
     scanned_vars[None] = None
     scanned_vars['gti'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
@@ -221,7 +218,7 @@ if __name__ == '__main__':
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
 
     '''
-    Input Options:
+    Options:
     * input_points is the number of points to use when making the MMM input file
     * Set input_points = None to match the number of points used in the CDF
     * Set uniform_rho = True to interpolate to a grid of evenly spaced rho values (takes longer)
@@ -237,7 +234,7 @@ if __name__ == '__main__':
     )
 
     '''
-    Input Control Options:
+    Input Controls:
     * cmodel enables the corresponding model if set to 1, and disables it if set to 0
     '''
     controls = InputControls(Options.instance)

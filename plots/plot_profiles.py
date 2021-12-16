@@ -148,7 +148,46 @@ def run_plotting_loop(plotdata, profile_type):
     plt.close('all')
 
 
-def plot_profiles(vars, profile_type):
+def get_compared_data(mmm_vars, cdf_vars):
+    '''
+    Gets plotdata for comparisons of calculated values with values found in the CDF
+
+    Use these Options for the most accurate comparison when verifying calculations against CDF variables:
+    * Options.instance.apply_smoothing = False
+    * Options.instance.input_points = None
+
+    Parameters:
+    * cdf_vars (InputVariables): All CDF variables
+    * mmm_vars (InputVariables): All calculated variables to be used as MMM input
+    '''
+
+    # Set compare_list, a list of variables that were both calculated in calculations.py and found in the CDF
+    calculated_vars_list = calculations.get_calculated_vars()
+    cdf_var_list = cdf_vars.get_cdf_variables()
+    compare_list = [var for var in calculated_vars_list if var in cdf_var_list]
+
+    plotdata = []
+
+    # Automatically build plotdata list with variables that we want to compare
+    for var_name in compare_list:
+
+        # Make deep copies since we are modifying the labels below
+        cdf_var = copy.deepcopy(getattr(cdf_vars, var_name))
+        calc_var = copy.deepcopy(getattr(mmm_vars, var_name))
+
+        # Skip this variable if there are any issues
+        if cdf_var.values is None or cdf_var.values.ndim != calc_var.values.ndim:
+            continue
+
+        cdf_var.label += f' ({cdf_var.cdfvar})'
+        calc_var.label += ' (MMM)'
+
+        plotdata.append(PlotData(cdf_var.name, mmm_vars.rho, [cdf_var, calc_var]))
+
+    return plotdata
+
+
+def plot_profiles(profile_type, vars, cdf_vars=None):
     '''
     Sets the plotdata (list of PlotData) to be plotted, then runs the plotting loop
 
