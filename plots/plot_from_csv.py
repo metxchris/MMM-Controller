@@ -59,7 +59,6 @@ def load_variable_data(data_list):
 
         var_list = [input_vars, output_vars]
         for v in var_list:
-            v.set_rho_values()
             if hasattr(v, data.xvar_name):
                 data.xvar = deepcopy(getattr(v, data.xvar_name))
             if hasattr(v, data.yvar_name):

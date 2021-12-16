@@ -74,10 +74,12 @@ def make_plot(ax, data, profile_type, time_idx=None):
     * time_idx (int): The index of the time value being plotted (Optional)
     '''
 
-    xvals = data.xvar.values if time_idx is None else data.xvar.values[:, time_idx]
+    xvals = data.xvar.values if data.xvar.values.ndim == 1 else data.xvar.values[:, time_idx]
 
     for i, yvar in enumerate(data.yvars):
-        yvals = yvar.values if time_idx is None else yvar.values[:, time_idx]
+        if yvar.values is None:
+            continue
+        yvals = yvar.values if yvar.values.ndim == 1 else yvar.values[:, time_idx]
         ax.plot(xvals, yvals, label=yvar.label)
 
     ax.set(title=data.title, xlabel=data.xvar.label, ylabel=data.yvars[0].units_label, xlim=(xvals.min(), xvals.max()))
@@ -310,4 +312,36 @@ def plot_profiles(profile_type, vars, cdf_vars=None):
 
 if __name__ == '__main__':
     # For testing purposes
-    print(plt.rcParams.keys())
+    import main.variables as variables
+    from main.enums import SaveType
+
+    '''
+    CDF Options:
+    * Uncomment the line you wish to use
+    * Edit enums.py to view or add additional ShotTypes
+    '''
+    runid, scan_num = '120982A09', 1
+    runid, scan_num = 'TEST', 26
+
+    scan_factor = 1
+    rho_value = None
+
+    Options.instance.load_options(runid, scan_num)
+    if scan_factor not in Options.instance.scan_range:
+        raise ValueError(f'Scan factor value {scan_factor} not found in scan range: {Options.instance.scan_range}')
+
+    # Initialize variable objects
+    var_to_scan = Options.instance.var_to_scan
+    input_vars = variables.InputVariables()
+    output_vars = variables.OutputVariables()
+
+    args = (runid, scan_num, var_to_scan, scan_factor, rho_value)
+    input_vars.load_from_csv(SaveType.INPUT, *args)
+    input_vars.load_from_csv(SaveType.ADDITIONAL, *args)
+    output_vars.load_from_csv(SaveType.OUTPUT, *args)
+
+    plot_profiles(ProfileType.INPUT, input_vars)
+    plot_profiles(ProfileType.ADDITIONAL, input_vars)
+    plot_profiles(ProfileType.OUTPUT, output_vars)
+
+    # print(plt.rcParams.keys())

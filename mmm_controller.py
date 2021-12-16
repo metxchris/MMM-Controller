@@ -189,19 +189,18 @@ def main(scanned_vars, controls):
 
 # Run this file directly to plot variable profiles and run the MMM driver
 if __name__ == '__main__':
-
     scanned_vars = {}
 
     '''
     CDFs:
     * Uncomment the line you wish to use
     '''
-    # cdf_name, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
-    # cdf_name, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
-    # cdf_name, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
-    # cdf_name, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
-    # cdf_name, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
-    cdf_name, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
+    # runid, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
+    runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
 
     '''
     Scanned Variables:
@@ -225,7 +224,7 @@ if __name__ == '__main__':
     * apply_smoothing enables smoothing of all variables that have a smooth value set in the Variables class
     '''
     Options.instance.set(
-        runid=cdf_name,
+        runid=runid,
         shot_type=shot_type,
         input_time=input_time,
         input_points=201,

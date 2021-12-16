@@ -42,7 +42,6 @@ def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
 
 # Run this file directly to call mmm_controller.py and make a simple plot of variable profiles
 if __name__ == '__main__':
-    from main import variables
     import mmm_controller
 
     '''

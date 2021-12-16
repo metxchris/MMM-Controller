@@ -137,8 +137,14 @@ class Variables:
         data_array = np.genfromtxt(file_path, delimiter=',', dtype=float, names=True)
         var_names = data_array.dtype.names
 
+        if len(var_names) == 0:
+            raise ValueError(f'No variable names were loaded from {file_path}')
+
         for var_name in var_names:
             getattr(self, var_name).values = data_array[var_name]
+
+        if self.rmin.values is not None:
+            self.set_rho_values()
 
 
 # Variables obtained from a CDF
@@ -157,7 +163,7 @@ class InputVariables(Variables):
         self.omega = Variable('Toroidal Angular Velocity', cdfvar='OMEGA', smooth=8)
         self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', minvalue=1e-6, smooth=5, save_type=SaveType.INPUT)
         self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', minvalue=1e-6, smooth=5, save_type=SaveType.INPUT)
-        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-6, smooth=5)
+        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-6, smooth=5, save_type=SaveType.ADDITIONAL)
         self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=5, save_type=SaveType.INPUT)
         self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=5, save_type=SaveType.INPUT)
         self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$', smooth=None, save_type=SaveType.INPUT)
@@ -516,7 +522,6 @@ if __name__ == '__main__':
 
     # Create InputVariables and OutputVariables, and populate with non-zero values
     ivars = InputVariables()
-    print(ivars.nuei.save_type)
     input_var_names = ivars.get_variables()
     for i, var_name in enumerate(input_var_names):
         values = np.ones((5, 4), dtype=float) * i
