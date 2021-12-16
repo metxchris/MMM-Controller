@@ -4,6 +4,10 @@ RHO_VALUE_FMT_STR = '{:.3f}'
 SHEET_NUM_FMT_STR = '{:03d}'
 TIME_FMT_STR = '{:.3f}'
 
+# Strings
+SCAN_FACTOR_VALUE_SEPARATOR = ' x= '
+RHO_VALUE_SEPARATOR = ' = '
+
 # Unit string pairs for creating labels.  First item is the search string, second item is the replacement string
 UNIT_STRINGS = [
     ['N/M**3', r'$\mathrm{m}^{-3}$'],

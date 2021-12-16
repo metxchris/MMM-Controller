@@ -12,6 +12,7 @@ import temp
 import cdfs
 import main.variables as variables
 import main.controls as controls
+import main.constants as constants
 from main.enums import ScanType, SaveType
 
 
@@ -63,7 +64,7 @@ def get_rho_files(runid, scan_num, var_to_scan, save_type):
 def get_rho_values(runid, scan_num, var_to_scan, save_type):
     '''Returns (list): the rho values of all rho files in the rho folder'''
     rho_files = get_rho_files(runid, scan_num, var_to_scan, save_type)
-    return [file.split('rho = ')[1].split('.csv')[0] for file in rho_files]
+    return [file.split(f'rho{constants.RHO_VALUE_SEPARATOR}')[1].split('.csv')[0] for file in rho_files]
 
 
 def init_output_dirs(options):

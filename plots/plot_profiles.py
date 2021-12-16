@@ -209,8 +209,9 @@ def plot_profiles(profile_type, vars, cdf_vars=None):
     '''
     Sets the plotdata (list of PlotData) to be plotted, then runs the plotting loop
 
-    Setting None as a list item in plotdata will leave the associated subplot for that item empty.  For example,
-    items can be set to None to force a group of related PlotData to be plotted together on a new figure.
+    Setting None as a list item in plotdata will leave the associated subplot for that item empty.  For
+    example, items can be set to None to force a group of related PlotData to be plotted together on a
+    new figure.
 
     Parameters:
     * profile_type (ProfileType): The type of profiles to plot
@@ -295,6 +296,7 @@ def plot_profiles(profile_type, vars, cdf_vars=None):
             PlotData(vars.omgETGM.name, vars.rho, [vars.omgETGM]),
             PlotData(vars.dbsqprf.name, vars.rho, [vars.dbsqprf])]
 
+        # Output PlotData with values of the first yvar equal to 0 everywhere are removed
         plotdata = remove_empty_vars(plotdata)
 
     elif profile_type == ProfileType.COMPARED:

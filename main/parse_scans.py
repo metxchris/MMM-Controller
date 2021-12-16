@@ -75,7 +75,7 @@ def save_reshaped_csv(reshaped_data, var_names, save_dir, save_type):
     '''
 
     rmin_max_value = reshaped_data[-1][0, 0]
-    base_file_name = f'{save_dir}\\{save_type} rho = '
+    base_file_name = f'{save_dir}\\{save_type} rho{constants.RHO_VALUE_SEPARATOR}'
     header_str = ','.join(var_names)
 
     for data in reshaped_data:

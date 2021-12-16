@@ -142,7 +142,8 @@ class InputControls:
         if scan_factor is not None:
             scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
             save_dir = utils.get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan)
-            file_name = f'{save_dir}\\{SaveType.CONTROLS.name.capitalize()} {options.var_to_scan} = {scan_factor_str}.csv'
+            file_name = (f'{save_dir}\\{SaveType.CONTROLS.name.capitalize()} {options.var_to_scan}'
+                         f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}{scan_factor_str}.csv')
         else:
             save_dir = utils.get_scan_num_path(options.runid, options.scan_num)
             file_name = f'{save_dir}\\{SaveType.CONTROLS.name.capitalize()}.csv'
