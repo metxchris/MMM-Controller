@@ -12,8 +12,8 @@ from main.enums import ScanType, SaveType
 from main.options import Options
 from main.controls import InputControls
 from main.variables import InputVariables, OutputVariables
-from plots.styles import rho_layout as ps
-from plots.colors import mmm
+from plots.styles import single as plotlayout
+from plots.colors import mmm as plotcolors
 import settings
 
 
@@ -26,6 +26,9 @@ def plot_parameter_scan(vars_to_plot):
     Parameters:
     * vars_to_plot (list): List of output variables to plot
     '''
+
+    plotlayout.init()
+    plotcolors.init()
 
     fig = plt.figure()
     runid = Options.instance.runid

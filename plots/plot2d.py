@@ -9,17 +9,20 @@ import matplotlib.pyplot as plt
 # Local Packages
 from main.enums import ShotType
 from main.options import Options
+from plots.styles import single as plotlayout
+from plots.colors import mmm as plotcolors
 
 
 def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
-    from plots.styles import standard as ps
-    from plots.colors import mmm
+
+    plotlayout.init()
+    plotcolors.init()
 
     input_options = Options.instance
 
     t_idx = input_options.time_idx
-    
-    fig = plt.figure(figsize=(3.5,3))
+
+    plt.figure(figsize=(3.5, 3))
     plt.subplots_adjust(left=0.15, right=0.9, bottom=0.15, top=0.9)
 
     plt.plot(x1var.values[:, t_idx], y1var.values[:, t_idx], label=y1var.label + l1)
@@ -61,13 +64,13 @@ if __name__ == '__main__':
     * E.g.: var_to_scan = 'te'
     '''
     Options.instance.set(
-        runid = cdf_name,
-        shot_type = shot_type,
-        input_time = input_time,
-        input_points = None,
-        uniform_rho = False,
-        var_to_scan = None,
-        scan_range = None)
+        runid=cdf_name,
+        shot_type=shot_type,
+        input_time=input_time,
+        input_points=None,
+        uniform_rho=False,
+        var_to_scan=None,
+        scan_range=None)
 
     # Initialize variable objects and call simple_plot function
     mmm_vars, cdf_vars, raw_cdf_vars = mmm_controller.initialize_variables()

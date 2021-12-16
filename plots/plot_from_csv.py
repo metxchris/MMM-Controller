@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 # Local Packages
 from main.enums import SaveType
 from main.variables import InputVariables, OutputVariables
-from plots.styles import rho_layout as ps
-from plots.colors import mmm
+from plots.styles import single as plotlayout
+from plots.colors import mmm as plotcolors
 
 
 class VarData:
@@ -44,6 +44,10 @@ def plot_variable_data(data_list, title):
 
 
 def load_variable_data(data_list):
+
+    plotlayout.init()
+    plotcolors.init()
+
     for data in data_list:
         input_vars = InputVariables()
         output_vars = OutputVariables()

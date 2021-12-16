@@ -5,7 +5,15 @@ sys.path.insert(0, '../../')
 # 3rd Party Packages
 import matplotlib.pyplot as plt
 
-plt.rcParams.update({
+
+TITLEPOS = (0.5, 0.9)
+SUBTITLEPOS = (0.5, 0.88)
+ROWS = 2
+COLS = 3
+
+
+def init():
+    plt.rcParams.update({
         'font.family': 'serif',
         'mathtext.fontset': 'cm',
         'mathtext.bf': 'cmb10',
@@ -31,7 +39,7 @@ plt.rcParams.update({
         'grid.color': '#fff',
         'legend.fontsize': 10,
         'legend.frameon': False,
-        'legend.borderpad': 0, 
+        'legend.borderpad': 0,
         'legend.labelspacing': 0,
         'legend.handlelength': 2.5,
         'lines.dash_joinstyle': 'round',
@@ -44,8 +52,3 @@ plt.rcParams.update({
         'ytick.labelsize': 9,
         'ytick.major.size': 0.0,
     })
-
-TITLEPOS = (0.5, 0.9)
-SUBTITLEPOS = (0.5, 0.88)
-ROWS = 2
-COLS = 3

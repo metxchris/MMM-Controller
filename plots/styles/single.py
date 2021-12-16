@@ -2,10 +2,13 @@
 import sys
 sys.path.insert(0, '../')
 sys.path.insert(0, '../../')
+
 # 3rd Party Packages
 import matplotlib.pyplot as plt
 
-plt.rcParams.update({
+
+def init():
+    plt.rcParams.update({
         'font.family': 'serif',
         'mathtext.fontset': 'cm',
         'mathtext.bf': 'cmb10',

@@ -9,15 +9,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Local Packages
+import settings
 from main import constants, utils, calculations
 from main.enums import ProfileType, ShotType
 from main.options import Options
-from plots.styles import standard as ps
-import settings
+from plots.styles import profiles as plotlayout
+from plots.colors import mmm as plotcolors
 
 
 # Subplot row and column counts
-ROWS, COLS = ps.ROWS, ps.COLS
+ROWS, COLS = plotlayout.ROWS, plotlayout.COLS
 
 
 @dataclass
@@ -57,8 +58,8 @@ def init_figure(profile_type, xvar_points):
     modifier = 'Smoothed' if Options.instance.apply_smoothing else 'Unsmoothed'
     title_txt = f'MMM {profile_type.name.capitalize()} Profiles Using {modifier} Input Profiles'
     subtitle_txt = f'{shot_type.name} Shot {runid}, Measurement Time {time}s, {points} Radial Points'
-    plt.figtext(*ps.TITLEPOS, title_txt, fontsize=15, ha='center')
-    plt.figtext(*ps.SUBTITLEPOS, subtitle_txt, fontsize=10, ha='center')
+    plt.figtext(*plotlayout.TITLEPOS, title_txt, fontsize=15, ha='center')
+    plt.figtext(*plotlayout.SUBTITLEPOS, subtitle_txt, fontsize=10, ha='center')
 
     return fig, axs
 
@@ -101,8 +102,8 @@ def run_plotting_loop(plotdata, profile_type):
     * profile_type (ProfileType): The type of profiles being plotted
     '''
 
-    from plots.styles import standard as ps
-    from plots.colors import mmm
+    plotlayout.init()
+    plotcolors.init()
 
     opts = Options.instance
 
@@ -195,8 +196,9 @@ def plot_profiles(profile_type, vars, cdf_vars=None):
     items can be set to None to force a group of related PlotData to be plotted together on a new figure.
 
     Parameters:
-    * vars (InputVariables or OutputVariables): The object containing variable data to plot
     * profile_type (ProfileType): The type of profiles to plot
+    * vars (InputVariables or OutputVariables): The object containing variable data to plot
+    * cdf_vars (InputVariables): All CDF variables used for making compared plots (Optional)
     '''
 
     if profile_type == ProfileType.INPUT:
@@ -276,49 +278,13 @@ def plot_profiles(profile_type, vars, cdf_vars=None):
             PlotData(vars.omgETGM.name, vars.rho, [vars.omgETGM]),
             PlotData(vars.dbsqprf.name, vars.rho, [vars.dbsqprf])]
 
+    elif profile_type == ProfileType.COMPARED:
+        plotdata = get_compared_data(vars, cdf_vars)
+
     else:
         raise TypeError(f'The ProfileType {profile_type} does not have a plotdata definition')
 
     run_plotting_loop(plotdata, profile_type)
-
-
-def plot_profile_comparison(cdf_vars, mmm_vars):
-    '''
-    Compares profiles of calculated values with values found in the CDF
-
-    Use these Options for the most accurate comparison when verifying calculations against CDF variables:
-    * Options.instance.apply_smoothing = False
-    * Options.instance.input_points = None
-
-    Parameters:
-    * cdf_vars (InputVariables): All CDF variables
-    * mmm_vars (InputVariables): All calculated variables to be used as MMM input
-    '''
-
-    # Set compare_list, a list of variables that were both calculated in calculations.py and found in the CDF
-    calculated_vars_list = calculations.get_calculated_vars()
-    cdf_var_list = cdf_vars.get_cdf_variables()
-    compare_list = [var for var in calculated_vars_list if var in cdf_var_list]
-
-    plotdata = []
-
-    # Automatically build plotdata list with variables that we want to compare
-    for var_name in compare_list:
-
-        # Make deep copies since we are modifying the labels below
-        cdf_var = copy.deepcopy(getattr(cdf_vars, var_name))
-        calc_var = copy.deepcopy(getattr(mmm_vars, var_name))
-
-        # Skip this variable if there are any issues
-        if cdf_var.values is None or cdf_var.values.ndim != calc_var.values.ndim:
-            continue
-
-        cdf_var.label += f' ({cdf_var.cdfvar})'
-        calc_var.label += ' (MMM)'
-
-        plotdata.append(PlotData(cdf_var.name, mmm_vars.rho, [cdf_var, calc_var]))
-
-    run_plotting_loop(plotdata, ProfileType.COMPARED)
 
 
 if __name__ == '__main__':
