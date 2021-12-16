@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Local Packages
+import settings
 from main import utils, constants
 from main.enums import ScanType, SaveType
 from main.options import Options
@@ -14,10 +15,9 @@ from main.controls import InputControls
 from main.variables import InputVariables, OutputVariables
 from plots.styles import single as plotlayout
 from plots.colors import mmm as plotcolors
-import settings
 
 
-def plot_parameter_scan(vars_to_plot):
+def run_plotting_loop(vars_to_plot):
     '''
     Creates PDF Plots of each variable in vars_to_plot
 
@@ -26,9 +26,6 @@ def plot_parameter_scan(vars_to_plot):
     Parameters:
     * vars_to_plot (list): List of output variables to plot
     '''
-
-    plotlayout.init()
-    plotcolors.init()
 
     fig = plt.figure()
     runid = Options.instance.runid
@@ -125,30 +122,35 @@ def verify_vars_to_plot(vars_to_plot):
             raise NameError(f'Neither OutputVariables nor InputControls contain the variable named {var_to_plot}')
 
 
-def main(vars_to_plot, runid, scan_num):
+def main(vars_to_plot, scan_data):
     '''
-    Loads options, clears the temp folder, and verifies vars_to_plot, then runs the plotting loop
+    Verifies vars_to_plot, then runs the plotting loop for each var_to_plot, runid, and scan_num
 
     Parameters:
     * vars_to_plot (list): List of output variables to plot
-    * runid (str): The runid of the CDF
-    * scan_num (int): The scan number to reference
+    * scan_data (dict): Dictionary of runid to list of scan numbers
     '''
 
-    print('Initializing data...')
-    utils.clear_temp_folder()
-    Options.instance.load_options(runid, scan_num)
     verify_vars_to_plot(vars_to_plot)
-    plot_parameter_scan(vars_to_plot)
+
+    plotlayout.init()
+    plotcolors.init()
+
+    for runid, scan_nums in scan_data.items():
+        for scan_num in scan_nums:
+            print(f'Initializing data for {runid}, scan {scan_num}...')
+            utils.clear_temp_folder()
+            Options.instance.load_options(runid, scan_num)
+            run_plotting_loop(vars_to_plot)
 
 
 # Run this file directly to plot scanned variable profiles from previously created scanned data
 if __name__ == '__main__':
+    scan_data = {}
+
     '''
     Input Options:
     * vars_to_plot (list): List of output variables to plot
-    * runid (str): The runid of the CDF
-    * scan_num (int): The scan number to reference
 
     Examples:
     * vars_to_plot = ['xteMTM', 'xteETGM', 'xteETG', 'gmaMTM', 'omgMTM', 'dbsqprf']
@@ -156,12 +158,18 @@ if __name__ == '__main__':
     * vars_to_plot = OutputVariables().get_etgm_vars()
     '''
     vars_to_plot = ['xteETGM']
-    # runid = '120968A02'
-    # runid = '120982A09'
-    # runid = '129041A10'
-    runid = 'TEST'
-    scan_num = 25
 
-    settings.AUTO_OPEN_PDFS = False
+    '''
+    Scan Data:
+    * Uncomment the lines you wish to use
+        - keys (str): The runid of the scan
+        - values (list of int): The scan_numbers to plot from
+    '''
+    # scan_data['120968A02'] = [1]
+    # scan_data['120982A09'] = [1]
+    # scan_data['129041A10'] = [1]
+    scan_data['TEST'] = [25, 44]
 
-    main(vars_to_plot, runid, scan_num)
+    settings.AUTO_OPEN_PDFS = True
+
+    main(vars_to_plot, scan_data)
