@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Local Packages
+import main.utils as utils
 from main.enums import ShotType
 from main.options import Options
 from plotting.modules.styles import single as plotlayout
@@ -39,10 +40,8 @@ def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
     plt.show()
 
 
-# Run this file directly to call mmm_controller.py and make a simple plot of variable profiles
+# Run this file directly to make a simple plot of variable profiles
 if __name__ == '__main__':
-    import mmm_controller
-
     '''
     CDF Options:
     * Uncomment the line you wish to use
@@ -71,5 +70,6 @@ if __name__ == '__main__':
         scan_range=None)
 
     # Initialize variable objects and call simple_plot function
-    mmm_vars, cdf_vars, raw_cdf_vars = mmm_controller.initialize_variables()
+    mmm_vars, cdf_vars, raw_cdf_vars = utils.initialize_variables()
+
     simple_plot(cdf_vars.xb, cdf_vars.nz, r' (CDF)', mmm_vars.xb, mmm_vars.nz)

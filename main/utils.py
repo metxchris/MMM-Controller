@@ -1,9 +1,8 @@
 # Standard Packages
+import sys; sys.path.insert(0, '../')
 from math import floor, log10
 import os
 import glob
-import sys
-sys.path.insert(0, '../')
 
 # Local Packages
 import pdftk
@@ -13,6 +12,9 @@ import cdfs
 import main.variables as variables
 import main.controls as controls
 import main.constants as constants
+import main.calculations as calculations
+import main.conversions as conversions
+import main.read_cdf as read_cdf
 from main.enums import ScanType, SaveType
 
 
@@ -362,6 +364,23 @@ def get_base_data(runid, scan_num):
     input_controls.load_from_csv(runid, scan_num)
 
     return input_vars, output_vars, input_controls
+
+
+def initialize_variables():
+    '''
+    Initializes all input variables needed to run the MMM Driver and plot variable profiles
+
+    Returns:
+    * mmm_vars (InputVariables): All calculated variables, interpolated onto a grid of size input_points
+    * cdf_vars (InputVariables): All CDF variables, interpolated onto a grid of size input_points
+    * raw_cdf_vars (InputVariables): All unedited CDF variables (saved for troubleshooting)
+    '''
+
+    raw_cdf_vars = read_cdf.read_cdf()
+    cdf_vars = conversions.convert_variables(raw_cdf_vars)
+    mmm_vars = calculations.calculate_inputs(cdf_vars)
+
+    return mmm_vars, cdf_vars, raw_cdf_vars
 
 
 # For testing purposes

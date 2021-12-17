@@ -44,7 +44,7 @@ class Variables:
         if self.rmin.values.ndim == 2:
             self.rho.values = self.rmin.values / self.rmin.values[-1, :]
         elif self.rmin.values.ndim == 1:
-            # This is expected when loading data from rho = 0 files
+            # This is expected when loading data from rho files with rho = 0
             if self.rmin.values[-1] == 0:
                 self.rho.values = np.zeros_like(self.rmin.values)
             else:

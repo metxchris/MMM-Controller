@@ -1,16 +1,18 @@
 # Standard Packages
 from copy import deepcopy
 
-# 3rd Party Packages
-import numpy as np
-
 # Local Packages
-from main import *
+import settings
+import main.utils as utils
+import main.write_inputs as write_inputs
+import main.run_driver as run_driver
+import main.adjustments as adjustments
+import main.parse_scans as parse_scans
+import main.read_output as read_output
+import plotting.modules.profiles as profiles
 from main.enums import ShotType, ScanType, ProfileType
 from main.options import Options
 from main.controls import InputControls
-from plotting.modules import profiles
-import settings
 
 
 def execute_basic_run(mmm_vars, controls):
@@ -116,23 +118,6 @@ def execute_control_scan(mmm_vars, controls):
     print('\nVariable scan complete!')
 
 
-def initialize_variables():
-    '''
-    Initializes all input variables needed to run the MMM Driver and plot variable profiles
-
-    Returns:
-    * mmm_vars (InputVariables): All calculated variables, interpolated onto a grid of size input_points
-    * cdf_vars (InputVariables): All CDF variables, interpolated onto a grid of size input_points
-    * raw_cdf_vars (InputVariables): All unedited CDF variables (saved for troubleshooting)
-    '''
-
-    raw_cdf_vars = read_cdf.read_cdf()
-    cdf_vars = conversions.convert_variables(raw_cdf_vars)
-    mmm_vars = calculations.calculate_inputs(cdf_vars)
-
-    return mmm_vars, cdf_vars, raw_cdf_vars
-
-
 def run_mmm_controller(controls):
     '''
     Controller function which runs the MMM driver
@@ -150,7 +135,7 @@ def run_mmm_controller(controls):
     utils.clear_temp_folder()
     utils.init_output_dirs(Options.instance)
 
-    mmm_vars, cdf_vars, __ = initialize_variables()
+    mmm_vars, cdf_vars, __ = utils.initialize_variables()
 
     Options.instance.save_options()  # TODO: Create an event to save Options
     controls.save_to_csv(Options.instance)

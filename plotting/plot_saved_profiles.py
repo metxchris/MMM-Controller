@@ -1,15 +1,11 @@
 # Standard Packages
 import sys; sys.path.insert(0, '../')
 
-# 3rd Party Packages
-import numpy as np
-import matplotlib.pyplot as plt
-
 # Local Packages
+import plotting.modules.profiles as profiles
 from main.variables import InputVariables, OutputVariables
 from main.enums import SaveType, ProfileType
 from main.options import Options
-from plotting.modules import profiles
 
 
 def main(runid, scan_num, input_scan_factor):
