@@ -104,7 +104,7 @@ class Variables:
             file_name = f'{save_dir}\\{options.runid} {save_type.name.capitalize()} Profiles.csv'
 
         utils.create_directory(save_dir)
-        np.savetxt(file_name, data, header=header, fmt='%.4e', delimiter=',')
+        np.savetxt(file_name, data, header=header, fmt='%.6e', delimiter=',')
 
         print(f'{save_type.name.capitalize()} data saved to \n    {file_name}\n')
 

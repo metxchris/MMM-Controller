@@ -10,7 +10,7 @@ import settings
 from main import utils, calculations
 from main.enums import ProfileType
 from main.options import Options
-from plotting.modules.styles import profiles as plotlayout
+from plotting.modules.styles import grid3x2 as plotlayout
 from plotting.modules.colors import mmm as plotcolors
 
 
@@ -51,12 +51,13 @@ def init_figure(profile_type, xvar_points):
     # Init figure and subplots
     fig, axs = plt.subplots(ROWS, COLS)
 
-    # Set figure title and subtitle
-    modifier = 'Smoothed' if Options.instance.apply_smoothing else 'Unsmoothed'
-    title_txt = f'MMM {profile_type.name.capitalize()} Profiles Using {modifier} Input Profiles'
-    subtitle_txt = f'{shot_type.name} Shot {runid}, Measurement Time {time}s, {points} Radial Points'
-    plt.figtext(*plotlayout.TITLEPOS, title_txt, fontsize=15, ha='center')
-    plt.figtext(*plotlayout.SUBTITLEPOS, subtitle_txt, fontsize=10, ha='center')
+    # Set figure text (title and subtitles)
+    title_txt = f'{profile_type.name.capitalize()} Profiles'
+    subtitle_txt = f'{shot_type.name} Shot {runid}, Time {time}s, {points} Radial Points'
+    plt.figtext(*plotlayout.TEXT1_POS, title_txt, fontsize=21, ha='center')
+    plt.figtext(*plotlayout.TEXT2_POS, subtitle_txt, fontsize=10, ha='center', color='#444')
+    text3_str = 'Using Smoothed TRANSP Data' if Options.instance.apply_smoothing else 'Using TRANSP Data'
+    plt.figtext(*plotlayout.TEXT3_POS, text3_str, fontsize=10, ha='center', color='#444')
 
     return fig, axs
 

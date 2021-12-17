@@ -2,8 +2,10 @@
 import matplotlib.pyplot as plt
 
 
-TITLEPOS = (0.5, 0.9)
-SUBTITLEPOS = (0.5, 0.88)
+TEXT1_POS = (0.5, 0.905)
+TEXT2_POS = (0.5, 0.88)
+TEXT3_POS = (0.5, 0.858)
+
 ROWS = 2
 COLS = 3
 
@@ -14,8 +16,8 @@ def init():
         'mathtext.fontset': 'cm',
         'mathtext.bf': 'cmb10',
         'font.serif': 'cmr10',
-        'axes.unicode_minus': False, # unicode_minus does not work in Computer Modern font (cm, cmr10)
-        'axes.formatter.limits': [-2, 2], # Forces exponent notation below 10**(-2) and above 10**2
+        'axes.unicode_minus': False,  # unicode_minus does not work in Computer Modern font (cm, cmr10)
+        'axes.formatter.limits': [-2, 3],  # Forces exponent notation below 10**(-2) and above 10**3
         'axes.grid': True,
         'axes.labelpad': 2,
         'axes.labelsize': 10,

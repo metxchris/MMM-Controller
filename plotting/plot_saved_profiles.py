@@ -37,7 +37,7 @@ def main(runid, scan_num, input_scan_factor):
 
 if __name__ == '__main__':
     # Runid and Scan Number (uncomment the line you wish to use)
-    runid, scan_num = '120982A09', 1
+    # runid, scan_num = '120982A09', 1
     runid, scan_num = 'TEST', 26
 
     # Scan Factor (var_to_scan will be read from the saved options file)
