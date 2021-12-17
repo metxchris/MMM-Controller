@@ -6,10 +6,10 @@ import pickle
 import numpy as np
 
 # Local Packages
+import main.variables as variables
+import main.controls as controls
 from main import utils, constants
 from main.enums import ShotType, ScanType
-from main.variables import InputVariables
-from main.controls import InputControls
 
 
 class OptionsData:
@@ -170,9 +170,9 @@ class OptionsData:
     @var_to_scan.setter
     def var_to_scan(self, var_to_scan):
         if var_to_scan is not None:
-            if hasattr(InputVariables(), var_to_scan):
+            if hasattr(variables.InputVariables(), var_to_scan):
                 self.scan_type = ScanType.VARIABLE
-            elif hasattr(InputControls(), var_to_scan):
+            elif hasattr(controls.InputControls(), var_to_scan):
                 self.scan_type = ScanType.CONTROL
             else:
                 raise ValueError(f'Variable {var_to_scan} is not defined under InputVariables or InputControls')

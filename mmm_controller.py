@@ -1,6 +1,9 @@
 # Standard Packages
 from copy import deepcopy
 
+# 3rd Party Packages
+import numpy as np
+
 # Local Packages
 import settings
 import main.utils as utils

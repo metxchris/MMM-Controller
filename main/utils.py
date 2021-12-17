@@ -1,5 +1,4 @@
 # Standard Packages
-import sys; sys.path.insert(0, '../')
 import os
 import glob
 from math import floor, log10
@@ -15,7 +14,7 @@ import main.constants as constants
 import main.calculations as calculations
 import main.conversions as conversions
 import main.read_cdf as read_cdf
-from main.enums import ScanType, SaveType
+from main.enums import ScanType, SaveType, MergeType
 
 
 def get_cdf_path(file_name):
@@ -43,9 +42,14 @@ def get_scan_num_path(runid, scan_num):
     return get_output_path(f'{runid}\\scan {scan_num}')
 
 
-def get_merged_scan_path(runid, scan_num):
-    '''Returns (str): the path to merged PDF for parameter scans'''
-    return f'{get_scan_num_path(runid, scan_num)}\\Merged Scans'
+def get_merged_rho_path(runid, scan_num):
+    '''Returns (str): the path to merged rho PDF for parameter scans'''
+    return f'{get_scan_num_path(runid, scan_num)}\\Merged Rho'
+
+
+def get_merged_profile_factors_path(runid, scan_num):
+    '''Returns (str): the path to merged factors PDF for parameter scans'''
+    return f'{get_scan_num_path(runid, scan_num)}\\Merged Profile Factors'
 
 
 def get_var_to_scan_path(runid, scan_num, var_to_scan):
@@ -253,7 +257,7 @@ def get_files_in_dir(dir_path, file_type='', show_warning=True):
     return file_names
 
 
-def merge_profile_sheets(runid, scan_num, profile_type, is_scan=False):
+def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=None, scan_factor=None):
     '''
     Merge PDF sheets using Pdftk in the temp folder into a single PDF, then place the merged PDF in the output folder.
 
@@ -264,18 +268,30 @@ def merge_profile_sheets(runid, scan_num, profile_type, is_scan=False):
     * runid (str): The name of the CDF
     * scan_num (int): The number of the scan
     * profile_type (str): The type of profile to merge (Input, Output, etc.)
-    * is_scan (bool): True when merging sheets from a parameter scan
+    * merge_type (MergeType): The type of PDF merge
+    * var_to_scan (str): The variable being scanned
+    * scan_factor (float): The value of the scan factor
 
     Returns:
     * output_file (str): Path to merged PDF
     '''
 
-    output_path = get_merged_scan_path(runid, scan_num) if is_scan else get_scan_num_path(runid, scan_num)
+    if merge_type == MergeType.PROFILES:
+        output_path = get_scan_num_path(runid, scan_num)
+        output_file = f'{output_path}\\{runid} {profile_type} Profiles.pdf'
+    elif merge_type == MergeType.PROFILEFACTORS:
+        output_path = get_merged_profile_factors_path(runid, scan_num)
+        output_file = (f'{output_path}\\{runid} {profile_type} {var_to_scan}'
+                       f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}'
+                       f'{constants.SCAN_FACTOR_PDF_FMT_STR.format(scan_factor)}.pdf')
+    elif merge_type == MergeType.RHOVALUES:
+        output_path = get_merged_rho_path(runid, scan_num)
+        output_file = f'{output_path}\\{runid} {profile_type}.pdf'
+    else:
+        raise TypeError(f'No output path defined for {merge_type}')
 
     # Output directory creation only needed if sheets are being created outside of main mmm_controller.py execution
     create_directory(output_path)
-
-    output_file = f'{output_path}\\{runid} {profile_type} Profiles.pdf'
     output_file = check_filename(output_file, '.pdf')
     temp_path = get_temp_path()
     pdftk_path = get_pdftk_path()
@@ -381,8 +397,3 @@ def initialize_variables():
     mmm_vars = calculations.calculate_inputs(cdf_vars)
 
     return mmm_vars, cdf_vars, raw_cdf_vars
-
-
-# For testing purposes
-if __name__ == '__main__':
-    clear_temp_folder()

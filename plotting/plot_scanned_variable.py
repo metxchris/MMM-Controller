@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # Local Packages
 import settings
 from main import utils, constants
-from main.enums import ScanType
+from main.enums import ScanType, MergeType
 from main.options import Options
 from main.controls import InputControls
 from main.variables import OutputVariables
@@ -68,7 +68,7 @@ def run_plotting_loop(vars_to_plot):
             fig.savefig(utils.get_temp_path(f'{profile_type} {sheet_num}.pdf'))
             fig.clear()
 
-        merged_pdf = utils.merge_profile_sheets(runid, scan_num, profile_type, is_scan=True)
+        merged_pdf = utils.merge_profile_sheets(runid, scan_num, profile_type, MergeType.RHOVALUES)
 
         # File opening may only work on Windows
         if settings.AUTO_OPEN_PDFS:
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     # scan_data['120968A02'] = [1]
     # scan_data['120982A09'] = [1]
     # scan_data['129041A10'] = [1]
-    scan_data['TEST'] = [35]
+    scan_data['TEST'] = [45]
 
     settings.AUTO_OPEN_PDFS = True
 

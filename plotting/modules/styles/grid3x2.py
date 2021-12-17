@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 
 TEXT1_POS = (0.5, 0.905)
 TEXT2_POS = (0.5, 0.88)
-TEXT3_POS = (0.5, 0.858)
+TEXT3_POS = (0.5, 0.861)
+TEXT4_POS = (0.5, 0.842)
 
 ROWS = 2
 COLS = 3

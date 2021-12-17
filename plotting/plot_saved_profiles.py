@@ -30,17 +30,17 @@ def main(runid, scan_num, input_scan_factor):
     output_vars = OutputVariables()
     output_vars.load_from_csv(SaveType.OUTPUT, *args)
 
-    profiles.plot_profiles(ProfileType.INPUT, input_vars)
-    profiles.plot_profiles(ProfileType.ADDITIONAL, input_vars)
-    profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
+    profiles.plot_profiles(ProfileType.INPUT, input_vars, scan_factor=scan_factor)
+    profiles.plot_profiles(ProfileType.ADDITIONAL, input_vars, scan_factor=scan_factor)
+    profiles.plot_profiles(ProfileType.OUTPUT, output_vars, scan_factor=scan_factor)
 
 
 if __name__ == '__main__':
     # Runid and Scan Number (uncomment the line you wish to use)
     # runid, scan_num = '120982A09', 1
-    runid, scan_num = 'TEST', 26
+    runid, scan_num = 'TEST', 45
 
     # Scan Factor (var_to_scan will be read from the saved options file)
-    input_scan_factor = 2.5
+    input_scan_factor = 2.55
 
     main(runid, scan_num, input_scan_factor)

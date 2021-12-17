@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 # Local Packages
 from main.enums import SaveType
-from main.variables import InputVariables, OutputVariables
+import main.variables as variables
 from plotting.modules.styles import single as plotlayout
 from plotting.modules.colors import mmm as plotcolors
 
@@ -28,8 +28,8 @@ class VarData:
 
 def load_variable_data(data_list):
     for data in data_list:
-        input_vars = InputVariables()
-        output_vars = OutputVariables()
+        input_vars = variables.InputVariables()
+        output_vars = variables.OutputVariables()
 
         args = (data.runid, data.scan_num, data.var_to_scan, data.scan_factor, data.rho_value)
         input_vars.load_from_csv(SaveType.INPUT, *args)

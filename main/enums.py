@@ -33,3 +33,12 @@ class ShotType(Enum):
     NONE = 0
     NSTX = 1
     DIII_D = 2
+
+
+class MergeType(Enum):
+    '''Specifies the type of PDF merge'''
+    NONE = 0
+    PROFILES = 1
+    PROFILEFACTORS = 2
+    FACTORS = 3
+    RHOVALUES = 4

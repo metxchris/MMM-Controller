@@ -8,8 +8,10 @@ import matplotlib.pyplot as plt
 # Local Packages
 import settings
 from main import utils, calculations
-from main.enums import ProfileType
+from main.enums import ProfileType, MergeType
 from main.options import Options
+from main.variables import InputVariables
+from main.controls import InputControls
 from plotting.modules.styles import grid3x2 as plotlayout
 from plotting.modules.colors import mmm as plotcolors
 
@@ -34,7 +36,7 @@ class PlotData:
     yvars: list
 
 
-def init_figure(profile_type, xvar_points):
+def init_figure(profile_type, xvar_points, scan_factor):
     '''
     Initializes a new figure and figure subplots
 
@@ -58,6 +60,18 @@ def init_figure(profile_type, xvar_points):
     plt.figtext(*plotlayout.TEXT2_POS, subtitle_txt, fontsize=10, ha='center', color='#444')
     text3_str = 'Using Smoothed TRANSP Data' if Options.instance.apply_smoothing else 'Using TRANSP Data'
     plt.figtext(*plotlayout.TEXT3_POS, text3_str, fontsize=10, ha='center', color='#444')
+
+    if scan_factor:
+        var_to_scan = Options.instance.var_to_scan
+        if hasattr(InputVariables(), var_to_scan):
+            data_obj = InputVariables()
+        elif hasattr(InputControls(), var_to_scan):
+            data_obj = InputControls()
+        else:
+            raise TypeError(f'No data class found for {var_to_scan}')
+
+        text4_str = f'Parameter Scan {scan_factor}' r'$\,$' f'{getattr(data_obj, var_to_scan).label}'
+        plt.figtext(*plotlayout.TEXT4_POS, text4_str, fontsize=10, ha='center', color='#444')
 
     return fig, axs
 
@@ -93,7 +107,7 @@ def make_plot(ax, data, profile_type, time_idx=None):
         ax.legend()
 
 
-def run_plotting_loop(plotdata, profile_type):
+def run_plotting_loop(plotdata, profile_type, scan_factor):
     '''
     Runs a loop to create figures and plots for each PlotData object in plotdata
 
@@ -119,7 +133,7 @@ def run_plotting_loop(plotdata, profile_type):
         if row == 0 and col == 0:
             if data is None:
                 raise TypeError('The first plot on a new figure cannot be set to None')
-            fig, axs = init_figure(profile_type, data.xvar.values.shape[0])
+            fig, axs = init_figure(profile_type, data.xvar.values.shape[0], scan_factor)
 
             # Disable all subplot axes until they are used
             for sub_axs in axs:
@@ -141,7 +155,10 @@ def run_plotting_loop(plotdata, profile_type):
     if (i + 1) % (ROWS * COLS) != 0:
         fig.savefig(utils.get_temp_path(f'{profile_type.name.lower()}_profiles_{int((i + 1) / 6) + 1}.pdf'))
 
-    merged_pdf = utils.merge_profile_sheets(opts.runid, opts.scan_num, profile_type.name.capitalize())
+    merge_type = MergeType.PROFILES if not scan_factor else MergeType.PROFILEFACTORS
+
+    args = (opts.runid, opts.scan_num, profile_type.name.capitalize(), merge_type, opts.var_to_scan, scan_factor)
+    merged_pdf = utils.merge_profile_sheets(*args)
 
     # File opening may only work on Windows
     if settings.AUTO_OPEN_PDFS:
@@ -205,7 +222,7 @@ def remove_empty_vars(plotdata):
     return [data for data in plotdata if data is None or (data.yvars[0].values != 0).any()]
 
 
-def plot_profiles(profile_type, vars, cdf_vars=None):
+def plot_profiles(profile_type, vars, cdf_vars=None, scan_factor=None):
     '''
     Sets the plotdata (list of PlotData) to be plotted, then runs the plotting loop
 
@@ -217,6 +234,7 @@ def plot_profiles(profile_type, vars, cdf_vars=None):
     * profile_type (ProfileType): The type of profiles to plot
     * vars (InputVariables or OutputVariables): The object containing variable data to plot
     * cdf_vars (InputVariables): All CDF variables used for making compared plots (Optional)
+    * scan_factor (float): The value of the scan factor (Optional)
     '''
 
     if profile_type == ProfileType.INPUT:
@@ -305,4 +323,4 @@ def plot_profiles(profile_type, vars, cdf_vars=None):
     else:
         raise TypeError(f'The ProfileType {profile_type} does not have a plotdata definition')
 
-    run_plotting_loop(plotdata, profile_type)
+    run_plotting_loop(plotdata, profile_type, scan_factor)

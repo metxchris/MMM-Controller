@@ -1,5 +1,6 @@
 # Format strings
 SCAN_FACTOR_FMT_STR = '{:0>7.3f}'
+SCAN_FACTOR_PDF_FMT_STR = '{:.3f}'
 RHO_VALUE_FMT_STR = '{:.3f}'
 SHEET_NUM_FMT_STR = '{:03d}'
 TIME_FMT_STR = '{:.3f}'
