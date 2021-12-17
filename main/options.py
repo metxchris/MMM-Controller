@@ -1,7 +1,6 @@
 # Standard Packages
+import sys; sys.path.insert(0, '../')
 import pickle
-import sys
-sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np

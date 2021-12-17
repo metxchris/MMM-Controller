@@ -1,10 +1,8 @@
 # Standard Packages
-import sys
-sys.path.insert(0, '../')
+import sys; sys.path.insert(0, '../')
 
 # Local Packages
 from main import utils
-from main.enums import ShotType
 from main.options import Options
 
 

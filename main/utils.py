@@ -1,8 +1,8 @@
 # Standard Packages
 import sys; sys.path.insert(0, '../')
-from math import floor, log10
 import os
 import glob
+from math import floor, log10
 
 # Local Packages
 import pdftk

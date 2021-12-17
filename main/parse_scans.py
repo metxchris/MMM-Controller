@@ -1,12 +1,11 @@
 # Standard Packages
-import sys
-sys.path.insert(0, '../')
+import sys; sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
 
 # Local Packages
-from main import utils, variables, constants
+from main import utils, constants
 from main.options import Options
 from main.enums import SaveType
 

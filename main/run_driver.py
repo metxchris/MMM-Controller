@@ -1,9 +1,8 @@
 # Standard Packages
+import sys; sys.path.insert(0, '../')
 import os
 import subprocess
 import shutil
-import sys
-sys.path.insert(0, '../')
 
 # Local Packages
 from main import utils

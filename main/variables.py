@@ -1,7 +1,6 @@
 # Standard Packages
+import sys; sys.path.insert(0, '../')
 from copy import deepcopy
-import sys
-sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np

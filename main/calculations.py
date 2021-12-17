@@ -1,15 +1,14 @@
 # Standard Packages
+import sys; sys.path.insert(0, '../')
 import copy
 import inspect
-import sys
-sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
 from scipy.interpolate import interp1d  # TODO: use Akima1DInterpolator?
 
 # Local Packages
-from main import variables, constants
+from main import constants
 from main.options import Options
 
 
