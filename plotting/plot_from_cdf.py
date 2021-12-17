@@ -1,6 +1,5 @@
 # Standard Packages
-import sys
-sys.path.insert(0, '../')
+import sys; sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
@@ -9,8 +8,8 @@ import matplotlib.pyplot as plt
 # Local Packages
 from main.enums import ShotType
 from main.options import Options
-from plots.styles import single as plotlayout
-from plots.colors import mmm as plotcolors
+from plotting.modules.styles import single as plotlayout
+from plotting.modules.colors import mmm as plotcolors
 
 
 def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):

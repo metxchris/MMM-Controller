@@ -1,8 +1,3 @@
-# Standard Packages
-import sys
-sys.path.insert(0, '../')
-sys.path.insert(0, '../../')
-
 # 3rd Party Packages
 import matplotlib.pyplot as plt
 
@@ -24,10 +19,10 @@ def init():
         'axes.formatter.use_mathtext': True,
         'figure.dpi': 150.0,
         'figure.figsize': [3.5, 3],
-        'figure.subplot.bottom': 0.15,
+        'figure.subplot.bottom': 0.14,
         'figure.subplot.hspace': 0.38,
-        'figure.subplot.left': 0.16,
-        'figure.subplot.right': 0.9,
+        'figure.subplot.left': 0.18,
+        'figure.subplot.right': 0.92,
         'figure.subplot.top': 0.9,
         'figure.subplot.wspace': 0.22,
         'grid.alpha': 1.0,

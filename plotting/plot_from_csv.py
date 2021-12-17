@@ -1,7 +1,6 @@
 # Standard Packages
+import sys; sys.path.insert(0, '../')
 from copy import deepcopy
-import sys
-sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import matplotlib.pyplot as plt
@@ -9,8 +8,8 @@ import matplotlib.pyplot as plt
 # Local Packages
 from main.enums import SaveType
 from main.variables import InputVariables, OutputVariables
-from plots.styles import single as plotlayout
-from plots.colors import mmm as plotcolors
+from plotting.modules.styles import single as plotlayout
+from plotting.modules.colors import mmm as plotcolors
 
 
 class VarData:
@@ -27,27 +26,7 @@ class VarData:
         self.yvar = None
 
 
-def plot_variable_data(data_list, title):
-    plt.figure()
-
-    for data in data_list:
-        plt.plot(data.xvar.values, data.yvar.values, label=data.label)
-
-    # Uses data from the last item in data_list
-    plt.xlim(min([data.xvar.values.min() for data in data_list]),
-             max([data.xvar.values.max() for data in data_list]))
-    plt.xlabel(f'{data.xvar.label} {data.xvar.units_label}')
-    plt.ylabel(f'{data.yvar.label} {data.yvar.units_label}')
-    plt.legend()
-    plt.title(title)
-    plt.show()
-
-
 def load_variable_data(data_list):
-
-    plotlayout.init()
-    plotcolors.init()
-
     for data in data_list:
         input_vars = InputVariables()
         output_vars = OutputVariables()
@@ -63,6 +42,24 @@ def load_variable_data(data_list):
                 data.xvar = deepcopy(getattr(v, data.xvar_name))
             if hasattr(v, data.yvar_name):
                 data.yvar = deepcopy(getattr(v, data.yvar_name))
+
+
+def main(data_list, title):
+    plotlayout.init()
+    plotcolors.init()
+    plt.figure()
+
+    for data in data_list:
+        plt.plot(data.xvar.values, data.yvar.values, label=data.label)
+
+    # Uses data from the last item in data_list
+    plt.xlim(min([data.xvar.values.min() for data in data_list]),
+             max([data.xvar.values.max() for data in data_list]))
+    plt.xlabel(f'{data.xvar.label} {data.xvar.units_label}')
+    plt.ylabel(f'{data.yvar.label} {data.yvar.units_label}')
+    plt.legend()
+    plt.title(title)
+    plt.show()
 
 
 if __name__ == '__main__':
@@ -145,4 +142,4 @@ if __name__ == '__main__':
     # ]
 
     load_variable_data(data_list)
-    plot_variable_data(data_list, title)
+    main(data_list, title)

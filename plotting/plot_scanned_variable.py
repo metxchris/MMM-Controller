@@ -1,6 +1,5 @@
 # Standard Packages
-import sys
-sys.path.insert(0, '../')
+import sys; sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
@@ -9,12 +8,12 @@ import matplotlib.pyplot as plt
 # Local Packages
 import settings
 from main import utils, constants
-from main.enums import ScanType, SaveType
+from main.enums import ScanType
 from main.options import Options
 from main.controls import InputControls
-from main.variables import InputVariables, OutputVariables
-from plots.styles import singlescan as plotlayout
-from plots.colors import mmmscan as plotcolors
+from main.variables import OutputVariables
+from plotting.modules.styles import singlescan as plotlayout
+from plotting.modules.colors import mmmscan as plotcolors
 
 
 def run_plotting_loop(vars_to_plot):
@@ -140,7 +139,7 @@ if __name__ == '__main__':
     # scan_data['120968A02'] = [1]
     # scan_data['120982A09'] = [1]
     # scan_data['129041A10'] = [1]
-    scan_data['TEST'] = [8, 9]
+    scan_data['TEST'] = [35]
 
     settings.AUTO_OPEN_PDFS = True
 

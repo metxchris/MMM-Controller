@@ -1,7 +1,3 @@
-# Standard Packages
-import sys
-sys.path.insert(0, '../')
-sys.path.insert(0, '../../')
 # 3rd Party Packages
 import matplotlib.pyplot as plt
 

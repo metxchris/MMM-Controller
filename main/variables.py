@@ -39,12 +39,16 @@ class Variables:
                   f'{getattr(self, v).units}, '
                   f'{getattr(self, v).values.shape}, '
                   f'{getattr(self, v).dimensions}')
-    
+
     def set_rho_values(self):
         if self.rmin.values.ndim == 2:
             self.rho.values = self.rmin.values / self.rmin.values[-1, :]
         elif self.rmin.values.ndim == 1:
-            self.rho.values = self.rmin.values / self.rmin.values[-1]
+            # This is expected when loading data from rho = 0 files
+            if self.rmin.values[-1] == 0:
+                self.rho.values = np.zeros_like(self.rmin.values)
+            else:
+                self.rho.values = self.rmin.values / self.rmin.values[-1]
 
     def get_data_as_array(self, var_list, time_idx=None):
         '''

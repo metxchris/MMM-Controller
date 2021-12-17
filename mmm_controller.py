@@ -9,7 +9,7 @@ from main import *
 from main.enums import ShotType, ScanType, ProfileType
 from main.options import Options
 from main.controls import InputControls
-from plots import plot_profiles
+from plotting.modules import profiles
 import settings
 
 
@@ -30,7 +30,7 @@ def execute_basic_run(mmm_vars, controls):
     run_driver.run_mmm_driver()
     output_vars = read_output.read_output_file()
     output_vars.save_all_vars(Options.instance)
-    plot_profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
+    profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
 
 
 def execute_variable_scan(mmm_vars, controls):
@@ -156,9 +156,9 @@ def run_mmm_controller(controls):
     controls.save_to_csv(Options.instance)
     mmm_vars.save_all_vars(Options.instance)
 
-    plot_profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
-    plot_profiles.plot_profiles(ProfileType.ADDITIONAL, mmm_vars)
-    plot_profiles.plot_profiles(ProfileType.COMPARED, mmm_vars, cdf_vars)
+    profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
+    profiles.plot_profiles(ProfileType.ADDITIONAL, mmm_vars)
+    profiles.plot_profiles(ProfileType.COMPARED, mmm_vars, cdf_vars)
 
     execute_basic_run(mmm_vars, controls)
 

@@ -1,20 +1,17 @@
 # Standard Packages
 from dataclasses import dataclass
 import copy
-import sys
-sys.path.insert(0, '../')
 
 # 3rd Party Packages
-import numpy as np
 import matplotlib.pyplot as plt
 
 # Local Packages
 import settings
-from main import constants, utils, calculations
-from main.enums import ProfileType, ShotType
+from main import utils, calculations
+from main.enums import ProfileType
 from main.options import Options
-from plots.styles import profiles as plotlayout
-from plots.colors import mmm as plotcolors
+from plotting.modules.styles import profiles as plotlayout
+from plotting.modules.colors import mmm as plotcolors
 
 
 # Subplot row and column counts
@@ -308,40 +305,3 @@ def plot_profiles(profile_type, vars, cdf_vars=None):
         raise TypeError(f'The ProfileType {profile_type} does not have a plotdata definition')
 
     run_plotting_loop(plotdata, profile_type)
-
-
-if __name__ == '__main__':
-    # For testing purposes
-    import main.variables as variables
-    from main.enums import SaveType
-
-    '''
-    CDF Options:
-    * Uncomment the line you wish to use
-    * Edit enums.py to view or add additional ShotTypes
-    '''
-    runid, scan_num = '120982A09', 1
-    runid, scan_num = 'TEST', 26
-
-    scan_factor = 1
-    rho_value = None
-
-    Options.instance.load_options(runid, scan_num)
-    if scan_factor not in Options.instance.scan_range:
-        raise ValueError(f'Scan factor value {scan_factor} not found in scan range: {Options.instance.scan_range}')
-
-    # Initialize variable objects
-    var_to_scan = Options.instance.var_to_scan
-    input_vars = variables.InputVariables()
-    output_vars = variables.OutputVariables()
-
-    args = (runid, scan_num, var_to_scan, scan_factor, rho_value)
-    input_vars.load_from_csv(SaveType.INPUT, *args)
-    input_vars.load_from_csv(SaveType.ADDITIONAL, *args)
-    output_vars.load_from_csv(SaveType.OUTPUT, *args)
-
-    plot_profiles(ProfileType.INPUT, input_vars)
-    plot_profiles(ProfileType.ADDITIONAL, input_vars)
-    plot_profiles(ProfileType.OUTPUT, output_vars)
-
-    # print(plt.rcParams.keys())

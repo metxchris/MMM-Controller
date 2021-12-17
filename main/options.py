@@ -238,6 +238,12 @@ class OptionsData:
         self._time_idx = np.argmin(np.abs(tvar.values - self.input_time))
         self._time_str = constants.TIME_FMT_STR.format(tvar.values[self.time_idx])
 
+    def find_scan_factor(self, scan_factor):
+        '''Finds the value in scan_range closest to the specified scan_factor'''
+        if self.scan_range is None:
+            raise ValueError('Cannot find scan_factor value when scan_range is None')
+        return self.scan_range[np.argmin(np.abs(self.scan_range - scan_factor))]
+
 
 class Options:
     '''Stores a public instance of the OptionsData class'''
