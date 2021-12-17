@@ -1,44 +1,76 @@
 # Standard Packages
 import os
 import glob
-import sys
-sys.path.insert(0, '../')
+from math import floor, log10
 
 # Local Packages
-import pdftk, output, temp, cdfs
-from main.enums import ScanType
+import pdftk
+import output
+import temp
+import cdfs
+import main.variables as variables
+import main.controls as controls
+import main.constants as constants
+import main.calculations as calculations
+import main.conversions as conversions
+import main.read_cdf as read_cdf
+from main.enums import ScanType, SaveType, MergeType
 
 
 def get_cdf_path(file_name):
     '''Returns (str): the path to specified CDF within the CDF folder'''
     return f'{os.path.dirname(cdfs.__file__)}\\{file_name}.CDF'
 
+
 def get_temp_path(file_name=''):
     '''Returns (str): the path to the temp folder'''
     return f'{os.path.dirname(temp.__file__)}\\{file_name}'
+
 
 def get_output_path(file_name=''):
     '''Returns (str): the path to the output folder'''
     return f'{os.path.dirname(output.__file__)}\\{file_name}'
 
+
 def get_pdftk_path():
     '''Returns (str): the path to the pdftk executable'''
     return f'{os.path.dirname(pdftk.__file__)}\\pdftk.exe'
+
 
 def get_scan_num_path(runid, scan_num):
     '''Returns (str): the path to the scan number folder'''
     return get_output_path(f'{runid}\\scan {scan_num}')
 
-def get_merged_scan_path(runid, scan_num):
-    '''Returns (str): the path to merged PDF for parameter scans'''
-    return f'{get_scan_num_path(runid, scan_num)}\\Merged Scans'
+
+def get_merged_rho_path(runid, scan_num):
+    '''Returns (str): the path to merged rho PDF for parameter scans'''
+    return f'{get_scan_num_path(runid, scan_num)}\\Merged Rho'
+
+
+def get_merged_profile_factors_path(runid, scan_num):
+    '''Returns (str): the path to merged factors PDF for parameter scans'''
+    return f'{get_scan_num_path(runid, scan_num)}\\Merged Profile Factors'
+
 
 def get_var_to_scan_path(runid, scan_num, var_to_scan):
     '''Returns: (str) the path of the scanned variable'''
     return get_output_path(f'{runid}\\scan {scan_num}\\{var_to_scan}')
 
+
 def get_rho_path(runid, scan_num, var_to_scan):
+    '''Returns (str): the path of the rho folder'''
     return f'{get_var_to_scan_path(runid, scan_num, var_to_scan)}\\rho'
+
+
+def get_rho_files(runid, scan_num, var_to_scan, save_type):
+    '''Returns (list): all rho files of save_type in the rho folder'''
+    return get_files_in_dir(get_rho_path(runid, scan_num, var_to_scan), f'{save_type.name.capitalize()}*')
+
+
+def get_rho_values(runid, scan_num, var_to_scan, save_type):
+    '''Returns (list): the rho values of all rho files in the rho folder'''
+    rho_files = get_rho_files(runid, scan_num, var_to_scan, save_type)
+    return [file.split(f'rho{constants.RHO_VALUE_SEPARATOR}')[1].split('.csv')[0] for file in rho_files]
 
 
 def init_output_dirs(options):
@@ -65,6 +97,7 @@ def init_output_dirs(options):
         create_directory(get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan))
         create_directory(get_rho_path(options.runid, options.scan_num, options.var_to_scan))
 
+
 def set_scan_num(runid):
     '''
     Initializes the directory for the current scan by always creating a new folder
@@ -89,9 +122,10 @@ def set_scan_num(runid):
 
     return scan_num
 
+
 def create_directory(dir_name):
     '''
-    Checks if output dir exists and creates it if needed.
+    Checks if output dir exists and creates it if needed
 
     Parameters:
     * dir_name (str): Path of directory
@@ -99,6 +133,7 @@ def create_directory(dir_name):
 
     if not os.path.exists(dir_name):
         os.mkdir(dir_name)
+
 
 def check_filename(file_path, file_extension):
     '''
@@ -130,6 +165,7 @@ def check_filename(file_path, file_extension):
 
     return file_path
 
+
 def check_dirname(dir_path):
     '''
     Checks if directory exists and returns a new directory name if the checked directory exists.
@@ -156,7 +192,8 @@ def check_dirname(dir_path):
         if i == max(num_range):
             raise NameError(f'Too many duplicate directories exist to save directory {dir_path}')
 
-    return dir_path    
+    return dir_path
+
 
 def open_file(file_path):
     '''
@@ -167,6 +204,7 @@ def open_file(file_path):
     '''
 
     os.startfile(file_path)
+
 
 def clear_folder(dir_path, file_type):
     '''
@@ -182,6 +220,7 @@ def clear_folder(dir_path, file_type):
         os.remove(file)
     print(f'Cleared all files of type {file_type} from {dir_path}\n')
 
+
 def clear_temp_folder():
     '''Clears temporary files from the temp folder.'''
 
@@ -195,6 +234,7 @@ def clear_temp_folder():
         os.remove(get_temp_path('input'))
     if os.path.exists(get_temp_path('output')):
         os.remove(get_temp_path('output'))
+
 
 def get_files_in_dir(dir_path, file_type='', show_warning=True):
     '''
@@ -216,34 +256,47 @@ def get_files_in_dir(dir_path, file_type='', show_warning=True):
 
     return file_names
 
-def merge_profile_sheets(runid, scan_num, profile_type, is_scan=False):
+
+def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=None, scan_factor=None):
     '''
     Merge PDF sheets using Pdftk in the temp folder into a single PDF, then place the merged PDF in the output folder.
 
-    Pdftk is a 3rd party executable that is used to merge individual PDF sheets into one PDF, 
+    Pdftk is a 3rd party executable that is used to merge individual PDF sheets into one PDF,
     and is called using a shell command.
 
     Parameters:
     * runid (str): The name of the CDF
     * scan_num (int): The number of the scan
     * profile_type (str): The type of profile to merge (Input, Output, etc.)
-    * is_scan (bool): True when merging sheets from a parameter scan
+    * merge_type (MergeType): The type of PDF merge
+    * var_to_scan (str): The variable being scanned
+    * scan_factor (float): The value of the scan factor
 
     Returns:
     * output_file (str): Path to merged PDF
     '''
 
-    output_path = get_merged_scan_path(runid, scan_num) if is_scan else get_scan_num_path(runid, scan_num)
+    if merge_type == MergeType.PROFILES:
+        output_path = get_scan_num_path(runid, scan_num)
+        output_file = f'{output_path}\\{runid} {profile_type} Profiles.pdf'
+    elif merge_type == MergeType.PROFILEFACTORS:
+        output_path = get_merged_profile_factors_path(runid, scan_num)
+        output_file = (f'{output_path}\\{runid} {profile_type} {var_to_scan}'
+                       f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}'
+                       f'{constants.SCAN_FACTOR_PDF_FMT_STR.format(scan_factor)}.pdf')
+    elif merge_type == MergeType.RHOVALUES:
+        output_path = get_merged_rho_path(runid, scan_num)
+        output_file = f'{output_path}\\{runid} {profile_type}.pdf'
+    else:
+        raise TypeError(f'No output path defined for {merge_type}')
 
     # Output directory creation only needed if sheets are being created outside of main mmm_controller.py execution
     create_directory(output_path)
-
-    output_file = f'{output_path}\\{runid} {profile_type} Profiles.pdf'
     output_file = check_filename(output_file, '.pdf')
     temp_path = get_temp_path()
     pdftk_path = get_pdftk_path()
-    
-    # Shell command to use pdftk.exe 
+
+    # Shell command to use pdftk.exe
     # TODO: Replace os.system with subprocess.run()
     os.system(f'cd {temp_path} & {pdftk_path} *{profile_type}*.pdf cat output \"{output_file}\"')
     print(f'Profiles saved to \n    {output_file}\n')
@@ -251,6 +304,96 @@ def merge_profile_sheets(runid, scan_num, profile_type, is_scan=False):
     return output_file
 
 
-# For testing purposes
-if __name__ == '__main__':
-    clear_temp_folder()
+def sci_notation(num, decimal_digits=1, precision=None, exponent=None):
+    '''
+    Returns a string representation of the scientific
+    notation of the given number formatted for use with
+    LaTeX or Mathtext, with specified number of significant
+    decimal digits and precision (number of decimal digits
+    to show). The exponent to be used can also be specified
+    explicitly.
+    '''
+
+    if exponent is None:
+        exponent = int(floor(log10(abs(num))))
+    coeff = round(num / float(10**exponent), decimal_digits)
+    if precision is None:
+        precision = decimal_digits
+
+    return r'${0:.{2}f}\times 10^{{{1:d}}}$'.format(coeff, exponent, precision)
+
+
+def get_all_rho_data(runid, scan_num, var_to_scan):
+    '''
+    Creates dictionaries that map rho values to InputVariables and OutputVariables objects
+
+    Data is loaded from CSVs stored in the rho folder of the runid, scan_num, and var_to_scan
+    currently stored in Options.instance. A list of rho values for the scan is created from
+    the filenames of the CSVs.
+
+    Returns:
+    * input_vars_dict (dict): Dictionary mapping rho values (str) to InputVariables input data
+    * output_vars_dict (dict): Dictionary mapping rho values (str) to OutputVariables data
+    * input_controls (InputControls or None): InputControls object with np.ndarray for values
+    '''
+
+    input_vars_dict, output_vars_dict = {}, {}
+    rho_values = get_rho_values(runid, scan_num, var_to_scan, SaveType.OUTPUT)
+
+    # Stores InputVariables and OutputVariables data objects for each rho_value
+    for rho in rho_values:
+        input_vars = variables.InputVariables()
+        output_vars = variables.OutputVariables()
+
+        args = (runid, scan_num, var_to_scan, None, rho)
+        input_vars.load_from_csv(SaveType.INPUT, *args)
+        input_vars.load_from_csv(SaveType.ADDITIONAL, *args)
+        output_vars.load_from_csv(SaveType.OUTPUT, *args)
+
+        input_vars_dict[rho] = input_vars
+        output_vars_dict[rho] = output_vars
+
+    # Get control_file from rho folder (there's at most one control file, as controls are independent of rho values)
+    input_controls = controls.InputControls()
+    input_controls.load_from_csv(runid, scan_num, var_to_scan, use_rho=True)
+
+    return input_vars_dict, output_vars_dict, input_controls
+
+
+def get_base_data(runid, scan_num):
+    '''
+    Gets all data pertaining to the base value of the scanned variable
+
+    Returns:
+    * input_vars (InputVariables): Object containing base input variable data
+    * output_vars (OutputVariables): Object containing base output variable data
+    * input_controls (InputControls): Object containing base input control data
+    '''
+
+    input_vars = variables.InputVariables()
+    output_vars = variables.OutputVariables()
+    input_controls = controls.InputControls()
+
+    input_vars.load_from_csv(SaveType.INPUT, runid, scan_num)
+    input_vars.load_from_csv(SaveType.ADDITIONAL, runid, scan_num)
+    output_vars.load_from_csv(SaveType.OUTPUT, runid, scan_num)
+    input_controls.load_from_csv(runid, scan_num)
+
+    return input_vars, output_vars, input_controls
+
+
+def initialize_variables():
+    '''
+    Initializes all input variables needed to run the MMM Driver and plot variable profiles
+
+    Returns:
+    * mmm_vars (InputVariables): All calculated variables, interpolated onto a grid of size input_points
+    * cdf_vars (InputVariables): All CDF variables, interpolated onto a grid of size input_points
+    * raw_cdf_vars (InputVariables): All unedited CDF variables (saved for troubleshooting)
+    '''
+
+    raw_cdf_vars = read_cdf.read_cdf()
+    cdf_vars = conversions.convert_variables(raw_cdf_vars)
+    mmm_vars = calculations.calculate_inputs(cdf_vars)
+
+    return mmm_vars, cdf_vars, raw_cdf_vars

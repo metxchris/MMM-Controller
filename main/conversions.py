@@ -1,14 +1,12 @@
 # Standard Packages
-import sys
+import sys; sys.path.insert(0, '../')
 from copy import deepcopy
-sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
 from scipy.interpolate import interp1d
 
 # Local Packages
-from main import variables
 from main.options import Options
 
 
@@ -87,7 +85,7 @@ def interp_to_input_points(input_vars):
     '''
     Interpolates from XB to a grid determined by input_points, if the input_point grid differs from XB
 
-    Since the XB grid is constant over time, the interpolation process can be done in one step for all timeslices
+    Since the XB grid is constant over time, the interpolation process can be done in one step for all time slices
     for each input variable.
 
     Parameters:
@@ -127,10 +125,10 @@ def interp_to_input_points(input_vars):
 
 def interp_to_uniform_rho(input_vars):
     '''
-    Interpolates each timeslice onto an evenly spaced rho, determined by input_points
+    Interpolates each time slice onto an evenly spaced rho, determined by input_points
 
     Since the value of rmin varies over time, the interpolation onto a grid of evenly spaced rho values
-    requires that interpolation be carried out over each individual timeslice of variable data, which can
+    requires that interpolation be carried out over each individual time slice of variable data, which can
     increase the time needed to interpolate the data by a factor of 10.
 
     Parameters:
@@ -180,7 +178,7 @@ def initial_conversion(cdf_vars):
     the time closest to the input time is taken as the measurement time.
 
     Parameters:
-    * cdf_vars (InputVariables): Raw data from the CDF of all InputVariables with a specifed cdf_var value
+    * cdf_vars (InputVariables): Raw data from the CDF of all InputVariables with a specified cdf_var value
 
     Returns:
     * input_vars (InputVariables): Data from the CDF converted into a format needed to run MMM
@@ -233,7 +231,7 @@ def convert_variables(cdf_vars):
     the time closest to the input time is taken as the measurement time.
 
     Parameters:
-    * cdf_vars (InputVariables): Raw data from the CDF of all InputVariables with a specifed cdf_var value
+    * cdf_vars (InputVariables): Raw data from the CDF of all InputVariables with a specified cdf_var value
 
     Returns:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables

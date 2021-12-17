@@ -1,10 +1,8 @@
 # Standard Packages
-import sys
-sys.path.insert(0, '../')
+import sys; sys.path.insert(0, '../')
 
 # Local Packages
 from main import utils
-from main.enums import ShotType
 from main.options import Options
 
 
@@ -48,22 +46,22 @@ def write_input_file(input_vars, controls):
     file_name = utils.get_temp_path('input')
     f = open(file_name, 'w')
 
-    # Write mmm input file header
+    # Write MMM input file header
     f.write(controls.get_mmm_header())
 
-    # Loop through mmm variables and write input file values
+    # Loop through MMM variables and write input file values
     for var_name in MMM_LABELS.keys():
         var = getattr(input_vars, var_name)
 
         # Write label and variable
-        f.write('{0}\n'.format(MMM_LABELS[var_name]))
-        f.write('{0} = \n'.format(var_name))
+        f.write(f'{MMM_LABELS[var_name]}\n')
+        f.write(f'{var_name} = \n')
 
         # Write all values for variable
         values = var.values[:, input_options.time_idx]
         for value in values:
-            # Writes values with 12 decimal places in exponential notation
-            f.write('   {:.12e}\n'.format(value))
+            # Writes values with 8 decimal places in exponential notation
+            f.write('   {:.8e}\n'.format(value))
         f.write('\n')
 
     f.write('/\n')  # Needed to end the input file

@@ -1,17 +1,24 @@
-# Standard Packages
-import sys
-sys.path.insert(0, '../')
-sys.path.insert(0, '../../')
 # 3rd Party Packages
 import matplotlib.pyplot as plt
 
-plt.rcParams.update({
+
+TEXT1_POS = (0.5, 0.905)
+TEXT2_POS = (0.5, 0.88)
+TEXT3_POS = (0.5, 0.861)
+TEXT4_POS = (0.5, 0.842)
+
+ROWS = 2
+COLS = 3
+
+
+def init():
+    plt.rcParams.update({
         'font.family': 'serif',
         'mathtext.fontset': 'cm',
         'mathtext.bf': 'cmb10',
         'font.serif': 'cmr10',
-        'axes.unicode_minus': False, # unicode_minus does not work in Computer Modern font (cm, cmr10)
-        'axes.formatter.limits': [-2, 2], # Forces exponent notation below 10**(-2) and above 10**2
+        'axes.unicode_minus': False,  # unicode_minus does not work in Computer Modern font (cm, cmr10)
+        'axes.formatter.limits': [-2, 3],  # Forces exponent notation below 10**(-2) and above 10**3
         'axes.grid': True,
         'axes.labelpad': 2,
         'axes.labelsize': 10,
@@ -20,19 +27,19 @@ plt.rcParams.update({
         'axes.facecolor': '#f8f8f8',
         'axes.formatter.use_mathtext': True,
         'figure.dpi': 150.0,
-        'figure.figsize': [3.5, 3],
-        'figure.subplot.bottom': 0.15,
+        'figure.figsize': [11, 8.5],
+        'figure.subplot.bottom': 0.10,
         'figure.subplot.hspace': 0.38,
-        'figure.subplot.left': 0.16,
-        'figure.subplot.right': 0.9,
-        'figure.subplot.top': 0.9,
+        'figure.subplot.left': 0.08,
+        'figure.subplot.right': 0.92,
+        'figure.subplot.top': 0.78,
         'figure.subplot.wspace': 0.22,
         'grid.alpha': 1.0,
         'grid.color': '#fff',
-        'legend.fontsize': 9,
+        'legend.fontsize': 10,
         'legend.frameon': False,
-        'legend.borderpad': 0, 
-        'legend.labelspacing': 0.1,
+        'legend.borderpad': 0,
+        'legend.labelspacing': 0,
         'legend.handlelength': 2.5,
         'lines.dash_joinstyle': 'round',
         'lines.dash_capstyle': 'butt',

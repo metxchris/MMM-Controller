@@ -1,6 +1,5 @@
 # Standard Packages
-import sys
-sys.path.insert(0, '../')
+import sys; sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
@@ -8,11 +7,11 @@ import numpy as np
 # Local Packages
 from main import utils, variables
 from main.options import Options
-from main.enums import DataType
+from main.enums import SaveType
 
 
 # The number of comment lines in the output file before data starts
-# These will need to be updated if the mmm output file format changes
+# These will need to be updated if the MMM output file format changes
 NUM_INPUT_COMMENT_LINES = 4
 NUM_OUTPUT_COMMENT_LINES = 3
 
@@ -56,7 +55,7 @@ def read_output_file(scan_factor=None):
     opts = Options.instance
     output_vars = variables.OutputVariables()
 
-    output_file = utils.get_temp_path(DataType.OUTPUT.name.lower())
+    output_file = utils.get_temp_path(SaveType.OUTPUT.name.lower())
     with open(output_file) as file:
         lines = file.readlines()
 

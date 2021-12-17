@@ -1,7 +1,6 @@
 # Standard Packages
+import sys; sys.path.insert(0, '../')
 from copy import deepcopy
-import sys
-sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
@@ -9,8 +8,9 @@ import scipy.ndimage
 from multipledispatch import dispatch
 
 # Local Packages
-from main import constants, utils
-from main.enums import SaveType, DataType
+import main.constants as constants
+import main.utils as utils
+from main.enums import SaveType
 
 
 # Parent class for input and output variables
@@ -38,12 +38,16 @@ class Variables:
                   f'{getattr(self, v).units}, '
                   f'{getattr(self, v).values.shape}, '
                   f'{getattr(self, v).dimensions}')
-    
+
     def set_rho_values(self):
         if self.rmin.values.ndim == 2:
             self.rho.values = self.rmin.values / self.rmin.values[-1, :]
         elif self.rmin.values.ndim == 1:
-            self.rho.values = self.rmin.values / self.rmin.values[-1]
+            # This is expected when loading data from rho files with rho = 0
+            if self.rmin.values[-1] == 0:
+                self.rho.values = np.zeros_like(self.rmin.values)
+            else:
+                self.rho.values = self.rmin.values / self.rmin.values[-1]
 
     def get_data_as_array(self, var_list, time_idx=None):
         '''
@@ -75,7 +79,7 @@ class Variables:
 
         return data, header
 
-    def save_data_to_csv(self, data, header, save_type, options, scan_factor=None):
+    def save_to_csv(self, data, header, save_type, options, scan_factor=None):
         '''
         Saves data in np.ndarray format to a CSV
 
@@ -87,23 +91,24 @@ class Variables:
         * scan_factor (float): The scan_factor, if doing a parameter scan
         '''
 
+        # Save data to the sub folder of the parameter being scanned
+        if scan_factor is not None:
+            scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
+            save_dir = utils.get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan)
+            file_name = (f'{save_dir}\\{save_type.name.capitalize()} {options.var_to_scan}'
+                         f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}{scan_factor_str}.csv')
+
         # Save data to top level directory of scan folder
-        if scan_factor is None:
+        else:
             save_dir = utils.get_scan_num_path(options.runid, options.scan_num)
             file_name = f'{save_dir}\\{options.runid} {save_type.name.capitalize()} Profiles.csv'
 
-        # Save data to the sub folder of the parameter being scanned
-        else:
-            scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
-            save_dir = utils.get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan)
-            file_name = f'{save_dir}\\{save_type.name.capitalize()} {options.var_to_scan} = {scan_factor_str}.csv'
-
         utils.create_directory(save_dir)
-        np.savetxt(file_name, data, header=header, fmt='%.4e', delimiter=',')
+        np.savetxt(file_name, data, header=header, fmt='%.6e', delimiter=',')
 
         print(f'{save_type.name.capitalize()} data saved to \n    {file_name}\n')
 
-    def load_data_from_csv(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
+    def load_from_csv(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
         '''
         Loads data from a CSV into the current Variables subclass object
 
@@ -113,29 +118,36 @@ class Variables:
         * scan_num (int): The scan number of the CSV to use
         * var_to_scan (str): The scanned variable of the CSV to use (optional)
         * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
-        * rho_value (str): The rho value of the CSV to use (optional)
+        * rho_value (str or float): The rho value of the CSV to use (optional)
         '''
 
         if rho_value is not None:
-            rho_str = constants.RHO_VALUE_FMT_STR.format(rho_value)
+            rho_str = rho_value if type(rho_value) is str else constants.RHO_VALUE_FMT_STR.format(rho_value)
             dir_path = utils.get_rho_path(runid, scan_num, var_to_scan)
-            file_path = f'{dir_path}\\{save_type.name.capitalize()} rho = {rho_str}.csv'
+            file_path = (f'{dir_path}\\{save_type.name.capitalize()} '
+                         f'rho{constants.RHO_VALUE_SEPARATOR}{rho_str}.csv')
 
         elif scan_factor is not None:
             scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
             dir_path = utils.get_var_to_scan_path(runid, scan_num, var_to_scan)
-            file_path = f'{dir_path}\\{save_type.name.capitalize()} {var_to_scan} = {scan_factor_str}.csv'
+            file_path = (f'{dir_path}\\{save_type.name.capitalize()} {var_to_scan}'
+                         f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}{scan_factor_str}.csv')
 
         else:
             dir_path = utils.get_scan_num_path(runid, scan_num)
             file_path = f'{dir_path}\\{runid} {save_type.name.capitalize()} Profiles.csv'
 
-
         data_array = np.genfromtxt(file_path, delimiter=',', dtype=float, names=True)
         var_names = data_array.dtype.names
 
+        if len(var_names) == 0:
+            raise ValueError(f'No variable names were loaded from {file_path}')
+
         for var_name in var_names:
             getattr(self, var_name).values = data_array[var_name]
+
+        if self.rmin.values is not None:
+            self.set_rho_values()
 
 
 # Variables obtained from a CDF
@@ -154,7 +166,7 @@ class InputVariables(Variables):
         self.omega = Variable('Toroidal Angular Velocity', cdfvar='OMEGA', smooth=8)
         self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', minvalue=1e-6, smooth=5, save_type=SaveType.INPUT)
         self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', minvalue=1e-6, smooth=5, save_type=SaveType.INPUT)
-        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-6, smooth=5)
+        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-6, smooth=5, save_type=SaveType.ADDITIONAL)
         self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=5, save_type=SaveType.INPUT)
         self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=5, save_type=SaveType.INPUT)
         self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$', smooth=None, save_type=SaveType.INPUT)
@@ -265,7 +277,7 @@ class InputVariables(Variables):
             var_list.insert(0, var_list.pop(var_list.index('rmin')))
 
         data, header = self.get_data_as_array(var_list, options.time_idx)
-        self.save_data_to_csv(data, header, save_type, options, scan_factor)
+        self.save_to_csv(data, header, save_type, options, scan_factor)
 
     def save_all_vars(self, options, scan_factor=None):
         self.save_vars_of_type(SaveType.INPUT, options, scan_factor)
@@ -349,11 +361,22 @@ class OutputVariables(Variables):
         var_list.remove('rho')
 
         data, header = self.get_data_as_array(var_list)
-        self.save_data_to_csv(data, header, SaveType.OUTPUT, options, scan_factor)
+        self.save_to_csv(data, header, SaveType.OUTPUT, options, scan_factor)
 
 
 class Variable:
-    def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None, absminvalue=None, save_type=None, units='', dimensions=None, values=None):
+    def __init__(self,
+                 name,
+                 cdfvar=None,
+                 smooth=None,
+                 label='',
+                 desc='',
+                 minvalue=None,
+                 absminvalue=None,
+                 save_type=None,
+                 units='',
+                 dimensions=None,
+                 values=None):
         # Public
         self.name = name
         self.cdfvar = cdfvar  # Name of variable as used in CDF's
@@ -456,7 +479,6 @@ class Variable:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-
     def apply_smoothing(self, input_points):
         '''
         Variable smoothing using a Gaussian filter
@@ -472,7 +494,7 @@ class Variable:
             sigma = int(input_points * self.smooth / 100)
             self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(sigma, 0))
 
-    # Clamps values between -value and value, and sets origin value to apprximately 0
+    # Clamps values between -value and value, and sets origin value to approximately 0
     def clamp_gradient(self, value):
         self.values[0, :] = 1e-6
         self.values[self.values > value] = value
@@ -480,7 +502,7 @@ class Variable:
 
     # Removes values outside of m standard deviations
     # TODO: Currently not ideal since removed values are replaced with None,
-    # which turns everything into nan after smoothing or intepolating again
+    # which turns everything into nan after smoothing or interpolating again
     def reject_outliers(self, m=4):
         self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
 
@@ -500,10 +522,9 @@ if __name__ == '__main__':
         var_to_scan='gti',
         time_idx=0,
     )
-    
+
     # Create InputVariables and OutputVariables, and populate with non-zero values
     ivars = InputVariables()
-    print(ivars.nuei.save_type)
     input_var_names = ivars.get_variables()
     for i, var_name in enumerate(input_var_names):
         values = np.ones((5, 4), dtype=float) * i
@@ -520,7 +541,7 @@ if __name__ == '__main__':
     # ovars.save_all_vars(Options.instance)
 
     ivars = InputVariables()
-    ivars.load_data_from_csv(SaveType.INPUT, 'TEST', 10, 'gti', scan_factor=1.5)
-    ivars.load_data_from_csv(SaveType.ADDITIONAL,'TEST', 10, 'gti', scan_factor=1.5, rho_value=0.5)
+    ivars.load_from_csv(SaveType.INPUT, 'TEST', 25, 'tau', scan_factor=1.5)
+    ivars.load_from_csv(SaveType.ADDITIONAL, 'TEST', 25, 'tau', scan_factor=1.5, rho_value=0.5)
 
     ivars.print_nonzero_variables()

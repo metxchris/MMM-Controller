@@ -1,15 +1,14 @@
 # Standard Packages
+import sys; sys.path.insert(0, '../')
 import copy
 import inspect
-import sys
-sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import numpy as np
 from scipy.interpolate import interp1d  # TODO: use Akima1DInterpolator?
 
 # Local Packages
-from main import variables, constants
+from main import constants
 from main.options import Options
 
 
@@ -57,7 +56,7 @@ def ni(vars):
     vars.ni.set_variable(ni, vars.ne.units, ['XBO', 'TIME'])
 
 def ahyd(vars):
-    '''Mean atomic mass of hydrogenic ions (hydrogen + dueterium)'''
+    '''Mean atomic mass of hydrogenic ions (hydrogen + deuterium)'''
     nh0 = vars.nh0.values
     nd = vars.nd.values
 
@@ -247,7 +246,7 @@ def vthi(vars):
 
 # Electron Collisionality (NU^{*}_{e}) TODO: units?
 # OLD NOTE: This is in approximate
-# agreement with NUSTE in transp.  One source of the disagreement is
+# agreement with NUSTE in TRANSP.  One source of the disagreement is
 # likely because the modmmm7_1.f90 Coulomb logarithm (loge) does not
 # match perfectly with the TRANSP version (CLOGE).
 def nuste(vars):
@@ -264,7 +263,7 @@ def nuste(vars):
 # Ion Collisionality (NUSTI = NU^{*}_{i}) TODO: Units
 # OLD NOTE: This is approx correct, but
 # agreement is also somewhat time-dependent.  The issue is possibly due
-# to the artifical AIMASS that we are using.  We likely also need to
+# to the artificial AIMASS that we are using.  We likely also need to
 # use the coulomb logarithm for ions as well.
 def nusti(vars):
     zcme = constants.ZCME
@@ -415,7 +414,7 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
     # partial derivative along x-axis
     dxvar = np.diff(var.values, axis=0) / drmin
 
-    # intepolate from x to xb
+    # interpolate from x to xb
     set_interp = interp1d(x, dxvar, kind='cubic', fill_value="extrapolate", axis=0)
     dxvar = set_interp(xb)
 

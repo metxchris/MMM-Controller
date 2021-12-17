@@ -1,16 +1,15 @@
 # Standard Packages
+import sys; sys.path.insert(0, '../')
 from copy import deepcopy
-import sys
-sys.path.insert(0, '../')
 
 # 3rd Party Packages
 import matplotlib.pyplot as plt
 
 # Local Packages
 from main.enums import SaveType
-from main.variables import InputVariables, OutputVariables
-from plots.styles import rho_layout as ps
-from plots.colors import mmm
+import main.variables as variables
+from plotting.modules.styles import single as plotlayout
+from plotting.modules.colors import mmm as plotcolors
 
 
 class VarData:
@@ -27,7 +26,27 @@ class VarData:
         self.yvar = None
 
 
-def plot_variable_data(data_list, title):
+def load_variable_data(data_list):
+    for data in data_list:
+        input_vars = variables.InputVariables()
+        output_vars = variables.OutputVariables()
+
+        args = (data.runid, data.scan_num, data.var_to_scan, data.scan_factor, data.rho_value)
+        input_vars.load_from_csv(SaveType.INPUT, *args)
+        input_vars.load_from_csv(SaveType.ADDITIONAL, *args)
+        output_vars.load_from_csv(SaveType.OUTPUT, *args)
+
+        var_list = [input_vars, output_vars]
+        for v in var_list:
+            if hasattr(v, data.xvar_name):
+                data.xvar = deepcopy(getattr(v, data.xvar_name))
+            if hasattr(v, data.yvar_name):
+                data.yvar = deepcopy(getattr(v, data.yvar_name))
+
+
+def main(data_list, title):
+    plotlayout.init()
+    plotcolors.init()
     plt.figure()
 
     for data in data_list:
@@ -41,25 +60,6 @@ def plot_variable_data(data_list, title):
     plt.legend()
     plt.title(title)
     plt.show()
-
-
-def load_variable_data(data_list):
-    for data in data_list:
-        input_vars = InputVariables()
-        output_vars = OutputVariables()
-
-        args = (data.runid, data.scan_num, data.var_to_scan, data.scan_factor, data.rho_value)
-        input_vars.load_data_from_csv(SaveType.INPUT, *args)
-        input_vars.load_data_from_csv(SaveType.ADDITIONAL, *args)
-        output_vars.load_data_from_csv(SaveType.OUTPUT, *args)
-
-        var_list = [input_vars, output_vars]
-        for v in var_list:
-            v.set_rho_values()
-            if hasattr(v, data.xvar_name):
-                data.xvar = deepcopy(getattr(v, data.xvar_name))
-            if hasattr(v, data.yvar_name):
-                data.yvar = deepcopy(getattr(v, data.yvar_name))
 
 
 if __name__ == '__main__':
@@ -142,4 +142,4 @@ if __name__ == '__main__':
     # ]
 
     load_variable_data(data_list)
-    plot_variable_data(data_list, title)
+    main(data_list, title)

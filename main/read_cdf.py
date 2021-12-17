@@ -1,7 +1,6 @@
 # Standard Packages
+import sys; sys.path.insert(0, '../')
 from os.path import exists
-import sys
-sys.path.insert(0, '../')
 
 # 3rd Party Packages
 from netCDF4 import Dataset
