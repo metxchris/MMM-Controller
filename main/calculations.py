@@ -495,9 +495,9 @@ def calculate_inputs(cdf_vars):
     calculate_gradient('gq',    'q',     drmin, vars)
     calculate_gradient('gte',   'te',   -drmin, vars)
     calculate_gradient('gti',   'ti',   -drmin, vars)
-    calculate_gradient('gvpar', 'vpar', -drmin, vars)
-    calculate_gradient('gvpol', 'vpol', -drmin, vars)
-    calculate_gradient('gvtor', 'vtor', -drmin, vars)
+    calculate_gradient('gvpar', 'vpar',  drmin, vars)
+    calculate_gradient('gvpol', 'vpol',  drmin, vars)
+    calculate_gradient('gvtor', 'vtor',  drmin, vars)
 
     # Calculations dependent on gradient variables
     calculate_variable(shear, vars)
