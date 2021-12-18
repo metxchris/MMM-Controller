@@ -421,7 +421,7 @@ class Variable:
 
     @property
     def units_label(self):
-        return self._units_label if self._units_label is not None else self._units
+        return self._units_label
 
     @property
     def units(self):
@@ -430,6 +430,7 @@ class Variable:
     @units.setter
     def units(self, units):
         self._units = units
+        self._units_label = units
 
         # Set units_label in LaTeX format
         if units != '':

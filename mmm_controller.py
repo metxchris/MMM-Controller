@@ -180,7 +180,7 @@ if __name__ == '__main__':
     scanned_vars = {}
 
     '''
-    CDFs:
+    TRANSP Data:
     * Uncomment the line you wish to use
     '''
     # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5

@@ -62,13 +62,26 @@ def main(data_list, title):
     plt.show()
 
 
+def get_var_compare(title, varx_name, vary_name, scan_num):
+    return (title, [
+        VarData(varx_name, vary_name, '120968A02 (High)', '120968A02', scan_num=scan_num),
+        VarData(varx_name, vary_name, '120982A09 (Med.)', '120982A09', scan_num=scan_num),
+        VarData(varx_name, vary_name, '129041A10 (Low)', '129041A10', scan_num=scan_num),
+    ])
+
+
 if __name__ == '__main__':
 
-    title, data_list = 'Collisionality', [
-        VarData('rho', 'nuei', '120968A02 (High)', '120968A02', scan_num=1),
-        VarData('rho', 'nuei', '120982A09 (Med.)', '120982A09', scan_num=1),
-        VarData('rho', 'nuei', '129041A10 (Low)', '129041A10', scan_num=1),
-    ]
+    # title, data_list = 'Collisionality', [
+    #     VarData('rho', 'nuei', '120968A02 (High)', '120968A02', scan_num=1),
+    #     VarData('rho', 'nuei', '120982A09 (Med.)', '120982A09', scan_num=1),
+    #     VarData('rho', 'nuei', '129041A10 (Low)', '129041A10', scan_num=1),
+    # ]
+
+    title, data_list = get_var_compare('Effective Charge', 'rho', 'zeff', 1)
+    title, data_list = get_var_compare('Diffusivity', 'rho', 'xteETGM', 1)
+    title, data_list = get_var_compare('Growth Rate', 'rho', 'gmaETGM', 1)
+    title, data_list = get_var_compare('Frequency', 'rho', 'omgETGM', 1)
 
     # title, data_list = 'Effective Charge', [
     #     VarData('rho', 'zeff', '120968A02 (High)', '120968A02', scan_num=1),
@@ -88,57 +101,51 @@ if __name__ == '__main__':
     #     VarData('rho', 'gmaETGM', '129041A10 (Low)', '129041A10', scan_num=1),
     # ]
 
-    title, data_list = r'Growth Rate $(\rho = 0.72)$', [
-        VarData('nuei', 'gmaETGM', '120968A02 (High)', '120968A02', scan_num=1, var_to_scan='nuei', rho_value=0.72),
-        VarData('nuei', 'gmaETGM', '120982A09 (Med.)', '120982A09', scan_num=1, var_to_scan='nuei', rho_value=0.72),
-        VarData('nuei', 'gmaETGM', '129041A10 (Low)', '129041A10', scan_num=1, var_to_scan='nuei', rho_value=0.72),
-    ]
+    # title, data_list = r'Growth Rate $(\rho = 0.72)$', [
+    #     VarData('nuei', 'gmaETGM', '120968A02 (High)', '120968A02', scan_num=1, var_to_scan='nuei', rho_value=0.72),
+    #     VarData('nuei', 'gmaETGM', '120982A09 (Med.)', '120982A09', scan_num=1, var_to_scan='nuei', rho_value=0.72),
+    #     VarData('nuei', 'gmaETGM', '129041A10 (Low)', '129041A10', scan_num=1, var_to_scan='nuei', rho_value=0.72),
+    # ]
 
     # title, data_list = 'Growth Rate (120968A02)', [
     #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $\nu_\mathrm{ei} \times 3$', '120968A02', scan_num=1, var_to_scan='nuei', scan_factor=3),
     #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 3$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=3),
     # ]
 
-    # title, data_list = 'Growth Rate (120968A02, High)', [
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=0.5),
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 1$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=1),
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 2$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=2),
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 3$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=3),
-    # ]
+    title, data_list = 'Growth Rate (120968A02, High)', [
+        VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=0.5),
+        VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 1$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=1),
+        VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 2$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=2),
+    ]
 
     # title, data_list = 'Growth Rate (120982A09, Med.)', [
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120982A09', scan_num=2, var_to_scan='zeff', scan_factor=0.5),
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 1$', '120982A09', scan_num=2, var_to_scan='zeff', scan_factor=1),
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 2$', '120982A09', scan_num=2, var_to_scan='zeff', scan_factor=2),
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 3$', '120982A09', scan_num=2, var_to_scan='zeff', scan_factor=3),
+    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120982A09', scan_num=1, var_to_scan='zeff', scan_factor=0.5),
+    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 1$', '120982A09', scan_num=1, var_to_scan='zeff', scan_factor=1),
+    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 2$', '120982A09', scan_num=1, var_to_scan='zeff', scan_factor=2),
     # ]
 
     # title, data_list = 'Growth Rate (129041A10, Low)', [
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 0.5$', '129041A10', scan_num=2, var_to_scan='zeff', scan_factor=0.5),
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 1$', '129041A10', scan_num=2, var_to_scan='zeff', scan_factor=1),
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 2$', '129041A10', scan_num=2, var_to_scan='zeff', scan_factor=2),
-    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 3$', '129041A10', scan_num=2, var_to_scan='zeff', scan_factor=3),
+    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 0.5$', '129041A10', scan_num=1, var_to_scan='zeff', scan_factor=0.5),
+    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 1$', '129041A10', scan_num=1, var_to_scan='zeff', scan_factor=1),
+    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 2$', '129041A10', scan_num=1, var_to_scan='zeff', scan_factor=2),
     # ]
 
     # title, data_list = 'Diffusivity (120968A02, High)', [
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=0.5),
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 1$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=1),
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 2$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=2),
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 3$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=3),
+    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=0.5),
+    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 1$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=1),
+    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 2$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=2),
     # ]
 
     # title, data_list = 'Diffusivity (120982A09, Med.)', [
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120982A09', scan_num=2, var_to_scan='zeff', scan_factor=0.5),
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 1$', '120982A09', scan_num=2, var_to_scan='zeff', scan_factor=1),
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 2$', '120982A09', scan_num=2, var_to_scan='zeff', scan_factor=2),
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 3$', '120982A09', scan_num=2, var_to_scan='zeff', scan_factor=3),
+    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120982A09', scan_num=1, var_to_scan='zeff', scan_factor=0.5),
+    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 1$', '120982A09', scan_num=1, var_to_scan='zeff', scan_factor=1),
+    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 2$', '120982A09', scan_num=1, var_to_scan='zeff', scan_factor=2),
     # ]
 
     # title, data_list = 'Diffusivity (129041A10, Low)', [
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 0.5$', '129041A10', scan_num=2, var_to_scan='zeff', scan_factor=0.5),
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 1$', '129041A10', scan_num=2, var_to_scan='zeff', scan_factor=1),
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 2$', '129041A10', scan_num=2, var_to_scan='zeff', scan_factor=2),
-    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 3$', '129041A10', scan_num=2, var_to_scan='zeff', scan_factor=3),
+    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 0.5$', '129041A10', scan_num=1, var_to_scan='zeff', scan_factor=0.5),
+    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 1$', '129041A10', scan_num=1, var_to_scan='zeff', scan_factor=1),
+    #     VarData('rho', 'xteETGM', r'$\chi_\mathrm{e, etgm}$ for $Z_\mathrm{eff} \times 2$', '129041A10', scan_num=1, var_to_scan='zeff', scan_factor=2),
     # ]
 
     load_variable_data(data_list)
