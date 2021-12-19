@@ -23,9 +23,11 @@ class Variables:
         return str(self.get_nonzero_variables())
 
     def get_variables(self):
+        '''Returns (list of str): all variable names'''
         return [var for var in dir(self) if not callable(getattr(self, var)) and not var.startswith("__")]
 
     def get_nonzero_variables(self):
+        '''Returns (list of str): variable names with nonzero values'''
         vars = self.get_variables()
         return [var for var in vars if getattr(self, var).values is not None]
 
@@ -40,6 +42,7 @@ class Variables:
                   f'{getattr(self, v).dimensions}')
 
     def set_rho_values(self):
+        '''Sets rho from rmin'''
         if self.rmin.values.ndim == 2:
             self.rho.values = self.rmin.values / self.rmin.values[-1, :]
         elif self.rmin.values.ndim == 1:
@@ -115,6 +118,12 @@ class Variables:
         self.load_from_file_path(file_path)
 
     def load_from_file_path(self, file_path):
+        '''
+        Loads data from a file into the current Variables subclass object
+
+        Parameters:
+        * file_path (str): The path of the file to load
+        '''
 
         data_array = np.genfromtxt(file_path, delimiter=',', dtype=float, names=True)
         var_names = data_array.dtype.names
@@ -129,6 +138,17 @@ class Variables:
             self.set_rho_values()
 
     def get_csv_save_path(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
+        '''
+        Gets the path where a CSV of variable data will be saved, based on the input parameter values
+
+        Parameters:
+        * save_type (SaveType): The SaveType of the data being saved
+        * runid (str): The runid of the CSV to use
+        * scan_num (int): The scan number of the CSV to use
+        * var_to_scan (str): The scanned variable of the CSV to use (optional)
+        * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
+        * rho_value (str or float): The rho value of the CSV to use (optional)
+        '''
 
         if rho_value is not None:
             rho_str = rho_value if type(rho_value) is str else constants.RHO_VALUE_FMT_STR.format(rho_value)
@@ -149,8 +169,13 @@ class Variables:
         return dir_path, file_path
 
 
-# Variables obtained from a CDF
 class InputVariables(Variables):
+    '''
+    Input variables are defined as anything that isn't read as output from the MMM driver
+
+    All members are defined using the Variable class.  See the Variable class definition for more info.
+    '''
+
     def __init__(self):
         self.rho = Variable('Normalized Radius', label=r'$\rho$')
         # CDF Independent Variables
@@ -290,22 +315,25 @@ class InputVariables(Variables):
         self.gtest = Variable('Test Variable Gradient')
 
     def get_vars_of_type(self, save_type):
-        ''' Returns (list): List of all variables with the specified save_type'''
+        '''Returns (list of str): List of all variables with the specified save_type'''
         nonzero_variables = self.get_nonzero_variables()
         return [v for v in nonzero_variables if getattr(self, v).save_type == save_type]
 
     def get_cdf_variables(self):
-        ''' Returns (list): List of all variables where cdfvar is not None'''
+        '''Returns (list of str): List of all variables where cdfvar is not None'''
         all_variables = self.get_variables()
         return [v for v in all_variables if getattr(self, v).cdfvar is not None]
 
     def get_nboundaries(self):
+        '''Returns (int): The number of boundary points in the radial dimension of xb'''
         return self.xb.values.shape[0] if self.xb.values is not None and self.xb.values.ndim > 0 else 0
 
     def get_ntimes(self):
+        '''Returns (int): The number of points in the time dimension of xb'''
         return self.x.values.shape[1] if self.xb.values is not None and self.xb.values.ndim > 1 else 0
 
     def use_temperature_profiles(self):
+        '''Attempts to use experimental temperature profiles in place of calculated profiles'''
         if self.tepro.values is not None:
             self.te = deepcopy(self.tepro)
         else:
@@ -317,6 +345,15 @@ class InputVariables(Variables):
             raise ValueError('Failed to set TIPRO since TIPRO is None')
 
     def save_vars_of_type(self, save_type, options, scan_factor=None):
+        '''
+        Saves variable values of the specified save type to a CSV
+
+        Parameters:
+        * save_type (SaveType): The save type of the variables to save
+        * options (OptionsData): Options.instance
+        * scan_factor (scan_factor): The value of the scan factor (Optional)
+        '''
+
         # Put rmin at the front of the variable list
         var_list = self.get_vars_of_type(save_type)
         if 'rmin' not in var_list:
@@ -328,13 +365,24 @@ class InputVariables(Variables):
         self.save_to_csv(data, header, save_type, options, scan_factor)
 
     def save_all_vars(self, options, scan_factor=None):
+        '''
+        Saves variable values of all relevant save types to a CSV
+
+        Parameters:
+        * save_type (SaveType): The save type of the variables to save
+        * options (OptionsData): Options.instance
+        * scan_factor (scan_factor): The value of the scan factor (Optional)
+        '''
+
         self.save_vars_of_type(SaveType.INPUT, options, scan_factor)
         self.save_vars_of_type(SaveType.ADDITIONAL, options, scan_factor)
 
 
-# Variables obtained from MMM output
 class OutputVariables(Variables):
+    '''Output variables consist of all variable data obtained as output from MMM (other than rho and rmin)'''
+
     def __init__(self):
+        # Independent Variables
         self.rho = Variable('rho', units='', label=r'$\rho$')
         self.rmin = Variable('rmin', units='m', label=r'$r_\mathrm{min}$')
         # Total Diffusivities
@@ -377,32 +425,40 @@ class OutputVariables(Variables):
         self.dbsqprf = Variable('dbsqprf', units='', label=r'$|\delta B/B|^2$')
 
     def get_all_output_vars(self):
+        '''Returns (list of str): all output variable names (other than rho and rmin)'''
         all_vars = self.get_variables()
         all_vars.remove('rho')
         all_vars.remove('rmin')
         return all_vars
 
     def get_etgm_vars(self):
+        '''Returns (list of str): all ETGM model variables'''
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'ETGM' in var]
 
     def get_mtm_vars(self):
+        '''Returns (list of str): all MTM model variables'''
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'MTM' in var]
 
     def get_dbm_vars(self):
+        '''Returns (list of str): all DRIBM model variables'''
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'DBM' in var]
 
     def get_etg_vars(self):
+        '''Returns (list of str): all Horton ETG model variables'''
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'ETG' in var and 'ETGM' not in var]
 
     def get_weiland_vars(self):
+        '''Returns (list of str): all Weiland model variables'''
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'W20' in var]
 
     def save_all_vars(self, options, scan_factor=None):
+        '''Saves output variables to a CSV (other than rho)'''
+
         # Put rmin at the front of the variable list
         var_list = self.get_variables()
         var_list.insert(0, var_list.pop(var_list.index('rmin')))
@@ -423,7 +479,7 @@ class Variable:
         self.desc = desc
         self.minvalue = minvalue
         self.absminvalue = absminvalue
-        self.save_type = save_type if save_type is not None else SaveType.None
+        self.save_type = save_type if save_type is not None else SaveType.NONE
         # Private
         self._units_label = ''
         self._units = ''
@@ -436,11 +492,17 @@ class Variable:
     def __str__(self):
         return str(self.name)
 
-    # Minimum values are used to handle variables that cannot take values
-    # below a minimum amount (such as negative Temperature) Absolute minimum
-    # values are used to handle variables that can be negative, but get too
-    # close to zero
     def set_minvalue(self):
+        '''
+        Sets the minimum value for a variable
+
+        Minimum values are used to handle variables that cannot take values
+        below a minimum amount (such as negative Temperatures). Absolute
+        minimum values are used to handle variables that are allowed to be
+        negative, but can't get too close to zero (due to divide by zero
+        issues)
+        '''
+
         if self.minvalue is not None:
             self.values[self.values < self.minvalue] = self.minvalue
         if self.absminvalue is not None:
@@ -501,22 +563,8 @@ class Variable:
         else:
             raise ValueError(f'Variable values must be {np.ndarray} and not {type(values)}')
 
-    @dispatch(np.ndarray)
-    def set_variable(self, values):
-        self.set_variable(values, self.units, self.dimensions)
-
-    @dispatch(np.ndarray, str)
-    def set_variable(self, values, units):
-        self.set_variable(values, units, self.dimensions)
-
-    # Set variable values, units, dimensions
-    @dispatch(np.ndarray, str, list)
-    def set_variable(self, values, units, dimensions):
-        self.values = values
-        self.units = units
-        self.dimensions = dimensions
-
     def set(self, **kwargs):
+        '''Sets members using keyword arguments'''
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -524,8 +572,20 @@ class Variable:
         '''
         Variable smoothing using a Gaussian filter
 
-        The value of sigma needs to increase nearly linearly as the amount of input_points increases, to maintain
-        the same level of smoothing.  To achieve this, the self.smooth value is multiplied by input_points.
+        The value of sigma needs to increase nearly linearly as the amount of
+        input_points increases, to maintain the same level of smoothing.  To
+        achieve this, the self.smooth value is multiplied by input_points.
+        Additionally, the amount of smoothing applied also depends on how
+        closely grouped values are along the x-axis.  Specifically, for a
+        given value of sigma, loosely spaced values will be smoothed more
+        than tightly clustered values.
+
+        For this reason, using the uniform rho input option will result in
+        uniform smoothing across a variable (since the values in rmin become
+        more clustered as rmin approaches its maximum value).  If the uniform
+        rho input option is not used, then variables will have stronger
+        smoothing applied near rmin = 0, and weaker smoothing applied near
+        rmin = 1.
 
         Parameters:
         * input_points (int): Number of radial points each variable has
@@ -535,23 +595,38 @@ class Variable:
             sigma = int(input_points * self.smooth / 100)
             self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(sigma, 0))
 
-    # Clamps values between -value and value, and sets origin value to approximately 0
-    def clamp_gradient(self, value):
-        self.values[0, :] = 1e-6
-        self.values[self.values > value] = value
-        self.values[self.values < -value] = -value
+    def clamp_gradient(self, max):
+        '''
+        Clamps values between -max and max, and sets origin value to
+        approximately 0
 
-    # Removes values outside of m standard deviations
-    # TODO: Currently not ideal since removed values are replaced with None,
-    # which turns everything into nan after smoothing or interpolating again
+        Gradient values will later be clamped again within the MMM driver by
+        the variable gmax = g_{max}, which has values lower than the clamping
+        value used here.  This step of clamping first here just helps with
+        making the presentation of input profiles a bit cleaner.
+        '''
+
+        self.values[0, :] = 1e-6
+        self.values[self.values > max] = max
+        self.values[self.values < -max] = -max
+
     def reject_outliers(self, m=4):
+        '''
+        Removes values outside of m standard deviations
+
+        Note: removed values are replaced with None, and the resulting effects
+        of this lead to errors, as smoothing or interpolating a None value
+        will create nan values. Furthermore, it is likely this method isn't
+        needed as the Gaussian filter used in the smoothing process also
+        contains internal logic to deal with outliers.
+        '''
+
         self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
 
-    def remove_nan(self):
+    def check_for_nan(self):
+        '''Checks for nan values and raises an exception if any are found'''
         if np.isnan(self.values).any():
-            print('nan values found for var ' + self.name)
-            self.values[np.isnan(self.values)] = 0
-            self.set_minvalue()
+            raise ValueError(f'nan values found in variable {self.name}')
 
 
 # For testing purposes

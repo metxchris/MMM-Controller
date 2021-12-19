@@ -22,7 +22,7 @@ def vpol(vars):
     elif vars.vpolh.values is not None:
         vpol = vars.vpolh.values
 
-    vars.vpol.set_variable(vpol, 'M/SEC', ['XBO', 'TIME'])
+    vars.vpol.set(values=vpol, units='m/s')
 
 
 def nh0(vars):
@@ -35,7 +35,7 @@ def nh0(vars):
 
     nh0 = ne - zimp * nz - nf - nd
 
-    vars.nh0.set_variable(nh0, vars.ne.units, ['XBO', 'TIME'])
+    vars.nh0.set(values=nh0, units=vars.ne.units)
 
 
 def nh(vars):
@@ -45,7 +45,7 @@ def nh(vars):
 
     nh = nh0 + nd
 
-    vars.nh.set_variable(nh, '', ['XBO', 'TIME'])
+    vars.nh.set(values=nh, units=vars.nd.units)
 
 
 def ni(vars):
@@ -56,7 +56,7 @@ def ni(vars):
 
     ni = nd + nz + nh0
 
-    vars.ni.set_variable(ni, vars.ne.units, ['XBO', 'TIME'])
+    vars.ni.set(values=ni, units=vars.ne.units)
 
 
 def ahyd(vars):
@@ -66,11 +66,11 @@ def ahyd(vars):
 
     ahyd = (nh0 + 2 * nd) / (nh0 + nd)
 
-    vars.ahyd.set_variable(ahyd, '', ['XBO', 'TIME'])
+    vars.ahyd.set(values=ahyd, units='')
 
 
 def aimass(vars):
-    '''# Mean Atomic Mass of Thermal Ions'''
+    '''Mean Atomic Mass of Thermal Ions'''
     ahyd = vars.ahyd.values
     aimp = vars.aimp.values
     nh = vars.nh.values
@@ -78,7 +78,7 @@ def aimass(vars):
 
     aimass = (ahyd * nh + aimp * nz) / (nh + nz)
 
-    vars.aimass.set_variable(aimass, '', ['XBO', 'TIME'])
+    vars.aimass.set(values=aimass, units='')
 
 
 def rho(vars):
@@ -87,7 +87,7 @@ def rho(vars):
 
     rho = rmin / rmin[-1, :]
 
-    vars.rho.set_variable(rho, '', ['XBO', 'TIME'])
+    vars.rho.set(values=rho, units='')
 
 
 def tau(vars):
@@ -97,7 +97,7 @@ def tau(vars):
 
     tau = te / ti
 
-    vars.tau.set_variable(tau, '', ['XBO', 'TIME'])
+    vars.tau.set(values=tau, units='')
 
 
 def vtor(vars):
@@ -107,7 +107,7 @@ def vtor(vars):
 
     vtor = rmaj * omega
 
-    vars.vtor.set_variable(vtor, 'M/SEC', ['XBO', 'TIME'])
+    vars.vtor.set(values=vtor, units='m/s')
 
 
 def vpar(vars):
@@ -119,7 +119,7 @@ def vpar(vars):
 
     vpar = vtor + vpol * bpol / btor
 
-    vars.vpar.set_variable(vpar, vars.vtor.units, ['XBO', 'TIME'])
+    vars.vpar.set(values=vpar, units=vars.vtor.units)
 
 
 def zeff(vars):
@@ -132,7 +132,7 @@ def zeff(vars):
 
     zeff = (nh + nf + zimp**2 * nz) / ne
 
-    vars.zeff.set_variable(zeff, '', ['XBO', 'TIME'])
+    vars.zeff.set(values=zeff, units='')
 
 
 def btor(vars):
@@ -143,7 +143,7 @@ def btor(vars):
 
     btor = raxis / rmaj * bz
 
-    vars.btor.set_variable(btor, vars.bz.units, ['XBO', 'TIME'])
+    vars.btor.set(values=btor, units=vars.bz.units)
 
 
 def bpol(vars):
@@ -155,7 +155,7 @@ def bpol(vars):
 
     bpol = rmin / rmaj * btor / q
 
-    vars.bpol.set_variable(bpol, vars.btor.units, ['XBO', 'TIME'])
+    vars.bpol.set(values=bpol, units=vars.btor.units)
 
 
 def eps(vars):
@@ -164,7 +164,7 @@ def eps(vars):
 
     eps = 1 / arat
 
-    vars.eps.set_variable(eps, '', ['XBO', 'TIME'])
+    vars.eps.set(values=eps, units='')
 
 
 def p(vars):
@@ -177,7 +177,7 @@ def p(vars):
 
     p = (ne * te + ni * ti) * zckb
 
-    vars.p.set_variable(p, 'PA', ['XBO', 'TIME'])
+    vars.p.set(values=p, units='Pa')
 
 
 def beta(vars):
@@ -188,7 +188,7 @@ def beta(vars):
 
     beta = 2 * zcmu0 * p / btor**2
 
-    vars.beta.set_variable(beta, '', ['XBO', 'TIME'])
+    vars.beta.set(values=beta, units='')
 
 
 def betae(vars):
@@ -201,7 +201,7 @@ def betae(vars):
 
     betae = 2 * zcmu0 * ne * te * zckb / btor**2
 
-    vars.betae.set_variable(betae, '', ['XBO', 'TIME'])
+    vars.betae.set(values=betae, units='')
 
 
 def loge(vars):
@@ -214,7 +214,7 @@ def loge(vars):
     loge = 37.8 - np.log(ne**(1 / 2) / te)  # NRL Plasma Formulary Definition
     # TODO: Need to add equations for different TE ranges
 
-    vars.loge.set_variable(loge, '', ['XBO', 'TIME'])
+    vars.loge.set(values=loge, units='')
 
 
 def nuei(vars):
@@ -227,7 +227,7 @@ def nuei(vars):
 
     nuei = zcf * 2**(1 / 2) * ne * loge * zeff / te**(3 / 2)
 
-    vars.nuei.set_variable(nuei, 's^-1', ['XBO', 'TIME'])
+    vars.nuei.set(values=nuei, units='s^-1')
 
 
 def nuei2(vars):
@@ -240,7 +240,7 @@ def nuei2(vars):
 
     nuei2 = zcf * 2**(1 / 2) * ni * loge * zeff / ti**(3 / 2)
 
-    vars.nuei2.set_variable(nuei2, 's^-1', ['XBO', 'TIME'])
+    vars.nuei2.set(values=nuei2, units='s^-1')
 
 
 def vthe(vars):
@@ -251,7 +251,7 @@ def vthe(vars):
 
     vthe = (2 * zckb * te / zcme)**(1 / 2)
 
-    vars.vthe.set_variable(vthe, 'm/s', ['XBO', 'TIME'])
+    vars.vthe.set(values=vthe, units='m/s')
 
 
 def vthi(vars):
@@ -263,7 +263,7 @@ def vthi(vars):
 
     vthi = (zckb * ti / (zcmp * aimass))**(1 / 2)
 
-    vars.vthi.set_variable(vthi, 'm/s', ['XBO', 'TIME'])
+    vars.vthi.set(values=vthi, units='m/s')
 
 
 def nuste(vars):
@@ -282,7 +282,7 @@ def nuste(vars):
 
     nuste = nuei * eps**(-3 / 2) * q * rmaj / vthe
 
-    vars.nuste.set_variable(nuste, '', ['XBO', 'TIME'])
+    vars.nuste.set(values=nuste, units='')
 
 
 def nusti(vars):
@@ -303,7 +303,7 @@ def nusti(vars):
 
     nusti = nuei2 * eps**(-3 / 2) * q * rmaj / (2 * vthi) * (zcme / zcmp)**(1 / 2)
 
-    vars.nusti.set_variable(nusti, '', ['XBO', 'TIME'])
+    vars.nusti.set(values=nusti, units='')
 
 
 def gyrfi(vars):
@@ -315,7 +315,7 @@ def gyrfi(vars):
 
     gyrfi = zce * btor / (zcmp * aimass)
 
-    vars.gyrfi.set_variable(gyrfi, 's^-1', ['XBO', 'TIME'])
+    vars.gyrfi.set(values=gyrfi, units='s^-1')
 
 
 def gmax(vars):
@@ -328,7 +328,7 @@ def gmax(vars):
 
     gmax = rmaj / (vthi / gyrfi * q / eps)
 
-    vars.gmax.set_variable(gmax, '', ['XBO', 'TIME'])
+    vars.gmax.set(values=gmax, units='')
 
 
 def shear(vars):
@@ -339,7 +339,7 @@ def shear(vars):
 
     shear = gq * rmin / rmaj
 
-    vars.shear.set_variable(shear, '', ['XBO', 'TIME'])
+    vars.shear.set(values=shear, units='')
 
 
 def shat(vars):
@@ -350,7 +350,7 @@ def shat(vars):
     shat = (2 * shear - 1 + (elong * (shear - 1))**2)**(1 / 2)
     shat[shat < 0] = 0
 
-    vars.shat.set_variable(shat, '', ['XBO', 'TIME'])
+    vars.shat.set(values=shat, units='')
 
 
 def alphamhd(vars):
@@ -366,7 +366,7 @@ def alphamhd(vars):
 
     alphamhd = q**2 * betae * (gne + gte + ti / te * (gni + gti))
 
-    vars.alphamhd.set_variable(alphamhd, '', ['XBO', 'TIME'])
+    vars.alphamhd.set(values=alphamhd, units='')
 
 
 def gave(vars):
@@ -376,7 +376,7 @@ def gave(vars):
 
     gave = 2 / 3 + 5 / 9 * shear - 5 / 12 * alphamhd
 
-    vars.gave.set_variable(gave, '', ['XBO', 'TIME'])
+    vars.gave.set(values=gave, units='')
 
 
 def etae(vars):
@@ -385,7 +385,7 @@ def etae(vars):
 
     etae = gte / gne
 
-    vars.etae.set_variable(etae, '', ['XBO', 'TIME'])
+    vars.etae.set(values=etae, units='')
 
 
 def etai(vars):
@@ -394,7 +394,7 @@ def etai(vars):
 
     etai = gti / gni
 
-    vars.etai.set_variable(etai, '', ['XBO', 'TIME'])
+    vars.etai.set(values=etai, units='')
 
 
 def test(vars):
@@ -404,7 +404,7 @@ def test(vars):
 
     ni = nh + nd
 
-    vars.test.set_variable(ni)
+    vars.test.set(values=ni)
 
 
 def test2(vars):
@@ -414,7 +414,7 @@ def test2(vars):
 
     test2 = gti / gni
 
-    vars.test2.set_variable(test2)
+    vars.test2.set(values=test2)
 
 
 def calculate_gradient(gvar_name, var_name, drmin, vars):
@@ -435,7 +435,7 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
 
     # take gradient
     gradient_values = rmaj * dxvar / var.values
-    gvar.set_variable(gradient_values, '', ['XBO', 'TIME'])
+    gvar.set(values=gradient_values, units='')
 
     if Options.instance.apply_smoothing:
         gvar.apply_smoothing(Options.instance.input_points)
@@ -446,7 +446,7 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
     if Options.instance.reject_outliers:
         gvar.reject_outliers()
 
-    gvar.remove_nan()
+    gvar.check_for_nan()
 
 
 def calculate_variable(var_function, vars):
@@ -465,7 +465,7 @@ def calculate_variable(var_function, vars):
     if Options.instance.reject_outliers:
         getattr(vars, var_name).reject_outliers()
 
-    getattr(vars, var_name).remove_nan()
+    getattr(vars, var_name).check_for_nan()
 
 
 def calculate_inputs(cdf_vars):

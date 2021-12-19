@@ -29,19 +29,19 @@ def convert_units(input_var):
 
     units = input_var.units
     if units == 'CM':
-        input_var.set_variable(input_var.values / 100, 'M')
+        input_var.set(values=input_var.values / 100, units='M')
     elif units == 'CM/SEC':
-        input_var.set_variable(input_var.values / 100, 'M/SEC')
+        input_var.set(values=input_var.values / 100, units='M/SEC')
     elif units == 'N/CM**3':
-        input_var.set_variable(input_var.values * 10**6, 'N/M**3')
+        input_var.set(values=input_var.values * 10**6, units='N/M**3')
     elif units == 'EV':
-        input_var.set_variable(input_var.values / 1000, 'kEV')
+        input_var.set(values=input_var.values / 1000, units='kEV')
     elif units == 'CM**2/SEC':
-        input_var.set_variable(input_var.values / 10**4, 'M**2/SEC')
+        input_var.set(values=input_var.values / 10**4, units='M**2/SEC')
     elif units == 'AMPS':
-        input_var.set_variable(input_var.values / 10**6, 'MAMPS')
+        input_var.set(values=input_var.values / 10**6, units='MAMPS')
     elif units == 'TESLA*CM':
-        input_var.set_variable(input_var.values / 100, 'TESLA*M')
+        input_var.set(values=input_var.values / 100, units='TESLA*M')
 
 
 def interp_to_boundarygrid(input_var, xvals):
@@ -65,17 +65,17 @@ def interp_to_boundarygrid(input_var, xvals):
         pass
     # Tile 1-dim time arrays into 2-dim arrays, in the format of (XBO, TIME)
     elif xdim in ['TIME', 'TIME3']:
-        input_var.set_variable(np.tile(input_var.values, (xvals.xbo.size, 1)))
+        input_var.set(values=np.tile(input_var.values, (xvals.xbo.size, 1)))
         input_var.dimensions = ['XBO', xdim]
     # Some variables (i.e. VPOL) are mirrored around the X-axis, so take non-negative XB values
     # TODO: Handle this case better
     elif xdim in ['RMAJM']:
-        input_var.set_variable(input_var.values[xvals.xbo.size - 1:, :])
+        input_var.set(values=input_var.values[xvals.xbo.size - 1:, :])
         input_var.set_xdim('XBO')
     # Interpolate/Extrapolate variable from X or XB to XBO
     elif xdim in ['X', 'XB']:
         set_interp = interp1d(getattr(xvals, xdim.lower()), input_var.values, kind='cubic', fill_value="extrapolate", axis=0)
-        input_var.set_variable(set_interp(xvals.xbo))
+        input_var.set(values=set_interp(xvals.xbo))
         input_var.set_xdim('XBO')
     else:
         print('[initial_conversion] *** Warning: Unsupported interpolation xdim type for variable', input_var.name, xdim)
@@ -118,7 +118,7 @@ def interp_to_input_points(input_vars):
 
             if mmm_var.values.size > 1:
                 set_interp = interp1d(xb, mmm_var.values, kind='cubic', fill_value="extrapolate", axis=0)
-                mmm_var.set_variable(set_interp(xb_new))
+                mmm_var.set(values=set_interp(xb_new))
 
     return mmm_vars
 
@@ -164,7 +164,7 @@ def interp_to_uniform_rho(input_vars):
                                       kind='cubic', fill_value="extrapolate", axis=0)
                 interp_values[:, time_idx] = set_interp(rho_new)
 
-            mmm_var.set_variable(interp_values)
+            mmm_var.set(values=interp_values)
 
     return mmm_vars
 
@@ -190,7 +190,7 @@ def initial_conversion(cdf_vars):
     xvals = XValues(input_vars.x, input_vars.xb)
 
     # Add the origin to the boundary grid
-    input_vars.xb.set_variable(np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0))
+    input_vars.xb.set(values=np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0))
 
     # Set the array index and measurement time value corresponding to the input time
     Options.instance.set_measurement_time(input_vars.time)
