@@ -29,19 +29,29 @@ def convert_units(input_var):
 
     units = input_var.units
     if units == 'CM':
-        input_var.set(values=input_var.values / 100, units='M')
+        input_var.set(values=input_var.values / 100, units='m')
     elif units == 'CM/SEC':
-        input_var.set(values=input_var.values / 100, units='M/SEC')
+        input_var.set(values=input_var.values / 100, units='m/s')
     elif units == 'N/CM**3':
-        input_var.set(values=input_var.values * 10**6, units='N/M**3')
+        input_var.set(values=input_var.values * 10**6, units='m^-3')
     elif units == 'EV':
-        input_var.set(values=input_var.values / 1000, units='kEV')
+        input_var.set(values=input_var.values / 1000, units='keV')
     elif units == 'CM**2/SEC':
-        input_var.set(values=input_var.values / 10**4, units='M**2/SEC')
+        input_var.set(values=input_var.values / 10**4, units='m^2/s')
     elif units == 'AMPS':
-        input_var.set(values=input_var.values / 10**6, units='MAMPS')
+        input_var.set(values=input_var.values / 10**6, units='MA')
     elif units == 'TESLA*CM':
-        input_var.set(values=input_var.values / 100, units='TESLA*M')
+        input_var.set(values=input_var.values / 100, units='T*m')
+    elif units == 'SEC**-1':
+        input_var.set(units='s^-1')
+    elif units == 'RAD/SEC':
+        input_var.set(units='rad/s')
+    elif units == 'PASCALS':
+        input_var.set(units='Pa')
+    elif units == 'SECONDS':
+        input_var.set(units='s')
+    elif units == 'TESLA':
+        input_var.set(units='T')
 
 
 def interp_to_boundarygrid(input_var, xvals):

@@ -1,16 +1,24 @@
 # Standard Packages
 import sys; sys.path.insert(0, '../')
-from copy import deepcopy
 
 # 3rd Party Packages
 import numpy as np
 import scipy.ndimage
-from multipledispatch import dispatch
 
 # Local Packages
 import main.constants as constants
 import main.utils as utils
 from main.enums import SaveType
+
+
+# Used to create units labels to display on plots from units strings
+UNITS_TO_UNITS_LABEL = {
+    'T*m': r'T\,m',
+    'm^-3': r'm$^{-3}$',
+    'm/s^2': r'm/s$^2$',
+    'm^2/s': r'm$^2$/s',
+    's^-1': r's$^{-1}$',
+}
 
 
 # Parent class for input and output variables
@@ -256,7 +264,8 @@ class InputVariables(Variables):
         self.logi = Variable('Ion Coulomb Logarithm', cdfvar='CLOGI', label=r'$\lambda_\mathrm{i}$')
         self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', smooth=1,
                            save_type=SaveType.ADDITIONAL, units='m^-3')
-        self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$', smooth=5, units='m^-3')
+        self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$', smooth=5, units='m^-3',
+                            save_type=SaveType.ADDITIONAL)
         self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h,T}$', smooth=5,
                            save_type=SaveType.INPUT, units='m^-3')
         self.nuei = Variable('Electron Collision Frequency', label=r'$\nu_\mathrm{ei}$',
@@ -292,7 +301,8 @@ class InputVariables(Variables):
                             save_type=SaveType.INPUT)
         self.gnz = Variable('Impurity Density Gradient', label=r'$g_{n_\mathrm{z}}$',
                             save_type=SaveType.INPUT)
-        self.gnd = Variable('Deuterium Ion Density Gradient', label=r'$g_{n_\mathrm{d}}$')
+        self.gnd = Variable('Deuterium Ion Density Gradient', label=r'$g_{n_\mathrm{d}}$',
+                            save_type=SaveType.ADDITIONAL)
         self.gq = Variable('Safety Factor Gradient', label=r'$g_{q}$',
                            save_type=SaveType.INPUT)
         self.gte = Variable('Electron Temperature Gradient', label=r'$g_{T_\mathrm{e}}$',
@@ -467,15 +477,15 @@ class OutputVariables(Variables):
 
 class Variable:
     def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None,
-                 absminvalue=None, save_type=None, units='', dimensions=None, values=None):
+                 absminvalue=None, save_type=None, mmm_label='', units='', dimensions=None, values=None):
         # Public
         self.name = name
         self.cdfvar = cdfvar  # Name of variable as used in CDF's
-        self.smooth = smooth  # None to disable smoothing, or n = integer value (n in N)
+        self.smooth = smooth  # None to disable smoothing, or n = positive integer
         self.label = label  # Plot label in LaTeX Format
-        self.desc = desc
-        self.minvalue = minvalue
-        self.absminvalue = absminvalue
+        self.desc = desc  # Stores the long_name value from CDF's
+        self.minvalue = minvalue  # minimum value variable is allowed to have
+        self.absminvalue = absminvalue  # minimum value the absolute value of the variable is allowed to have
         self.save_type = save_type if save_type is not None else SaveType.NONE
         # Private
         self._units_label = ''
@@ -530,13 +540,9 @@ class Variable:
     def units(self, units):
         self._units = units
         self._units_label = units
-
         # Set units_label in LaTeX format
-        if units != '':
-            for unit_str in constants.UNIT_STRINGS:
-                if (unit_str[0] == self._units):
-                    self._units_label = unit_str[1]
-                    break
+        if units in UNITS_TO_UNITS_LABEL.keys():
+            self._units_label = UNITS_TO_UNITS_LABEL[units]
 
     @property
     def dimensions(self):
@@ -544,10 +550,9 @@ class Variable:
 
     @dimensions.setter
     def dimensions(self, dimensions):
-        if type(dimensions) == list:
-            self._dimensions = dimensions
-        else:
+        if type(dimensions) != list:
             raise ValueError(f'Variable dimensions must be {list} and not {type(dimensions)}')
+        self._dimensions = dimensions
 
     @property
     def values(self):
@@ -555,10 +560,9 @@ class Variable:
 
     @values.setter
     def values(self, values):
-        if type(values) == np.ndarray:
-            self._values = values
-        else:
+        if type(values) != np.ndarray:
             raise ValueError(f'Variable values must be {np.ndarray} and not {type(values)}')
+        self._values = values
 
     def set(self, **kwargs):
         '''Sets members using keyword arguments'''

@@ -9,27 +9,6 @@ TIME_FMT_STR = '{:.3f}'
 SCAN_FACTOR_VALUE_SEPARATOR = ' x= '
 RHO_VALUE_SEPARATOR = ' = '
 
-# Unit string pairs for creating labels.  First item is the search string, second item is the replacement string
-UNIT_STRINGS = [
-    ['N/M**3', r'$\mathrm{m}^{-3}$'],
-    ['M**2/SEC', r'$\mathrm{m}^{2}/s$'],
-    ['M/SEC', r'm/s'],
-    ['M', r'm'],
-    ['SEC**-1', r's$^{-1}$'],
-    ['MAMPS', r'MA'],
-    ['RAD/SEC', r'rad/s'],
-    ['PASCALS', r'Pa'],
-    ['SECONDS', r's'],
-    ['TESLA', r'T'],
-    ['TESLA*M', r'T\,m'],
-    ['EV', r'eV'],
-    ['kEV', r'keV'],
-    ['m^-3', r'm$^{-3}$'],
-    ['m/s^2', r'm/s$^2$'],
-    ['m^2/s', r'm$^2$/s'],
-    ['s^-1', r's$^{-1}$'],
-]
-
 # Physical Constants
 PI = 3.1415926535
 ZCE = 1.602176565 * 10**(-19)                                 # Electron charge                [Coulomb]

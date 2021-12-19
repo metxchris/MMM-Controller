@@ -185,16 +185,15 @@ def loge(vars):
     '''Electron Coulomb Logarithm'''
 
     # TODO: Need to add equations for different TE ranges
-
     ne = vars.ne.values
     te = vars.te.values
+
+    # NRL Plasma Formulary Definition
+    loge = 37.8 - np.log(ne**(1 / 2) / te)
 
     # TRANSP definition (equivalent)
     # zeff = vars.zeff.values
     # loge = 39.23 - np.log(zeff*ne**(1 / 2) / te)
-
-    # NRL Plasma Formulary Definition
-    loge = 37.8 - np.log(ne**(1 / 2) / te)
 
     vars.loge.set(values=loge, units='')
 
