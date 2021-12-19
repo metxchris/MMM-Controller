@@ -22,19 +22,20 @@ def read_from_files(file_list, dtype):
     * (np.ndarray): Array of np.ndarrays, where each sub array contains data from a CSV
     '''
 
-    data_list = [] 
+    data_list = []
     for file in file_list:
         data_list.append(np.genfromtxt(file, delimiter=',', dtype=dtype))
 
     return np.array(data_list)
+
 
 def reshape_data(data_array, var_names):
     '''
     Reshapes data as a function of rho to data as a function of the scanned parameter
 
     Variable headers remain the same in the reshaped_data list as they are in data_array.
-    Each array within reshaped_data corresponds to one value of rho.  For example, 
-    reshaped_data[0] will correspond to all variable data corresponding to the first value 
+    Each array within reshaped_data corresponds to one value of rho.  For example,
+    reshaped_data[0] will correspond to all variable data corresponding to the first value
     of rho, which is usually rho = 0.
 
     Parameters:
@@ -59,11 +60,12 @@ def reshape_data(data_array, var_names):
 
     return reshaped_data
 
+
 def save_reshaped_csv(reshaped_data, var_names, save_dir, save_type):
     '''
     Saves data reshaped as a function of the scanned parameter to CSV files.
 
-    One CSV file is created for each value of rho (specified in each file name), for both input 
+    One CSV file is created for each value of rho (specified in each file name), for both input
     and output data.
 
     Parameters:
@@ -82,6 +84,7 @@ def save_reshaped_csv(reshaped_data, var_names, save_dir, save_type):
         file_name = f'{base_file_name}{rho_value}.csv'
         np.savetxt(file_name, data, fmt='%.4e', delimiter=',', header=header_str)
 
+
 def save_simple_csv(data, var_names, save_dir, save_type):
     '''
     Saves data to a CSV that didn't need to be reshaped
@@ -96,6 +99,7 @@ def save_simple_csv(data, var_names, save_dir, save_type):
     file_name = f'{save_dir}\\{save_type}'
     header_str = ','.join(var_names)
     np.savetxt(f'{file_name}.csv', data, fmt='%.4e', delimiter=',', header=header_str)
+
 
 def parse_scan_csv():
     '''
