@@ -243,7 +243,7 @@ if __name__ == '__main__':
         input_time=0,  # Value isn't used here, but needs to be some number
     )
 
-    mmm_vars, _, _ = initialize_variables()
+    mmm_vars, __, __ = initialize_variables()
 
     # Check that all scan_factors can be found in scan_range (failures will raise a ValueError)
     scan_range = np.hstack((np.arange(1e-6, 5, 0.01), np.arange(5, 25, 1), np.arange(25, 105, 5)))

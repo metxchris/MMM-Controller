@@ -30,7 +30,7 @@ def read_cdf(print_warnings=False):
     # Variables object to store CDF values
     cdf_vars = variables.InputVariables()
 
-    # List all variables that have a specfied CDF variable name in the Variables class
+    # List all variables that have a specified CDF variable name in the Variables class
     cdf_vars_to_get = cdf_vars.get_cdf_variables()
 
     # Get values for all specified CDF variables
@@ -42,10 +42,10 @@ def read_cdf(print_warnings=False):
             # Not all values in the CDF are arrays
             getattr(cdf_vars, var).values = values[:] if values.size > 1 else values
 
-            # Store units of values and strip extra whitespace
+            # Store units of values and strip extra white space
             getattr(cdf_vars, var).units = (cdf.variables[getattr(cdf_vars, var).cdfvar].units).strip()
 
-            # Store long name of values and strip extra whitespace
+            # Store long name of values and strip extra white space
             getattr(cdf_vars, var).desc = (cdf.variables[getattr(cdf_vars, var).cdfvar].long_name).strip()
 
             # Store variable dimensions in reverse order, since we transposed the values above

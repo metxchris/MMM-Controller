@@ -14,7 +14,7 @@ import main.constants as constants
 import main.calculations as calculations
 import main.conversions as conversions
 import main.read_cdf as read_cdf
-from main.enums import ScanType, SaveType, MergeType
+from main.enums import SaveType, MergeType
 
 
 def get_cdf_path(file_name):
