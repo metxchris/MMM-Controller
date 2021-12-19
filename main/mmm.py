@@ -24,7 +24,7 @@ MMM_LABELS = {
     'aimp': '! The profile of mean atomic mass of impurities',
     'ahyd': '! The profile of mean atomic mass of hydrogenic ions',
     'aimass': '! The profile of mean atomic mass of thermal ions',
-    'wexbs': '! ExB shearing rate profile [rad/s]',
+    'wexbs': '! ExB shearing rate profile [s^-1]',
     'gne': '! Normalized electron density gradient profile',
     'gni': '! Normalized ion density gradient profile',
     'gnh': '! Normalized hydrogenic particle density gradient profile',

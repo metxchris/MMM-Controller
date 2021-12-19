@@ -12,19 +12,6 @@ from main import constants
 from main.options import Options
 
 
-def vpol(vars):
-    '''Poloidal Velocity'''
-    vpol = np.zeros((vars.xb.values.shape[0], vars.time.values.shape[0]))
-    if vars.vpolavg.values is not None:
-        vpol = vars.vpolavg.values
-    elif vars.vpold.values is not None:
-        vpol = vars.vpold.values
-    elif vars.vpolh.values is not None:
-        vpol = vars.vpolh.values
-
-    vars.vpol.set(values=vpol, units='m/s')
-
-
 def nh0(vars):
     '''Hydrogen Ion Density'''
     nd = vars.nd.values
@@ -98,16 +85,6 @@ def tau(vars):
     tau = te / ti
 
     vars.tau.set(values=tau, units='')
-
-
-def vtor(vars):
-    '''Toroidal Velocity'''
-    rmaj = vars.rmaj.values
-    omega = vars.omega.values
-
-    vtor = rmaj * omega
-
-    vars.vtor.set(values=vtor, units='m/s')
 
 
 def vpar(vars):
@@ -206,13 +183,18 @@ def betae(vars):
 
 def loge(vars):
     '''Electron Coulomb Logarithm'''
+
+    # TODO: Need to add equations for different TE ranges
+
     ne = vars.ne.values
     te = vars.te.values
-    # zeff = vars.zeff.values
 
-    # loge = 39.23 - np.log(zeff*ne**(1 / 2) / te)  # TRANSP definition
-    loge = 37.8 - np.log(ne**(1 / 2) / te)  # NRL Plasma Formulary Definition
-    # TODO: Need to add equations for different TE ranges
+    # TRANSP definition (equivalent)
+    # zeff = vars.zeff.values
+    # loge = 39.23 - np.log(zeff*ne**(1 / 2) / te)
+
+    # NRL Plasma Formulary Definition
+    loge = 37.8 - np.log(ne**(1 / 2) / te)
 
     vars.loge.set(values=loge, units='')
 
@@ -470,13 +452,18 @@ def calculate_variable(var_function, vars):
 
 def calculate_inputs(cdf_vars):
     '''
-    Calculates new variables needed for MMM and data display from CDF variables
-    Values are stored to vars within each function call
+    Calculates new variables needed for MMM and data display
+
+    Note that each use of the calculate_variable function below is passing in
+    the function of the variable to be calculated, which shares the same name
+    as the variable it calculates.
+
+    Parameters:
+    * cdf_vars (InputVariables): Variables object containing data from a CDF
     '''
     vars = copy.deepcopy(cdf_vars)
 
     # Some calculations depend on values from previous calculations
-    calculate_variable(vpol, vars)
     calculate_variable(nh0, vars)
     calculate_variable(nh, vars)
     calculate_variable(ni, vars)
@@ -486,7 +473,6 @@ def calculate_inputs(cdf_vars):
     calculate_variable(tau, vars)
     calculate_variable(btor, vars)
     calculate_variable(bpol, vars)
-    calculate_variable(vtor, vars)
     calculate_variable(vpar, vars)
     calculate_variable(zeff, vars)
     calculate_variable(eps, vars)
@@ -507,6 +493,7 @@ def calculate_inputs(cdf_vars):
     drmin = np.diff(vars.rmin.values, axis=0)
 
     # Calculate gradients.  The sign on drmin sets the sign of the gradient equation
+    # Note that all normalized gradients below have a negative sign, other than gq
     calculate_gradient('gne', 'ne', -drmin, vars)
     calculate_gradient('gnh', 'nh', -drmin, vars)
     calculate_gradient('gni', 'ni', -drmin, vars)
@@ -515,9 +502,9 @@ def calculate_inputs(cdf_vars):
     calculate_gradient('gq', 'q', drmin, vars)
     calculate_gradient('gte', 'te', -drmin, vars)
     calculate_gradient('gti', 'ti', -drmin, vars)
-    calculate_gradient('gvpar', 'vpar', drmin, vars)
-    calculate_gradient('gvpol', 'vpol', drmin, vars)
-    calculate_gradient('gvtor', 'vtor', drmin, vars)
+    calculate_gradient('gvpar', 'vpar', -drmin, vars)
+    calculate_gradient('gvpol', 'vpol', -drmin, vars)
+    calculate_gradient('gvtor', 'vtor', -drmin, vars)
 
     # Calculations dependent on gradient variables
     calculate_variable(shear, vars)
@@ -536,5 +523,5 @@ def calculate_inputs(cdf_vars):
 
 
 def get_calculated_vars():
-    '''Returns function names of calculated variables in this module, other than gradient calculations'''
+    '''Returns (list of str): function names of calculated variables in this module (other than gradient calculations)'''
     return [o[0] for o in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(o[1]) and 'calculate' not in o[0]]

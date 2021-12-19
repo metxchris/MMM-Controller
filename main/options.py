@@ -238,8 +238,10 @@ class OptionsData:
         self._time_str = constants.TIME_FMT_STR.format(tvar.values[self.time_idx])
 
     def find_scan_factor(self, scan_factor):
-        '''Finds the value in scan_range closest to the specified scan_factor'''
-        if self.scan_range is None:
+        '''Returns (float or None): Value in scan_range closest to the specified scan_factor'''
+        if scan_factor is None:
+            return scan_factor
+        elif self.scan_range is None:
             raise ValueError('Cannot find scan_factor value when scan_range is None')
         return self.scan_range[np.argmin(np.abs(self.scan_range - scan_factor))]
 
