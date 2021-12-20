@@ -7,7 +7,8 @@ import numpy as np
 # Local Packages
 import main.variables as variables
 import main.controls as controls
-from main import utils, constants
+import main.utils as utils
+import main.constants as constants
 from main.enums import ShotType, ScanType
 
 

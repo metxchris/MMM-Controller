@@ -5,8 +5,9 @@ import sys; sys.path.insert(0, '../')
 import numpy as np
 
 # Local Packages
-from main import utils, constants
-from main.options import Options
+import main.options
+import main.utils as utils
+import main.constants as constants
 from main.enums import SaveType
 
 
@@ -111,13 +112,18 @@ def parse_scan_csv():
     be created in the rho folder, since input controls are independent of rho.
     '''
 
-    opts = Options.instance
+    opts = main.options.Options.instance
     save_dir = utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan)
     scanned_dir = utils.get_var_to_scan_path(opts.runid, opts.scan_num, opts.var_to_scan)
 
     save_types = [SaveType.INPUT, SaveType.ADDITIONAL, SaveType.OUTPUT]
     for save_type in save_types:
         saved_files = utils.get_files_in_dir(scanned_dir, f'{save_type.name.capitalize()}*')
+        # Obtain negative factors by checking for negative signs in the value of the factor
+        negative_factors = [file for file in saved_files if '-' in file.split(constants.SCAN_FACTOR_VALUE_SEPARATOR)[1]]
+        non_negative_factors = [file for file in saved_files if file not in negative_factors]
+        # Sort negative factors in reverse order (e.g., -6, -5, -4, etc.), then join with non negative factors
+        saved_files = negative_factors[::-1] + non_negative_factors
         saved_data = read_from_files(saved_files, float)
         var_names = np.genfromtxt(saved_files[0], delimiter=',', names=True).dtype.names
         reshaped_data = reshape_data(saved_data, var_names)
@@ -147,10 +153,10 @@ For testing purposes:
 * Options.instance.scan_range just needs to be some np.ndarray
 '''
 if __name__ == '__main__':
-    opts = Options.instance
+    opts = main.options.Options.instance
     opts.runid = 'TEST'
-    opts.scan_num = 10
-    opts.var_to_scan = 'gti'
+    opts.scan_num = 129
+    opts.var_to_scan = 'shear'
     opts.scan_range = np.arange(1)
     utils.clear_folder(utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan), '*.csv')
     parse_scan_csv()

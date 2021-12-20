@@ -7,25 +7,28 @@ from netCDF4 import Dataset
 import numpy as np
 
 # Local Packages
-from main import variables, utils
-from main.options import Options
+import main.options
+import main.variables as variables
+import main.utils as utils
 
 
 # Reads CDF variables specified by Variables().cdfname and a Variables() object
 def read_cdf(print_warnings=False):
-    cdf_file = utils.get_cdf_path(Options.instance.runid)
+    opts = main.options.Options.instance
+
+    cdf_file = utils.get_cdf_path(opts.runid)
 
     # Check if file exists
     if not exists(cdf_file):
-        raise FileNotFoundError(f'CDF {Options.instance.runid} could not be found in the cdf folder')
+        raise FileNotFoundError(f'CDF {opts.runid} could not be found in the cdf folder')
 
     # Load CDF into memory
     cdf = Dataset(cdf_file)
 
     # Runid from CDF should match input runid
-    if cdf.Runid.strip() != Options.instance.runid and Options.instance.runid != 'TEST':
+    if cdf.Runid.strip() != opts.runid and opts.runid != 'TEST':
         # TODO: Save all warnings strings and print at the end of code execution
-        print(f'Warning: cdf.Runid {cdf.Runid.strip()} does not match Options.instance.runid {Options.instance.runid}')
+        print(f'Warning: cdf.Runid {cdf.Runid.strip()} does not match opts.runid {opts.runid}')
 
     # Variables object to store CDF values
     cdf_vars = variables.InputVariables()
@@ -83,8 +86,8 @@ def print_cdf_dimensions(cdf_name):
 
 if __name__ == '__main__':
     # For testing purposes
-    Options.instance.runid = '132017T01'
+    opts = main.options.Options.instance
+    opts.runid = '132017T01'
     cdf_cdf_vars = read_cdf(True)
-    
-    print_cdf_dimensions(Options.instance.runid)
-    print_cdf_variables(Options.instance.runid)
+    print_cdf_dimensions(opts.runid)
+    print_cdf_variables(opts.runid)

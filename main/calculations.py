@@ -8,8 +8,8 @@ import numpy as np
 from scipy.interpolate import interp1d  # TODO: use Akima1DInterpolator?
 
 # Local Packages
-from main import constants
-from main.options import Options
+import main.options
+import main.constants as constants
 
 
 def nh0(vars):
@@ -418,13 +418,14 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
     gradient_values = rmaj * dxvar / var.values
     gvar.set(values=gradient_values, units='')
 
-    if Options.instance.apply_smoothing:
-        gvar.apply_smoothing(Options.instance.input_points)
+    opts = main.options.Options.instance
+    if opts.apply_smoothing:
+        gvar.apply_smoothing(opts.input_points)
 
     gvar.clamp_gradient(100)
     gvar.set_minvalue()
 
-    if Options.instance.reject_outliers:
+    if opts.reject_outliers:
         gvar.reject_outliers()
 
     gvar.check_for_nan()
@@ -438,12 +439,13 @@ def calculate_variable(var_function, vars):
     # Get the variable name specified by var_function
     var_name = var_function.__name__
 
-    if Options.instance.apply_smoothing:
-        getattr(vars, var_name).apply_smoothing(Options.instance.input_points)
+    opts = main.options.Options.instance
+    if opts.apply_smoothing:
+        getattr(vars, var_name).apply_smoothing(opts.input_points)
 
     getattr(vars, var_name).set_minvalue()
 
-    if Options.instance.reject_outliers:
+    if opts.reject_outliers:
         getattr(vars, var_name).reject_outliers()
 
     getattr(vars, var_name).check_for_nan()

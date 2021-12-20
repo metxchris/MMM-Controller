@@ -6,7 +6,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 # Local Packages
-from main.options import Options
+import main.options
 
 
 class XValues:
@@ -103,14 +103,14 @@ def interp_to_input_points(input_vars):
     Returns:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
     '''
-
+    opts = main.options.Options.instance
     mmm_vars = deepcopy(input_vars)
 
     # Interpolation only needed if input_points != xb points
-    if Options.instance.input_points != input_vars.get_nboundaries():
+    if opts.input_points != input_vars.get_nboundaries():
         # Single column arrays for interpolation
         xb = mmm_vars.xb.values[:, 0]
-        xb_new = np.arange(Options.instance.input_points) / (Options.instance.input_points - 1)
+        xb_new = np.arange(opts.input_points) / (opts.input_points - 1)
 
         # Get list of CDF variables to convert to the format needed for MMM
         full_var_list = mmm_vars.get_nonzero_variables()
@@ -119,7 +119,7 @@ def interp_to_input_points(input_vars):
         for var in ['time', 'x']:
             full_var_list.remove(var)
 
-        # Interpolate variables onto grid specified by Options.instance.input_points
+        # Interpolate variables onto grid specified by opts.input_points
         for var in full_var_list:
             mmm_var = getattr(mmm_vars, var)
             if mmm_var.values is None:
@@ -146,12 +146,12 @@ def interp_to_uniform_rho(input_vars):
     Returns:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
     '''
-
+    opts = main.options.Options.instance
     mmm_vars = deepcopy(input_vars)
 
     # Single column arrays for interpolation
     rho_old = mmm_vars.rho.values
-    rho_new = np.arange(Options.instance.input_points) / (Options.instance.input_points - 1)
+    rho_new = np.arange(opts.input_points) / (opts.input_points - 1)
 
     # Get list of CDF variables to convert to the format needed for MMM
     full_var_list = mmm_vars.get_nonzero_variables()
@@ -160,7 +160,7 @@ def interp_to_uniform_rho(input_vars):
     for var in ['time', 'x']:
         full_var_list.remove(var)
 
-    # Interpolate variables onto grid specified by Options.instance.input_points
+    # Interpolate variables onto grid specified by opts.input_points
     for var in full_var_list:
         mmm_var = getattr(mmm_vars, var)
         interp_values = np.empty((len(rho_new), mmm_var.values.shape[1]))
@@ -192,7 +192,7 @@ def initial_conversion(cdf_vars):
     Returns:
     * input_vars (InputVariables): Data from the CDF converted into a format needed to run MMM
     '''
-
+    opts = main.options.Options.instance
     input_vars = deepcopy(cdf_vars)
 
     # Cache single column arrays of x-values
@@ -202,11 +202,11 @@ def initial_conversion(cdf_vars):
     input_vars.xb.set(values=np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0))
 
     # Set the array index and measurement time value corresponding to the input time
-    Options.instance.set_measurement_time(input_vars.time)
+    opts.set_measurement_time(input_vars.time)
 
     # Update the number of input points, if needed
-    if Options.instance.input_points is None:
-        Options.instance.input_points = input_vars.get_nboundaries()
+    if opts.input_points is None:
+        opts.input_points = input_vars.get_nboundaries()
 
     # Get list of CDF variables to convert to the format needed for MMM
     # Independent variables listed below don't need to be converted
@@ -222,7 +222,7 @@ def initial_conversion(cdf_vars):
             interp_to_boundarygrid(input_var, xvals)
 
     # Use TEPRO, TIPRO in place of TE, TI
-    if Options.instance.temperature_profiles:
+    if opts.temperature_profiles:
         input_vars.use_temperature_profiles()
 
     # Set value of rmin at origin to 0
@@ -245,19 +245,19 @@ def convert_variables(cdf_vars):
     Returns:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
     '''
-
+    opts = main.options.Options.instance
     input_vars = initial_conversion(cdf_vars)
     input_vars.set_rho_values()
 
-    uniform_rho = Options.instance.uniform_rho
+    uniform_rho = opts.uniform_rho
     mmm_vars = interp_to_uniform_rho(input_vars) if uniform_rho else interp_to_input_points(input_vars)
 
     full_var_list = mmm_vars.get_nonzero_variables()
     # Apply smoothing, then verify minimum values (fixes errors due to interpolation)
     for var_name in full_var_list:
         mmm_var = getattr(mmm_vars, var_name)
-        if Options.instance.apply_smoothing:
-            mmm_var.apply_smoothing(Options.instance.input_points)
+        if opts.apply_smoothing:
+            mmm_var.apply_smoothing(opts.input_points)
         mmm_var.set_minvalue()
 
     # Update x from xb (x is the grid between xb, and has one fewer point than xb)
