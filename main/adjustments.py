@@ -161,7 +161,7 @@ def recalculate_dependencies(adjusted_vars, var_to_scan):
     elif var_to_scan == 'q':
         '''
         Safety Factor Scan
-        * vpar is not recalculated since it's an independent input variable
+        * vpar is not recalculated since it's considered as an independent input variable
         '''
         calculations.calculate_variable(calculations.bpol, adjusted_vars)
         calculations.calculate_variable(calculations.nuste, adjusted_vars)

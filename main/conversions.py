@@ -1,5 +1,4 @@
 # Standard Packages
-import sys; sys.path.insert(0, '../')
 from copy import deepcopy
 
 # 3rd Party Packages
@@ -265,7 +264,3 @@ def convert_variables(cdf_vars):
     mmm_vars.x.values = (mmm_vars.xb.values[0:-1, :] + mmm_vars.xb.values[1:, :]) / 2
 
     return mmm_vars
-
-
-if __name__ == '__main__':
-    ...

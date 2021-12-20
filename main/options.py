@@ -1,5 +1,4 @@
 # Standard Packages
-import sys; sys.path.insert(0, '../')
 import pickle
 
 # 3rd Party Packages
@@ -250,7 +249,3 @@ class Options:
     '''Stores a public instance of the OptionsData class'''
 
     instance = OptionsData()
-
-
-if __name__ == '__main__':
-    ...

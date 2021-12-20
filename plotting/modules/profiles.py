@@ -41,8 +41,9 @@ def init_figure(profile_type, xvar_points, scan_factor):
     Initializes a new figure and figure subplots
 
     Parameters:
-    * profile_type (ProfileType): The type of profiles being plotted
+    * profile_type (ProfileType): The type of profiles being made
     * xvar_points (int): The number of points the xvar being plotted has
+    * scan_factor (float or None): The value of the scan factor
     '''
 
     runid = Options.instance.runid
@@ -115,6 +116,7 @@ def run_plotting_loop(plotdata, profile_type, scan_factor):
     Parameters:
     * plotdata (list of PlotData): Contains all data being plotted
     * profile_type (ProfileType): The type of profiles being plotted
+    * scan_factor (float or None): The value of the scan factor
     '''
 
     plotlayout.init()
