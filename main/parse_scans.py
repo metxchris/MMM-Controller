@@ -44,7 +44,7 @@ def reshape_data(data_array, var_names):
     * var_names (list): List of names from the header of the CSV
 
     Returns:
-    * reshaped_data (list): List of arrays, where each array corresponds to a different rho value and CSV to write
+    * reshaped_data (list): List of arrays, where each array is a different rho value
     '''
 
     num_radial_points = data_array.shape[1]

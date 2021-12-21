@@ -202,7 +202,7 @@ class OptionsData:
     def load_options(self, runid, scan_num):
         '''Loads OptionsData object from a pickle file'''
 
-        pickle_path = self.get_options_path(runid, scan_num)
+        pickle_path = utils.get_options_path(runid, scan_num)
 
         with open(pickle_path, 'rb') as handle:
             loaded_options = pickle.load(handle)
@@ -216,7 +216,7 @@ class OptionsData:
     def save_options(self):
         '''Saves OptionsData object to a pickle file (CSV also saved to make saved options viewable)'''
 
-        pickle_path = self.get_options_path(self.runid, self.scan_num)
+        pickle_path = utils.get_options_path(self.runid, self.scan_num)
 
         with open(pickle_path, 'wb') as handle:
             pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -229,14 +229,6 @@ class OptionsData:
             f.write(f'{option}\n')
 
         print(f'Options saved to {pickle_path}\n')
-
-    def get_options_path(self, runid, scan_num):
-        '''Returns: (str) the path to the Options pickle file'''
-        if runid is None:
-            raise ValueError('Cannot retrieve Options.pickle file since runid has not been set')
-        if scan_num is None:
-            raise ValueError('Cannot retrieve Options.pickle file since scan_num has not been set')
-        return f'{utils.get_scan_num_path(runid, scan_num)}\\Options.pickle'
 
     def set_measurement_time(self, tvar):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''
