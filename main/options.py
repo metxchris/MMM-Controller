@@ -1,5 +1,4 @@
 # Standard Packages
-import sys; sys.path.insert(0, '../')
 import pickle
 
 # 3rd Party Packages
@@ -8,7 +7,8 @@ import numpy as np
 # Local Packages
 import main.variables as variables
 import main.controls as controls
-from main import utils, constants
+import main.utils as utils
+import main.constants as constants
 from main.enums import ShotType, ScanType
 
 
@@ -111,8 +111,14 @@ class OptionsData:
 
     @scan_range.setter
     def scan_range(self, scan_range):
-        if type(scan_range) is not np.ndarray and scan_range is not None:
-            raise TypeError(f'scan_range must be {np.ndarray} or {None} and not {type(scan_range)}')
+        if scan_range is not None:
+            if type(scan_range) is not np.ndarray:
+                raise TypeError(f'scan_range must be {np.ndarray} or {None} and not {type(scan_range)}')
+            too_small = np.absolute(scan_range) < constants.ABSMIN_SCAN_FACTOR_VALUE
+            if too_small.any():
+                value_signs = np.sign(scan_range[too_small])
+                value_signs[value_signs == 0] = 1  # np.sign(0) = 0, so set these to +1
+                scan_range[too_small] = constants.ABSMIN_SCAN_FACTOR_VALUE * value_signs
         self._scan_range = scan_range
 
     @property
@@ -238,8 +244,10 @@ class OptionsData:
         self._time_str = constants.TIME_FMT_STR.format(tvar.values[self.time_idx])
 
     def find_scan_factor(self, scan_factor):
-        '''Finds the value in scan_range closest to the specified scan_factor'''
-        if self.scan_range is None:
+        '''Returns (float or None): Value in scan_range closest to the specified scan_factor'''
+        if scan_factor is None:
+            return scan_factor
+        elif self.scan_range is None:
             raise ValueError('Cannot find scan_factor value when scan_range is None')
         return self.scan_range[np.argmin(np.abs(self.scan_range - scan_factor))]
 
@@ -248,7 +256,3 @@ class Options:
     '''Stores a public instance of the OptionsData class'''
 
     instance = OptionsData()
-
-
-if __name__ == '__main__':
-    ...

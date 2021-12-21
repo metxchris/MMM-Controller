@@ -41,8 +41,9 @@ def init_figure(profile_type, xvar_points, scan_factor):
     Initializes a new figure and figure subplots
 
     Parameters:
-    * profile_type (ProfileType): The type of profiles being plotted
+    * profile_type (ProfileType): The type of profiles being made
     * xvar_points (int): The number of points the xvar being plotted has
+    * scan_factor (float or None): The value of the scan factor
     '''
 
     runid = Options.instance.runid
@@ -58,9 +59,20 @@ def init_figure(profile_type, xvar_points, scan_factor):
     subtitle_txt = f'{shot_type.name} Shot {runid}, Time {time}s, {points} Radial Points'
     plt.figtext(*plotlayout.TEXT1_POS, title_txt, fontsize=21, ha='center')
     plt.figtext(*plotlayout.TEXT2_POS, subtitle_txt, fontsize=10, ha='center', color='#444')
-    text3_str = 'Using Smoothed TRANSP Data' if Options.instance.apply_smoothing else 'Using TRANSP Data'
+
+    # Set attributes text
+    attributes = []
+    if Options.instance.uniform_rho:
+        attributes.append('Uniformly Spaced')
+    if Options.instance.apply_smoothing:
+        attributes.append('Smoothed')
+    attributes_str = ', '.join(attributes)
+    if len(attributes_str):
+        attributes_str += ' '
+    text3_str = f'Using {attributes_str}TRANSP Data'
     plt.figtext(*plotlayout.TEXT3_POS, text3_str, fontsize=10, ha='center', color='#444')
 
+    # Set scan factor text
     if scan_factor:
         var_to_scan = Options.instance.var_to_scan
         if hasattr(InputVariables(), var_to_scan):
@@ -115,6 +127,7 @@ def run_plotting_loop(plotdata, profile_type, scan_factor):
     Parameters:
     * plotdata (list of PlotData): Contains all data being plotted
     * profile_type (ProfileType): The type of profiles being plotted
+    * scan_factor (float or None): The value of the scan factor
     '''
 
     plotlayout.init()

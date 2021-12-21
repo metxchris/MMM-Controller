@@ -5,7 +5,8 @@ import sys; sys.path.insert(0, '../')
 import numpy as np
 
 # Local Packages
-from main import utils, constants
+import main.utils as utils
+import main.constants as constants
 from main.enums import ShotType, SaveType
 
 

@@ -1,5 +1,5 @@
 # Standard Packages
-import sys; sys.path.insert(0, '../')
+import sys
 import copy
 import inspect
 
@@ -8,21 +8,9 @@ import numpy as np
 from scipy.interpolate import interp1d  # TODO: use Akima1DInterpolator?
 
 # Local Packages
-from main import constants
-from main.options import Options
+import main.options
+import main.constants as constants
 
-
-def vpol(vars):
-    '''Poloidal Velocity'''
-    vpol = np.zeros((vars.xb.values.shape[0], vars.time.values.shape[0]))
-    if vars.vpolavg.values is not None:
-        vpol = vars.vpolavg.values
-    elif vars.vpold.values is not None:
-        vpol = vars.vpold.values
-    elif vars.vpolh.values is not None:
-        vpol = vars.vpolh.values
-
-    vars.vpol.set_variable(vpol, 'M/SEC', ['XBO', 'TIME'])
 
 def nh0(vars):
     '''Hydrogen Ion Density'''
@@ -34,7 +22,8 @@ def nh0(vars):
 
     nh0 = ne - zimp * nz - nf - nd
 
-    vars.nh0.set_variable(nh0, vars.ne.units, ['XBO', 'TIME'])
+    vars.nh0.set(values=nh0, units=vars.ne.units)
+
 
 def nh(vars):
     '''Total Hydrogenic Ion Density'''
@@ -43,7 +32,8 @@ def nh(vars):
 
     nh = nh0 + nd
 
-    vars.nh.set_variable(nh, '', ['XBO', 'TIME'])
+    vars.nh.set(values=nh, units=vars.nd.units)
+
 
 def ni(vars):
     '''Thermal Ion Density'''
@@ -53,7 +43,8 @@ def ni(vars):
 
     ni = nd + nz + nh0
 
-    vars.ni.set_variable(ni, vars.ne.units, ['XBO', 'TIME'])
+    vars.ni.set(values=ni, units=vars.ne.units)
+
 
 def ahyd(vars):
     '''Mean atomic mass of hydrogenic ions (hydrogen + deuterium)'''
@@ -62,10 +53,11 @@ def ahyd(vars):
 
     ahyd = (nh0 + 2 * nd) / (nh0 + nd)
 
-    vars.ahyd.set_variable(ahyd, '', ['XBO', 'TIME'])
+    vars.ahyd.set(values=ahyd, units='')
+
 
 def aimass(vars):
-    '''# Mean Atomic Mass of Thermal Ions'''
+    '''Mean Atomic Mass of Thermal Ions'''
     ahyd = vars.ahyd.values
     aimp = vars.aimp.values
     nh = vars.nh.values
@@ -73,33 +65,27 @@ def aimass(vars):
 
     aimass = (ahyd * nh + aimp * nz) / (nh + nz)
 
-    vars.aimass.set_variable(aimass, '', ['XBO', 'TIME'])
+    vars.aimass.set(values=aimass, units='')
 
-# Rho (Approximation for rho)
+
 def rho(vars):
+    '''Rho (Approximation for rho)'''
     rmin = vars.rmin.values
 
     rho = rmin / rmin[-1, :]
 
-    vars.rho.set_variable(rho, '', ['XBO', 'TIME'])
+    vars.rho.set(values=rho, units='')
+
 
 def tau(vars):
-    '''Temperature Ratio'''
+    '''Temperature Ratio te / ti'''
     te = vars.te.values
     ti = vars.ti.values
 
     tau = te / ti
 
-    vars.tau.set_variable(tau, '', ['XBO', 'TIME'])
+    vars.tau.set(values=tau, units='')
 
-def vtor(vars):
-    '''Toroidal Velocity'''
-    rmaj = vars.rmaj.values
-    omega = vars.omega.values
-
-    vtor = rmaj * omega
-
-    vars.vtor.set_variable(vtor, 'M/SEC', ['XBO', 'TIME'])
 
 def vpar(vars):
     '''Parallel Velocity'''
@@ -110,7 +96,8 @@ def vpar(vars):
 
     vpar = vtor + vpol * bpol / btor
 
-    vars.vpar.set_variable(vpar, vars.vtor.units, ['XBO', 'TIME'])
+    vars.vpar.set(values=vpar, units=vars.vtor.units)
+
 
 def zeff(vars):
     '''Effective Charge'''
@@ -122,7 +109,8 @@ def zeff(vars):
 
     zeff = (nh + nf + zimp**2 * nz) / ne
 
-    vars.zeff.set_variable(zeff, '', ['XBO', 'TIME'])
+    vars.zeff.set(values=zeff, units='')
+
 
 def btor(vars):
     '''Toroidal Magnetic Field'''
@@ -132,7 +120,8 @@ def btor(vars):
 
     btor = raxis / rmaj * bz
 
-    vars.btor.set_variable(btor, vars.bz.units, ['XBO', 'TIME'])
+    vars.btor.set(values=btor, units=vars.bz.units)
+
 
 def bpol(vars):
     '''Poloidal Magnetic Field'''
@@ -143,18 +132,20 @@ def bpol(vars):
 
     bpol = rmin / rmaj * btor / q
 
-    vars.bpol.set_variable(bpol, vars.btor.units, ['XBO', 'TIME'])
+    vars.bpol.set(values=bpol, units=vars.btor.units)
 
-# Inverse Aspect Ratio
+
 def eps(vars):
+    '''Inverse Aspect Ratio'''
     arat = vars.arat.values
 
     eps = 1 / arat
 
-    vars.eps.set_variable(eps, '', ['XBO', 'TIME'])
+    vars.eps.set(values=eps, units='')
 
-# Plasma Pressure
+
 def p(vars):
+    '''Plasma Pressure'''
     zckb = constants.ZCKB
     ne = vars.ne.values
     ni = vars.ni.values
@@ -163,20 +154,22 @@ def p(vars):
 
     p = (ne * te + ni * ti) * zckb
 
-    vars.p.set_variable(p, 'PA', ['XBO', 'TIME'])
+    vars.p.set(values=p, units='Pa')
 
-# Beta
+
 def beta(vars):
+    '''Beta'''
     zcmu0 = constants.ZCMU0
     btor = vars.btor.values
     p = vars.p.values
 
     beta = 2 * zcmu0 * p / btor**2
 
-    vars.beta.set_variable(beta, '', ['XBO', 'TIME'])
+    vars.beta.set(values=beta, units='')
 
-# Electron Beta
+
 def betae(vars):
+    '''Electron Beta'''
     zckb = constants.ZCKB
     zcmu0 = constants.ZCMU0
     btor = vars.btor.values
@@ -185,87 +178,102 @@ def betae(vars):
 
     betae = 2 * zcmu0 * ne * te * zckb / btor**2
 
-    vars.betae.set_variable(betae, '', ['XBO', 'TIME'])
+    vars.betae.set(values=betae, units='')
 
-# TODO: Need to add equations for different TE ranges
+
 def loge(vars):
     '''Electron Coulomb Logarithm'''
+
+    # TODO: Need to add equations for different TE ranges
     ne = vars.ne.values
     te = vars.te.values
-    zeff = vars.zeff.values
 
-    # loge = 39.23 - np.log(zeff*ne**(1 / 2) / te)  # TRANSP definition
-    loge = 37.8 - np.log(ne**(1 / 2) / te)  # NRL Plasma Formulary Definition
-    
-    vars.loge.set_variable(loge, '', ['XBO', 'TIME'])
+    # NRL Plasma Formulary Definition
+    loge = 37.8 - np.log(ne**(1 / 2) / te)
 
-# Collision Frequency (NU_{ei})
+    # TRANSP definition (equivalent)
+    # zeff = vars.zeff.values
+    # loge = 39.23 - np.log(zeff*ne**(1 / 2) / te)
+
+    vars.loge.set(values=loge, units='')
+
+
 def nuei(vars):
+    '''Collision Frequency (NU_{ei})'''
     zcf = constants.ZCF
     ne = vars.ne.values
     te = vars.te.values
     zeff = vars.zeff.values
     loge = vars.loge.values
 
-    nuei = zcf * 2**(1/2) * ne * loge * zeff / te**(3/2)
+    nuei = zcf * 2**(1 / 2) * ne * loge * zeff / te**(3 / 2)
 
-    vars.nuei.set_variable(nuei, 's^-1', ['XBO', 'TIME'])
+    vars.nuei.set(values=nuei, units='s^-1')
 
-# OLD NOTE: Not sure what to call this, but it leads to the approx the correct NUSTI
+
 def nuei2(vars):
+    '''OLD NOTE: Not sure what to call this, but it leads to the approx the correct NUSTI'''
     zcf = constants.ZCF
     ni = vars.ni.values
     ti = vars.ti.values
     zeff = vars.zeff.values
     loge = vars.loge.values
 
-    nuei2 = zcf * 2**(1/2) * ni * loge * zeff / ti**(3/2)
+    nuei2 = zcf * 2**(1 / 2) * ni * loge * zeff / ti**(3 / 2)
 
-    vars.nuei2.set_variable(nuei2, 's^-1', ['XBO', 'TIME'])
+    vars.nuei2.set(values=nuei2, units='s^-1')
 
-# Thermal Velocity of Electrons
+
 def vthe(vars):
+    '''Thermal Velocity of Electrons'''
     zckb = constants.ZCKB
     zcme = constants.ZCME
     te = vars.te.values
 
-    vthe = (2 * zckb * te / zcme)**(1/2)
+    vthe = (2 * zckb * te / zcme)**(1 / 2)
 
-    vars.vthe.set_variable(vthe, 'm/s', ['XBO', 'TIME'])
+    vars.vthe.set(values=vthe, units='m/s')
 
-# Thermal Velocity of Ions
+
 def vthi(vars):
+    '''Thermal Velocity of Ions'''
     zckb = constants.ZCKB
     zcmp = constants.ZCMP
     aimass = vars.aimass.values
     ti = vars.ti.values
 
-    vthi = (zckb * ti / (zcmp * aimass))**(1/2)
+    vthi = (zckb * ti / (zcmp * aimass))**(1 / 2)
 
-    vars.vthi.set_variable(vthi, 'm/s', ['XBO', 'TIME'])
+    vars.vthi.set(values=vthi, units='m/s')
 
-# Electron Collisionality (NU^{*}_{e}) TODO: units?
-# OLD NOTE: This is in approximate
-# agreement with NUSTE in TRANSP.  One source of the disagreement is
-# likely because the modmmm7_1.f90 Coulomb logarithm (loge) does not
-# match perfectly with the TRANSP version (CLOGE).
+
 def nuste(vars):
+    '''
+    Electron Collisionality (NU^{*}_{e}) TODO: units? OLD NOTE: This is in
+    approximate agreement with NUSTE in TRANSP.  One source of the
+    disagreement is likely because the modmmm7_1.f90 Coulomb logarithm
+    (loge) does not match perfectly with the TRANSP version (CLOGE).
+    '''
+
     eps = vars.eps.values
     nuei = vars.nuei.values
     q = vars.q.values
     rmaj = vars.rmaj.values
     vthe = vars.vthe.values
 
-    nuste = nuei * eps**(-3/2) * q * rmaj / vthe
+    nuste = nuei * eps**(-3 / 2) * q * rmaj / vthe
 
-    vars.nuste.set_variable(nuste, '', ['XBO', 'TIME'])
+    vars.nuste.set(values=nuste, units='')
 
-# Ion Collisionality (NUSTI = NU^{*}_{i}) TODO: Units
-# OLD NOTE: This is approx correct, but
-# agreement is also somewhat time-dependent.  The issue is possibly due
-# to the artificial AIMASS that we are using.  We likely also need to
-# use the coulomb logarithm for ions as well.
+
 def nusti(vars):
+    '''
+    Ion Collisionality (NUSTI = NU^{*}_{i}) TODO: Units OLD NOTE: This is approx
+    correct, but agreement is also somewhat time-dependent.  The issue is
+    possibly due to the artificial AIMASS that we are using.  We likely also need
+    to use the coulomb logarithm for ions as well.
+    '''
+
     zcme = constants.ZCME
     zcmp = constants.ZCMP
     eps = vars.eps.values
@@ -274,9 +282,10 @@ def nusti(vars):
     rmaj = vars.rmaj.values
     vthi = vars.vthi.values
 
-    nusti = nuei2 * eps**(-3/2) * q * rmaj / (2 * vthi) * (zcme / zcmp)**(1/2)
+    nusti = nuei2 * eps**(-3 / 2) * q * rmaj / (2 * vthi) * (zcme / zcmp)**(1 / 2)
 
-    vars.nusti.set_variable(nusti, '', ['XBO', 'TIME'])
+    vars.nusti.set(values=nusti, units='')
+
 
 def gyrfi(vars):
     '''Ion Gyrofrequency'''
@@ -287,7 +296,8 @@ def gyrfi(vars):
 
     gyrfi = zce * btor / (zcmp * aimass)
 
-    vars.gyrfi.set_variable(gyrfi, 's^-1', ['XBO', 'TIME'])
+    vars.gyrfi.set(values=gyrfi, units='s^-1')
+
 
 def gmax(vars):
     '''Upper bound for ne, nh, te, and ti gradients in DRBM model (modmmm.f90)'''
@@ -299,30 +309,33 @@ def gmax(vars):
 
     gmax = rmaj / (vthi / gyrfi * q / eps)
 
-    vars.gmax.set_variable(gmax, '', ['XBO', 'TIME'])
+    vars.gmax.set(values=gmax, units='')
 
-# Magnetic Shear
+
 def shear(vars):
+    '''Magnetic Shear'''
     gq = vars.gq.values
     rmaj = vars.rmaj.values
     rmin = vars.rmin.values
 
     shear = gq * rmin / rmaj
 
-    vars.shear.set_variable(shear, '', ['XBO', 'TIME'])
+    vars.shear.set(values=shear, units='')
 
-# Effective Magnetic Shear
+
 def shat(vars):
+    '''Effective Magnetic Shear'''
     elong = vars.elong.values
     shear = vars.shear.values
 
-    shat = (2 * shear - 1 + (elong * (shear - 1))**2)**(1/2)
+    shat = (2 * shear - 1 + (elong * (shear - 1))**2)**(1 / 2)
     shat[shat < 0] = 0
 
-    vars.shat.set_variable(shat, '', ['XBO', 'TIME'])
+    vars.shat.set(values=shat, units='')
 
-# Alpha MHD (Weiland Definition)
+
 def alphamhd(vars):
+    '''Alpha MHD (Weiland Definition)'''
     betae = vars.betae.values
     gne = vars.gne.values
     gni = vars.gni.values
@@ -334,15 +347,18 @@ def alphamhd(vars):
 
     alphamhd = q**2 * betae * (gne + gte + ti / te * (gni + gti))
 
-    vars.alphamhd.set_variable(alphamhd, '', ['XBO', 'TIME'])
+    vars.alphamhd.set(values=alphamhd, units='')
+
 
 def gave(vars):
+    '''Average Magnetic Surface Curvature'''
     shear = vars.shear.values
     alphamhd = vars.alphamhd.values
 
-    gave = 2/3 + 5/9 * shear - 5/12 * alphamhd
+    gave = 2 / 3 + 5 / 9 * shear - 5 / 12 * alphamhd
 
-    vars.gave.set_variable(gave, '', ['XBO', 'TIME'])
+    vars.gave.set(values=gave, units='')
+
 
 def etae(vars):
     gte = vars.gte.values
@@ -350,7 +366,8 @@ def etae(vars):
 
     etae = gte / gne
 
-    vars.etae.set_variable(etae, '', ['XBO', 'TIME'])
+    vars.etae.set(values=etae, units='')
+
 
 def etai(vars):
     gti = vars.gti.values
@@ -358,49 +375,28 @@ def etai(vars):
 
     etai = gti / gni
 
-    vars.etai.set_variable(etai, '', ['XBO', 'TIME'])
+    vars.etai.set(values=etai, units='')
 
-def etaih(vars):
-    gti = vars.gti.values
-    gnh = vars.gnh.values
 
-    etaih = gti / gnh
-
-    vars.etaih.set_variable(etaih, '', ['XBO', 'TIME'])
-
-def etaie(vars):
-    gti = vars.gti.values
-    gne = vars.gne.values
-
-    etaie = gti / gne
-
-    vars.etaie.set_variable(etaie, '', ['XBO', 'TIME'])
-
-def etaid(vars):
-    gti = vars.gti.values
-    gnd = vars.gnd.values
-
-    etaid = gti / gnd
-
-    vars.etaid.set_variable(etaid, '', ['XBO', 'TIME'])
-
-# Test variables are just used for testing calculations, and are not sent to the MMM driver
 def test(vars):
+    '''Test variables are just used for testing calculations, and are not sent to the MMM driver'''
     nh = vars.nh.values
     nd = vars.nd.values
 
     ni = nh + nd
 
-    vars.test.set_variable(ni)
+    vars.test.set(values=ni)
 
-# Test variables are just used for testing calculations, and are not sent to the MMM driver
+
 def test2(vars):
+    '''Test variables are just used for testing calculations, and are not sent to the MMM driver'''
     gti = vars.gti.values
     gni = vars.gtest.values
 
     test2 = gti / gni
 
-    vars.test2.set_variable(test2)
+    vars.test2.set(values=test2)
+
 
 def calculate_gradient(gvar_name, var_name, drmin, vars):
     rmaj = vars.rmaj.values
@@ -420,43 +416,55 @@ def calculate_gradient(gvar_name, var_name, drmin, vars):
 
     # take gradient
     gradient_values = rmaj * dxvar / var.values
-    gvar.set_variable(gradient_values, '', ['XBO', 'TIME'])
+    gvar.set(values=gradient_values, units='')
 
-    if Options.instance.apply_smoothing:
-        gvar.apply_smoothing(Options.instance.input_points)
+    opts = main.options.Options.instance
+    if opts.apply_smoothing:
+        gvar.apply_smoothing(opts.input_points)
 
     gvar.clamp_gradient(100)
     gvar.set_minvalue()
 
-    if Options.instance.reject_outliers:
+    if opts.reject_outliers:
         gvar.reject_outliers()
 
-    gvar.remove_nan()
+    gvar.check_for_nan()
 
-# Calculate the variable specified by it's corresponding function
+
 def calculate_variable(var_function, vars):
+    '''Calculate the variable specified by it's corresponding function'''
+
     var_function(vars)
 
     # Get the variable name specified by var_function
     var_name = var_function.__name__
 
-    if Options.instance.apply_smoothing:
-        getattr(vars, var_name).apply_smoothing(Options.instance.input_points)
+    opts = main.options.Options.instance
+    if opts.apply_smoothing:
+        getattr(vars, var_name).apply_smoothing(opts.input_points)
 
     getattr(vars, var_name).set_minvalue()
 
-    if Options.instance.reject_outliers:
+    if opts.reject_outliers:
         getattr(vars, var_name).reject_outliers()
 
-    getattr(vars, var_name).remove_nan()
+    getattr(vars, var_name).check_for_nan()
 
-# Calculates new variables needed for MMM and data display from CDF variables
-# Values are stored to vars within each function call
+
 def calculate_inputs(cdf_vars):
+    '''
+    Calculates new variables needed for MMM and data display
+
+    Note that each use of the calculate_variable function below is passing in
+    the function of the variable to be calculated, which shares the same name
+    as the variable it calculates.
+
+    Parameters:
+    * cdf_vars (InputVariables): Variables object containing data from a CDF
+    '''
     vars = copy.deepcopy(cdf_vars)
 
     # Some calculations depend on values from previous calculations
-    calculate_variable(vpol, vars)
     calculate_variable(nh0, vars)
     calculate_variable(nh, vars)
     calculate_variable(ni, vars)
@@ -466,7 +474,6 @@ def calculate_inputs(cdf_vars):
     calculate_variable(tau, vars)
     calculate_variable(btor, vars)
     calculate_variable(bpol, vars)
-    calculate_variable(vtor, vars)
     calculate_variable(vpar, vars)
     calculate_variable(zeff, vars)
     calculate_variable(eps, vars)
@@ -487,17 +494,18 @@ def calculate_inputs(cdf_vars):
     drmin = np.diff(vars.rmin.values, axis=0)
 
     # Calculate gradients.  The sign on drmin sets the sign of the gradient equation
-    calculate_gradient('gne',   'ne',   -drmin, vars)
-    calculate_gradient('gnh',   'nh',   -drmin, vars)
-    calculate_gradient('gni',   'ni',   -drmin, vars)
-    calculate_gradient('gnz',   'nz',   -drmin, vars)
-    calculate_gradient('gnd',   'nd',   -drmin, vars)
-    calculate_gradient('gq',    'q',     drmin, vars)
-    calculate_gradient('gte',   'te',   -drmin, vars)
-    calculate_gradient('gti',   'ti',   -drmin, vars)
-    calculate_gradient('gvpar', 'vpar',  drmin, vars)
-    calculate_gradient('gvpol', 'vpol',  drmin, vars)
-    calculate_gradient('gvtor', 'vtor',  drmin, vars)
+    # Note that all normalized gradients below have a negative sign, other than gq
+    calculate_gradient('gne', 'ne', -drmin, vars)
+    calculate_gradient('gnh', 'nh', -drmin, vars)
+    calculate_gradient('gni', 'ni', -drmin, vars)
+    calculate_gradient('gnz', 'nz', -drmin, vars)
+    calculate_gradient('gnd', 'nd', -drmin, vars)
+    calculate_gradient('gq', 'q', drmin, vars)
+    calculate_gradient('gte', 'te', -drmin, vars)
+    calculate_gradient('gti', 'ti', -drmin, vars)
+    calculate_gradient('gvpar', 'vpar', -drmin, vars)
+    calculate_gradient('gvpol', 'vpol', -drmin, vars)
+    calculate_gradient('gvtor', 'vtor', -drmin, vars)
 
     # Calculations dependent on gradient variables
     calculate_variable(shear, vars)
@@ -506,9 +514,6 @@ def calculate_inputs(cdf_vars):
     calculate_variable(gave, vars)
     calculate_variable(etae, vars)
     calculate_variable(etai, vars)
-    calculate_variable(etaie, vars)
-    calculate_variable(etaih, vars)
-    calculate_variable(etaid, vars)
 
     # Test variables are just used for testing calculations, and are not sent to the MMM driver
     calculate_variable(test, vars)
@@ -519,9 +524,5 @@ def calculate_inputs(cdf_vars):
 
 
 def get_calculated_vars():
-    '''Returns function names of calculated variables in this module, other than gradient calculations'''
+    '''Returns (list of str): function names of calculated variables in this module (other than gradient calculations)'''
     return [o[0] for o in inspect.getmembers(sys.modules[__name__]) if inspect.isfunction(o[1]) and 'calculate' not in o[0]]
-
-
-if __name__ == '__main__':
-    ...

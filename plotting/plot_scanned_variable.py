@@ -140,6 +140,7 @@ if __name__ == '__main__':
     # scan_data['120982A09'] = [1]
     # scan_data['129041A10'] = [1]
     scan_data['TEST'] = [45]
+    scan_data['138536A01'] = [i for i in range(1, 13)]
 
     settings.AUTO_OPEN_PDFS = True
 

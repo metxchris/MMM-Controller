@@ -79,9 +79,20 @@ if __name__ == '__main__':
     # ]
 
     title, data_list = get_var_compare('Effective Charge', 'rho', 'zeff', 1)
-    title, data_list = get_var_compare('Diffusivity', 'rho', 'xteETGM', 1)
-    title, data_list = get_var_compare('Growth Rate', 'rho', 'gmaETGM', 1)
-    title, data_list = get_var_compare('Frequency', 'rho', 'omgETGM', 1)
+
+    title, data_list = get_var_compare('Electron Temperature Gradient', 'rho', 'gte', 2)
+    # title, data_list = get_var_compare('ETAE', 'rho', 'etae', 3)
+    # title, data_list = get_var_compare('Temperature Ratio', 'rho', 'tau', 4)
+    # title, data_list = get_var_compare('Toroidal Magnetic Field', 'rho', 'btor', 5)
+    # title, data_list = get_var_compare('Hydrogenic Ion Density Gradient', 'rho', 'gnh', 6)
+    # title, data_list = get_var_compare('Safety Factor', 'rho', 'q', 7)
+    title, data_list = get_var_compare('Magnetic Shear', 'rho', 'shear', 10)
+    title, data_list = get_var_compare('Electron Beta', 'rho', 'betae', 11)
+
+    # title, data_list = get_var_compare('xteETGM', 'rho', 'xteETGM', 2)
+    # title, data_list = get_var_compare('xdiETGM', 'rho', 'xdiETGM', 2)
+    # title, data_list = get_var_compare('Growth Rate', 'rho', 'gmaETGM', 2)
+    # title, data_list = get_var_compare('Frequency', 'rho', 'omgETGM', 2)
 
     # title, data_list = 'Effective Charge', [
     #     VarData('rho', 'zeff', '120968A02 (High)', '120968A02', scan_num=1),
@@ -112,11 +123,11 @@ if __name__ == '__main__':
     #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 3$', '120968A02', scan_num=2, var_to_scan='zeff', scan_factor=3),
     # ]
 
-    title, data_list = 'Growth Rate (120968A02, High)', [
-        VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=0.5),
-        VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 1$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=1),
-        VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 2$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=2),
-    ]
+    # title, data_list = 'Growth Rate (120968A02, High)', [
+    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=0.5),
+    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 1$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=1),
+    #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 2$', '120968A02', scan_num=1, var_to_scan='zeff', scan_factor=2),
+    # ]
 
     # title, data_list = 'Growth Rate (120982A09, Med.)', [
     #     VarData('rho', 'gmaETGM', r'$\gamma_\mathrm{etgm}$ for $Z_\mathrm{eff} \times 0.5$', '120982A09', scan_num=1, var_to_scan='zeff', scan_factor=0.5),

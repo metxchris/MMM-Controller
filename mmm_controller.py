@@ -9,7 +9,6 @@ import settings
 import main.utils as utils
 import main.adjustments as adjustments
 import main.parse_scans as parse_scans
-# import main.read_output as read_output
 import main.mmm as mmm
 import plotting.modules.profiles as profiles
 from main.enums import ShotType, ScanType, ProfileType
@@ -172,6 +171,7 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.630
     # runid, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
     # runid, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
     runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
@@ -182,13 +182,21 @@ if __name__ == '__main__':
     * Using None as the scanned variable will skip the variable scan
     '''
     scanned_vars[None] = None
-    scanned_vars['gti'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
-    scanned_vars['gte'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
-    # scanned_vars['gte'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['te'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
+    # scanned_vars['gti'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
+
+    # scanned_vars['gte'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
     # scanned_vars['nuei'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['tau'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['zeff'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['gnh'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['q'] = np.arange(start=0.6, stop=2.4 + 1e-6, step=0.015)
+    # scanned_vars['shear'] = np.arange(start=-6.0, stop=6 + 1e-6, step=0.1)
+    # scanned_vars['betae'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['etgm_kyrhos'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
 
     '''
     Options:
@@ -201,7 +209,7 @@ if __name__ == '__main__':
         runid=runid,
         shot_type=shot_type,
         input_time=input_time,
-        input_points=201,
+        input_points=101,
         uniform_rho=True,
         apply_smoothing=True,
     )

@@ -1,16 +1,24 @@
 # Standard Packages
 import sys; sys.path.insert(0, '../')
-from copy import deepcopy
 
 # 3rd Party Packages
 import numpy as np
 import scipy.ndimage
-from multipledispatch import dispatch
 
 # Local Packages
 import main.constants as constants
 import main.utils as utils
 from main.enums import SaveType
+
+
+# Used to create units labels to display on plots from units strings
+UNITS_TO_UNITS_LABEL = {
+    'T*m': r'T\,m',
+    'm^-3': r'm$^{-3}$',
+    'm/s^2': r'm/s$^2$',
+    'm^2/s': r'm$^2$/s',
+    's^-1': r's$^{-1}$',
+}
 
 
 # Parent class for input and output variables
@@ -23,9 +31,11 @@ class Variables:
         return str(self.get_nonzero_variables())
 
     def get_variables(self):
+        '''Returns (list of str): all variable names'''
         return [var for var in dir(self) if not callable(getattr(self, var)) and not var.startswith("__")]
 
     def get_nonzero_variables(self):
+        '''Returns (list of str): variable names with nonzero values'''
         vars = self.get_variables()
         return [var for var in vars if getattr(self, var).values is not None]
 
@@ -40,6 +50,7 @@ class Variables:
                   f'{getattr(self, v).dimensions}')
 
     def set_rho_values(self):
+        '''Sets rho from rmin'''
         if self.rmin.values.ndim == 2:
             self.rho.values = self.rmin.values / self.rmin.values[-1, :]
         elif self.rmin.values.ndim == 1:
@@ -115,7 +126,14 @@ class Variables:
         self.load_from_file_path(file_path)
 
     def load_from_file_path(self, file_path):
+        '''
+        Loads data from a file into the current Variables subclass object
 
+        Parameters:
+        * file_path (str): The path of the file to load
+        '''
+
+        # TODO: Add check if file exists
         data_array = np.genfromtxt(file_path, delimiter=',', dtype=float, names=True)
         var_names = data_array.dtype.names
 
@@ -129,6 +147,17 @@ class Variables:
             self.set_rho_values()
 
     def get_csv_save_path(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
+        '''
+        Gets the path where a CSV of variable data will be saved, based on the input parameter values
+
+        Parameters:
+        * save_type (SaveType): The SaveType of the data being saved
+        * runid (str): The runid of the CSV to use
+        * scan_num (int): The scan number of the CSV to use
+        * var_to_scan (str): The scanned variable of the CSV to use (optional)
+        * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
+        * rho_value (str or float): The rho value of the CSV to use (optional)
+        '''
 
         if rho_value is not None:
             rho_str = rho_value if type(rho_value) is str else constants.RHO_VALUE_FMT_STR.format(rho_value)
@@ -149,91 +178,143 @@ class Variables:
         return dir_path, file_path
 
 
-# Variables obtained from a CDF
 class InputVariables(Variables):
+    '''
+    Input variables are defined as anything that isn't read as output from the MMM driver
+
+    All members are defined using the Variable class.  See the Variable class definition for more info.
+    '''
+
     def __init__(self):
+        self.rho = Variable('Normalized Radius', label=r'$\rho$')
         # CDF Independent Variables
-        self.time = Variable('Time', cdfvar='TIME')  # TODO: What is TIME3 in CDF?
+        self.time = Variable('Time', cdfvar='TIME')
         self.x = Variable('X', cdfvar='X', label=r'$x$')
         self.xb = Variable('XB', cdfvar='XB', label=r'$x_\mathrm{B}$')
 
         # CDF Variables needed for calculations
-        self.aimp = Variable('Mean Mass of Impurities',cdfvar='AIMP', label=r'$\overline{M}_\mathrm{imp}$', minvalue=1e-6, smooth=5, st=SaveType.INPUT)
-        self.arat = Variable('Aspect Ratio', cdfvar='ARAT', smooth=0)
-        self.bz = Variable('BZ', cdfvar='BZ', smooth=None)
-        self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=5, st=SaveType.INPUT)
-        self.omega = Variable('Toroidal Angular Velocity', cdfvar='OMEGA', smooth=8)
-        self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', minvalue=1e-6, smooth=5, st=SaveType.INPUT)
-        self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', minvalue=1e-6, smooth=5, st=SaveType.INPUT)
-        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-6, smooth=5, st=SaveType.ADDITIONAL)
-        self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=5, st=SaveType.INPUT)
-        self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=5, st=SaveType.INPUT)
-        self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$', smooth=None, st=SaveType.INPUT)
-        self.rmin = Variable('Minor Radius', cdfvar='RMNMP', label=r'$r$', smooth=None, st=SaveType.INPUT)
-        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=8, st=SaveType.INPUT)
-        self.tepro = Variable('Electron Temperature', cdfvar='TEPRO', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=8)
-        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=8, st=SaveType.INPUT)
-        self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=8)
-        self.vpolavg = Variable('VPOL', cdfvar='VPOL_AVG', smooth=0)
-        self.vpold = Variable('VPOL', cdfvar='VPOLD_NC', smooth=0)
-        self.vpolh = Variable('VPOL', cdfvar='VPOLH_NC', smooth=0)
-        self.wexbs = Variable(r'ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$', smooth=5, st=SaveType.INPUT)
-        self.zimp = Variable('Mean Charge of Impurities', cdfvar='XZIMP', label=r'$\overline{Z}_\mathrm{imp}$', smooth=5, st=SaveType.INPUT)
+        self.aimp = Variable('Mean Mass of Impurities', cdfvar='AIMP', label=r'$\overline{M}_\mathrm{imp}$',
+                             save_type=SaveType.INPUT, minvalue=1e-6, smooth=1)
+        self.arat = Variable('Aspect Ratio', cdfvar='ARAT')
+        self.bz = Variable('BZ', cdfvar='BZ')
+        self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=1,
+                              save_type=SaveType.INPUT)
+        self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', minvalue=1e-6, smooth=1,
+                           save_type=SaveType.INPUT, units='m^-3')
+        self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', minvalue=1e-6, smooth=1,
+                           save_type=SaveType.INPUT, units='m^-3')
+        self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-6, smooth=1,
+                           save_type=SaveType.ADDITIONAL, units='m^-3')
+        self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=1,
+                           save_type=SaveType.INPUT, units='m^-3')
+        self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=1,
+                          save_type=SaveType.INPUT)
+        self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$',
+                             save_type=SaveType.INPUT, units='m')
+        self.rmin = Variable('Minor Radius', cdfvar='RMNMP', label=r'$r$',
+                             save_type=SaveType.INPUT, units='m')
+        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=1,
+                           save_type=SaveType.INPUT, units='keV')
+        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=1,
+                           save_type=SaveType.INPUT, units='keV')
+        self.vpol = Variable('Poloidal Velocity', cdfvar='VPOL_AVG', label=r'$v_\theta$', absminvalue=1e-1, smooth=3,
+                             save_type=SaveType.INPUT, units='m/s')
+        self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-1, smooth=3,
+                             save_type=SaveType.INPUT, units='m/s')
+        self.wexbs = Variable(r'ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$', smooth=1,
+                              save_type=SaveType.INPUT, units='s^-1')
+        self.zimp = Variable('Mean Charge of Impurities', cdfvar='XZIMP', label=r'$\overline{Z}_\mathrm{imp}$', smooth=1,
+                             save_type=SaveType.INPUT)
 
-        # Additional CDF variables for comparisons
+        # Additional CDF variables
         self.betat = Variable('BETAT', cdfvar='BETAT')
         self.bzxr = Variable('BZXR', cdfvar='BZXR')
+        self.tepro = Variable('Electron Temperature', cdfvar='TEPRO')
+        self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO')
 
         # Calculated Variables (some are also in the CDF)
-        self.aimass = Variable('Mean Mass of Thermal Ions', label=r'$\overline{M}_\mathrm{i}$', st=SaveType.INPUT)
-        self.ahyd = Variable('Mean Mass of Hydrogenic Ions', label=r'$\overline{M}_\mathrm{h}$', st=SaveType.INPUT)
-        self.alphamhd = Variable('Alpha MHD', label=r'$\alpha_\mathrm{MHD}$', st=SaveType.ADDITIONAL)
-        self.beta = Variable('Pressure Ratio', cdfvar='BTPL', label=r'$\beta$', st=SaveType.ADDITIONAL)
-        self.betae = Variable('Electron Pressure Ratio', cdfvar='BTE', label=r'$\beta_\mathrm{\,e}$', st=SaveType.ADDITIONAL)  # cdfvar='BETAE' is a scalar
-        self.bpol = Variable('Poloidal Magnetic Field', cdfvar='BPOL', label=r'$B_\theta$', st=SaveType.ADDITIONAL)
-        self.btor = Variable('Toroidal Magnetic Field', cdfvar='', label=r'$B_\phi$', st=SaveType.INPUT)
-        self.eps = Variable('Inverse Aspect Ratio', label=r'$\epsilon$', st=SaveType.ADDITIONAL)
-        self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$', st=SaveType.ADDITIONAL)
-        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$', st=SaveType.ADDITIONAL)  # cdfvar='ETAI' in CDF is not gTI/gNI
-        self.etaih = Variable('Hydrogenic Gradient Ratio', cdfvar='ETAIH', label=r'$\eta_\mathrm{\,ih}$')
-        self.etaid = Variable('ETAID', label=r'$\eta_\mathrm{\,id}$')
-        self.etaie = Variable('ETAIE', label=r'$\eta_\mathrm{\,ie}$')  # cdfvar='ETAIE' in CDF is not gTI/gNE
-        self.gave = Variable('Avg Curvature of Magnetic Field', label=r'$G_\mathrm{ave}$', st=SaveType.ADDITIONAL)
-        self.gmax = Variable('Max Gradient', label=r'$g_\mathrm{max}$', st=SaveType.ADDITIONAL)
-        self.gyrfi = Variable('Ion Gyrofrequency', label=r'$\omega_\mathrm{ci}$', st=SaveType.ADDITIONAL)
-        self.loge = Variable('Electron Coulomb Logarithm', cdfvar='CLOGE', label=r'$\lambda_\mathrm{e}$', st=SaveType.ADDITIONAL)
+        self.aimass = Variable('Mean Mass of Thermal Ions', label=r'$\overline{M}_\mathrm{i}$',
+                               save_type=SaveType.INPUT)
+        self.ahyd = Variable('Mean Mass of Hydrogenic Ions', label=r'$\overline{M}_\mathrm{h}$',
+                             save_type=SaveType.INPUT)
+        self.alphamhd = Variable('Alpha MHD', label=r'$\alpha_\mathrm{MHD}$',
+                                 save_type=SaveType.ADDITIONAL)
+        self.beta = Variable('Pressure Ratio', cdfvar='BTPL', label=r'$\beta$',
+                             save_type=SaveType.ADDITIONAL)
+        self.betae = Variable('Electron Pressure Ratio', cdfvar='BTE', label=r'$\beta_\mathrm{\,e}$',
+                              save_type=SaveType.ADDITIONAL)  # cdfvar='BETAE' is a scalar
+        self.bpol = Variable('Poloidal Magnetic Field', cdfvar='BPOL', label=r'$B_\theta$',
+                             save_type=SaveType.ADDITIONAL, units='T')
+        self.btor = Variable('Toroidal Magnetic Field', cdfvar='', label=r'$B_\phi$',
+                             save_type=SaveType.INPUT, units='T')
+        self.eps = Variable('Inverse Aspect Ratio', label=r'$\epsilon$',
+                            save_type=SaveType.ADDITIONAL)
+        self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$',
+                             save_type=SaveType.ADDITIONAL)
+        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$',
+                             save_type=SaveType.ADDITIONAL)  # cdfvar='ETAI' in CDF is not gTI/gNI
+        self.gave = Variable('Avg Curvature of Magnetic Field', label=r'$G_\mathrm{ave}$',
+                             save_type=SaveType.ADDITIONAL)
+        self.gmax = Variable('Max Gradient', label=r'$g_\mathrm{max}$',
+                             save_type=SaveType.ADDITIONAL)
+        self.gyrfi = Variable('Ion Gyrofrequency', label=r'$\omega_\mathrm{ci}$',
+                              save_type=SaveType.ADDITIONAL, units='s^-1')
+        self.loge = Variable('Electron Coulomb Logarithm', cdfvar='CLOGE', label=r'$\lambda_\mathrm{e}$',
+                             save_type=SaveType.ADDITIONAL)
         self.logi = Variable('Ion Coulomb Logarithm', cdfvar='CLOGI', label=r'$\lambda_\mathrm{i}$')
-        self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', smooth=1, st=SaveType.ADDITIONAL)
-        self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$', smooth=5)
-        self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h,T}$', smooth=5, st=SaveType.INPUT)
-        self.nuei = Variable('Electron Collision Frequency', label=r'$\nu_\mathrm{ei}$', st=SaveType.ADDITIONAL)
+        self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', units='m^-3',
+                           save_type=SaveType.ADDITIONAL)
+        self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$', units='m^-3',
+                            save_type=SaveType.ADDITIONAL)
+        self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h,T}$',
+                           save_type=SaveType.INPUT, units='m^-3')
+        self.nuei = Variable('Electron Collision Frequency', label=r'$\nu_\mathrm{ei}$',
+                             save_type=SaveType.ADDITIONAL)
         self.nuei2 = Variable('NUEI2')
-        self.nuste = Variable('Electron Collisionality', cdfvar='NUSTE', label=r'$\nu^{*}_\mathrm{e}$', st=SaveType.ADDITIONAL)
-        self.nusti = Variable('Ion Collisionality', cdfvar='NUSTI', label=r'$\nu^{*}_\mathrm{i}$', st=SaveType.ADDITIONAL)
-        self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$', st=SaveType.ADDITIONAL)
-        self.rho = Variable('Normalized Radius', label=r'$\rho$')
-        self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$', st=SaveType.ADDITIONAL)  # MMM uses a different definition of shat than what cdfvar='SHAT' uses
-        self.shear = Variable('Magnetic Shear', label=r'$s$', st=SaveType.ADDITIONAL)
-        self.tau = Variable('Temperature Ratio', label=r'$\tau$', st=SaveType.ADDITIONAL)
-        self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-1, smooth=None, st=SaveType.INPUT)
-        self.vpol = Variable('Poloidal Velocity', label=r'$v_\theta$', absminvalue=1e-1, smooth=15, st=SaveType.INPUT)
-        self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-1, smooth=None, st=SaveType.INPUT)  # cdfvar='VTOR_AVG' is a slightly different VTOR than what we are using
-        self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{T_\mathrm{e}}$', st=SaveType.ADDITIONAL)
-        self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{T_\mathrm{i}}$', st=SaveType.ADDITIONAL)
-        self.zeff = Variable('Effective Charge', cdfvar='ZEFFP', label=r'$Z_\mathrm{eff}$', st=SaveType.INPUT)
+        self.nuste = Variable('Electron Collisionality', cdfvar='NUSTE', label=r'$\nu^{*}_\mathrm{e}$',
+                              save_type=SaveType.ADDITIONAL)
+        self.nusti = Variable('Ion Collisionality', cdfvar='NUSTI', label=r'$\nu^{*}_\mathrm{i}$',
+                              save_type=SaveType.ADDITIONAL)
+        self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$',
+                          save_type=SaveType.ADDITIONAL)
+        self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$',
+                             save_type=SaveType.ADDITIONAL)  # MMM uses a different definition of shat than cdfvar='SHAT'
+        self.shear = Variable('Magnetic Shear', label=r'$s$',
+                              save_type=SaveType.ADDITIONAL)
+        self.tau = Variable('Temperature Ratio', label=r'$\tau$',
+                            save_type=SaveType.ADDITIONAL)
+        self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-1,
+                             save_type=SaveType.INPUT, units='m/s')
+        self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{T_\mathrm{e}}$',
+                             save_type=SaveType.ADDITIONAL, units='m/s')
+        self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{T_\mathrm{i}}$',
+                             save_type=SaveType.ADDITIONAL, units='m/s')
+        self.zeff = Variable('Effective Charge', cdfvar='ZEFFP', label=r'$Z_\mathrm{eff}$',
+                             save_type=SaveType.INPUT)
 
         # Calculated Gradients
-        self.gne = Variable('Electron Density Gradient', label=r'$g_{n_\mathrm{e}}$', st=SaveType.INPUT)
-        self.gnh = Variable('Hydrogenic Ion Density Gradient', label=r'$g_{n_\mathrm{h}}$', st=SaveType.INPUT)
-        self.gni = Variable('Thermal Ion Density Gradient', smooth=0, label=r'$g_{n_\mathrm{i}}$', st=SaveType.INPUT)
-        self.gnz = Variable('Impurity Density Gradient', label=r'$g_{n_\mathrm{z}}$', st=SaveType.INPUT)
-        self.gnd = Variable('Deuterium Ion Density Gradient', label=r'$g_{n_\mathrm{d}}$')
-        self.gq = Variable('Safety Factor Gradient', label=r'$g_{q}$', st=SaveType.INPUT)
-        self.gte = Variable('Electron Temperature Gradient', label=r'$g_{T_\mathrm{e}}$', st=SaveType.INPUT)
-        self.gti = Variable('Thermal Ion Temperature Gradient', smooth=0, label=r'$g_{T_\mathrm{i}}$', st=SaveType.INPUT)
-        self.gvpar = Variable('Parallel Velocity Gradient', label=r'$g_{v_\mathrm{par}}$', st=SaveType.INPUT)
-        self.gvpol = Variable('Poloidal Velocity Gradient', label=r'$g_{v_\theta}$', st=SaveType.INPUT)
-        self.gvtor = Variable('Toroidal Velocity Gradient', label=r'$g_{v_\phi}$', st=SaveType.INPUT)
+        self.gne = Variable('Electron Density Gradient', label=r'$g_{n_\mathrm{e}}$',
+                            save_type=SaveType.INPUT)
+        self.gnh = Variable('Hydrogenic Ion Density Gradient', label=r'$g_{n_\mathrm{h, T}}$',
+                            save_type=SaveType.INPUT)
+        self.gni = Variable('Thermal Ion Density Gradient', label=r'$g_{n_\mathrm{i}}$',
+                            save_type=SaveType.INPUT)
+        self.gnz = Variable('Impurity Density Gradient', label=r'$g_{n_\mathrm{z}}$',
+                            save_type=SaveType.INPUT)
+        self.gnd = Variable('Deuterium Ion Density Gradient', label=r'$g_{n_\mathrm{d}}$',
+                            save_type=SaveType.ADDITIONAL)
+        self.gq = Variable('Safety Factor Gradient', label=r'$g_{q}$',
+                           save_type=SaveType.INPUT)
+        self.gte = Variable('Electron Temperature Gradient', label=r'$g_{T_\mathrm{e}}$',
+                            save_type=SaveType.INPUT)
+        self.gti = Variable('Thermal Ion Temperature Gradient', label=r'$g_{T_\mathrm{i}}$',
+                            save_type=SaveType.INPUT)
+        self.gvpar = Variable('Parallel Velocity Gradient', label=r'$g_{v_\parallel}$',
+                              save_type=SaveType.INPUT)
+        self.gvpol = Variable('Poloidal Velocity Gradient', label=r'$g_{v_\theta}$',
+                              save_type=SaveType.INPUT)
+        self.gvtor = Variable('Toroidal Velocity Gradient', label=r'$g_{v_\phi}$',
+                              save_type=SaveType.INPUT)
 
         # Test Variables
         self.test = Variable('Test Variable')
@@ -241,33 +322,45 @@ class InputVariables(Variables):
         self.gtest = Variable('Test Variable Gradient')
 
     def get_vars_of_type(self, save_type):
-        ''' Returns (list): List of all variables with the specified save_type'''
+        '''Returns (list of str): List of all variables with the specified save_type'''
         nonzero_variables = self.get_nonzero_variables()
         return [v for v in nonzero_variables if getattr(self, v).save_type == save_type]
 
     def get_cdf_variables(self):
-        ''' Returns (list): List of all variables where cdfvar is not None'''
+        '''Returns (list of str): List of all variables where cdfvar is not None'''
         all_variables = self.get_variables()
         return [v for v in all_variables if getattr(self, v).cdfvar is not None]
 
     def get_nboundaries(self):
+        '''Returns (int): The number of boundary points in the radial dimension of xb'''
         return self.xb.values.shape[0] if self.xb.values is not None and self.xb.values.ndim > 0 else 0
 
     def get_ntimes(self):
+        '''Returns (int): The number of points in the time dimension of xb'''
         return self.x.values.shape[1] if self.xb.values is not None and self.xb.values.ndim > 1 else 0
 
     def use_temperature_profiles(self):
+        '''Attempts to use experimental temperature profiles in place of calculated profiles'''
         if self.tepro.values is not None:
-            self.te = deepcopy(self.tepro)
+            self.te.values = self.tepro.values
         else:
             raise ValueError('Failed to set TEPRO since TEPRO is None')
 
         if self.tipro.values is not None:
-            self.ti = deepcopy(self.tipro)
+            self.ti.values = self.tipro.values
         else:
             raise ValueError('Failed to set TIPRO since TIPRO is None')
 
     def save_vars_of_type(self, save_type, options, scan_factor=None):
+        '''
+        Saves variable values of the specified save type to a CSV
+
+        Parameters:
+        * save_type (SaveType): The save type of the variables to save
+        * options (OptionsData): Options.instance
+        * scan_factor (scan_factor): The value of the scan factor (Optional)
+        '''
+
         # Put rmin at the front of the variable list
         var_list = self.get_vars_of_type(save_type)
         if 'rmin' not in var_list:
@@ -279,13 +372,24 @@ class InputVariables(Variables):
         self.save_to_csv(data, header, save_type, options, scan_factor)
 
     def save_all_vars(self, options, scan_factor=None):
+        '''
+        Saves variable values of all relevant save types to a CSV
+
+        Parameters:
+        * save_type (SaveType): The save type of the variables to save
+        * options (OptionsData): Options.instance
+        * scan_factor (scan_factor): The value of the scan factor (Optional)
+        '''
+
         self.save_vars_of_type(SaveType.INPUT, options, scan_factor)
         self.save_vars_of_type(SaveType.ADDITIONAL, options, scan_factor)
 
 
-# Variables obtained from MMM output
 class OutputVariables(Variables):
+    '''Output variables consist of all variable data obtained as output from MMM (other than rho and rmin)'''
+
     def __init__(self):
+        # Independent Variables
         self.rho = Variable('rho', units='', label=r'$\rho$')
         self.rmin = Variable('rmin', units='m', label=r'$r_\mathrm{min}$')
         # Total Diffusivities
@@ -328,32 +432,40 @@ class OutputVariables(Variables):
         self.dbsqprf = Variable('dbsqprf', units='', label=r'$|\delta B/B|^2$')
 
     def get_all_output_vars(self):
+        '''Returns (list of str): all output variable names (other than rho and rmin)'''
         all_vars = self.get_variables()
         all_vars.remove('rho')
         all_vars.remove('rmin')
         return all_vars
 
     def get_etgm_vars(self):
+        '''Returns (list of str): all ETGM model variables'''
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'ETGM' in var]
 
     def get_mtm_vars(self):
+        '''Returns (list of str): all MTM model variables'''
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'MTM' in var]
 
     def get_dbm_vars(self):
+        '''Returns (list of str): all DRIBM model variables'''
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'DBM' in var]
 
     def get_etg_vars(self):
+        '''Returns (list of str): all Horton ETG model variables'''
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'ETG' in var and 'ETGM' not in var]
 
     def get_weiland_vars(self):
+        '''Returns (list of str): all Weiland model variables'''
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'W20' in var]
 
     def save_all_vars(self, options, scan_factor=None):
+        '''Saves output variables to a CSV (other than rho)'''
+
         # Put rmin at the front of the variable list
         var_list = self.get_variables()
         var_list.insert(0, var_list.pop(var_list.index('rmin')))
@@ -365,16 +477,16 @@ class OutputVariables(Variables):
 
 class Variable:
     def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None,
-                 absminvalue=None, st=None, units='', dimensions=None, values=None):
+                 absminvalue=None, save_type=None, mmm_label='', units='', dimensions=None, values=None):
         # Public
         self.name = name
         self.cdfvar = cdfvar  # Name of variable as used in CDF's
-        self.smooth = smooth  # None to disable smoothing, or n = integer value (n in N)
+        self.smooth = smooth  # None to disable smoothing, or n = positive integer
         self.label = label  # Plot label in LaTeX Format
-        self.desc = desc
-        self.minvalue = minvalue
-        self.absminvalue = absminvalue
-        self.save_type = st
+        self.desc = desc  # Stores the long_name value from CDF's
+        self.minvalue = minvalue  # minimum value variable is allowed to have
+        self.absminvalue = absminvalue  # minimum value the absolute value of the variable is allowed to have
+        self.save_type = save_type if save_type is not None else SaveType.NONE
         # Private
         self._units_label = ''
         self._units = ''
@@ -387,9 +499,17 @@ class Variable:
     def __str__(self):
         return str(self.name)
 
-    # Minimum values are used to handle variables that cannot take values below a minimum amount (such as negative Temperature)
-    # Absolute minimum values are used to handle variables that can be negative, but get too close to zero
     def set_minvalue(self):
+        '''
+        Sets the minimum value for a variable
+
+        Minimum values are used to handle variables that cannot take values
+        below a minimum amount (such as negative Temperatures). Absolute
+        minimum values are used to handle variables that are allowed to be
+        negative, but can't get too close to zero (due to divide by zero
+        issues)
+        '''
+
         if self.minvalue is not None:
             self.values[self.values < self.minvalue] = self.minvalue
         if self.absminvalue is not None:
@@ -420,13 +540,9 @@ class Variable:
     def units(self, units):
         self._units = units
         self._units_label = units
-
         # Set units_label in LaTeX format
-        if units != '':
-            for unit_str in constants.UNIT_STRINGS:
-                if (unit_str[0] == self._units):
-                    self._units_label = unit_str[1]
-                    break
+        if units in UNITS_TO_UNITS_LABEL.keys():
+            self._units_label = UNITS_TO_UNITS_LABEL[units]
 
     @property
     def dimensions(self):
@@ -434,10 +550,9 @@ class Variable:
 
     @dimensions.setter
     def dimensions(self, dimensions):
-        if type(dimensions) == list:
-            self._dimensions = dimensions
-        else:
+        if type(dimensions) != list:
             raise ValueError(f'Variable dimensions must be {list} and not {type(dimensions)}')
+        self._dimensions = dimensions
 
     @property
     def values(self):
@@ -445,27 +560,12 @@ class Variable:
 
     @values.setter
     def values(self, values):
-        if type(values) == np.ndarray:
-            self._values = values
-        else:
+        if type(values) != np.ndarray:
             raise ValueError(f'Variable values must be {np.ndarray} and not {type(values)}')
-
-    @dispatch(np.ndarray)
-    def set_variable(self, values):
-        self.set_variable(values, self.units, self.dimensions)
-
-    @dispatch(np.ndarray, str)
-    def set_variable(self, values, units):
-        self.set_variable(values, units, self.dimensions)
-
-    # Set variable values, units, dimensions
-    @dispatch(np.ndarray, str, list)
-    def set_variable(self, values, units, dimensions):
-        self.values = values
-        self.units = units
-        self.dimensions = dimensions
+        self._values = values
 
     def set(self, **kwargs):
+        '''Sets members using keyword arguments'''
         for key, value in kwargs.items():
             setattr(self, key, value)
 
@@ -473,8 +573,20 @@ class Variable:
         '''
         Variable smoothing using a Gaussian filter
 
-        The value of sigma needs to increase nearly linearly as the amount of input_points increases, to maintain
-        the same level of smoothing.  To achieve this, the self.smooth value is multiplied by input_points.
+        The value of sigma needs to increase nearly linearly as the amount of
+        input_points increases, to maintain the same level of smoothing.  To
+        achieve this, the self.smooth value is multiplied by input_points.
+        Additionally, the amount of smoothing applied also depends on how
+        closely grouped values are along the x-axis.  Specifically, for a
+        given value of sigma, loosely spaced values will be smoothed more
+        than tightly clustered values.
+
+        For this reason, using the uniform rho input option will result in
+        uniform smoothing across a variable (since the values in rmin become
+        more clustered as rmin approaches its maximum value).  If the uniform
+        rho input option is not used, then variables will have stronger
+        smoothing applied near rmin = 0, and weaker smoothing applied near
+        rmin = 1.
 
         Parameters:
         * input_points (int): Number of radial points each variable has
@@ -484,23 +596,38 @@ class Variable:
             sigma = int(input_points * self.smooth / 100)
             self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(sigma, 0))
 
-    # Clamps values between -value and value, and sets origin value to approximately 0
-    def clamp_gradient(self, value):
-        self.values[0, :] = 1e-6
-        self.values[self.values > value] = value
-        self.values[self.values < -value] = -value
+    def clamp_gradient(self, max):
+        '''
+        Clamps values between -max and max, and sets origin value to
+        approximately 0
 
-    # Removes values outside of m standard deviations
-    # TODO: Currently not ideal since removed values are replaced with None,
-    # which turns everything into nan after smoothing or interpolating again
+        Gradient values will later be clamped again within the MMM driver by
+        the variable gmax = g_{max}, which has values lower than the clamping
+        value used here.  This step of clamping first here just helps with
+        making the presentation of input profiles a bit cleaner.
+        '''
+
+        self.values[0, :] = 1e-6
+        self.values[self.values > max] = max
+        self.values[self.values < -max] = -max
+
     def reject_outliers(self, m=4):
+        '''
+        Removes values outside of m standard deviations
+
+        Note: removed values are replaced with None, and the resulting effects
+        of this lead to errors, as smoothing or interpolating a None value
+        will create nan values. Furthermore, it is likely this method isn't
+        needed as the Gaussian filter used in the smoothing process also
+        contains internal logic to deal with outliers.
+        '''
+
         self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
 
-    def remove_nan(self):
+    def check_for_nan(self):
+        '''Checks for nan values and raises an exception if any are found'''
         if np.isnan(self.values).any():
-            print('nan values found for var ' + self.name)
-            self.values[np.isnan(self.values)] = 0
-            self.set_minvalue()
+            raise ValueError(f'nan values found in variable {self.name}')
 
 
 # For testing purposes
