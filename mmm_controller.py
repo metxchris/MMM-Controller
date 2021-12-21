@@ -88,16 +88,17 @@ def execute_control_scan(mmm_vars, controls):
     scan_range = Options.instance.scan_range
 
     # Create reference to control being scanned in InputControls
-    # Modifying scanned_control values will modify its corresponding values in controls
-    scanned_control = getattr(controls, var_to_scan)
-    base_control = deepcopy(scanned_control)
+    # Modifying scanned_control values will modify its corresponding values in adjusted_controls
+    adjusted_controls = deepcopy(controls)
+    scanned_control = getattr(adjusted_controls, var_to_scan)
+    base_control = getattr(controls, var_to_scan)
 
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing control scan {i + 1} of {len(scan_range)} for control {var_to_scan}')
         scanned_control.values = scan_factor * base_control.values
         mmm_vars.save_all_vars(Options.instance, scan_factor)
-        controls.save_to_csv(Options.instance, scan_factor)
-        output_vars = mmm.run_driver(mmm_vars, controls)
+        adjusted_controls.save_to_csv(Options.instance, scan_factor)
+        output_vars = mmm.run_driver(mmm_vars, adjusted_controls)
         output_vars.save_all_vars(Options.instance, scan_factor)
 
     # Reshaped scanned CSV into new CSV dependent on the scanned parameter
@@ -228,6 +229,7 @@ if __name__ == '__main__':
         etgm_kyrhoe=0.25,
         etgm_kyrhos=0.33,
         etgm_cl=1,  # etgm_cl=0 is collisionless, etgm_cl=1 is collisional
+        etgm_exbs=1,
     )
 
     settings.AUTO_OPEN_PDFS = True

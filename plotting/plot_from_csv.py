@@ -70,6 +70,13 @@ def get_var_compare(title, varx_name, vary_name, scan_num):
     ])
 
 
+def get_var_compare2(title, varx_name, vary_name, s1, s2):
+    return (title, [
+        VarData(varx_name, vary_name, r'etgm.exbs = 0', '138536A01', scan_num=s1),
+        VarData(varx_name, vary_name, r'etgm.exbs = 1', '138536A01', scan_num=s2),
+    ])
+
+
 if __name__ == '__main__':
 
     # title, data_list = 'Collisionality', [
@@ -93,6 +100,11 @@ if __name__ == '__main__':
     # title, data_list = get_var_compare('xdiETGM', 'rho', 'xdiETGM', 2)
     # title, data_list = get_var_compare('Growth Rate', 'rho', 'gmaETGM', 2)
     # title, data_list = get_var_compare('Frequency', 'rho', 'omgETGM', 2)
+
+    title, data_list = get_var_compare2('Frequency', 'rho', 'omgETGM', 1, 13)
+    title, data_list = get_var_compare2('Growth Rate', 'rho', 'gmaETGM', 1, 13)
+    title, data_list = get_var_compare2('xdiETGM', 'rho', 'xdiETGM', 1, 13)
+    title, data_list = get_var_compare2('xteETGM', 'rho', 'xteETGM', 2, 24)
 
     # title, data_list = 'Effective Charge', [
     #     VarData('rho', 'zeff', '120968A02 (High)', '120968A02', scan_num=1),

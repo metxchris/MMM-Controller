@@ -128,7 +128,7 @@ if __name__ == '__main__':
     * vars_to_plot = OutputVariables().get_all_output_vars()
     * vars_to_plot = OutputVariables().get_etgm_vars()
     '''
-    vars_to_plot = ['xteETGM']
+    vars_to_plot = OutputVariables().get_etgm_vars()
 
     '''
     Scan Data:
