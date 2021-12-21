@@ -40,8 +40,13 @@ def ni(vars):
     nd = vars.nd.values
     nh0 = vars.nh0.values
     nz = vars.nz.values
+    # zimp = vars.zimp.values
 
+    # TRANSP Definition
     ni = nd + nz + nh0
+
+    # Alternate Definition
+    # ni = nd + zimp * nz + nh0
 
     vars.ni.set(values=ni, units=vars.ne.units)
 

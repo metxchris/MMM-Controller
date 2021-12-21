@@ -54,7 +54,6 @@ def adjust_nuei(mmm_vars, scan_factor):
 
     adjusted_vars = deepcopy(mmm_vars)
     max_adjustment_attempts = 10
-
     nonzero_idx = get_nonzero_idx(mmm_vars.nuei)
 
     # Store initial variable values needed for calculating the total adjustment_step, and error checking
@@ -127,7 +126,6 @@ def adjust_nuei(mmm_vars, scan_factor):
 def adjust_tau(mmm_vars, scan_factor):
 
     adjusted_vars = deepcopy(mmm_vars)
-
     nonzero_idx = get_nonzero_idx(mmm_vars.tau)
     tau0 = mmm_vars.tau.values[nonzero_idx, 0]
 
@@ -147,10 +145,55 @@ def adjust_tau(mmm_vars, scan_factor):
     return adjusted_vars
 
 
+def adjust_zeff(mmm_vars, scan_factor):
+    '''
+    Effective Charge Scan:
+    * TODO: Unfinished
+
+    Parameters:
+    * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
+    * scan_factor (float): The factor to modify nuei by
+
+    Returns:
+    * adjusted_vars (InputVariables): Contains adjusted mmm_vars needed to write MMM input file
+    '''
+
+    adjusted_vars = deepcopy(mmm_vars)
+    nonzero_idx = get_nonzero_idx(mmm_vars.zeff)
+
+    # Store initial variable values needed for calculating the total adjustment_step, and error checking
+    zeff0 = mmm_vars.zeff.values[nonzero_idx, 0]
+    nz0 = mmm_vars.nz.values[nonzero_idx, 0]
+    ne0 = mmm_vars.ne.values[nonzero_idx, 0]
+    zimp0 = mmm_vars.zimp.values[nonzero_idx, 0]
+    ni0 = mmm_vars.ni.values[nonzero_idx, 0]
+
+    # The adjustment_total is based on the formula for zeff
+    adjustment_total = ((scan_factor * zeff0 - 1) / (nz0 / ne0 * zimp0 * (zimp0 - 1)))**(1 / 2)
+
+    # Error check adjustment total
+    if adjustment_total <= 0:
+        raise ValueError(f'The scan factor {scan_factor} resulted in a non-physical adjustment total: {adjustment_total}')
+
+    # Adjust nz and ne by adjustment_total to adjust zeff
+    adjusted_vars.nz.values *= adjustment_total
+    adjusted_vars.ne.values /= adjustment_total
+
+    calculations.calculate_variable(calculations.nh0, adjusted_vars)
+    calculations.calculate_variable(calculations.nh, adjusted_vars)
+    calculations.calculate_variable(calculations.ni, adjusted_vars)
+    calculations.calculate_variable(calculations.zeff, adjusted_vars)
+
+    # Check that the adjustment is correct
+    adjusted_factor = adjusted_vars.zeff.values[nonzero_idx, 0] / zeff0
+    check_adjusted_factor(adjusted_factor, scan_factor)
+
+    raise NotImplementedError('Zeff scan is not finished')
+    return adjusted_vars
+
 def adjust_etae(mmm_vars, scan_factor):
 
     adjusted_vars = deepcopy(mmm_vars)
-
     nonzero_idx = get_nonzero_idx(mmm_vars.etae)
     etae0 = mmm_vars.etae.values[nonzero_idx, 0]
 
@@ -172,7 +215,6 @@ def adjust_etae(mmm_vars, scan_factor):
 
 def adjust_shear(mmm_vars, scan_factor):
     adjusted_vars = deepcopy(mmm_vars)
-
     nonzero_idx = get_nonzero_idx(mmm_vars.shear)
     shear0 = mmm_vars.shear.values[nonzero_idx, 0]
 
@@ -190,7 +232,6 @@ def adjust_shear(mmm_vars, scan_factor):
 def adjust_betae(mmm_vars, scan_factor):
 
     adjusted_vars = deepcopy(mmm_vars)
-
     nonzero_idx = get_nonzero_idx(mmm_vars.betae)
     betae0 = mmm_vars.betae.values[nonzero_idx, 0]
 
@@ -346,6 +387,9 @@ def adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor):
     if var_to_scan == 'nuei':
         '''Collision Frequency Scan'''
         adjusted_vars = adjust_nuei(mmm_vars, scan_factor)
+    elif var_to_scan == 'zeff':
+        '''Temperature Ratio Frequency Scan'''
+        adjusted_vars = adjust_zeff(mmm_vars, scan_factor)
     elif var_to_scan == 'tau':
         '''Temperature Ratio Frequency Scan'''
         adjusted_vars = adjust_tau(mmm_vars, scan_factor)
@@ -375,7 +419,7 @@ if __name__ == '__main__':
     from utils import initialize_variables
     opts = options.Options.instance
     opts.set(
-        var_to_scan='betae',
+        var_to_scan='zeff',
         runid='120982A09',
         input_points=51,
         apply_smoothing=True,
