@@ -9,6 +9,9 @@ TIME_FMT_STR = '{:.3f}'
 SCAN_FACTOR_VALUE_SEPARATOR = ' x= '
 RHO_VALUE_SEPARATOR = ' = '
 
+# Values
+ABSMIN_SCAN_FACTOR_VALUE = 1e-12
+
 # Physical Constants
 PI = 3.1415926535
 ZCE = 1.602176565 * 10**(-19)                                 # Electron charge                [Coulomb]

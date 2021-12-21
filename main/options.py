@@ -111,8 +111,14 @@ class OptionsData:
 
     @scan_range.setter
     def scan_range(self, scan_range):
-        if type(scan_range) is not np.ndarray and scan_range is not None:
-            raise TypeError(f'scan_range must be {np.ndarray} or {None} and not {type(scan_range)}')
+        if scan_range is not None:
+            if type(scan_range) is not np.ndarray:
+                raise TypeError(f'scan_range must be {np.ndarray} or {None} and not {type(scan_range)}')
+            too_small = np.absolute(scan_range) < constants.ABSMIN_SCAN_FACTOR_VALUE
+            if too_small.any():
+                value_signs = np.sign(scan_range[too_small])
+                value_signs[value_signs == 0] = 1  # np.sign(0) = 0, so set these to +1
+                scan_range[too_small] = constants.ABSMIN_SCAN_FACTOR_VALUE * value_signs
         self._scan_range = scan_range
 
     @property

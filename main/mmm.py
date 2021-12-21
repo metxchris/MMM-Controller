@@ -38,7 +38,7 @@ def run_driver(input_vars, controls):
     f = open(input_file, 'w')
     f.write(controls.get_mmm_header())
 
-    # Loop through MMM variables and write input file labels and values
+    # Loop through MMM variables and write input variable labels and values
     var_names = input_vars.get_vars_of_type(SaveType.INPUT)
     for var_name in var_names:
         var = getattr(input_vars, var_name)

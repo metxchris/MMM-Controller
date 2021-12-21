@@ -87,6 +87,7 @@ if __name__ == '__main__':
     # title, data_list = get_var_compare('Hydrogenic Ion Density Gradient', 'rho', 'gnh', 6)
     # title, data_list = get_var_compare('Safety Factor', 'rho', 'q', 7)
     title, data_list = get_var_compare('Magnetic Shear', 'rho', 'shear', 10)
+    title, data_list = get_var_compare('Electron Beta', 'rho', 'betae', 11)
 
     # title, data_list = get_var_compare('xteETGM', 'rho', 'xteETGM', 2)
     # title, data_list = get_var_compare('xdiETGM', 'rho', 'xdiETGM', 2)
