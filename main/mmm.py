@@ -6,6 +6,7 @@ import subprocess
 import settings
 import main.options
 import main.variables as variables
+import main.constants as constants
 from main.enums import SaveType
 
 
@@ -48,7 +49,7 @@ def run_driver(input_vars, controls):
 
         values = var.values[:, opts.time_idx]
         for value in values:
-            f.write('   {:.8e}\n'.format(value))
+            f.write(f'   {constants.INPUT_VARIABLE_VALUE_FMT_STR}\n'.format(value))
         f.write('\n')
 
     f.write('/\n')  # Needed for the MMM driver to know that the input file has ended

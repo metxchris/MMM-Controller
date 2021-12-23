@@ -27,19 +27,29 @@ def get_temp_path(file_name=''):
     return f'{os.path.dirname(temp.__file__)}\\{file_name}'
 
 
-def get_output_path(file_name=''):
-    '''Returns (str): the path to the output folder'''
-    return f'{os.path.dirname(output.__file__)}\\{file_name}'
-
-
 def get_pdftk_path():
     '''Returns (str): the path to the pdftk executable'''
     return f'{os.path.dirname(pdftk.__file__)}\\pdftk.exe'
 
 
+def get_output_path():
+    '''Returns (str): the path to the output folder'''
+    return f'{os.path.dirname(output.__file__)}'
+
+
+def get_runid_path(runid):
+    '''Returns (str): the path to the runid folder'''
+    return f'{get_output_path()}\\{runid}'
+
+
 def get_scan_num_path(runid, scan_num):
     '''Returns (str): the path to the scan number folder'''
-    return get_output_path(f'{runid}\\scan {scan_num}')
+    return f'{get_runid_path(runid)}\\scan {scan_num}'
+
+
+def get_options_path(runid, scan_num):
+    '''Returns (str): the path to the options pickle file'''
+    return f'{get_scan_num_path(runid, scan_num)}\\Options.pickle'
 
 
 def get_merged_rho_path(runid, scan_num):
@@ -54,7 +64,7 @@ def get_merged_profile_factors_path(runid, scan_num):
 
 def get_var_to_scan_path(runid, scan_num, var_to_scan):
     '''Returns: (str) the path of the scanned variable'''
-    return get_output_path(f'{runid}\\scan {scan_num}\\{var_to_scan}')
+    return f'{get_scan_num_path(runid, scan_num)}\\{var_to_scan}'
 
 
 def get_rho_path(runid, scan_num, var_to_scan):
@@ -90,7 +100,7 @@ def init_output_dirs(options):
     if options.runid is None:
         raise ValueError('Cannot initialize output directories since the runid has not been set in Options')
 
-    create_directory(get_output_path(options.runid))
+    create_directory(get_runid_path(options.runid))
     options.scan_num = set_scan_num(options.runid)
 
     if options.var_to_scan is not None:
@@ -223,17 +233,9 @@ def clear_folder(dir_path, file_type):
 
 def clear_temp_folder():
     '''Clears temporary files from the temp folder.'''
-
-    # Clear individual pdf sheets
     temp_files = get_temp_path('*.pdf')
     for file in glob.glob(temp_files):
         os.remove(file)
-
-    # Clear input and output files for MMM Driver
-    if os.path.exists(get_temp_path('input')):
-        os.remove(get_temp_path('input'))
-    if os.path.exists(get_temp_path('output')):
-        os.remove(get_temp_path('output'))
 
 
 def get_files_in_dir(dir_path, file_type='', show_warning=True):

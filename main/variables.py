@@ -78,7 +78,7 @@ class Variables:
         data = np.zeros((num_points, num_vars), dtype=float)
         header = ','.join(var_list)
 
-        # InputVariables data uses time_idx
+        # InputVariables data can use time_idx
         if time_idx is not None:
             for i, var_name in enumerate(var_list):
                 data[:, i] = getattr(self, var_name).values[:, time_idx]
@@ -194,7 +194,7 @@ class InputVariables(Variables):
 
         # CDF Variables needed for calculations
         self.aimp = Variable('Mean Mass of Impurities', cdfvar='AIMP', label=r'$\overline{M}_\mathrm{imp}$',
-                             save_type=SaveType.INPUT, minvalue=1e-6, smooth=1)
+                             save_type=SaveType.INPUT, minvalue=1, smooth=1)
         self.arat = Variable('Aspect Ratio', cdfvar='ARAT')
         self.bz = Variable('BZ', cdfvar='BZ')
         self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=1,
@@ -210,16 +210,16 @@ class InputVariables(Variables):
         self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=1,
                           save_type=SaveType.INPUT)
         self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$',
-                             save_type=SaveType.INPUT, units='m')
+                             save_type=SaveType.INPUT, units='m', minvalue=0)
         self.rmin = Variable('Minor Radius', cdfvar='RMNMP', label=r'$r$',
-                             save_type=SaveType.INPUT, units='m')
+                             save_type=SaveType.INPUT, units='m', minvalue=0)
         self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=1,
                            save_type=SaveType.INPUT, units='keV')
         self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=1,
                            save_type=SaveType.INPUT, units='keV')
-        self.vpol = Variable('Poloidal Velocity', cdfvar='VPOL_AVG', label=r'$v_\theta$', absminvalue=1e-1, smooth=3,
+        self.vpol = Variable('Poloidal Velocity', cdfvar='VPOL_AVG', label=r'$v_\theta$', absminvalue=1e-6, smooth=3,
                              save_type=SaveType.INPUT, units='m/s')
-        self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-1, smooth=3,
+        self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
                              save_type=SaveType.INPUT, units='m/s')
         self.wexbs = Variable(r'ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$', smooth=1,
                               save_type=SaveType.INPUT, units='s^-1')
@@ -234,19 +234,19 @@ class InputVariables(Variables):
 
         # Calculated Variables (some are also in the CDF)
         self.aimass = Variable('Mean Mass of Thermal Ions', label=r'$\overline{M}_\mathrm{i}$',
-                               save_type=SaveType.INPUT)
+                               save_type=SaveType.INPUT, minvalue=1)
         self.ahyd = Variable('Mean Mass of Hydrogenic Ions', label=r'$\overline{M}_\mathrm{h}$',
-                             save_type=SaveType.INPUT)
+                             save_type=SaveType.INPUT, minvalue=1)
         self.alphamhd = Variable('Alpha MHD', label=r'$\alpha_\mathrm{MHD}$',
                                  save_type=SaveType.ADDITIONAL)
         self.beta = Variable('Pressure Ratio', cdfvar='BTPL', label=r'$\beta$',
-                             save_type=SaveType.ADDITIONAL)
+                             save_type=SaveType.ADDITIONAL, minvalue=0)
         self.betae = Variable('Electron Pressure Ratio', cdfvar='BTE', label=r'$\beta_\mathrm{\,e}$',
-                              save_type=SaveType.ADDITIONAL)  # cdfvar='BETAE' is a scalar
+                              save_type=SaveType.ADDITIONAL, minvalue=0)  # cdfvar='BETAE' is a scalar
         self.bpol = Variable('Poloidal Magnetic Field', cdfvar='BPOL', label=r'$B_\theta$',
                              save_type=SaveType.ADDITIONAL, units='T')
         self.btor = Variable('Toroidal Magnetic Field', cdfvar='', label=r'$B_\phi$',
-                             save_type=SaveType.INPUT, units='T')
+                             save_type=SaveType.INPUT, units='T', absminvalue=1e-6)
         self.eps = Variable('Inverse Aspect Ratio', label=r'$\epsilon$',
                             save_type=SaveType.ADDITIONAL)
         self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$',
@@ -263,11 +263,11 @@ class InputVariables(Variables):
                              save_type=SaveType.ADDITIONAL)
         self.logi = Variable('Ion Coulomb Logarithm', cdfvar='CLOGI', label=r'$\lambda_\mathrm{i}$')
         self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', units='m^-3',
-                           save_type=SaveType.ADDITIONAL)
+                           save_type=SaveType.ADDITIONAL, minvalue=1e-6)
         self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$', units='m^-3',
                             save_type=SaveType.ADDITIONAL)
         self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h,T}$',
-                           save_type=SaveType.INPUT, units='m^-3')
+                           save_type=SaveType.INPUT, units='m^-3', minvalue=1e-6)
         self.nuei = Variable('Electron Collision Frequency', label=r'$\nu_\mathrm{ei}$',
                              save_type=SaveType.ADDITIONAL)
         self.nuei2 = Variable('NUEI2')
@@ -276,21 +276,21 @@ class InputVariables(Variables):
         self.nusti = Variable('Ion Collisionality', cdfvar='NUSTI', label=r'$\nu^{*}_\mathrm{i}$',
                               save_type=SaveType.ADDITIONAL)
         self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$',
-                          save_type=SaveType.ADDITIONAL)
+                          save_type=SaveType.ADDITIONAL, minvalue=1e-6)
         self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$',
                              save_type=SaveType.ADDITIONAL)  # MMM uses a different definition of shat than cdfvar='SHAT'
         self.shear = Variable('Magnetic Shear', label=r'$s$',
                               save_type=SaveType.ADDITIONAL)
         self.tau = Variable('Temperature Ratio', label=r'$\tau$',
-                            save_type=SaveType.ADDITIONAL)
-        self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-1,
+                            save_type=SaveType.ADDITIONAL, minvalue=0)
+        self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-6,
                              save_type=SaveType.INPUT, units='m/s')
         self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{T_\mathrm{e}}$',
                              save_type=SaveType.ADDITIONAL, units='m/s')
         self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{T_\mathrm{i}}$',
                              save_type=SaveType.ADDITIONAL, units='m/s')
         self.zeff = Variable('Effective Charge', cdfvar='ZEFFP', label=r'$Z_\mathrm{eff}$',
-                             save_type=SaveType.INPUT)
+                             save_type=SaveType.INPUT, minvalue=1)
 
         # Calculated Gradients
         self.gne = Variable('Electron Density Gradient', label=r'$g_{n_\mathrm{e}}$',
@@ -499,26 +499,6 @@ class Variable:
     def __str__(self):
         return str(self.name)
 
-    def set_minvalue(self):
-        '''
-        Sets the minimum value for a variable
-
-        Minimum values are used to handle variables that cannot take values
-        below a minimum amount (such as negative Temperatures). Absolute
-        minimum values are used to handle variables that are allowed to be
-        negative, but can't get too close to zero (due to divide by zero
-        issues)
-        '''
-
-        if self.minvalue is not None:
-            self.values[self.values < self.minvalue] = self.minvalue
-        if self.absminvalue is not None:
-            too_small = np.absolute(self.values) < self.absminvalue
-            if too_small.any():
-                value_signs = np.sign(self.values[too_small])
-                value_signs[value_signs == 0] = 1  # np.sign(0) = 0, so set these to +1
-                self.values[too_small] = self.absminvalue * value_signs
-
     def get_xdim(self):
         return self.dimensions[0] if self.dimensions is not None and len(self.dimensions) > 0 else None
 
@@ -595,6 +575,44 @@ class Variable:
         if self.smooth is not None:
             sigma = int(input_points * self.smooth / 100)
             self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(sigma, 0))
+
+    def set_minvalue(self, raise_exception=True):
+        '''
+        Sets the minimum or absolute minimum value for a variable
+
+        Minimum values are used to handle variables that cannot take values
+        below a minimum amount (such as negative Temperatures). Due to
+        expected persisting errors following the interpolation process, we
+        don't raise an exception if there is at most one nonphysical value
+        along the radial dimension at any point in time.  Instead, these
+        errors are silently fixed.  However, an exception is raised if
+        multiple nonphysical values are detected along the radial dimension
+        for any point in time.
+
+        Absolute minimum values are used to handle variables that are allowed
+        to be negative, but can't get too close to zero (due to divide by
+        zero issues).  No exceptions are raised if variables go below their
+        absolute minimum value, since these are not considered to be errors.
+        '''
+
+        if self.minvalue is not None:
+            multiple_errors_per_timeval = (np.count_nonzero(self.values < self.minvalue, axis=0) > 1)
+            if raise_exception and multiple_errors_per_timeval.any():
+                idx_list = [i for i in np.where(multiple_errors_per_timeval)][0]
+                raise ValueError(
+                    f'Multiple Nonphysical values obtained for {self.name}\n'
+                    f'    min value:     {self.values[:, idx_list].min()}\n'
+                    f'    time indices:  {idx_list}\n'
+                )
+            # When an exception is not raised, fix the minimum value
+            self.values[self.values < self.minvalue] = self.minvalue
+
+        if self.absminvalue is not None:
+            too_small = np.absolute(self.values) < self.absminvalue
+            if too_small.any():
+                value_signs = np.sign(self.values[too_small])
+                value_signs[value_signs == 0] = 1  # np.sign(0) = 0, so set these to +1
+                self.values[too_small] = self.absminvalue * value_signs
 
     def clamp_gradient(self, max):
         '''

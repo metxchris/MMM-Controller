@@ -88,16 +88,17 @@ def execute_control_scan(mmm_vars, controls):
     scan_range = Options.instance.scan_range
 
     # Create reference to control being scanned in InputControls
-    # Modifying scanned_control values will modify its corresponding values in controls
-    scanned_control = getattr(controls, var_to_scan)
-    base_control = deepcopy(scanned_control)
+    # Modifying scanned_control values will modify its corresponding values in adjusted_controls
+    adjusted_controls = deepcopy(controls)
+    scanned_control = getattr(adjusted_controls, var_to_scan)
+    base_control = getattr(controls, var_to_scan)
 
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing control scan {i + 1} of {len(scan_range)} for control {var_to_scan}')
         scanned_control.values = scan_factor * base_control.values
         mmm_vars.save_all_vars(Options.instance, scan_factor)
-        controls.save_to_csv(Options.instance, scan_factor)
-        output_vars = mmm.run_driver(mmm_vars, controls)
+        adjusted_controls.save_to_csv(Options.instance, scan_factor)
+        output_vars = mmm.run_driver(mmm_vars, adjusted_controls)
         output_vars.save_all_vars(Options.instance, scan_factor)
 
     # Reshaped scanned CSV into new CSV dependent on the scanned parameter
@@ -182,21 +183,21 @@ if __name__ == '__main__':
     * Using None as the scanned variable will skip the variable scan
     '''
     scanned_vars[None] = None
-    # scanned_vars['te'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
     # scanned_vars['gti'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
 
-    # scanned_vars['gte'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
     # scanned_vars['nuei'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['tau'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['zeff'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['gnh'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['gnz'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['gte'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
     # scanned_vars['q'] = np.arange(start=0.6, stop=2.4 + 1e-6, step=0.015)
     # scanned_vars['shear'] = np.arange(start=-6.0, stop=6 + 1e-6, step=0.1)
-    # scanned_vars['betae'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
-    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
-    # scanned_vars['etgm_kyrhos'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['betae'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['zeff'] = np.arange(start=0.02, stop=4 + 1e-6, step=0.02)**2
+    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
 
     '''
     Options:
@@ -216,7 +217,7 @@ if __name__ == '__main__':
 
     '''
     Input Controls:
-    * cmodel enables the corresponding model if set to 1, and disables it if set to 0
+    * cmodel enables (disables) the corresponding model if set to 1 (0)
     '''
     controls = InputControls()
     controls.set(
@@ -228,8 +229,9 @@ if __name__ == '__main__':
         etgm_kyrhoe=0.25,
         etgm_kyrhos=0.33,
         etgm_cl=1,  # etgm_cl=0 is collisionless, etgm_cl=1 is collisional
+        etgm_exbs=1,
     )
 
-    settings.AUTO_OPEN_PDFS = True
+    settings.AUTO_OPEN_PDFS = 0
 
     main(scanned_vars, controls)

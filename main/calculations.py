@@ -37,11 +37,15 @@ def nh(vars):
 
 def ni(vars):
     '''Thermal Ion Density'''
-    nd = vars.nd.values
-    nh0 = vars.nh0.values
+    nh = vars.nh0.values
     nz = vars.nz.values
+    # zimp = vars.zimp.values
 
-    ni = nd + nz + nh0
+    # TRANSP Definition
+    ni = nh + nz
+
+    # Alternate Definition
+    # ni = nh + zimp * nz
 
     vars.ni.set(values=ni, units=vars.ne.units)
 

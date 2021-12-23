@@ -229,7 +229,7 @@ class Control:
         self.units_label = units_label
 
     def get_value_str(self):
-        return int(self.values) if self.vtype is int else f'{self.values}D0'
+        return int(self.values) if self.vtype is int else f'{constants.INPUT_CONTROL_VALUE_FMT_STR.format(self.values)}D0'
 
 
 # Header for MMM input file
