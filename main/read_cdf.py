@@ -37,27 +37,27 @@ def read_cdf(print_warnings=False):
     cdf_vars_to_get = cdf_vars.get_cdf_variables()
 
     # Get values for all specified CDF variables
-    for var in cdf_vars_to_get:
-        if getattr(cdf_vars, var).cdfvar in cdf.variables:
+    for var_name in cdf_vars_to_get:
+        if getattr(cdf_vars, var_name).cdfvar in cdf.variables:
             # Transpose to put the values in the format needed for calculations: (X, T)
-            values = np.array(cdf.variables[getattr(cdf_vars, var).cdfvar][:].T)
+            values = np.array(cdf.variables[getattr(cdf_vars, var_name).cdfvar][:].T)
 
             # Not all values in the CDF are arrays
-            getattr(cdf_vars, var).values = values[:] if values.size > 1 else values
+            getattr(cdf_vars, var_name).values = values[:] if values.size > 1 else values
 
             # Store units of values and strip extra white space
-            getattr(cdf_vars, var).units = (cdf.variables[getattr(cdf_vars, var).cdfvar].units).strip()
+            getattr(cdf_vars, var_name).units = (cdf.variables[getattr(cdf_vars, var_name).cdfvar].units).strip()
 
             # Store long name of values and strip extra white space
-            getattr(cdf_vars, var).desc = (cdf.variables[getattr(cdf_vars, var).cdfvar].long_name).strip()
+            getattr(cdf_vars, var_name).desc = (cdf.variables[getattr(cdf_vars, var_name).cdfvar].long_name).strip()
 
             # Store variable dimensions in reverse order, since we transposed the values above
-            cdf_dimensions = cdf.variables[getattr(cdf_vars, var).cdfvar].get_dims()
-            getattr(cdf_vars, var).dimensions = [dim.name for dim in cdf_dimensions]
-            getattr(cdf_vars, var).dimensions.reverse()
+            cdf_dimensions = cdf.variables[getattr(cdf_vars, var_name).cdfvar].get_dims()
+            getattr(cdf_vars, var_name).dimensions = [dim.name for dim in cdf_dimensions]
+            getattr(cdf_vars, var_name).dimensions.reverse()
 
         elif print_warnings:
-            print(f'*** [read_cdf] WARNING: {getattr(cdf_vars, var).cdfvar} not found in CDF')
+            print(f'*** [read_cdf] WARNING: {getattr(cdf_vars, var_name).cdfvar} not found in CDF')
 
     if len(cdf_vars.get_nonzero_variables()) == 0:
         print('*** [read_cdf] ERROR: no variables were saved from ' + cdf_name)

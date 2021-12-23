@@ -258,7 +258,8 @@ def convert_variables(cdf_vars):
         mmm_var = getattr(mmm_vars, var_name)
         if opts.apply_smoothing:
             mmm_var.apply_smoothing(opts.input_points)
-        mmm_var.set_minvalue()
+        # Since interpolation can create multiple nonphysical values, no exceptions are raised for nonphysical values
+        mmm_var.set_minvalue(raise_exception=False)
 
     # Update x from xb (x is the grid between xb, and has one fewer point than xb)
     mmm_vars.x.values = (mmm_vars.xb.values[0:-1, :] + mmm_vars.xb.values[1:, :]) / 2

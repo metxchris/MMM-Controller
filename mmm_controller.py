@@ -183,21 +183,21 @@ if __name__ == '__main__':
     * Using None as the scanned variable will skip the variable scan
     '''
     scanned_vars[None] = None
-    # scanned_vars['te'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
     # scanned_vars['gti'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
 
-    # scanned_vars['gte'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
     # scanned_vars['nuei'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['tau'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['zeff'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['gnh'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['gnz'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['gte'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
     # scanned_vars['q'] = np.arange(start=0.6, stop=2.4 + 1e-6, step=0.015)
     # scanned_vars['shear'] = np.arange(start=-6.0, stop=6 + 1e-6, step=0.1)
-    # scanned_vars['betae'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
-    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
-    # scanned_vars['etgm_kyrhos'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['betae'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['zeff'] = np.arange(start=0.02, stop=4 + 1e-6, step=0.02)**2
+    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
 
     '''
     Options:
@@ -217,7 +217,7 @@ if __name__ == '__main__':
 
     '''
     Input Controls:
-    * cmodel enables the corresponding model if set to 1, and disables it if set to 0
+    * cmodel enables (disables) the corresponding model if set to 1 (0)
     '''
     controls = InputControls()
     controls.set(
@@ -232,6 +232,6 @@ if __name__ == '__main__':
         etgm_exbs=1,
     )
 
-    settings.AUTO_OPEN_PDFS = True
+    settings.AUTO_OPEN_PDFS = 0
 
     main(scanned_vars, controls)
