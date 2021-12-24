@@ -51,7 +51,7 @@ def execute_variable_scan(mmm_vars, controls):
     separate process after the scan is complete.
 
     Parameters:
-    * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
+    * mmm_vars (InputVariables): Contains all variables needed to write the MMM input file
     * controls (InputControls): Specifies input control values in the MMM input file
     '''
 

@@ -90,8 +90,8 @@ def init_output_dirs(options):
     Created Directories (relative to top-level directory):
     * ./output/runid/
     * ./output/runid/scan_num/
-    * ./output/runid/scan_num/var_to_scan/
-    * ./output/runid/scan_num/var_to_scan/rho/
+    * ./output/runid/scan_num/var_to_scan factors/
+    * ./output/runid/scan_num/var_to_scan rho/
 
     Parameters:
     * options (OptionsData): A reference to Options.instance
