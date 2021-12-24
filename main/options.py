@@ -244,7 +244,5 @@ class OptionsData:
         return self.scan_range[np.argmin(np.abs(self.scan_range - scan_factor))]
 
 
-class Options:
-    '''Stores a public instance of the OptionsData class'''
-
-    instance = OptionsData()
+# Stores a public instance of the OptionsData class
+instance = OptionsData()

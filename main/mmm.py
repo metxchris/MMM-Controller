@@ -4,7 +4,7 @@ import subprocess
 
 # Local Packages
 import settings
-import main.options
+import main.options as options
 import main.variables as variables
 import main.constants as constants
 from main.enums import SaveType
@@ -29,8 +29,6 @@ def run_driver(input_vars, controls):
     * output_vars (OutputVariables): contains all data read in from the MMM output file
     '''
 
-    opts = main.options.Options.instance
-
     # Files are created relative to the Cygwin home path
     input_file = f'{settings.CYGWIN_HOME_PATH}input'
     output_file = f'{settings.CYGWIN_HOME_PATH}output.csv'
@@ -47,7 +45,7 @@ def run_driver(input_vars, controls):
         f.write(f'! {var.name}{units_str}\n')
         f.write(f'{var_name} = \n')
 
-        values = var.values[:, opts.time_idx]
+        values = var.values[:, options.instance.time_idx]
         for value in values:
             f.write(f'   {constants.INPUT_VARIABLE_VALUE_FMT_STR}\n'.format(value))
         f.write('\n')

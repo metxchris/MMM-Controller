@@ -7,14 +7,14 @@ from netCDF4 import Dataset
 import numpy as np
 
 # Local Packages
-import main.options
+import main.options as options
 import main.variables as variables
 import main.utils as utils
 
 
 # Reads CDF variables specified by Variables().cdfname and a Variables() object
 def read_cdf(print_warnings=False):
-    opts = main.options.Options.instance
+    opts = options.instance
 
     cdf_file = utils.get_cdf_path(opts.runid)
 
@@ -86,7 +86,7 @@ def print_cdf_dimensions(cdf_name):
 
 if __name__ == '__main__':
     # For testing purposes
-    opts = main.options.Options.instance
+    opts = options.instance
     opts.runid = '132017T01'
     cdf_cdf_vars = read_cdf(True)
     print_cdf_dimensions(opts.runid)

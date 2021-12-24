@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # Local Packages
 import main.utils as utils
 from main.enums import ShotType
-from main.options import Options
+import main.options as options
 from plotting.modules.styles import single as plotlayout
 from plotting.modules.colors import mmm as plotcolors
 
@@ -18,9 +18,9 @@ def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
     plotlayout.init()
     plotcolors.init()
 
-    input_options = Options.instance
+    opts = options.instance
 
-    t_idx = input_options.time_idx
+    t_idx = opts.time_idx
 
     plt.figure(figsize=(3.5, 3))
     plt.subplots_adjust(left=0.15, right=0.9, bottom=0.15, top=0.9)
@@ -36,7 +36,7 @@ def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
     plt.xlabel(x1var.label)
     plt.ylabel(y1var.units_label)
     plt.legend()
-    plt.title(f'{input_options.runid}, t={input_options.time_str}s')
+    plt.title(f'{opts.runid}, t={opts.time_str}s')
     plt.show()
 
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     * Set var_to_scan = None to skip the variable scan
     * E.g.: var_to_scan = 'te'
     '''
-    Options.instance.set(
+    options.instance.set(
         runid=cdf_name,
         shot_type=shot_type,
         input_time=input_time,

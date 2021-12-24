@@ -3,9 +3,9 @@ import sys; sys.path.insert(0, '../')
 
 # Local Packages
 import plotting.modules.profiles as profiles
+import main.options as options
 from main.variables import InputVariables, OutputVariables
 from main.enums import SaveType, ProfileType
-from main.options import Options
 
 
 def main(runid, scan_num, input_scan_factor, save_types):
@@ -20,9 +20,9 @@ def main(runid, scan_num, input_scan_factor, save_types):
     save_types (list of Savetype): The save types to plot profiles of
     '''
 
-    Options.instance.load_options(runid, scan_num)
-    scan_factor = Options.instance.find_scan_factor(input_scan_factor)
-    args = (runid, scan_num, Options.instance.var_to_scan, scan_factor)
+    options.instance.load_options(runid, scan_num)
+    scan_factor = options.instance.find_scan_factor(input_scan_factor)
+    args = (runid, scan_num, options.instance.var_to_scan, scan_factor)
 
     input_vars = InputVariables()
     output_vars = OutputVariables()

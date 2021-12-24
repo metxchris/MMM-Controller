@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 
 # Local Packages
 import settings
+import main.options as options
 from main import utils, calculations, constants
 from main.enums import ProfileType, MergeType
-from main.options import Options
 from main.variables import InputVariables
 from main.controls import InputControls
 from plotting.modules.styles import grid3x2 as plotlayout
@@ -46,9 +46,9 @@ def init_figure(profile_type, xvar_points, scan_factor):
     * scan_factor (float or None): The value of the scan factor
     '''
 
-    runid = Options.instance.runid
-    shot_type = Options.instance.shot_type
-    time = Options.instance.time_str
+    runid = options.instance.runid
+    shot_type = options.instance.shot_type
+    time = options.instance.time_str
     points = xvar_points
 
     # Init figure and subplots
@@ -62,9 +62,9 @@ def init_figure(profile_type, xvar_points, scan_factor):
 
     # Set attributes text
     attributes = []
-    if Options.instance.uniform_rho:
+    if options.instance.uniform_rho:
         attributes.append('Uniformly Spaced')
-    if Options.instance.apply_smoothing:
+    if options.instance.apply_smoothing:
         attributes.append('Smoothed')
     attributes_str = ', '.join(attributes)
     if len(attributes_str):
@@ -74,7 +74,7 @@ def init_figure(profile_type, xvar_points, scan_factor):
 
     # Set scan factor text
     if scan_factor:
-        var_to_scan = Options.instance.var_to_scan
+        var_to_scan = options.instance.var_to_scan
         if hasattr(InputVariables(), var_to_scan):
             data_obj = InputVariables()
         elif hasattr(InputControls(), var_to_scan):
@@ -133,7 +133,7 @@ def run_plotting_loop(plotdata, profile_type, scan_factor):
     plotlayout.init()
     plotcolors.init()
 
-    opts = Options.instance
+    opts = options.instance
 
     print(f'Creating {profile_type.name.lower()} profile figures...')
 
@@ -187,8 +187,8 @@ def get_compared_data(mmm_vars, cdf_vars):
     Gets plotdata for comparisons of calculated values with values found in the CDF
 
     Use these Options for the most accurate comparison when verifying calculations against CDF variables:
-    * Options.instance.apply_smoothing = False
-    * Options.instance.input_points = None
+    * options.instance.apply_smoothing = False
+    * options.instance.input_points = None
 
     Parameters:
     * cdf_vars (InputVariables): All CDF variables

@@ -6,7 +6,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 # Local Packages
-import main.options
+import main.options as options
 
 
 class XValues:
@@ -103,7 +103,7 @@ def interp_to_input_points(input_vars):
     Returns:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
     '''
-    opts = main.options.Options.instance
+    opts = options.instance
     mmm_vars = deepcopy(input_vars)
 
     # Interpolation only needed if input_points != xb points
@@ -146,7 +146,7 @@ def interp_to_uniform_rho(input_vars):
     Returns:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
     '''
-    opts = main.options.Options.instance
+    opts = options.instance
     mmm_vars = deepcopy(input_vars)
 
     # Single column arrays for interpolation
@@ -192,7 +192,7 @@ def initial_conversion(cdf_vars):
     Returns:
     * input_vars (InputVariables): Data from the CDF converted into a format needed to run MMM
     '''
-    opts = main.options.Options.instance
+    opts = options.instance
     input_vars = deepcopy(cdf_vars)
 
     # Cache single column arrays of x-values
@@ -245,7 +245,7 @@ def convert_variables(cdf_vars):
     Returns:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file + extra calculated variables
     '''
-    opts = main.options.Options.instance
+    opts = options.instance
     input_vars = initial_conversion(cdf_vars)
     input_vars.set_rho_values()
 
