@@ -52,24 +52,24 @@ def get_options_path(runid, scan_num):
     return f'{get_scan_num_path(runid, scan_num)}\\Options.pickle'
 
 
-def get_merged_rho_path(runid, scan_num):
+def get_merged_rho_path(runid, scan_num, var_to_scan):
     '''Returns (str): the path to merged rho PDF for parameter scans'''
-    return f'{get_scan_num_path(runid, scan_num)}\\Merged Rho'
+    return f'{get_scan_num_path(runid, scan_num)}\\merged {var_to_scan} rho'
 
 
 def get_merged_profile_factors_path(runid, scan_num):
     '''Returns (str): the path to merged factors PDF for parameter scans'''
-    return f'{get_scan_num_path(runid, scan_num)}\\Merged Profile Factors'
+    return f'{get_scan_num_path(runid, scan_num)}\\merged profile factors'
 
 
 def get_var_to_scan_path(runid, scan_num, var_to_scan):
     '''Returns: (str) the path of the scanned variable'''
-    return f'{get_scan_num_path(runid, scan_num)}\\{var_to_scan}'
+    return f'{get_scan_num_path(runid, scan_num)}\\{var_to_scan} factors'
 
 
 def get_rho_path(runid, scan_num, var_to_scan):
     '''Returns (str): the path of the rho folder'''
-    return f'{get_var_to_scan_path(runid, scan_num, var_to_scan)}\\rho'
+    return f'{get_scan_num_path(runid, scan_num)}\\{var_to_scan} rho'
 
 
 def get_rho_files(runid, scan_num, var_to_scan, save_type):
@@ -287,7 +287,7 @@ def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=
                        f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}'
                        f'{constants.SCAN_FACTOR_PDF_FMT_STR.format(scan_factor)}.pdf')
     elif merge_type == MergeType.RHOVALUES:
-        output_path = get_merged_rho_path(runid, scan_num)
+        output_path = get_merged_rho_path(runid, scan_num, var_to_scan)
         output_file = f'{output_path}\\{runid} {profile_type}.pdf'
     else:
         raise TypeError(f'No output path defined for {merge_type}')

@@ -68,7 +68,7 @@ def run_plotting_loop(vars_to_plot):
             fig.savefig(utils.get_temp_path(f'{profile_type} {sheet_num}.pdf'))
             fig.clear()
 
-        merged_pdf = utils.merge_profile_sheets(runid, scan_num, profile_type, MergeType.RHOVALUES)
+        merged_pdf = utils.merge_profile_sheets(runid, scan_num, profile_type, MergeType.RHOVALUES, var_to_scan)
 
         # File opening may only work on Windows
         if settings.AUTO_OPEN_PDFS:
