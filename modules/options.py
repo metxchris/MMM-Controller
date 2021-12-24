@@ -5,11 +5,11 @@ import pickle
 import numpy as np
 
 # Local Packages
-import main.variables as variables
-import main.controls as controls
-import main.utils as utils
-import main.constants as constants
-from main.enums import ShotType, ScanType
+import modules.variables as variables
+import modules.controls as controls
+import modules.utils as utils
+import modules.constants as constants
+from modules.enums import ShotType, ScanType
 
 
 class OptionsData:
@@ -244,7 +244,5 @@ class OptionsData:
         return self.scan_range[np.argmin(np.abs(self.scan_range - scan_factor))]
 
 
-class Options:
-    '''Stores a public instance of the OptionsData class'''
-
-    instance = OptionsData()
+# Stores a public instance of the OptionsData class
+instance = OptionsData()

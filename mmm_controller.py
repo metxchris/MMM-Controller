@@ -6,14 +6,14 @@ import numpy as np
 
 # Local Packages
 import settings
-import main.utils as utils
-import main.adjustments as adjustments
-import main.parse_scans as parse_scans
-import main.mmm as mmm
+import modules.options as options
+import modules.utils as utils
+import modules.adjustments as adjustments
+import modules.parse_scans as parse_scans
+import modules.mmm as mmm
 import plotting.modules.profiles as profiles
-from main.enums import ShotType, ScanType, ProfileType
-from main.options import Options
-from main.controls import InputControls
+from modules.enums import ShotType, ScanType, ProfileType
+from modules.controls import InputControls
 
 
 def execute_basic_run(mmm_vars, controls):
@@ -30,7 +30,7 @@ def execute_basic_run(mmm_vars, controls):
     '''
 
     output_vars = mmm.run_driver(mmm_vars, controls)
-    output_vars.save_all_vars(Options.instance)
+    output_vars.save_all_vars(options.instance)
     profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
 
 
@@ -55,15 +55,15 @@ def execute_variable_scan(mmm_vars, controls):
     * controls (InputControls): Specifies input control values in the MMM input file
     '''
 
-    var_to_scan = Options.instance.var_to_scan
-    scan_range = Options.instance.scan_range
+    var_to_scan = options.instance.var_to_scan
+    scan_range = options.instance.scan_range
 
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing variable scan {i + 1} of {len(scan_range)} for variable {var_to_scan}')
         adjusted_vars = adjustments.adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor)
-        adjusted_vars.save_all_vars(Options.instance, scan_factor)
+        adjusted_vars.save_all_vars(options.instance, scan_factor)
         output_vars = mmm.run_driver(adjusted_vars, controls)
-        output_vars.save_all_vars(Options.instance, scan_factor)
+        output_vars.save_all_vars(options.instance, scan_factor)
 
     # Reshape scanned CSV into new CSV dependent on the scanned parameter
     parse_scans.parse_scan_csv()
@@ -84,8 +84,8 @@ def execute_control_scan(mmm_vars, controls):
     * controls (InputControls): Specifies input control values in the MMM input file
     '''
 
-    var_to_scan = Options.instance.var_to_scan
-    scan_range = Options.instance.scan_range
+    var_to_scan = options.instance.var_to_scan
+    scan_range = options.instance.scan_range
 
     # Create reference to control being scanned in InputControls
     # Modifying scanned_control values will modify its corresponding values in adjusted_controls
@@ -96,10 +96,10 @@ def execute_control_scan(mmm_vars, controls):
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing control scan {i + 1} of {len(scan_range)} for control {var_to_scan}')
         scanned_control.values = scan_factor * base_control.values
-        mmm_vars.save_all_vars(Options.instance, scan_factor)
-        adjusted_controls.save_to_csv(Options.instance, scan_factor)
+        mmm_vars.save_all_vars(options.instance, scan_factor)
+        adjusted_controls.save_to_csv(options.instance, scan_factor)
         output_vars = mmm.run_driver(mmm_vars, adjusted_controls)
-        output_vars.save_all_vars(Options.instance, scan_factor)
+        output_vars.save_all_vars(options.instance, scan_factor)
 
     # Reshaped scanned CSV into new CSV dependent on the scanned parameter
     parse_scans.parse_scan_csv()
@@ -122,14 +122,14 @@ def run_mmm_controller(controls):
     print('Running MMM Controller...\n')
 
     utils.clear_temp_folder()
-    utils.init_output_dirs(Options.instance)
+    utils.init_output_dirs(options.instance)
 
     mmm_vars, cdf_vars, __ = utils.initialize_variables()
 
-    Options.instance.save_options()  # TODO: Create an event to save Options
-    controls.update_from_options(Options.instance)
-    controls.save_to_csv(Options.instance)
-    mmm_vars.save_all_vars(Options.instance)
+    options.instance.save_options()  # TODO: Create an event to save options
+    controls.update_from_options(options.instance)
+    controls.save_to_csv(options.instance)
+    mmm_vars.save_all_vars(options.instance)
 
     profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
     profiles.plot_profiles(ProfileType.ADDITIONAL, mmm_vars)
@@ -137,9 +137,9 @@ def run_mmm_controller(controls):
 
     execute_basic_run(mmm_vars, controls)
 
-    if Options.instance.scan_type == ScanType.VARIABLE:
+    if options.instance.scan_type == ScanType.VARIABLE:
         execute_variable_scan(mmm_vars, controls)
-    elif Options.instance.scan_type == ScanType.CONTROL:
+    elif options.instance.scan_type == ScanType.CONTROL:
         execute_control_scan(mmm_vars, controls)
 
 
@@ -157,7 +157,7 @@ def main(scanned_vars, controls):
     # TODO: Add validation for all items in scanned_vars
 
     for var_to_scan, scan_range in scanned_vars.items():
-        Options.instance.set(var_to_scan=var_to_scan, scan_range=scan_range)
+        options.instance.set(var_to_scan=var_to_scan, scan_range=scan_range)
         run_mmm_controller(controls)
 
 
@@ -182,22 +182,22 @@ if __name__ == '__main__':
     * Uncomment the lines you wish to include in scanned_vars
     * Using None as the scanned variable will skip the variable scan
     '''
-    scanned_vars[None] = None
-    # scanned_vars['gti'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
+    # scanned_vars[None] = None
+    scanned_vars['gni'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
 
-    # scanned_vars['nuei'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['tau'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['gnh'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['gnz'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
-    # scanned_vars['gte'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
-    # scanned_vars['q'] = np.arange(start=0.6, stop=2.4 + 1e-6, step=0.015)
-    # scanned_vars['shear'] = np.arange(start=-6.0, stop=6 + 1e-6, step=0.1)
     # scanned_vars['betae'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
-    # scanned_vars['zeff'] = np.arange(start=0.02, stop=4 + 1e-6, step=0.02)**2
+    # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['gnh'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['gnz'] = np.arange(start=0.05, stop=9 + 1e-6, step=0.05)
+    # scanned_vars['gte'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['nuei'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['q'] = np.arange(start=0.6, stop=2.4 + 1e-6, step=0.015)
+    # scanned_vars['shear'] = np.arange(start=-6.0, stop=6 + 1e-6, step=0.1)
+    # scanned_vars['tau'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['zeff'] = np.arange(start=0.02, stop=4 + 1e-6, step=0.02)**2
 
     '''
     Options:
@@ -206,7 +206,7 @@ if __name__ == '__main__':
     * Set uniform_rho = True to interpolate to a grid of evenly spaced rho values (takes longer)
     * apply_smoothing enables smoothing of all variables that have a smooth value set in the Variables class
     '''
-    Options.instance.set(
+    options.instance.set(
         runid=runid,
         shot_type=shot_type,
         input_time=input_time,

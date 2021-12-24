@@ -5,10 +5,10 @@ import sys; sys.path.insert(0, '../')
 import numpy as np
 
 # Local Packages
-import main.options
-import main.utils as utils
-import main.constants as constants
-from main.enums import SaveType
+import modules.options as options
+import modules.utils as utils
+import modules.constants as constants
+from modules.enums import SaveType
 
 
 def read_from_files(file_list, dtype):
@@ -112,7 +112,7 @@ def parse_scan_csv():
     be created in the rho folder, since input controls are independent of rho.
     '''
 
-    opts = main.options.Options.instance
+    opts = options.instance
     save_dir = utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan)
     scanned_dir = utils.get_var_to_scan_path(opts.runid, opts.scan_num, opts.var_to_scan)
 
@@ -153,7 +153,7 @@ For testing purposes:
 * Options.instance.scan_range just needs to be some np.ndarray
 '''
 if __name__ == '__main__':
-    opts = main.options.Options.instance
+    opts = options.instance
     opts.runid = 'TEST'
     opts.scan_num = 129
     opts.var_to_scan = 'shear'

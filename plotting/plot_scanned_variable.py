@@ -7,11 +7,12 @@ import matplotlib.pyplot as plt
 
 # Local Packages
 import settings
-from main import utils, constants
-from main.enums import ScanType, MergeType
-from main.options import Options
-from main.controls import InputControls
-from main.variables import OutputVariables
+import modules.options as options
+import modules.utils as utils
+import modules.constants as constants
+from modules.enums import ScanType, MergeType
+from modules.controls import InputControls
+from modules.variables import OutputVariables
 from plotting.modules.styles import singlescan as plotlayout
 from plotting.modules.colors import mmmscan as plotcolors
 
@@ -27,10 +28,10 @@ def run_plotting_loop(vars_to_plot):
     '''
 
     fig = plt.figure()
-    runid = Options.instance.runid
-    scan_num = Options.instance.scan_num
-    var_to_scan = Options.instance.var_to_scan
-    scan_type = Options.instance.scan_type
+    runid = options.instance.runid
+    scan_num = options.instance.scan_num
+    var_to_scan = options.instance.var_to_scan
+    scan_type = options.instance.scan_type
 
     input_vars_dict, output_vars_dict, input_controls = utils.get_all_rho_data(runid, scan_num, var_to_scan)
     base_input_vars, base_output_vars, base_input_controls = utils.get_base_data(runid, scan_num)
@@ -110,8 +111,11 @@ def main(vars_to_plot, scan_data):
         for scan_num in scan_nums:
             print(f'Initializing data for {runid}, scan {scan_num}...')
             utils.clear_temp_folder()
-            Options.instance.load_options(runid, scan_num)
-            run_plotting_loop(vars_to_plot)
+            options.instance.load_options(runid, scan_num)
+            if options.instance.var_to_scan:
+                run_plotting_loop(vars_to_plot)
+            else:
+                print(f'ERROR: No variable scan detected')
 
 
 # Run this file directly to plot scanned variable profiles from previously created scanned data
@@ -119,7 +123,7 @@ if __name__ == '__main__':
     scan_data = {}
 
     '''
-    Input Options:
+    Input options:
     * vars_to_plot (list): List of output variables to plot
 
     Examples:
@@ -139,9 +143,10 @@ if __name__ == '__main__':
     # scan_data['120968A02'] = [1]
     # scan_data['120982A09'] = [1]
     # scan_data['129041A10'] = [1]
-    scan_data['TEST'] = [45]
-    scan_data['138536A01'] = [i for i in range(1, 13)]
+    # scan_data['TEST'] = [181]
+    # scan_data['138536A01'] = [i for i in range(100, 126)]
+    scan_data['138536A01'] = [124]
 
-    settings.AUTO_OPEN_PDFS = True
+    settings.AUTO_OPEN_PDFS = 1
 
     main(vars_to_plot, scan_data)

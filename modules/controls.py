@@ -5,9 +5,9 @@ import sys; sys.path.insert(0, '../')
 import numpy as np
 
 # Local Packages
-import main.utils as utils
-import main.constants as constants
-from main.enums import ShotType, SaveType
+import modules.utils as utils
+import modules.constants as constants
+from modules.enums import ShotType, SaveType
 
 
 class InputControls:
@@ -298,7 +298,7 @@ For testing purposes:
 * There need to be existing folders corresponding to the runid and scan_num when saving controls
 '''
 if __name__ == '__main__':
-    from main.options import Options
+    from modules.options import Options
 
     '''Print sample MMM Header from user-specified Options'''
     Options.instance.set(

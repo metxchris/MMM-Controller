@@ -6,9 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Local Packages
-import main.utils as utils
-from main.enums import ShotType
-from main.options import Options
+import modules.utils as utils
+import modules.options as options
+from modules.enums import ShotType
 from plotting.modules.styles import single as plotlayout
 from plotting.modules.colors import mmm as plotcolors
 
@@ -18,14 +18,15 @@ def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
     plotlayout.init()
     plotcolors.init()
 
-    input_options = Options.instance
+    opts = options.instance
 
-    t_idx = input_options.time_idx
+    t_idx = opts.time_idx
 
     plt.figure(figsize=(3.5, 3))
     plt.subplots_adjust(left=0.15, right=0.9, bottom=0.15, top=0.9)
 
-    plt.plot(x1var.values[:, t_idx], y1var.values[:, t_idx], label=y1var.label + l1)
+    if x1var.values is not None and y1var.values is not None:
+        plt.plot(x1var.values[:, t_idx], y1var.values[:, t_idx], label=y1var.label + l1)
     if x2var is not None and y2var is not None:
         plt.plot(x2var.values[:, t_idx], y2var.values[:, t_idx], label=y2var.label + l2)
 
@@ -36,7 +37,7 @@ def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
     plt.xlabel(x1var.label)
     plt.ylabel(y1var.units_label)
     plt.legend()
-    plt.title(f'{input_options.runid}, t={input_options.time_str}s')
+    plt.title(f'{opts.runid}, t={opts.time_str}s')
     plt.show()
 
 
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     * Set var_to_scan = None to skip the variable scan
     * E.g.: var_to_scan = 'te'
     '''
-    Options.instance.set(
+    options.instance.set(
         runid=cdf_name,
         shot_type=shot_type,
         input_time=input_time,
@@ -72,4 +73,4 @@ if __name__ == '__main__':
     # Initialize variable objects and call simple_plot function
     mmm_vars, cdf_vars, raw_cdf_vars = utils.initialize_variables()
 
-    simple_plot(cdf_vars.xb, cdf_vars.nz, r' (CDF)', mmm_vars.xb, mmm_vars.nz)
+    simple_plot(cdf_vars.xb, cdf_vars.gnz, r' (CDF)', mmm_vars.xb, mmm_vars.gnz)

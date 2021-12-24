@@ -7,8 +7,8 @@ from copy import deepcopy
 import numpy as np
 
 # Local Packages
-import main.calculations as calculations
-import main.options as options
+import modules.calculations as calculations
+import modules.options as options
 
 
 VARIABLE_ERROR_TOLERANCE = 1e-8
@@ -33,7 +33,7 @@ def get_nonzero_idx(values):
     * time_idx (int): The index of the measurement time
     '''
 
-    time_idx = options.Options.instance.time_idx
+    time_idx = options.instance.time_idx
     nonzero_values = np.where(values[:, time_idx] != 0)[0]
     if not len(nonzero_values):
         raise ValueError('Cannot adjust variable that is equal to 0 at all radial points')
@@ -54,12 +54,13 @@ def check_adjusted_factor(scan_factor, base_vals, new_vals):
     r, t = get_nonzero_idx(base_vals)
     adjusted_factor = new_vals[r, t] / base_vals[r, t]
     if abs(adjusted_factor / scan_factor - 1) > SCAN_FACTOR_TOLERANCE:
-        print(scan_factor, adjusted_factor)
-        var_to_scan = options.Options.instance.var_to_scan
+        var_to_scan = options.instance.var_to_scan
+        fmt_length = abs(int(log10(SCAN_FACTOR_TOLERANCE)))
         raise ValueError(
             f'{var_to_scan} did not change within the allowable tolerance level\n'
             f'    adjusted_factor: {adjusted_factor}\n'
-            f'    scan_factor    : {scan_factor}\n'
+            f'    scan_factor:     {scan_factor}\n'
+            f'    tolerance:       {SCAN_FACTOR_TOLERANCE:.{fmt_length}f}\n'
         )
 
     # For testing purposes (only executes when running this file directly)
@@ -357,7 +358,7 @@ def adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor):
 # For Testing Purposes
 if __name__ == '__main__':
     from utils import initialize_variables
-    opts = options.Options.instance
+    opts = options.instance
     opts.set(
         runid='138536A01',
         input_points=51,
