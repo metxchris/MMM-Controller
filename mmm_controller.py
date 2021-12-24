@@ -6,14 +6,14 @@ import numpy as np
 
 # Local Packages
 import settings
-import main.options as options
-import main.utils as utils
-import main.adjustments as adjustments
-import main.parse_scans as parse_scans
-import main.mmm as mmm
+import modules.options as options
+import modules.utils as utils
+import modules.adjustments as adjustments
+import modules.parse_scans as parse_scans
+import modules.mmm as mmm
 import plotting.modules.profiles as profiles
-from main.enums import ShotType, ScanType, ProfileType
-from main.controls import InputControls
+from modules.enums import ShotType, ScanType, ProfileType
+from modules.controls import InputControls
 
 
 def execute_basic_run(mmm_vars, controls):
@@ -183,9 +183,9 @@ if __name__ == '__main__':
     * Using None as the scanned variable will skip the variable scan
     '''
     # scanned_vars[None] = None
-    # scanned_vars['gti'] = np.arange(start=0.5, stop=3 + 1e-6, step=0.5)
+    scanned_vars['gni'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
 
-    scanned_vars['betae'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['betae'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)

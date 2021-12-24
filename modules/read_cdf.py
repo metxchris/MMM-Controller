@@ -7,9 +7,9 @@ from netCDF4 import Dataset
 import numpy as np
 
 # Local Packages
-import main.options as options
-import main.variables as variables
-import main.utils as utils
+import modules.options as options
+import modules.variables as variables
+import modules.utils as utils
 
 
 # Reads CDF variables specified by Variables().cdfname and a Variables() object

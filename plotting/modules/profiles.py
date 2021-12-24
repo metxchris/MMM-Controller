@@ -7,11 +7,13 @@ import matplotlib.pyplot as plt
 
 # Local Packages
 import settings
-import main.options as options
-from main import utils, calculations, constants
-from main.enums import ProfileType, MergeType
-from main.variables import InputVariables
-from main.controls import InputControls
+import modules.options as options
+import modules.utils as utils
+import modules.calculations as calculations
+import modules.constants as constants
+from modules.enums import ProfileType, MergeType
+from modules.variables import InputVariables
+from modules.controls import InputControls
 from plotting.modules.styles import grid3x2 as plotlayout
 from plotting.modules.colors import mmm as plotcolors
 

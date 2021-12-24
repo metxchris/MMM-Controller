@@ -7,11 +7,12 @@ import matplotlib.pyplot as plt
 
 # Local Packages
 import settings
-import main.options as options
-from main import utils, constants
-from main.enums import ScanType, MergeType
-from main.controls import InputControls
-from main.variables import OutputVariables
+import modules.options as options
+import modules.utils as utils
+import modules.constants as constants
+from modules.enums import ScanType, MergeType
+from modules.controls import InputControls
+from modules.variables import OutputVariables
 from plotting.modules.styles import singlescan as plotlayout
 from plotting.modules.colors import mmmscan as plotcolors
 
@@ -122,7 +123,7 @@ if __name__ == '__main__':
     scan_data = {}
 
     '''
-    Input Options:
+    Input options:
     * vars_to_plot (list): List of output variables to plot
 
     Examples:
@@ -142,9 +143,10 @@ if __name__ == '__main__':
     # scan_data['120968A02'] = [1]
     # scan_data['120982A09'] = [1]
     # scan_data['129041A10'] = [1]
-    scan_data['TEST'] = [45]
-    scan_data['138536A01'] = [i for i in range(1, 13)]
+    # scan_data['TEST'] = [181]
+    # scan_data['138536A01'] = [i for i in range(100, 126)]
+    scan_data['138536A01'] = [124]
 
-    settings.AUTO_OPEN_PDFS = True
+    settings.AUTO_OPEN_PDFS = 1
 
     main(vars_to_plot, scan_data)

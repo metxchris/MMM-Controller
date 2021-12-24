@@ -8,13 +8,13 @@ import pdftk
 import output
 import temp
 import cdfs
-import main.variables as variables
-import main.controls as controls
-import main.constants as constants
-import main.calculations as calculations
-import main.conversions as conversions
-import main.read_cdf as read_cdf
-from main.enums import SaveType, MergeType
+import modules.variables as variables
+import modules.controls as controls
+import modules.constants as constants
+import modules.calculations as calculations
+import modules.conversions as conversions
+import modules.read_cdf as read_cdf
+from modules.enums import SaveType, MergeType
 
 
 def get_cdf_path(file_name):

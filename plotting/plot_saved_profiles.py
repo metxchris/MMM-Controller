@@ -3,9 +3,9 @@ import sys; sys.path.insert(0, '../')
 
 # Local Packages
 import plotting.modules.profiles as profiles
-import main.options as options
-from main.variables import InputVariables, OutputVariables
-from main.enums import SaveType, ProfileType
+import modules.options as options
+from modules.variables import InputVariables, OutputVariables
+from modules.enums import SaveType, ProfileType
 
 
 def main(runid, scan_num, input_scan_factor, save_types):
@@ -42,10 +42,10 @@ def main(runid, scan_num, input_scan_factor, save_types):
 if __name__ == '__main__':
     # Runid and Scan Number (uncomment the line you wish to use)
     # runid, scan_num = '120982A09', 1
-    runid, scan_num = 'TEST', 1
+    runid, scan_num = 'TEST', 180
 
     # Scan Factor (var_to_scan will be read from the saved options file)
-    input_scan_factor = None
+    input_scan_factor = 2.5
 
     save_types = [SaveType.INPUT]
     # save_types = [SaveType.INPUT, SaveType.ADDITIONAL, SaveType.OUTPUT]

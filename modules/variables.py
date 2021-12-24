@@ -6,9 +6,9 @@ import numpy as np
 import scipy.ndimage
 
 # Local Packages
-import main.constants as constants
-import main.utils as utils
-from main.enums import SaveType
+import modules.constants as constants
+import modules.utils as utils
+from modules.enums import SaveType
 
 
 # Used to create units labels to display on plots from units strings

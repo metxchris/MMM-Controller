@@ -6,7 +6,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 # Local Packages
-import main.options as options
+import modules.options as options
 
 
 class XValues:

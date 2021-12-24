@@ -7,8 +7,8 @@ from copy import deepcopy
 import numpy as np
 
 # Local Packages
-import main.calculations as calculations
-import main.options as options
+import modules.calculations as calculations
+import modules.options as options
 
 
 VARIABLE_ERROR_TOLERANCE = 1e-8

@@ -4,10 +4,10 @@ import subprocess
 
 # Local Packages
 import settings
-import main.options as options
-import main.variables as variables
-import main.constants as constants
-from main.enums import SaveType
+import modules.options as options
+import modules.variables as variables
+import modules.constants as constants
+from modules.enums import SaveType
 
 
 def run_driver(input_vars, controls):

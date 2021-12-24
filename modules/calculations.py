@@ -8,8 +8,8 @@ import numpy as np
 from scipy.interpolate import interp1d  # TODO: use Akima1DInterpolator?
 
 # Local Packages
-import main.options as options
-import main.constants as constants
+import modules.options as options
+import modules.constants as constants
 
 
 def nh0(vars):

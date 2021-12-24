@@ -5,10 +5,10 @@ import sys; sys.path.insert(0, '../')
 import numpy as np
 
 # Local Packages
-import main.options as options
-import main.utils as utils
-import main.constants as constants
-from main.enums import SaveType
+import modules.options as options
+import modules.utils as utils
+import modules.constants as constants
+from modules.enums import SaveType
 
 
 def read_from_files(file_list, dtype):

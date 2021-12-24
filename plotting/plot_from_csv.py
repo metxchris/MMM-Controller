@@ -6,8 +6,8 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 
 # Local Packages
-from main.enums import SaveType
-import main.variables as variables
+import modules.variables as variables
+from modules.enums import SaveType
 from plotting.modules.styles import single as plotlayout
 from plotting.modules.colors import mmm as plotcolors
 
@@ -101,10 +101,11 @@ if __name__ == '__main__':
     # title, data_list = get_var_compare('Growth Rate', 'rho', 'gmaETGM', 2)
     # title, data_list = get_var_compare('Frequency', 'rho', 'omgETGM', 2)
 
-    title, data_list = get_var_compare2('Frequency', 'rho', 'omgETGM', 1, 13)
-    title, data_list = get_var_compare2('Growth Rate', 'rho', 'gmaETGM', 1, 13)
-    title, data_list = get_var_compare2('xdiETGM', 'rho', 'xdiETGM', 1, 13)
-    title, data_list = get_var_compare2('xteETGM', 'rho', 'xteETGM', 2, 24)
+    scan1, scan2 = 100, 113
+    title, data_list = get_var_compare2('Frequency', 'rho', 'omgETGM', scan1, scan2)
+    title, data_list = get_var_compare2('Growth Rate', 'rho', 'gmaETGM', scan1, scan2)
+    title, data_list = get_var_compare2('xdiETGM', 'rho', 'xdiETGM', scan1, scan2)
+    title, data_list = get_var_compare2('xteETGM', 'rho', 'xteETGM', scan1, scan2)
 
     # title, data_list = 'Effective Charge', [
     #     VarData('rho', 'zeff', '120968A02 (High)', '120968A02', scan_num=1),
