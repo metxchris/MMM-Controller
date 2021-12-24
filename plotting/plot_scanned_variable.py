@@ -42,7 +42,7 @@ def run_plotting_loop(vars_to_plot):
         xbase = getattr(base_input_controls, var_to_scan)
 
     for var_to_plot in vars_to_plot:
-        print(f'Creating scanned variable PDF for {var_to_plot}...')
+        print(f'Creating scanned variable PDF for {var_to_plot} vs {var_to_scan}...')
 
         # rho_strs are the same for both input and output variables
         rho_strs = input_vars_dict.keys()

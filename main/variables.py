@@ -301,8 +301,6 @@ class InputVariables(Variables):
                             save_type=SaveType.INPUT)
         self.gnz = Variable('Impurity Density Gradient', label=r'$g_{n_\mathrm{z}}$',
                             save_type=SaveType.INPUT)
-        self.gnd = Variable('Deuterium Ion Density Gradient', label=r'$g_{n_\mathrm{d}}$',
-                            save_type=SaveType.ADDITIONAL)
         self.gq = Variable('Safety Factor Gradient', label=r'$g_{q}$',
                            save_type=SaveType.INPUT)
         self.gte = Variable('Electron Temperature Gradient', label=r'$g_{T_\mathrm{e}}$',

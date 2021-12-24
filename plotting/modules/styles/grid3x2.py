@@ -12,6 +12,7 @@ COLS = 3
 
 
 def init():
+    # Show all rcParams keys using: print(plt.rcParams.keys())
     plt.rcParams.update({
         'font.family': 'serif',
         'mathtext.fontset': 'cm',

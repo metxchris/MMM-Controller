@@ -3,13 +3,14 @@ import matplotlib.pyplot as plt
 
 
 def init():
+    # Show all rcParams keys using: print(plt.rcParams.keys())
     plt.rcParams.update({
         'font.family': 'serif',
         'mathtext.fontset': 'cm',
         'mathtext.bf': 'cmb10',
         'font.serif': 'cmr10',
-        'axes.unicode_minus': False, # unicode_minus does not work in Computer Modern font (cm, cmr10)
-        'axes.formatter.limits': [-2, 2], # Forces exponent notation below 10**(-2) and above 10**2
+        'axes.unicode_minus': False,  # unicode_minus does not work in Computer Modern font (cm, cmr10)
+        'axes.formatter.limits': [-2, 3],  # Forces exponent notation below 10**(-2) and above 10**3
         'axes.grid': True,
         'axes.labelpad': 2,
         'axes.labelsize': 10,
@@ -29,7 +30,7 @@ def init():
         'grid.color': '#fff',
         'legend.fontsize': 9,
         'legend.frameon': False,
-        'legend.borderpad': 0, 
+        'legend.borderpad': 0,
         'legend.labelspacing': 0.1,
         'legend.handlelength': 0,
         'lines.dash_joinstyle': 'round',

@@ -119,7 +119,7 @@ def set_scan_num(runid):
     * scan_num (int): The chosen scan number
     '''
 
-    num_range = range(1, 10000)
+    num_range = range(100, 10000)
 
     for scan_num in num_range:
         scan_num_path = get_scan_num_path(runid, scan_num)

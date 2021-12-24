@@ -1,5 +1,6 @@
 # Standard Packages
 import sys; sys.path.insert(0, '../')
+from math import log10
 from copy import deepcopy
 
 # 3rd Party Packages
@@ -12,9 +13,35 @@ import main.options as options
 
 VARIABLE_ERROR_TOLERANCE = 1e-8
 SCAN_FACTOR_TOLERANCE = 1e-4
+PRINT_FMT_STR = '>7.2f'
 
 
-def check_adjusted_factor(adjusted_factor, scan_factor):
+def print_factors(scan_factor, adjusted_factor):
+    '''Prints the scan and adjusted factors'''
+    print(f'{scan_factor:{PRINT_FMT_STR}}', f'{adjusted_factor:{PRINT_FMT_STR}}')
+
+
+def get_nonzero_idx(values):
+    '''
+    Gets the indices of a nonzero value from values at the specified measurement time
+
+    Parameters:
+    * values (np.ndarray): An array of variable data
+
+    Returns:
+    * nonzero_values[0] (int): The index along the radial dimension of first nonzero variable value
+    * time_idx (int): The index of the measurement time
+    '''
+
+    time_idx = options.Options.instance.time_idx
+    nonzero_values = np.where(values[:, time_idx] != 0)[0]
+    if not len(nonzero_values):
+        raise ValueError('Cannot adjust variable that is equal to 0 at all radial points')
+
+    return nonzero_values[0], time_idx
+
+
+def check_adjusted_factor(scan_factor, base_vals, new_vals):
     '''
     Checks that the adjusted factor equals scan_factor, within an allowable tolerance.
     An exception is raised if the check fails.
@@ -24,6 +51,8 @@ def check_adjusted_factor(adjusted_factor, scan_factor):
     * scan_factor: The intended factor to adjust a variable by
     '''
 
+    r, t = get_nonzero_idx(base_vals)
+    adjusted_factor = new_vals[r, t] / base_vals[r, t]
     if abs(adjusted_factor / scan_factor - 1) > SCAN_FACTOR_TOLERANCE:
         print(scan_factor, adjusted_factor)
         var_to_scan = options.Options.instance.var_to_scan
@@ -32,19 +61,35 @@ def check_adjusted_factor(adjusted_factor, scan_factor):
             f'    adjusted_factor: {adjusted_factor}\n'
             f'    scan_factor    : {scan_factor}\n'
         )
+
     # For testing purposes (only executes when running this file directly)
-    elif __name__ == '__main__':
-        print(round(scan_factor, 4), round(adjusted_factor, 4))
+    if __name__ == '__main__':
+        print_factors(scan_factor, adjusted_factor)
 
 
-def get_nonzero_idx(var):
-    '''Returns (int): The index along the radial dimension of first nonzero variable value'''
+def check_remained_constant(var_name, base_vars, new_vars):
+    '''
+    Raises an exception if the specified variable did not remain constant
 
-    nonzero_values = np.where(var.values[:, options.Options.instance.time_idx] != 0)[0]
-    if not len(nonzero_values):
-        raise ValueError('Cannot adjust variable that is equal to 0 everywhere')
+    Parameters:
+    * var_name (str): The name of the variable
+    * base_vars (Variables): The base variables object
+    * new_vars (Variables): The new variables object
+    * r (int): The index along the radial dimension to check
+    * t (int): The index along the time dimension to check
+    '''
 
-    return nonzero_values[0]
+    base_var = getattr(base_vars, var_name)
+    new_var = getattr(new_vars, var_name)
+    r, t = get_nonzero_idx(base_var.values)
+    variable_error = np.absolute(new_var.values[r, t] / base_var.values[r, t] - 1)
+    if variable_error > VARIABLE_ERROR_TOLERANCE:
+        fmt_length = abs(int(log10(VARIABLE_ERROR_TOLERANCE)))
+        raise ValueError(
+            f'{var_name} did not remain constant\n'
+            f'    Variable Error: {variable_error}\n'
+            f'    Allowed Error:  {VARIABLE_ERROR_TOLERANCE:.{fmt_length}f}'
+        )
 
 
 def adjust_nuei(mmm_vars, scan_factor):
@@ -57,7 +102,7 @@ def adjust_nuei(mmm_vars, scan_factor):
     * In order to keep tau and pressure constant, we must also adjust ti, nz, nd, nf, nh, and ni
     * These density adjustments keep average masses and zeff constant as well
     * Note that normalized gradients remain unchanged when multiplying their base variable by a constant factor
-    * The adjustment finding loop typically finds the target adjustment within 5 attempts for a tolerance of 1e-4
+    * The adjustment finding loop typically finds the target adjustment within 6 attempts for a tolerance of 1e-4
 
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
@@ -67,17 +112,11 @@ def adjust_nuei(mmm_vars, scan_factor):
     * adjusted_vars (InputVariables): Contains adjusted mmm_vars needed to write MMM input file
     '''
 
-    opts = options.Options.instance
-    adjusted_vars = deepcopy(mmm_vars)
     max_adjustment_attempts = 10
-    nonzero_idx = get_nonzero_idx(mmm_vars.nuei)
+    adjusted_vars = deepcopy(mmm_vars)
+    r, t = get_nonzero_idx(mmm_vars.nuei.values)
 
-    # Store initial variable values needed for calculating the total adjustment_step, and error checking
-    nuei0 = mmm_vars.nuei.values[nonzero_idx, opts.time_idx]
-    p0 = mmm_vars.p.values[nonzero_idx, opts.time_idx]
-    tau0 = mmm_vars.tau.values[nonzero_idx, opts.time_idx]
-
-    # Our initial guess for the adjustment_total is based on the formula for nuei
+    # The initial guess for the adjustment_total is based on the formula for nuei
     adjustment_total = scan_factor**(-2 / 5)
     adjustment_step = adjustment_total
 
@@ -92,16 +131,17 @@ def adjust_nuei(mmm_vars, scan_factor):
         calculations.nuei(adjusted_vars)
 
         # Check if the current_factor is within our allowable tolerance for the scan_factor
-        current_factor = adjusted_vars.nuei.values[nonzero_idx, opts.time_idx] / nuei0
+        current_factor = adjusted_vars.nuei.values[r, t] / mmm_vars.nuei.values[r, t]
         if abs(current_factor / scan_factor - 1) < SCAN_FACTOR_TOLERANCE:
-            # For testing purposes
+            # For testing purposes (only executes when running this file directly)
             if __name__ == '__main__':
-                print(i, round(scan_factor, 4), round(current_factor, 4))
+                print(i + 1, end=' ')
             break
 
         if i + 1 == max_adjustment_attempts:
-            print(i, scan_factor, adjustment_total)
-            raise ValueError(f'nuei factor could not be found after {i + 1} attempts.')
+            print(i + 1, end=' ')
+            print_factors(scan_factor, adjustment_total)
+            raise ValueError(f'nuei factor could not be found after {i + 1} attempts')
 
         # Make an adjustment_step based on the difference in the current_factor and our desired scan_factor
         adjustment_step = 1 + (current_factor - scan_factor) / (2 * scan_factor)
@@ -110,54 +150,36 @@ def adjust_nuei(mmm_vars, scan_factor):
     # Adjust ti to keep tau constant
     adjusted_vars.ti.values *= adjustment_total
 
-    # Adjust densities needed to recalculate ni
+    # Adjust densities needed to recalculate ni (to keep pressure constant)
     adjusted_vars.nz.values /= adjustment_total
     adjusted_vars.nd.values /= adjustment_total
     adjusted_vars.nf.values /= adjustment_total
 
-    # Recalculate ni to keep pressure constant
-    calculations.calculate_variable(calculations.nh0, adjusted_vars)
-    calculations.calculate_variable(calculations.nh, adjusted_vars)
-    calculations.calculate_variable(calculations.ni, adjusted_vars)
+    # Recalculate all variables
+    adjusted_vars = calculations.calculate_inputs(adjusted_vars)
 
-    # Recalculate constant variables for error checking
-    calculations.calculate_variable(calculations.p, adjusted_vars)
-    calculations.calculate_variable(calculations.tau, adjusted_vars)
-
-    # Take ratios of recalculated constant variables and check for errors
-    variable_ratio = np.array((
-        adjusted_vars.p.values[nonzero_idx, opts.time_idx] / p0,
-        adjusted_vars.tau.values[nonzero_idx, opts.time_idx] / tau0,
-    ))
-    error_check = np.absolute(variable_ratio - 1) > VARIABLE_ERROR_TOLERANCE
-    if error_check.any():
-        if error_check[0]:
-            raise ValueError(f'Pressure did not remain constant for scan factor {scan_factor}: {variable_ratio[0]}')
-        if error_check[1]:
-            raise ValueError(f'Tau did not remain constant for scan factor {scan_factor}: {variable_ratio[1]}')
+    check_adjusted_factor(scan_factor, mmm_vars.nuei.values, adjusted_vars.nuei.values)
+    check_remained_constant('p', mmm_vars, adjusted_vars)
+    check_remained_constant('tau', mmm_vars, adjusted_vars)
 
     return adjusted_vars
 
 
 def adjust_tau(mmm_vars, scan_factor):
 
-    opts = options.Options.instance
     adjusted_vars = deepcopy(mmm_vars)
-    nonzero_idx = get_nonzero_idx(mmm_vars.tau)
-    tau0 = mmm_vars.tau.values[nonzero_idx, opts.time_idx]
 
-    # Our adjustment_total is based on the formula for tau
+    # adjustment_total is based on the formula for tau
     adjustment_total = scan_factor**(1 / 2)
 
     # Adjust te and ti by the adjustment total to adjust tau
     adjusted_vars.te.values *= adjustment_total
     adjusted_vars.ti.values /= adjustment_total
 
-    calculations.calculate_variable(calculations.tau, adjusted_vars)
+    # Recalculate all variables
+    adjusted_vars = calculations.calculate_inputs(adjusted_vars)
 
-    # Check that the adjustment is correct
-    adjusted_factor = adjusted_vars.tau.values[nonzero_idx, opts.time_idx] / tau0
-    check_adjusted_factor(adjusted_factor, scan_factor)
+    check_adjusted_factor(scan_factor, mmm_vars.tau.values, adjusted_vars.tau.values)
 
     return adjusted_vars
 
@@ -165,10 +187,10 @@ def adjust_tau(mmm_vars, scan_factor):
 def adjust_zeff(mmm_vars, scan_factor):
     '''
     Effective Charge Scan:
-    * Since zeff is a derived quantity, we adjust zeff by adjusting nz, and then updating ne accordingly
+    * Since zeff is a derived quantity, we adjust zeff by adjusting nz, and then update ne accordingly
     * This adjustment is nonlinear, so we don't have control over how much zeff changes at each point of rho
-    * Due to this lack of control, every physical quantity is being recalculated after nz and ne are updated
-    * The recalculations are our error checks, because exceptions will be thrown if nonphysical values emerge
+    * Consequently, all input variables are being recalculated after nz and ne are updated
+    * These recalculations are our error checks, because exceptions will be thrown if nonphysical values emerge
 
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
@@ -178,210 +200,96 @@ def adjust_zeff(mmm_vars, scan_factor):
     * adjusted_vars (InputVariables): Contains adjusted mmm_vars needed to write MMM input file
     '''
 
-    opts = options.Options.instance
     adjusted_vars = deepcopy(mmm_vars)
-    nonzero_idx = get_nonzero_idx(mmm_vars.zeff)
-
-    # Store initial variable values needed for calculating the total adjustment_step, and error checking
-    zeff0 = mmm_vars.zeff.values[nonzero_idx]
 
     # Adjust nz scan_factor, then increase ne by the change in nz
     adjusted_vars.nz.values *= scan_factor
     adjusted_vars.ne.values += adjusted_vars.zimp.values * (adjusted_vars.nz.values - mmm_vars.nz.values)
 
-    # Recalculate everything
+    # Recalculate all variables
     adjusted_vars = calculations.calculate_inputs(adjusted_vars)
 
     # For testing purposes (only executes when running this file directly)
     if __name__ == '__main__':
-        adjusted_factor = adjusted_vars.zeff.values[nonzero_idx, opts.time_idx] / zeff0
-        print(round(scan_factor, 4), round(adjusted_factor, 4))
+        r, t = get_nonzero_idx(mmm_vars.zeff.values)
+        adjusted_factor = adjusted_vars.zeff.values[r, t] / mmm_vars.zeff.values[r, t]
+        print(f'{adjusted_factor:{PRINT_FMT_STR}}', end=' ')
+
+    # nz is checked instead of zeff, since the change in zeff is different at each radial point
+    check_adjusted_factor(scan_factor, mmm_vars.nz.values, adjusted_vars.nz.values)
 
     return adjusted_vars
 
+
 def adjust_etae(mmm_vars, scan_factor):
 
-    opts = options.Options.instance
     adjusted_vars = deepcopy(mmm_vars)
-    nonzero_idx = get_nonzero_idx(mmm_vars.etae)
-    etae0 = mmm_vars.etae.values[nonzero_idx, opts.time_idx]
 
-    # Our adjustment_total is based on the formula for etae
+    # adjustment_total is based on the formula for etae
     adjustment_total = scan_factor**(1 / 2)
-
-    # Adjust te and ti by the adjustment total to adjust etae
     adjusted_vars.gte.values *= adjustment_total
     adjusted_vars.gne.values /= adjustment_total
 
-    calculations.calculate_variable(calculations.etae, adjusted_vars)
+    # Only recalculate additional variables, since recalculating all would undo the gradient adjustments
+    calculations.calculate_additional_variables(adjusted_vars)
 
-    # Check that the adjustment is correct
-    adjusted_factor = adjusted_vars.etae.values[nonzero_idx, opts.time_idx] / etae0
-    check_adjusted_factor(adjusted_factor, scan_factor)
+    check_adjusted_factor(scan_factor, mmm_vars.etae.values, adjusted_vars.etae.values)
 
     return adjusted_vars
 
 
 def adjust_shear(mmm_vars, scan_factor):
 
-    opts = options.Options.instance
     adjusted_vars = deepcopy(mmm_vars)
-    nonzero_idx = get_nonzero_idx(mmm_vars.shear)
-    shear0 = mmm_vars.shear.values[nonzero_idx, opts.time_idx]
 
-    # Adjust gq by the scan_factor to adjust shear (no need for an adjustment total)
+    # Adjust gq by the scan_factor to adjust shear
     adjusted_vars.gq.values *= scan_factor
-    calculations.calculate_variable(calculations.shear, adjusted_vars)
 
-    # Check that the adjustment is correct
-    adjusted_factor = adjusted_vars.shear.values[nonzero_idx, opts.time_idx] / shear0
-    check_adjusted_factor(adjusted_factor, scan_factor)
+    # Only recalculate additional variables, since recalculating all would undo the gradient adjustment
+    calculations.calculate_additional_variables(adjusted_vars)
+
+    check_adjusted_factor(scan_factor, mmm_vars.shear.values, adjusted_vars.shear.values)
+
+    return adjusted_vars
+
+
+def adjust_btor(mmm_vars, scan_factor):
+
+    adjusted_vars = deepcopy(mmm_vars)
+
+    # Adjust bz by the scan_factor to adjust btor
+    adjusted_vars.bz.values *= scan_factor
+
+    # Recalculate all variables
+    adjusted_vars = calculations.calculate_inputs(adjusted_vars)
+
+    check_adjusted_factor(scan_factor, mmm_vars.btor.values, adjusted_vars.btor.values)
 
     return adjusted_vars
 
 
 def adjust_betae(mmm_vars, scan_factor):
 
-    opts = options.Options.instance
     adjusted_vars = deepcopy(mmm_vars)
-    nonzero_idx = get_nonzero_idx(mmm_vars.betae)
-    betae0 = mmm_vars.betae.values[nonzero_idx, opts.time_idx]
 
     # Our adjustment_total is based on the formula for betae
     adjustment_total = scan_factor**(1 / 4)
 
     adjusted_vars.ne.values *= adjustment_total
     adjusted_vars.te.values *= adjustment_total
-    adjusted_vars.btor.values /= adjustment_total
+    adjusted_vars.bz.values /= adjustment_total
 
-    adjusted_vars.nh0.values *= adjustment_total
+    # adjust dependencies of ne
     adjusted_vars.nd.values *= adjustment_total
     adjusted_vars.nz.values *= adjustment_total
     adjusted_vars.nf.values *= adjustment_total
 
-    calculations.calculate_variable(calculations.betae, adjusted_vars)
+    # Recalculate all variables
+    adjusted_vars = calculations.calculate_inputs(adjusted_vars)
 
-    # Check that the adjustment is correct
-    adjusted_factor = adjusted_vars.betae.values[nonzero_idx, opts.time_idx] / betae0
-    check_adjusted_factor(adjusted_factor, scan_factor)
+    check_adjusted_factor(scan_factor, mmm_vars.betae.values, adjusted_vars.betae.values)
 
     return adjusted_vars
-
-
-def recalculate_dependencies(adjusted_vars, var_to_scan):
-    '''
-    Recalculates variables dependent on previously made adjustments as per the scan
-
-    Parameters:
-    * adjusted_vars (InputVariables): Contains adjusted mmm_vars needed to write MMM input file
-    * var_to_scan (str): The variable being scanned
-    '''
-
-    if var_to_scan == 'nuei':
-        '''Collision Frequency Scan'''
-        calculations.calculate_variable(calculations.nuei2, adjusted_vars)
-        calculations.calculate_variable(calculations.vthe, adjusted_vars)
-        calculations.calculate_variable(calculations.vthi, adjusted_vars)
-        calculations.calculate_variable(calculations.nuste, adjusted_vars)
-        calculations.calculate_variable(calculations.nusti, adjusted_vars)
-        calculations.calculate_variable(calculations.gmax, adjusted_vars)
-    elif var_to_scan == 'gte':
-        '''Electron Temperature Gradient Scan'''
-        calculations.calculate_variable(calculations.alphamhd, adjusted_vars)
-        calculations.calculate_variable(calculations.gave, adjusted_vars)
-        calculations.calculate_variable(calculations.etae, adjusted_vars)
-    elif var_to_scan == 'gti':
-        '''Ion Temperature Gradient Scan'''
-        calculations.calculate_variable(calculations.alphamhd, adjusted_vars)
-        calculations.calculate_variable(calculations.gave, adjusted_vars)
-        calculations.calculate_variable(calculations.etai, adjusted_vars)
-    elif var_to_scan == 'q':
-        '''
-        Safety Factor Scan
-        * vpar is not recalculated since it's considered as an independent input variable
-        '''
-        calculations.calculate_variable(calculations.bpol, adjusted_vars)
-        calculations.calculate_variable(calculations.nuste, adjusted_vars)
-        calculations.calculate_variable(calculations.nusti, adjusted_vars)
-        calculations.calculate_variable(calculations.gmax, adjusted_vars)
-        calculations.calculate_variable(calculations.alphamhd, adjusted_vars)
-        calculations.calculate_variable(calculations.gave, adjusted_vars)
-    elif var_to_scan == 'zeff':
-        '''Effective Charge Scan'''
-        ...
-    elif var_to_scan == 'gnh':
-        '''Hydrogenic Density Gradient Scan'''
-        ...
-    elif var_to_scan == 'gnz':
-        '''Impurity Density Gradient Scan (No dependencies)'''
-        ...
-    elif var_to_scan == 'tau':
-        calculations.calculate_variable(calculations.p, adjusted_vars)
-        calculations.calculate_variable(calculations.betae, adjusted_vars)
-        calculations.calculate_variable(calculations.beta, adjusted_vars)
-        calculations.calculate_variable(calculations.loge, adjusted_vars)
-        calculations.calculate_variable(calculations.nuei, adjusted_vars)
-        calculations.calculate_variable(calculations.nuei2, adjusted_vars)
-        calculations.calculate_variable(calculations.vthe, adjusted_vars)
-        calculations.calculate_variable(calculations.vthi, adjusted_vars)
-        calculations.calculate_variable(calculations.nuste, adjusted_vars)
-        calculations.calculate_variable(calculations.nusti, adjusted_vars)
-        calculations.calculate_variable(calculations.alphamhd, adjusted_vars)
-        calculations.calculate_variable(calculations.gmax, adjusted_vars)
-        calculations.calculate_variable(calculations.gave, adjusted_vars)
-    elif var_to_scan == 'btor':
-        '''
-        Toroidal Magnetic Field Scan
-        * vpar is not recalculated since it's considered as an independent input variable
-        '''
-        calculations.calculate_variable(calculations.bpol, adjusted_vars)
-        calculations.calculate_variable(calculations.betae, adjusted_vars)
-        calculations.calculate_variable(calculations.beta, adjusted_vars)
-        calculations.calculate_variable(calculations.gyrfi, adjusted_vars)
-        calculations.calculate_variable(calculations.alphamhd, adjusted_vars)
-        calculations.calculate_variable(calculations.gmax, adjusted_vars)
-        calculations.calculate_variable(calculations.gave, adjusted_vars)
-    elif var_to_scan == 'etae':
-        '''etae = gte/gne scan'''
-        calculations.calculate_variable(calculations.alphamhd, adjusted_vars)
-        calculations.calculate_variable(calculations.gmax, adjusted_vars)
-        calculations.calculate_variable(calculations.gave, adjusted_vars)
-    elif var_to_scan == 'gnh':
-        '''Hydrogenic Ion Density Gradient Scan'''
-        ...
-    elif var_to_scan == 'q':
-        '''
-        Safety Factor Scan
-        * vpar is not recalculated since it's considered as an independent input variable
-        '''
-        calculations.calculate_variable(calculations.bpol, adjusted_vars)
-        calculations.calculate_variable(calculations.nuste, adjusted_vars)
-        calculations.calculate_variable(calculations.nusti, adjusted_vars)
-        calculations.calculate_variable(calculations.alphamhd, adjusted_vars)
-        calculations.calculate_variable(calculations.gmax, adjusted_vars)
-        calculations.calculate_variable(calculations.gave, adjusted_vars)
-    elif var_to_scan == 'shear':
-        '''Shear Scan'''
-        calculations.calculate_variable(calculations.shat, adjusted_vars)
-        calculations.calculate_variable(calculations.gave, adjusted_vars)
-    elif var_to_scan == 'betae':
-        '''
-        Beta_e Scan
-        * vpar intentionally not recalculated
-        '''
-        calculations.calculate_variable(calculations.ni, adjusted_vars)
-        calculations.calculate_variable(calculations.tau, adjusted_vars)
-        calculations.calculate_variable(calculations.bpol, adjusted_vars)
-        calculations.calculate_variable(calculations.p, adjusted_vars)
-        calculations.calculate_variable(calculations.beta, adjusted_vars)
-        calculations.calculate_variable(calculations.loge, adjusted_vars)
-        calculations.calculate_variable(calculations.nuei, adjusted_vars)
-        calculations.calculate_variable(calculations.nuei2, adjusted_vars)
-        calculations.calculate_variable(calculations.vthe, adjusted_vars)
-        calculations.calculate_variable(calculations.gyrfi, adjusted_vars)
-        calculations.calculate_variable(calculations.alphamhd, adjusted_vars)
-        calculations.calculate_variable(calculations.gmax, adjusted_vars)
-        calculations.calculate_variable(calculations.gave, adjusted_vars)
 
 
 def adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor):
@@ -391,7 +299,7 @@ def adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor):
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
     * var_to_scan (str): The name of the variable being adjusted
-    * scan_factor (float): The factor to modify nuei by
+    * scan_factor (float): The factor to modify var_to_scan by
 
     Returns:
     * adjusted_vars (InputVariables): All adjusted and unaltered mmm_vars needed to write MMM input file
@@ -400,21 +308,31 @@ def adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor):
     if var_to_scan == 'nuei':
         '''Collision Frequency Scan'''
         adjusted_vars = adjust_nuei(mmm_vars, scan_factor)
+
     elif var_to_scan == 'zeff':
-        '''Temperature Ratio Frequency Scan'''
+        '''Effective Charge Scan'''
         adjusted_vars = adjust_zeff(mmm_vars, scan_factor)
+
     elif var_to_scan == 'tau':
-        '''Temperature Ratio Frequency Scan'''
+        '''Temperature Ratio Scan'''
         adjusted_vars = adjust_tau(mmm_vars, scan_factor)
+
     elif var_to_scan == 'etae':
         '''etae = gte/gne scan'''
         adjusted_vars = adjust_etae(mmm_vars, scan_factor)
+
     elif var_to_scan == 'shear' or var_to_scan == 'gq':
         '''Shear Scan (gq scan)'''
         adjusted_vars = adjust_shear(mmm_vars, scan_factor)
+
+    elif var_to_scan == 'btor' or var_to_scan == 'bz':
+        '''Toroidal Magnetic Field Scan (bz scan)'''
+        adjusted_vars = adjust_btor(mmm_vars, scan_factor)
+
     elif var_to_scan == 'betae':
         '''Betae Scan'''
         adjusted_vars = adjust_betae(mmm_vars, scan_factor)
+
     else:
         '''Simple Scan (no advanced logic needed)'''
         adjusted_vars = deepcopy(mmm_vars)
@@ -422,7 +340,16 @@ def adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor):
         scanned_var = getattr(adjusted_vars, var_to_scan)
         scanned_var.values = scan_factor * base_var.values
 
-    recalculate_dependencies(adjusted_vars, var_to_scan)
+        '''
+        Simple Gradient Adjustments:
+        * Only recalculate additional variables, since recalculating all would undo the gradient adjustment
+        * Non-gradient input variables do not depend on gradient values
+        '''
+        if var_to_scan in ['gte', 'gti', 'gne', 'gnh', 'gni', 'gnz', 'gvpar', 'gvpol', 'gvtor']:
+            calculations.calculate_additional_variables(adjusted_vars)
+
+        else:
+            adjusted_vars = calculations.calculate_inputs(adjusted_vars)
 
     return adjusted_vars
 
@@ -432,7 +359,6 @@ if __name__ == '__main__':
     from utils import initialize_variables
     opts = options.Options.instance
     opts.set(
-        var_to_scan='zeff',
         runid='138536A01',
         input_points=51,
         apply_smoothing=True,
@@ -443,6 +369,16 @@ if __name__ == '__main__':
     mmm_vars, __, __ = initialize_variables()
 
     # Check that all scan_factors can be found in scan_range (failures will raise a ValueError)
-    scan_range = np.hstack((np.arange(1e-6, 5, 0.05), np.arange(5, 25, 1), np.arange(25, 105, 5)))
-    for scan_factor in scan_range:
-        adjust_scanned_variable(mmm_vars, opts.var_to_scan, scan_factor)
+    scan_range = np.hstack(
+        (np.arange(0.05, 1, 0.05),
+         np.arange(1, 5, 0.2),
+         np.arange(5, 20, 1),
+         np.arange(20, 105, 5)),
+    )
+
+    advanced_scans = ['nuei', 'zeff', 'tau', 'etae', 'shear', 'btor', 'betae']
+    for var_name in advanced_scans:
+        opts.set(var_to_scan=var_name)
+        print(f'\n{var_name} scan factors:')
+        for scan_factor in scan_range:
+            adjust_scanned_variable(mmm_vars, opts.var_to_scan, scan_factor)

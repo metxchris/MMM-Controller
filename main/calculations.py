@@ -37,14 +37,14 @@ def nh(vars):
 
 def ni(vars):
     '''Thermal Ion Density'''
-    nh = vars.nh0.values
+    nh = vars.nh.values
     nz = vars.nz.values
-    # zimp = vars.zimp.values
 
     # TRANSP Definition
     ni = nh + nz
 
     # Alternate Definition
+    # zimp = vars.zimp.values
     # ni = nh + zimp * nz
 
     vars.ni.set(values=ni, units=vars.ne.units)
@@ -70,15 +70,6 @@ def aimass(vars):
     aimass = (ahyd * nh + aimp * nz) / (nh + nz)
 
     vars.aimass.set(values=aimass, units='')
-
-
-def rho(vars):
-    '''Rho (Approximation for rho)'''
-    rmin = vars.rmin.values
-
-    rho = rmin / rmin[-1, :]
-
-    vars.rho.set(values=rho, units='')
 
 
 def tau(vars):
@@ -455,31 +446,9 @@ def calculate_variable(var_function, vars):
     getattr(vars, var_name).check_for_nan()
 
 
-def calculate_inputs(cdf_vars):
-    '''
-    Calculates new variables needed for MMM and data display
+def calculate_additional_variables(vars):
 
-    Note that each use of the calculate_variable function below is passing in
-    the function of the variable to be calculated, which shares the same name
-    as the variable it calculates.
-
-    Parameters:
-    * cdf_vars (InputVariables): Variables object containing data from a CDF
-    '''
-    vars = copy.deepcopy(cdf_vars)
-
-    # Some calculations depend on values from previous calculations
-    calculate_variable(nh0, vars)
-    calculate_variable(nh, vars)
-    calculate_variable(ni, vars)
-    calculate_variable(ahyd, vars)
-    calculate_variable(aimass, vars)
-    calculate_variable(rho, vars)
     calculate_variable(tau, vars)
-    calculate_variable(btor, vars)
-    calculate_variable(bpol, vars)
-    calculate_variable(vpar, vars)
-    calculate_variable(zeff, vars)
     calculate_variable(eps, vars)
     calculate_variable(p, vars)
     calculate_variable(beta, vars)
@@ -493,17 +462,57 @@ def calculate_inputs(cdf_vars):
     calculate_variable(nusti, vars)
     calculate_variable(gyrfi, vars)
     calculate_variable(gmax, vars)
+    calculate_variable(shear, vars)
+    calculate_variable(shat, vars)
+    calculate_variable(alphamhd, vars)
+    calculate_variable(gave, vars)
+    calculate_variable(etae, vars)
+    calculate_variable(etai, vars)
 
-    # Differential rmin needed for gradient calculations
+
+def calculate_inputs(cdf_vars):
+    '''
+    Calculates new variables needed for MMM and data display
+
+    Note that each use of the calculate_variable function below is passing in
+    the function of the variable to be calculated, which shares the same name
+    as the variable it calculates.
+
+    Parameters:
+    * cdf_vars (InputVariables): Variables object containing data from a CDF
+
+    Returns:
+    * vars (InputVariables): Variables object containing calculation results
+    '''
+
+    vars = copy.deepcopy(cdf_vars)
+
+    '''
+    Base Calculations:
+    * These are either MMM input variables or are needed for input calculations
+    * Some calculations depend on values from previous calculations
+    * Base calculations do not depend on gradient values
+    '''
+    calculate_variable(nh0, vars)
+    calculate_variable(nh, vars)
+    calculate_variable(ni, vars)
+    calculate_variable(ahyd, vars)
+    calculate_variable(aimass, vars)
+    calculate_variable(zeff, vars)
+    calculate_variable(btor, vars)
+    calculate_variable(bpol, vars)
+    calculate_variable(vpar, vars)
+
+    '''
+    Gradient Calculations:
+    * The sign on drmin (differential rmin) sets the sign of the gradient equation
+    * Note that everything but gq has a negative drmin
+    '''
     drmin = np.diff(vars.rmin.values, axis=0)
-
-    # Calculate gradients.  The sign on drmin sets the sign of the gradient equation
-    # Note that all normalized gradients below have a negative sign, other than gq
     calculate_gradient('gne', 'ne', -drmin, vars)
     calculate_gradient('gnh', 'nh', -drmin, vars)
     calculate_gradient('gni', 'ni', -drmin, vars)
     calculate_gradient('gnz', 'nz', -drmin, vars)
-    calculate_gradient('gnd', 'nd', -drmin, vars)
     calculate_gradient('gq', 'q', drmin, vars)
     calculate_gradient('gte', 'te', -drmin, vars)
     calculate_gradient('gti', 'ti', -drmin, vars)
@@ -511,13 +520,8 @@ def calculate_inputs(cdf_vars):
     calculate_gradient('gvpol', 'vpol', -drmin, vars)
     calculate_gradient('gvtor', 'vtor', -drmin, vars)
 
-    # Calculations dependent on gradient variables
-    calculate_variable(shear, vars)
-    calculate_variable(shat, vars)
-    calculate_variable(alphamhd, vars)
-    calculate_variable(gave, vars)
-    calculate_variable(etae, vars)
-    calculate_variable(etai, vars)
+    # Additional Calculations (some depend on gradient calculations)
+    calculate_additional_variables(vars)
 
     # Test variables are just used for testing calculations, and are not sent to the MMM driver
     calculate_variable(test, vars)
