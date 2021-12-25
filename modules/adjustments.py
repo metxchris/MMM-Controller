@@ -63,7 +63,7 @@ def _print_factors(scan_factor, adjusted_factor):
 
 def _get_nonzero_idx(values):
     '''
-    Gets the indices of a nonzero value from values at the specified measurement time
+    Gets the indices of a nonzero value from values at the previously specified measurement time
 
     Parameters:
     * values (np.ndarray): An array of variable data
@@ -395,46 +395,35 @@ def adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor):
     '''
 
     if var_to_scan == 'nuei':
-        '''Collision Frequency Scan'''
         adjusted_vars = _adjust_nuei(mmm_vars, scan_factor)
 
     elif var_to_scan == 'zeff':
-        '''Effective Charge Scan'''
         adjusted_vars = _adjust_zeff(mmm_vars, scan_factor)
 
     elif var_to_scan == 'tau':
-        '''Temperature Ratio Scan'''
         adjusted_vars = _adjust_tau(mmm_vars, scan_factor)
 
     elif var_to_scan == 'etae':
-        '''etae = gte/gne scan'''
         adjusted_vars = _adjust_etae(mmm_vars, scan_factor)
 
     elif var_to_scan == 'shear' or var_to_scan == 'gq':
-        '''Shear Scan (gq scan)'''
         adjusted_vars = _adjust_shear(mmm_vars, scan_factor)
 
     elif var_to_scan == 'btor' or var_to_scan == 'bz':
-        '''Toroidal Magnetic Field Scan (bz scan)'''
         adjusted_vars = _adjust_btor(mmm_vars, scan_factor)
 
     elif var_to_scan == 'betae':
-        '''Betae Scan'''
         adjusted_vars = _adjust_betae(mmm_vars, scan_factor)
 
     else:
-        '''Simple Scan (no advanced logic needed)'''
+        # Simple Scan (no advanced logic needed)
         adjusted_vars = deepcopy(mmm_vars)
         base_var = getattr(mmm_vars, var_to_scan)
         scanned_var = getattr(adjusted_vars, var_to_scan)
         scanned_var.values = scan_factor * base_var.values
 
-        '''
-        Simple Gradient Adjustments:
-        * Only recalculate additional variables, since recalculating all would undo the gradient adjustment
-        * Non-gradient base input variables do not depend on gradient values
-        '''
         if var_to_scan in ['gte', 'gti', 'gne', 'gnh', 'gni', 'gnz', 'gvpar', 'gvpol', 'gvtor']:
+            # Only recalculate additional variables when adjusting gradients (see module docstring)
             calculations.calculate_additional_variables(adjusted_vars)
 
         else:
