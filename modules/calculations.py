@@ -10,6 +10,17 @@ Variable Classifications:
 * Additional variable: A variable that is not needed for MMM input nor input
   calculations. Additional variables can depend on both base and gradient
   values.
+
+Calculations for base variables try to match the definition used by TRANSP,
+whenever possible.  In some cases, perfect matches cannot be obtained, since
+TRANSP doesn't save every variable we need for calculations.  For example,
+our vpar calculation is just an approximation for the TRANSP value of vpar,
+although the difference should be fairly negligible.
+
+Calculations for additional variables come directly from the MMM source files,
+and these sources will be noted as necessary in the calculation functions
+below.  The names of variables used here will either directly match or
+closely resemble the names of variables in MMM.
 """
 
 # Standard Packages
@@ -27,7 +38,7 @@ import modules.constants as constants
 
 
 def ahyd(calc_vars):
-    '''Mean atomic mass of hydrogenic ions (hydrogen + deuterium)'''
+    '''Mean Atomic Mass of Hydrogenic Ions (Hydrogen + Deuterium)'''
     nh0 = calc_vars.nh0.values
     nd = calc_vars.nd.values
 
@@ -131,7 +142,14 @@ def etae(calc_vars):
 
 
 def etai(calc_vars):
-    '''etae = gti / gni'''
+    '''
+    etae = gti / gni
+
+    Note that TRANSP appears to use an entirely different definition of ni
+    when calculating gni, than it uses for the values of ni itself.  As such,
+    our calculation of etai will generally not match with TRANSP values.
+    '''
+
     gti = calc_vars.gti.values
     gni = calc_vars.gni.values
 
@@ -271,7 +289,7 @@ def nuste(calc_vars):
 
     This is in approximate agreement with NUSTE in TRANSP.  One source of the
     disagreement is likely because the modmmm7_1.f90 Coulomb logarithm
-    (loge) does not match perfectly with the TRANSP version(CLOGE).  However,
+    (loge) does not match perfectly with the TRANSP version (CLOGE).  However,
     our Coulomb logarithm definition follows from the NRL plasma formulary,
     and we feel that it's use is correct here.
     '''
@@ -289,7 +307,7 @@ def nuste(calc_vars):
 
 def nusti(calc_vars):
     '''
-    Ion Collisionality (NUSTI = NU^{*}_{i})
+    Ion Collisionality
 
     OLD NOTE: This is approximately correct, but agreement is also somewhat
     time-dependent.  We likely need to use the Coulomb logarithm for ions in
@@ -310,7 +328,13 @@ def nusti(calc_vars):
 
 
 def shat(calc_vars):
-    '''Effective Magnetic Shear'''
+    '''
+    Effective Magnetic Shear
+
+    TRANSP uses a different definition for shat than we use here, so we expect
+    our values to be similar, but not a direct match.
+    '''
+
     elong = calc_vars.elong.values
     shear = calc_vars.shear.values
 
@@ -390,6 +414,16 @@ def zeff(calc_vars):
 
 
 def calculate_gradient(gvar_name, var_name, drmin, calc_vars):
+    '''
+    Calculates the normalized gradient
+
+    Parameters:
+    * gvar_name (str): The name of the variable to store the gradient result
+    * var_name (str): The name of the variable to take the gradient of
+    * drmin (np.ndarray): Differential rmin
+    * calc_vars (InputVariables): Object containing variable data
+    '''
+
     rmaj = calc_vars.rmaj.values
     x = calc_vars.x.values[:, 0]
     xb = calc_vars.xb.values[:, 0]  # includes origin
@@ -423,7 +457,24 @@ def calculate_gradient(gvar_name, var_name, drmin, calc_vars):
 
 
 def calculate_variable(var_function, calc_vars):
-    '''Calculate the specified variable'''
+    '''
+    Calculates the specified variable
+
+    Values are saved to the input variables object by reference, so no return
+    statements are needed.  After these values are calculated, we also apply
+    optional smoothing, check variable minimum values, and check for nan
+    values in the event that any errors occurred.  Note that the name of
+    var_function must match the name of the variable in InputVariables in
+    order for the calculation to be correctly called.
+
+    This function was implemented in such a way that each variable can be
+    checked as needed after completing it's calculation as if a callback
+    function was passed to the calculation directly.
+
+    Parameters:
+    * var_function (function): Local function of the variable to calculate
+    * calc_vars (InputVariables): Object containing variable data
+    '''
 
     var_function(calc_vars)
 

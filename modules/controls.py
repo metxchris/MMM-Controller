@@ -85,7 +85,7 @@ class InputControls:
         self.etgm_kyrhoe.values = max(0, self.etgm_kyrhoe.values)
 
     def get_mmm_header(self):
-        if type (self.npoints.values) is np.ndarray:
+        if type(self.npoints.values) is np.ndarray:
             raise ValueError('Unable to create MMM header for controls loaded with array values')
 
         return MMM_HEADER.format(

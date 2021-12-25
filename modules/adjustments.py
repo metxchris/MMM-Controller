@@ -195,8 +195,10 @@ def _adjust_nuei(mmm_vars, scan_factor):
     adjustment_total = scan_factor**(-2 / 5)  # based on the formula for nuei
     adjustment_step = adjustment_total
 
-    # Make adjustments to ne and te until the adjustment_total is found
-    # The adjustment finding loop typically finds the target within 6 attempts for a tolerance of 1e-4
+    # Make adjustments to ne and te until the adjustment_total is found The
+    # adjustment finding loop typically finds the target within 6 attempts
+    # for a tolerance of 1e-4
+
     for i in range(max_adjustment_attempts):
 
         adjusted_vars.ne.values /= adjustment_step
@@ -218,7 +220,7 @@ def _adjust_nuei(mmm_vars, scan_factor):
             _print_factors(scan_factor, adjustment_total)
             raise ValueError(f'nuei factor could not be found after {i + 1} attempts')
 
-        # Make an adjustment_step based on the difference in the current_factor and our desired scan_factor
+        # Make an adjustment_step based on the difference in the current_factor and scan_factor
         adjustment_step = 1 + (current_factor - scan_factor) / (2 * scan_factor)
         adjustment_total *= adjustment_step
 
@@ -275,9 +277,10 @@ def _adjust_zeff(mmm_vars, scan_factor):
     and are not updated from the adjustment of ne. Unlike other adjustments,
     the amount that zeff changes is different at each point of rho, meaning
     the adjustment is nonlinear. Therefore, the adjusted factor is checked
-    for the change in nz after all recalculations, instead of for the change
-    in zeff.  This means that zeff *DOES NOT* change by the value of the scan
-    factor, which is a departure for how adjustments generally work.
+    against the change in nz after all recalculations, instead of against the
+    change in zeff.  This means that zeff *DOES NOT* change by the value of
+    the scan factor, which is a departure for how adjustments generally
+    work.
 
     Parameters:
     * mmm_vars (InputVariables): Contains unmodified variables
