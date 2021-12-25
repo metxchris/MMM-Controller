@@ -396,6 +396,6 @@ def initialize_variables():
 
     raw_cdf_vars = read_cdf.read_cdf()
     cdf_vars = conversions.convert_variables(raw_cdf_vars)
-    mmm_vars = calculations.calculate_inputs(cdf_vars)
+    mmm_vars = calculations.calculate_new_variables(cdf_vars)
 
     return mmm_vars, cdf_vars, raw_cdf_vars

@@ -21,9 +21,10 @@ def execute_basic_run(mmm_vars, controls):
     '''
     Executes a single MMM run, without varying any input parameters
 
-    Creates an input file for the MMM driver using mmm_vars.  The MMM driver is then ran, which
-    produces an output file.  This output file is parsed and a CSV of both the input and output
-    data are stored, and an output profile PDF is created.
+    Creates an input file for the MMM driver using mmm_vars.  The MMM driver
+    is then ran, which produces an output file.  This output file is parsed
+    and a CSV of both the input and output data are stored, and an output
+    profile PDF is created.
 
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
@@ -37,19 +38,22 @@ def execute_basic_run(mmm_vars, controls):
 
 def execute_variable_scan(mmm_vars, controls):
     '''
-    Executes an input variable scan, where the values of an input variable are varied over a
-    specified range and are then sent to the MMM driver for each value of the range
+    Executes an input variable scan, where the values of an input variable are
+    varied over a specified range and are then sent to the MMM driver for
+    each value of the range
 
-    Create a copy of mmm_vars as modified_vars to keep variables that are modified over the course
-    of the scan separate from base MMM input variables.  For each factor of the scan_range, we
-    modify the value of the specified var_to_scan, and then adjust any dependent variables. The MMM
-    driver is ran each time var_to_scan is adjusted, and all input and output variable data is
-    saved to a subfolder named after var_to_scan.  Afterwards, the saved CSV data is reshaped into
-    data dependent on the scanned parameter, and is saved to another set of CSV within a new
+    Create a copy of mmm_vars as modified_vars to keep variables that are
+    modified over the course of the scan separate from base MMM input
+    variables.  For each factor of the scan_range, we modify the value of the
+    specified var_to_scan, and then adjust any dependent variables. The MMM
+    driver is ran each time var_to_scan is adjusted, and all input and output
+    variable data is saved to a subfolder named after var_to_scan.
+    Afterwards, the saved CSV data is reshaped into data dependent on the
+    scanned parameter, and is saved to another set of CSV within a new
     subfolder labeled rho.
 
-    Parameter scan PDFs are not produced here, and the output data is intended to be plotted by a
-    separate process after the scan is complete.
+    Parameter scan PDFs are not produced here, and the output data is intended
+    to be plotted by a separate process after the scan is complete.
 
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write the MMM input file
@@ -74,11 +78,12 @@ def execute_variable_scan(mmm_vars, controls):
 
 def execute_control_scan(mmm_vars, controls):
     '''
-    Executes an input control scan, where the values of an input control are varied over a specified
-    range and are then sent to the MMM driver for each value of the range
+    Executes an input control scan, where the values of an input control are
+    varied over a specified range and are then sent to the MMM driver for
+    each value of the range
 
-    Parameter scan PDFs are not produced here, and the output data is intended to be plotted by a
-    separate process after the scan is complete.
+    Parameter scan PDFs are not produced here, and the output data is intended
+    to be plotted by a separate process after the scan is complete.
 
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
@@ -112,9 +117,10 @@ def run_mmm_controller(controls):
     '''
     Controller function which runs the MMM driver
 
-    Needed output folders are created and a unique scan number is chosen for storing output data.
-    All input variable objects are initialized and corresponding plot PDFs are created.  The MMM
-    driver is then ran once, and then an optional variable scan can be ran afterwards.
+    Needed output folders are created and a unique scan number is chosen for
+    storing output data. All input variable objects are initialized and
+    corresponding plot PDFs are created.  The MMM driver is then ran once,
+    and then an optional variable scan can be ran afterwards.
 
     Parameters:
     * controls (InputControls): Specifies input control values in the MMM input file
