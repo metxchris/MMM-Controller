@@ -56,10 +56,9 @@ class OptionsData:
 
     @apply_smoothing.setter
     def apply_smoothing(self, apply_smoothing):
-        if type(apply_smoothing) is bool:
-            self._apply_smoothing = apply_smoothing
-        else:
-            raise TypeError(f'apply_smoothing must be a bool and not {type(apply_smoothing)}')
+        if not isinstance(apply_smoothing, bool):
+            raise TypeError(f'apply_smoothing must be {bool} and not {type(apply_smoothing)}')
+        self._apply_smoothing = apply_smoothing
 
     @property
     def input_points(self):
@@ -93,7 +92,7 @@ class OptionsData:
 
     @runid.setter
     def runid(self, runid):
-        if type(runid) is not str:
+        if not isinstance(runid, str):
             raise TypeError(f'runid must be set to a {str} and not {type(runid)}')
         self._runid = runid.strip()
 
@@ -112,7 +111,7 @@ class OptionsData:
     @scan_range.setter
     def scan_range(self, scan_range):
         if scan_range is not None:
-            if type(scan_range) is not np.ndarray:
+            if not isinstance(scan_range, np.ndarray):
                 raise TypeError(f'scan_range must be {np.ndarray} or {None} and not {type(scan_range)}')
             too_small = np.absolute(scan_range) < constants.ABSMIN_SCAN_FACTOR_VALUE
             if too_small.any():
@@ -191,9 +190,8 @@ class OptionsData:
 
     def get_key_value_pairs(self):
         '''Returns (list): All key-value pairs of options'''
-
         options = self.get_keys()
-        return [str(o) + ': ' + str(getattr(self, o)).replace('\n', '') for o in options]
+        return [f'{o}: ' + str(getattr(self, o)).replace("\n", "") for o in options]
 
     def set(self, **kwargs):
         for key, value in kwargs.items():
@@ -224,9 +222,9 @@ class OptionsData:
         # Options are also written to a CSV to make viewing their values easier
         csv_path = pickle_path.replace('.pickle', '.csv')
         options_values = self.get_key_value_pairs()
-        f = open(csv_path, 'w')
-        for option in options_values:
-            f.write(f'{option}\n')
+        with open(csv_path, 'w') as handle:
+            for option in options_values:
+                handle.write(f'{option}\n')
 
         print(f'Options saved to {pickle_path}\n')
 

@@ -1,9 +1,15 @@
 """Runs MMM using the provided wrapper
 
 This module controls all operation of MMM.  Input data is first written to an
-input file in MMM format.  Next, the MMM driver is ran using a terminal
+input file in MMM format.  Next, the MMM wrapper is ran using a terminal
 command, which produces an output CSV upon completion.  Afterwards, the
 output data is read into an OutputVariables object.
+
+TODO:
+* This module can potentially be replaced by F2PY - Calling Fortran routines
+  from Python, which would eliminate the overhead involved with reading and
+  writing input and output files (the MMM wrapper also reads and writes
+  files)
 """
 
 # Standard Packages
@@ -50,29 +56,28 @@ def run_wrapper(input_vars, controls):
     '''
 
     # Create input file in temp directory
-    f = open(_input_file, 'w')
-    f.write(controls.get_mmm_header())
+    with open(_input_file, 'w') as f:
+        f.write(controls.get_mmm_header())
 
-    # Loop through MMM variables and write input variable labels and values
-    var_names = input_vars.get_vars_of_type(SaveType.INPUT)
-    for var_name in var_names:
-        var = getattr(input_vars, var_name)
-        units_str = f' [{var.units}]' if var.units else ''
-        f.write(f'! {var.name}{units_str}\n')
-        f.write(f'{var_name} = \n')
+        # Loop through MMM variables and write input variable labels and values
+        var_names = input_vars.get_vars_of_type(SaveType.INPUT)
+        for var_name in var_names:
+            var = getattr(input_vars, var_name)
+            units_str = f' [{var.units}]' if var.units else ''
+            f.write(f'! {var.name}{units_str}\n')
+            f.write(f'{var_name} = \n')
 
-        values = var.values[:, options.instance.time_idx]
-        for value in values:
-            f.write(f'   {constants.INPUT_VARIABLE_VALUE_FMT_STR}\n'.format(value))
-        f.write('\n')
+            values = var.values[:, options.instance.time_idx]
+            for value in values:
+                f.write(f'   {value:{constants.INPUT_VARIABLE_VALUE_FMT}}\n')
+            f.write('\n')
 
-    f.write('/\n')  # Needed for the MMM wrapper to know that the input file has ended
-    f.close()
+        f.write('/\n')  # Needed for the MMM wrapper to know that the input file has ended
 
     # Issue terminal command to run MMM
     result = subprocess.run(settings.MMM_DRIVER_PATH, cwd=_tmp_path,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                            universal_newlines=True, shell=True)
+                            universal_newlines=True)
 
     print(result.stdout)  # Only prints after MMM finishes running
 

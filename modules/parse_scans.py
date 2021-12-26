@@ -20,7 +20,7 @@ def read_from_files(file_list, dtype):
     * dtype (str or float): The data type in each file of file_list
 
     Returns:
-    * (np.ndarray): Array of np.ndarrays, where each sub array contains data from a CSV
+    * (np.ndarray): Array of np.ndarrays; each sub array contains data from a CSV
     '''
 
     data_list = []
@@ -45,7 +45,7 @@ def reshape_data(data_array, var_names):
     * var_names (list): List of names from the header of the CSV
 
     Returns:
-    * reshaped_data (list): List of arrays, where each array is a different rho value
+    * reshaped_data (list): List of arrays; each array is a different rho value
     '''
 
     num_radial_points = data_array.shape[1]
@@ -98,9 +98,9 @@ def save_simple_csv(data, var_names, save_dir, save_type):
     * save_type (str): The name of the data type to be saved
     '''
 
-    file_name = f'{save_dir}\\{save_type}'
+    file_name = f'{save_dir}\\{save_type}.csv'
     header_str = ','.join(var_names)
-    np.savetxt(f'{file_name}.csv', data, fmt='%.4e', delimiter=',', header=header_str)
+    np.savetxt(file_name, data, fmt='%.4e', delimiter=',', header=header_str)
 
 
 def create_rho_files():
