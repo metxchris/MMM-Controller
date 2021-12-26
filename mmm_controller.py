@@ -17,7 +17,7 @@ import plotting.modules.profiles as profiles
 from modules.enums import ShotType, ScanType, ProfileType
 
 
-def execute_basic_run(mmm_vars, input_controls):
+def _execute_basic_run(mmm_vars, input_controls):
     '''
     Executes a single MMM run, without varying any input parameters
 
@@ -31,12 +31,12 @@ def execute_basic_run(mmm_vars, input_controls):
     * input_controls (InputControls): Specifies input control values in the MMM input file
     '''
 
-    output_vars = mmm.run_driver(mmm_vars, input_controls)
+    output_vars = mmm.run_wrapper(mmm_vars, input_controls)
     output_vars.save_all_vars(options.instance)
     profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
 
 
-def execute_variable_scan(mmm_vars, input_controls):
+def _execute_variable_scan(mmm_vars, input_controls):
     '''
     Executes an input variable scan, where the values of an input variable are
     varied over a specified range and are then sent to the MMM driver for
@@ -67,16 +67,15 @@ def execute_variable_scan(mmm_vars, input_controls):
         print(f'Executing variable scan {i + 1} of {len(scan_range)} for variable {var_to_scan}')
         adjusted_vars = adjustments.adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor)
         adjusted_vars.save_all_vars(options.instance, scan_factor)
-        output_vars = mmm.run_driver(adjusted_vars, input_controls)
+        output_vars = mmm.run_wrapper(adjusted_vars, input_controls)
         output_vars.save_all_vars(options.instance, scan_factor)
 
-    # Reshape scanned CSV into new CSV dependent on the scanned parameter
-    parse_scans.parse_scan_csv()
+    parse_scans.create_rho_files()  # Creates CSVs in the rho folder
 
     print('\nVariable scan complete!')
 
 
-def execute_control_scan(mmm_vars, input_controls):
+def _execute_control_scan(mmm_vars, input_controls):
     '''
     Executes an input control scan, where the values of an input control are
     varied over a specified range and are then sent to the MMM driver for
@@ -93,8 +92,10 @@ def execute_control_scan(mmm_vars, input_controls):
     var_to_scan = options.instance.var_to_scan
     scan_range = options.instance.scan_range
 
-    # Create reference to control being scanned in InputControls
-    # Modifying scanned_control values will modify its corresponding values in adjusted_controls
+    # Create a reference to control being scanned in InputControls. Modifying
+    # scanned_control values will modify its corresponding values in
+    # adjusted_controls
+
     adjusted_controls = deepcopy(input_controls)
     scanned_control = getattr(adjusted_controls, var_to_scan)
     base_control = getattr(input_controls, var_to_scan)
@@ -104,55 +105,22 @@ def execute_control_scan(mmm_vars, input_controls):
         scanned_control.values = scan_factor * base_control.values
         mmm_vars.save_all_vars(options.instance, scan_factor)
         adjusted_controls.save_to_csv(options.instance, scan_factor)
-        output_vars = mmm.run_driver(mmm_vars, adjusted_controls)
+        output_vars = mmm.run_wrapper(mmm_vars, adjusted_controls)
         output_vars.save_all_vars(options.instance, scan_factor)
 
-    # Reshaped scanned CSV into new CSV dependent on the scanned parameter
-    parse_scans.parse_scan_csv()
+    parse_scans.create_rho_files()  # Creates CSVs in the rho folder
 
-    print('\nVariable scan complete!')
+    print('\nInput control scan complete!')
 
 
-def run_mmm_controller(input_controls):
+def main(scanned_vars, input_controls):
     '''
-    Controller function which runs the MMM driver
+    Runs the MMM controller
 
     Needed output folders are created and a unique scan number is chosen for
     storing output data. All input variable objects are initialized and
     corresponding plot PDFs are created.  The MMM driver is then ran once,
     and then an optional variable scan can be ran afterwards.
-
-    Parameters:
-    * input_controls (InputControls): Specifies input control values in the MMM input file
-    '''
-
-    print('Running MMM Controller...\n')
-
-    utils.clear_temp_folder()
-    utils.init_output_dirs(options.instance)
-
-    mmm_vars, cdf_vars, __ = utils.initialize_variables()
-
-    options.instance.save_options()  # TODO: Create an event to save options
-    input_controls.update_from_options(options.instance)
-    input_controls.save_to_csv(options.instance)
-    mmm_vars.save_all_vars(options.instance)
-
-    profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
-    profiles.plot_profiles(ProfileType.ADDITIONAL, mmm_vars)
-    profiles.plot_profiles(ProfileType.COMPARED, mmm_vars, cdf_vars)
-
-    execute_basic_run(mmm_vars, input_controls)
-
-    if options.instance.scan_type == ScanType.VARIABLE:
-        execute_variable_scan(mmm_vars, input_controls)
-    elif options.instance.scan_type == ScanType.CONTROL:
-        execute_control_scan(mmm_vars, input_controls)
-
-
-def main(scanned_vars, input_controls):
-    '''
-    Main function that loops runs the controller while looping through scanned_vars
 
     Parameters:
     * scanned_vars (Dict): Dictionary of variables being scanned
@@ -165,7 +133,30 @@ def main(scanned_vars, input_controls):
 
     for var_to_scan, scan_range in scanned_vars.items():
         options.instance.set(var_to_scan=var_to_scan, scan_range=scan_range)
-        run_mmm_controller(input_controls)
+
+        print(f'Running MMM Controller...\n')
+
+        utils.clear_temp_folder()
+        utils.init_output_dirs(options.instance)
+
+        mmm_vars, cdf_vars, __ = utils.initialize_variables()
+
+        options.instance.save_options()  # Need to be saved after variable initialization
+        input_controls.update_from_options(options.instance)
+        input_controls.save_to_csv(options.instance)
+        mmm_vars.save_all_vars(options.instance)
+
+        profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
+        profiles.plot_profiles(ProfileType.ADDITIONAL, mmm_vars)
+        profiles.plot_profiles(ProfileType.COMPARED, mmm_vars, cdf_vars)
+
+        # Basic runs create output profile plots and save output profile CSVs
+        _execute_basic_run(mmm_vars, input_controls)
+
+        if options.instance.scan_type == ScanType.VARIABLE:
+            _execute_variable_scan(mmm_vars, input_controls)
+        elif options.instance.scan_type == ScanType.CONTROL:
+            _execute_control_scan(mmm_vars, input_controls)
 
 
 # Run this file directly to plot variable profiles and run the MMM driver
@@ -239,6 +230,6 @@ if __name__ == '__main__':
         etgm_exbs=1,
     )
 
-    settings.AUTO_OPEN_PDFS = 1
+    settings.AUTO_OPEN_PDFS = 0
 
     main(scanned_vars, input_controls)

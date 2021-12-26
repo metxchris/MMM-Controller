@@ -1,3 +1,12 @@
+"""Contains various utility functions used by the MMM controller package
+
+Paths to all directories are stored in different functions here, in a
+centralized location for other modules to use.  Adjusting the format of a
+path here should not disrupt the creation of new scans, but will likely break
+old scan data from being read. Several other directory and file related
+operations are stored here as well.
+"""
+
 # Standard Packages
 import os
 import glob
@@ -95,6 +104,9 @@ def init_output_dirs(options):
 
     Parameters:
     * options (OptionsData): A reference to Options.instance
+
+    Raises:
+    * ValueError: If the runid in options is None
     '''
 
     if options.runid is None:
@@ -117,6 +129,9 @@ def set_scan_num(runid):
 
     Returns:
     * scan_num (int): The chosen scan number
+
+    Raises:
+    * ValueError: If there are too many scan number directories
     '''
 
     num_range = range(100, 10000)
@@ -128,7 +143,7 @@ def set_scan_num(runid):
             break
 
     if scan_num == max(num_range):
-        raise NameError(f'Maximum scan number reached {max(num_range)}! Clear some directories to continue')
+        raise ValueError(f'Maximum scan number reached {max(num_range)}! Clear some directories to continue')
 
     return scan_num
 
@@ -147,11 +162,12 @@ def create_directory(dir_name):
 
 def check_filename(file_path, file_extension):
     '''
-    Checks if file exists and returns a new file path if the checked file exists.
+    Checks if file exists and returns a file path
 
-    A number in the form of (#) is appended to the end of the file path in the event that
-    the file already exists.  This is done so that files are not overwritten in an existing directory.
-    An exception is raised if too many duplicate files already exist.
+    A number in the form of (#) is appended to the end of the file path in the
+    event that the file already exists.  This is done so that files are not
+    overwritten in an existing directory. An exception is raised if too many
+    duplicate files already exist.
 
     Parameters:
     * file_path (str): Path to where the file might exist
@@ -159,6 +175,9 @@ def check_filename(file_path, file_extension):
 
     Returns:
     * file_path (str): Path to file that does not exist
+
+    Raises:
+    * ValueError: If too many duplicate files exist for the checked file
     '''
 
     if os.path.exists(file_path):
@@ -171,24 +190,28 @@ def check_filename(file_path, file_extension):
                 break
 
         if i == max(num_range):
-            raise NameError(f'Too many duplicate files exist to save {file_path}')
+            raise ValueError(f'Too many duplicate files exist to save {file_path}')
 
     return file_path
 
 
 def check_dirname(dir_path):
     '''
-    Checks if directory exists and returns a new directory name if the checked directory exists.
+    Checks if directory exists and returns a unique directory name
 
-    A number in the form of (#) is appended to the end of the directory name in the event that
-    the directory already exists.  This is done so that files are not overwritten in an existing directory.
-    An exception is raised if too many duplicate directories already exist.
+    A number in the form of (#) is appended to the end of the directory name
+    in the event that the directory already exists.  This is done so that
+    files are not overwritten in an existing directory. An exception is
+    raised if too many duplicate directories already exist.
 
     Parameters:
     * dir_path (str): Path to directory
 
     Returns:
     * dir_path (str): Path to directory that does not exist yet
+
+    Raises:
+    * ValueError: If too many duplicate directories exist for the checked directory
     '''
 
     if os.path.isdir(dir_path):
@@ -200,7 +223,7 @@ def check_dirname(dir_path):
                 break
 
         if i == max(num_range):
-            raise NameError(f'Too many duplicate directories exist to save directory {dir_path}')
+            raise ValueError(f'Too many duplicate directories exist to save directory {dir_path}')
 
     return dir_path
 
@@ -245,6 +268,7 @@ def get_files_in_dir(dir_path, file_type='', show_warning=True):
     Parameters:
     * dir_path (str): Path of directory
     * file_type (str): Type of file to search for (include * in the string)
+    * show_warning (bool): Prints a warning if files aren't found (optional)
 
     Returns:
     * file_names (list): List of file names
@@ -261,10 +285,13 @@ def get_files_in_dir(dir_path, file_type='', show_warning=True):
 
 def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=None, scan_factor=None):
     '''
-    Merge PDF sheets using Pdftk in the temp folder into a single PDF, then place the merged PDF in the output folder.
+    Merges individual PDF sheets into a single PDF
 
-    Pdftk is a 3rd party executable that is used to merge individual PDF sheets into one PDF,
-    and is called using a shell command.
+    Pdftk (server edition) is a 3rd party executable that is used to merge
+    individual PDF sheets into one PDF, and is called using a shell command.
+    Pdftk must be correctly installed in the top-level "pdftk" folder in
+    order for this function to work.  See the readme file in the pdftk folder
+    for installation instructions for pdftk.exe.
 
     Parameters:
     * runid (str): The name of the CDF
@@ -276,6 +303,9 @@ def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=
 
     Returns:
     * output_file (str): Path to merged PDF
+
+    Raises:
+    * NotImplementedError: If a merge_type does not have an output path
     '''
 
     if merge_type == MergeType.PROFILES:
@@ -290,9 +320,11 @@ def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=
         output_path = get_merged_rho_path(runid, scan_num, var_to_scan)
         output_file = f'{output_path}\\{runid} {profile_type}.pdf'
     else:
-        raise TypeError(f'No output path defined for {merge_type}')
+        raise NotImplementedError(f'No output path defined for {merge_type}')
 
-    # Output directory creation only needed if sheets are being created outside of main mmm_controller.py execution
+    # Output directory creation only needed if sheets are being created
+    # outside of mmm_controller.py execution
+
     create_directory(output_path)
     output_file = check_filename(output_file, '.pdf')
     temp_path = get_temp_path()
@@ -306,32 +338,39 @@ def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=
     return output_file
 
 
-def sci_notation(num, decimal_digits=1, precision=None, exponent=None):
+def convert_sci_notation(number, precision=1):
     '''
-    Returns a string representation of the scientific
-    notation of the given number formatted for use with
-    LaTeX or Mathtext, with specified number of significant
-    decimal digits and precision (number of decimal digits
-    to show). The exponent to be used can also be specified
-    explicitly.
+    Converts a number into scientific notation for use with LaTeX formatting
+
+    Example:
+    * 1.233e4 converts to $1.2\\times 10^{4}$
+
+    Parameters:
+    * number (float): The number to convert into scientific notation
+    * precision (int): The number of decimal digits to show (optional)
+
+    Returns:
+    * (str): The string representing the scientific notation of the number
     '''
 
-    if exponent is None:
-        exponent = int(floor(log10(abs(num))))
-    coeff = round(num / float(10**exponent), decimal_digits)
-    if precision is None:
-        precision = decimal_digits
-
-    return r'${0:.{2}f}\times 10^{{{1:d}}}$'.format(coeff, exponent, precision)
+    exponent = int(floor(log10(abs(number))))
+    coeff = number / float(10**exponent)
+    return f'${coeff:.{precision}f}\\times 10^{{{exponent:d}}}$'
 
 
 def get_all_rho_data(runid, scan_num, var_to_scan):
     '''
-    Creates dictionaries that map rho values to InputVariables and OutputVariables objects
+    Creates dictionaries that map rho values to InputVariables and
+    OutputVariables objects
 
-    Data is loaded from CSVs stored in the rho folder of the runid, scan_num, and var_to_scan
-    currently stored in Options.instance. A list of rho values for the scan is created from
-    the filenames of the CSVs.
+    Data is loaded from CSVs stored in the rho folder of the runid, scan_num,
+    and var_to_scan currently stored in Options.instance. A list of rho
+    values for the scan is created from the filenames of the CSVs.
+
+    Parameters:
+    * runid (str): The runid of the saved data
+    * scan_num (int): The scan number of the saved data
+    * var_to_scan (str): The variable that was scanned in the saved data
 
     Returns:
     * input_vars_dict (dict): Dictionary mapping rho values (str) to InputVariables input data
@@ -364,7 +403,11 @@ def get_all_rho_data(runid, scan_num, var_to_scan):
 
 def get_base_data(runid, scan_num):
     '''
-    Gets all data pertaining to the base value of the scanned variable
+    Gets all data pertaining to the unmodified values of the scanned variable
+
+    Parameters:
+    * runid (str): The runid of the saved data
+    * scan_num (int): The scan number of the saved data
 
     Returns:
     * input_vars (InputVariables): Object containing base input variable data
@@ -391,7 +434,7 @@ def initialize_variables():
     Returns:
     * mmm_vars (InputVariables): All calculated variables, interpolated onto a grid of size input_points
     * cdf_vars (InputVariables): All CDF variables, interpolated onto a grid of size input_points
-    * raw_cdf_vars (InputVariables): All unedited CDF variables (saved for troubleshooting)
+    * raw_cdf_vars (InputVariables): All unedited CDF variables
     '''
 
     raw_cdf_vars = read_cdf.read_cdf()

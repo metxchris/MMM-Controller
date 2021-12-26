@@ -32,12 +32,13 @@ def read_from_files(file_list, dtype):
 
 def reshape_data(data_array, var_names):
     '''
-    Reshapes data as a function of rho to data as a function of the scanned parameter
+    Reshapes data as a function of rho to data as a function of the scanned
+    parameter
 
-    Variable headers remain the same in the reshaped_data list as they are in data_array.
-    Each array within reshaped_data corresponds to one value of rho.  For example,
-    reshaped_data[0] will correspond to all variable data corresponding to the first value
-    of rho, which is usually rho = 0.
+    Variable headers remain the same in the reshaped_data list as they are in
+    data_array. Each array within reshaped_data corresponds to one value of
+    rho.  For example, reshaped_data[0] will correspond to all variable data
+    corresponding to the first value of rho, which is usually rho = 0.
 
     Parameters:
     * data_array (np.ndarray): Array of arrays, where each sub array corresponds to a CSV
@@ -66,8 +67,8 @@ def save_reshaped_csv(reshaped_data, var_names, save_dir, save_type):
     '''
     Saves data reshaped as a function of the scanned parameter to CSV files.
 
-    One CSV file is created for each value of rho (specified in each file name), for both input
-    and output data.
+    One CSV file is created for each value of rho (specified in each file
+    name), for both input and output data.
 
     Parameters:
     * reshaped_data (list): List of np.ndarray's, where each array corresponds to a CSV to save
@@ -102,14 +103,17 @@ def save_simple_csv(data, var_names, save_dir, save_type):
     np.savetxt(f'{file_name}.csv', data, fmt='%.4e', delimiter=',', header=header_str)
 
 
-def parse_scan_csv():
+def create_rho_files():
     '''
-    Parses all CSVs from a scan of var_to_scan and creates new CSVs for each rho point.
+    Parses all CSVs from a scan of var_to_scan and creates new CSVs for each
+    rho point.
 
-    The new CSVs are stored in './output/cdf_name/var_to_scan/rho', relative to the top level directory.
-    Each CSV in the rho folder will correspond to one rho value of the scan, where data in these CSV will
-    be a function of the scanned parameter.  When doing a control scan, only one CSV of controls will
-    be created in the rho folder, since input controls are independent of rho.
+    The new CSVs are stored in './output/cdf_name/var_to_scan/rho', relative
+    to the top level directory. Each CSV in the rho folder will correspond to
+    one rho value of the scan, where data in these CSV will be a function of
+    the scanned parameter.  When doing a control scan, only one CSV of
+    controls will be created in the rho folder, since input controls are
+    independent of rho.
     '''
 
     opts = options.instance
@@ -120,7 +124,8 @@ def parse_scan_csv():
     for save_type in save_types:
         saved_files = utils.get_files_in_dir(scanned_dir, f'{save_type.name.capitalize()}*')
         # Obtain negative factors by checking for negative signs in the value of the factor
-        negative_factors = [file for file in saved_files if '-' in file.split(constants.SCAN_FACTOR_VALUE_SEPARATOR)[1]]
+        negative_factors = ([file for file in saved_files
+                             if '-' in file.split(constants.SCAN_FACTOR_VALUE_SEPARATOR)[1]])
         non_negative_factors = [file for file in saved_files if file not in negative_factors]
         # Sort negative factors in reverse order (e.g., -6, -5, -4, etc.), then join with non negative factors
         saved_files = negative_factors[::-1] + non_negative_factors
@@ -159,4 +164,4 @@ if __name__ == '__main__':
     opts.var_to_scan = 'shear'
     opts.scan_range = np.arange(1)
     utils.clear_folder(utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan), '*.csv')
-    parse_scan_csv()
+    create_rho_files()

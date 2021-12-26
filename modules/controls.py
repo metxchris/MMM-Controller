@@ -18,7 +18,7 @@ class InputControls:
     * Controls defined here are will be placed into the header of the MMM input file
     * Controls with vtype=int are expected as Fortran Integer types in the input file
     * Controls with vtype=float are expected as Fortran Real types in the input file
-    * Values defined here are default values
+    * The value defined in each Control object is the default value of that control
     '''
 
     def __init__(self, options=None):

@@ -21,6 +21,10 @@ Calculations for additional variables come directly from the MMM source files,
 and these sources will be noted as necessary in the calculation functions
 below.  The names of variables used here will either directly match or
 closely resemble the names of variables in MMM.
+
+TODO:
+* Consider replacing interp1d with Akima1DInterpolator, since TRANSP
+  apparently uses this method of interpolation.
 """
 
 # Standard Packages
@@ -30,7 +34,7 @@ import inspect
 
 # 3rd Party Packages
 import numpy as np
-from scipy.interpolate import interp1d  # TODO: use Akima1DInterpolator?
+from scipy.interpolate import interp1d
 
 # Local Packages
 import modules.options as options

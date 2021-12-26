@@ -60,7 +60,7 @@ Adjustment Methodology:
   indirectly multiply betae by the value of the scan factor.
 
 Example Usage:
-  * new_vars = adjust_scanned_variable(original_vars, 'tau', 2.5)
+* new_vars = adjust_scanned_variable(original_vars, 'tau', 2.5)
 """
 
 # Standard Packages
