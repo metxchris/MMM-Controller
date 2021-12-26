@@ -307,8 +307,7 @@ def convert_variables(cdf_vars):
         # no exceptions are raised for fixing these issues
         mmm_var.set_minvalue(raise_exception=False)
 
-    # Update x from xb (x is the grid between xb, and has one fewer point than xb)
-    mmm_vars.x.values = (mmm_vars.xb.values[0:-1, :] + mmm_vars.xb.values[1:, :]) / 2
+    mmm_vars.set_x_values()
     mmm_vars.set_rho_values()
 
     return mmm_vars

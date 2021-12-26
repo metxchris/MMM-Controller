@@ -9,7 +9,8 @@ TODO:
 * This module can potentially be replaced by F2PY - Calling Fortran routines
   from Python, which would eliminate the overhead involved with reading and
   writing input and output files (the MMM wrapper also reads and writes
-  files)
+  files).  Although, it appears that MMM would need to be compiled with a
+  fixed number of input points in order to be compatible with F2PY.
 """
 
 # Standard Packages

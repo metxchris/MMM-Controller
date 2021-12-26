@@ -314,10 +314,13 @@ class InputVariables(Variables):
         self.gvtor = Variable('Toroidal Velocity Gradient', label=r'$g_{v_\phi}$',
                               save_type=SaveType.INPUT)
 
-        # Test Variables
-        self.test = Variable('Test Variable')
-        self.test2 = Variable('Test Variable 2')
-        self.gtest = Variable('Test Variable Gradient')
+    def set_x_values(self):
+        '''
+        Sets x from xb
+
+        x is the grid between xb, and has one fewer point than xb.
+        '''
+        self.x.values = (self.xb.values[0:-1, :] + self.xb.values[1:, :]) / 2
 
     def get_vars_of_type(self, save_type):
         '''Returns (list of str): List of all variables with the specified save_type'''
