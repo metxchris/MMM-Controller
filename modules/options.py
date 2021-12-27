@@ -107,7 +107,7 @@ class Options:
 
     @scan_range.setter
     def scan_range(self, scan_range):
-        if scan_range:
+        if scan_range is not None:
             if not isinstance(scan_range, np.ndarray):
                 raise TypeError(f'scan_range must be {np.ndarray} or {None} and not {type(scan_range)}')
             too_small = np.absolute(scan_range) < constants.ABSMIN_SCAN_FACTOR_VALUE

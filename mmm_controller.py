@@ -89,6 +89,8 @@ def _execute_control_scan(mmm_vars, input_controls):
     * input_controls (InputControls): Specifies input control values in the MMM input file
     '''
 
+    runid = options.instance.runid
+    scan_num = options.instance.scan_num
     var_to_scan = options.instance.var_to_scan
     scan_range = options.instance.scan_range
 
@@ -104,7 +106,7 @@ def _execute_control_scan(mmm_vars, input_controls):
         print(f'Executing control scan {i + 1} of {len(scan_range)} for control {var_to_scan}')
         scanned_control.values = scan_factor * base_control.values
         mmm_vars.save_all_vars(options.instance, scan_factor)
-        adjusted_controls.save_to_csv(options.instance, scan_factor)
+        adjusted_controls.save_to_csv(runid, scan_num, var_to_scan, scan_factor)
         output_vars = mmm.run_wrapper(mmm_vars, adjusted_controls)
         output_vars.save_all_vars(options.instance, scan_factor)
 
@@ -130,7 +132,6 @@ def main(scanned_vars, input_controls):
     '''
 
     # TODO: Add validation for all items in scanned_vars
-
     for var_to_scan, scan_range in scanned_vars.items():
         options.instance.set(var_to_scan=var_to_scan, scan_range=scan_range)
 
@@ -142,8 +143,7 @@ def main(scanned_vars, input_controls):
         mmm_vars, cdf_vars, __ = utils.initialize_variables()
 
         options.instance.save()  # Need to be saved after variable initialization
-        input_controls.update_from_options(options.instance)
-        input_controls.save_to_csv(options.instance)
+        input_controls.save_to_csv(options.instance.runid, options.instance.scan_num)
         mmm_vars.save_all_vars(options.instance)
 
         profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
@@ -217,8 +217,8 @@ if __name__ == '__main__':
     Input Controls:
     * cmodel enables (disables) the corresponding model if set to 1 (0)
     '''
-    input_controls = controls.InputControls()
-    input_controls.set(
+    input_controls = controls.InputControls(
+        input_points=options.instance.input_points,
         cmodel_weiland=0,
         cmodel_dribm=0,
         cmodel_etg=0,

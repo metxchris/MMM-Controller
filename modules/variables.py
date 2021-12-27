@@ -160,13 +160,13 @@ class Variables:
         '''
 
         if rho_value is not None:
-            rho_str = rho_value if type(rho_value) is str else constants.RHO_VALUE_FMT_STR.format(rho_value)
+            rho_str = rho_value if isinstance(rho_value, str) else f'{rho_value:{constants.RHO_VALUE_FMT}}'
             dir_path = utils.get_rho_path(runid, scan_num, var_to_scan)
             file_path = (f'{dir_path}\\{save_type.name.capitalize()} '
                          f'rho{constants.RHO_VALUE_SEPARATOR}{rho_str}.csv')
 
         elif scan_factor is not None:
-            scan_factor_str = constants.SCAN_FACTOR_FMT_STR.format(scan_factor)
+            scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_FMT}}'
             dir_path = utils.get_var_to_scan_path(runid, scan_num, var_to_scan)
             file_path = (f'{dir_path}\\{save_type.name.capitalize()} {var_to_scan}'
                          f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}{scan_factor_str}.csv')

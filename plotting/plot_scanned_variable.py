@@ -51,7 +51,7 @@ def run_plotting_loop(vars_to_plot):
         ybase = getattr(base_output_vars, var_to_plot)
 
         for i, rho_str in enumerate(rho_strs):
-            sheet_num = constants.SHEET_NUM_FMT_STR.format(i)
+            sheet_num = f'{i:{constants.SHEET_NUM_FMT}}'
 
             # Plot scanned values
             xvar_data = input_vars_dict[rho_str] if scan_type == ScanType.VARIABLE else input_controls

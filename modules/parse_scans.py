@@ -82,7 +82,7 @@ def save_reshaped_csv(reshaped_data, var_names, save_dir, save_type):
     header_str = ','.join(var_names)
 
     for data in reshaped_data:
-        rho_value = constants.RHO_VALUE_FMT_STR.format(data[0, 0] / rmin_max_value)
+        rho_value = f'{data[0, 0] / rmin_max_value:{constants.RHO_VALUE_FMT}}'
         file_name = f'{base_file_name}{rho_value}.csv'
         np.savetxt(file_name, data, fmt='%.4e', delimiter=',', header=header_str)
 

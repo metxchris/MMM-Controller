@@ -315,7 +315,7 @@ def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=
         output_path = get_merged_profile_factors_path(runid, scan_num)
         output_file = (f'{output_path}\\{runid} {profile_type} {var_to_scan}'
                        f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}'
-                       f'{constants.SCAN_FACTOR_PDF_FMT_STR.format(scan_factor)}.pdf')
+                       f'{scan_factor:{constants.SCAN_FACTOR_PDF_FMT}}.pdf')
     elif merge_type == MergeType.RHOVALUES:
         output_path = get_merged_rho_path(runid, scan_num, var_to_scan)
         output_file = f'{output_path}\\{runid} {profile_type}.pdf'
