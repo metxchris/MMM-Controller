@@ -23,7 +23,7 @@ import modules.constants as constants
 import modules.calculations as calculations
 import modules.conversions as conversions
 import modules.read_cdf as read_cdf
-from modules.enums import SaveType, MergeType
+from modules.enums import SaveType, MergeType, ScanType
 
 
 def get_cdf_path(file_name):
@@ -103,7 +103,7 @@ def init_output_dirs(options):
     * ./output/runid/scan_num/var_to_scan rho/
 
     Parameters:
-    * options (OptionsData): A reference to Options.instance
+    * options (Options): An instance of the Options class
 
     Raises:
     * ValueError: If the runid in options is None
@@ -442,3 +442,16 @@ def initialize_variables():
     mmm_vars = calculations.calculate_new_variables(cdf_vars)
 
     return mmm_vars, cdf_vars, raw_cdf_vars
+
+
+def get_scan_type(var_to_scan):
+    scan_type = None
+    if var_to_scan is not None:
+        if hasattr(variables.InputVariables(), var_to_scan):
+            scan_type = ScanType.VARIABLE
+        elif hasattr(controls.InputControls(), var_to_scan):
+            scan_type = ScanType.CONTROL
+        else:
+            raise ValueError(f'Variable {var_to_scan} is not defined under InputVariables or InputControls')
+
+    return scan_type

@@ -141,7 +141,7 @@ def main(scanned_vars, input_controls):
 
         mmm_vars, cdf_vars, __ = utils.initialize_variables()
 
-        options.instance.save_options()  # Need to be saved after variable initialization
+        options.instance.save()  # Need to be saved after variable initialization
         input_controls.update_from_options(options.instance)
         input_controls.save_to_csv(options.instance)
         mmm_vars.save_all_vars(options.instance)

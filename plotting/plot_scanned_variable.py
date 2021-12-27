@@ -111,7 +111,7 @@ def main(vars_to_plot, scan_data):
         for scan_num in scan_nums:
             print(f'Initializing data for {runid}, scan {scan_num}...')
             utils.clear_temp_folder()
-            options.instance.load_options(runid, scan_num)
+            options.instance.load(runid, scan_num)
             if options.instance.var_to_scan:
                 run_plotting_loop(vars_to_plot)
             else:

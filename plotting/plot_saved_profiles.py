@@ -20,7 +20,7 @@ def main(runid, scan_num, input_scan_factor, save_types):
     save_types (list of Savetype): The save types to plot profiles of
     '''
 
-    options.instance.load_options(runid, scan_num)
+    options.instance.load(runid, scan_num)
     scan_factor = options.instance.find_scan_factor(input_scan_factor)
     args = (runid, scan_num, options.instance.var_to_scan, scan_factor)
 

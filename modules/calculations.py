@@ -453,10 +453,6 @@ def calculate_gradient(gvar_name, var_name, drmin, calc_vars):
 
     gvar.clamp_gradient(100)  # TODO: should we be doing this?
     gvar.set_minvalue()
-
-    if opts.reject_outliers:
-        gvar.reject_outliers()
-
     gvar.check_for_nan()
 
 
@@ -489,10 +485,6 @@ def calculate_variable(var_function, calc_vars):
         getattr(calc_vars, var_name).apply_smoothing(options.instance.input_points)
 
     getattr(calc_vars, var_name).set_minvalue()
-
-    if options.instance.reject_outliers:
-        getattr(calc_vars, var_name).reject_outliers()
-
     getattr(calc_vars, var_name).check_for_nan()
 
 

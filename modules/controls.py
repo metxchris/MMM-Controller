@@ -135,7 +135,7 @@ class InputControls:
         Saves InputControls data to CSV
 
         Parameters:
-        * options (OptionsData): Options.instance
+        * options (Options): An instance of the Options class
         * scan_factor (float): The value of the scan factor (Optional)
         '''
 
@@ -311,7 +311,7 @@ if __name__ == '__main__':
     print(controls.get_mmm_header())
 
     '''Print Controls values from saved Options CSV'''
-    Options.instance.load_options(
+    Options.instance.load(
         runid='TEST',
         scan_num=5,
     )

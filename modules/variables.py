@@ -98,7 +98,7 @@ class Variables:
         * data (np.ndarray): The data to save
         * header (str): The header to be saved to the CSV
         * save_type (SaveType): The SaveType of the data being saved
-        * options (OptionsData): Options.instance
+        * options (Options): An instance of the Options class
         * scan_factor (float): The scan_factor, if doing a parameter scan
         '''
 
@@ -358,7 +358,7 @@ class InputVariables(Variables):
 
         Parameters:
         * save_type (SaveType): The save type of the variables to save
-        * options (OptionsData): Options.instance
+        * options (Options): An instance of the Options class
         * scan_factor (scan_factor): The value of the scan factor (Optional)
         '''
 
@@ -378,7 +378,7 @@ class InputVariables(Variables):
 
         Parameters:
         * save_type (SaveType): The save type of the variables to save
-        * options (OptionsData): Options.instance
+        * options (Options): An instance of the Options class
         * scan_factor (scan_factor): The value of the scan factor (Optional)
         '''
 
@@ -629,19 +629,6 @@ class Variable:
         self.values[0, :] = 1e-6
         self.values[self.values > max] = max
         self.values[self.values < -max] = -max
-
-    def reject_outliers(self, m=4):
-        '''
-        Removes values outside of m standard deviations
-
-        Note: removed values are replaced with None, and the resulting effects
-        of this lead to errors, as smoothing or interpolating a None value
-        will create nan values. Furthermore, it is likely this method isn't
-        needed as the Gaussian filter used in the smoothing process also
-        contains internal logic to deal with outliers.
-        '''
-
-        self.values[(np.abs(self.values - np.mean(self.values)) > m * np.std(self.values))] = None
 
     def check_for_nan(self):
         '''Checks for nan values and raises an exception if any are found'''
