@@ -6,9 +6,9 @@ discharges.  The CDF's must be saved in the "cdfs" folder of the top level
 directory in order for this module to find them.
 
 Example Usage:
-* cdf_vars = read_cdf('120968A02.CDF')
-* print_cdf_variables('120968A02.CDF')
-* print_cdf_dimensions('120968A02.CDF')
+* cdf_vars = extract_data('120968A02.CDF')
+* print_variables('120968A02.CDF')
+* print_dimensions('120968A02.CDF')
 """
 
 # Standard Packages
@@ -25,9 +25,9 @@ import modules.variables as variables
 import modules.utils as utils
 
 
-def read_cdf(print_warnings=False):
+def extract_data(print_warnings=False):
     '''
-    Reads variable data from a CDF and stores it in a variables object
+    Extracts variable data from a CDF and stores it in a variables object
 
     Parameters:
     * print_warnings (bool): Prints warning messages
@@ -77,7 +77,7 @@ def read_cdf(print_warnings=False):
     return cdf_vars
 
 
-def print_cdf_variables(cdf_name):
+def print_variables(cdf_name):
     '''
     Print names, descriptions, units, and dimensions of all variables in the CDF
 
@@ -94,7 +94,7 @@ def print_cdf_variables(cdf_name):
         print(f'{var.name}, {var.long_name.strip()}, {var.units.strip()}, {str(var_dims)}')
 
 
-def print_cdf_dimensions(cdf_name):
+def print_dimensions(cdf_name):
     '''
     Print names and sizes of dimensions in the CDF
 
@@ -114,6 +114,6 @@ if __name__ == '__main__':
     # For testing purposes
     opts = options.instance
     opts.runid = '132017T01'
-    cdf_cdf_vars = read_cdf(True)
-    print_cdf_dimensions(opts.runid)
-    print_cdf_variables(opts.runid)
+    cdf_cdf_vars = extract_data(True)
+    print_dimensions(opts.runid)
+    print_variables(opts.runid)

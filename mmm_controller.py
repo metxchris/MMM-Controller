@@ -48,12 +48,13 @@ import numpy as np
 
 # Local Packages
 import settings
-import modules.options as options
-import modules.controls as controls
-import modules.utils as utils
 import modules.adjustments as adjustments
-import modules.reshaper as reshaper
+import modules.controls as controls
+import modules.datahelper as datahelper
 import modules.mmm as mmm
+import modules.options as options
+import modules.reshaper as reshaper
+import modules.utils as utils
 import plotting.modules.profiles as profiles
 from modules.enums import ShotType, ScanType, ProfileType
 
@@ -180,7 +181,7 @@ def main(scanned_vars, input_controls, opts):
         utils.clear_temp_folder()
         utils.init_output_dirs(opts.runid, opts.scan_num, opts.var_to_scan)
 
-        mmm_vars, cdf_vars, __ = utils.initialize_variables()
+        mmm_vars, cdf_vars, __ = datahelper.initialize_variables()
 
         opts.save()  # Needs to be saved after variable initialization
         input_controls.save_to_csv(opts.runid, opts.scan_num)

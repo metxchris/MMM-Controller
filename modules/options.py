@@ -39,6 +39,7 @@ import numpy as np
 
 # Local Packages
 import modules.utils as utils
+import modules.datahelper as datahelper
 import modules.constants as constants
 from modules.enums import ShotType, ScanType
 
@@ -124,7 +125,7 @@ class Options:
     @var_to_scan.setter
     def var_to_scan(self, var_to_scan):
         self._var_to_scan = var_to_scan
-        self.scan_type = utils.get_scan_type(var_to_scan)
+        self.scan_type = datahelper.get_scan_type(var_to_scan)
 
     # Methods
     def get_keys(self):

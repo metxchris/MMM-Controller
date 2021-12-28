@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Local Packages
-import modules.utils as utils
+import modules.datahelper as datahelper
 import modules.options as options
 from modules.enums import ShotType
 from plotting.modules.styles import single as plotlayout
@@ -61,6 +61,8 @@ if __name__ == '__main__':
     * Set var_to_scan = None to skip the variable scan
     * E.g.: var_to_scan = 'te'
     '''
+
+    # TODO: Add local dataclass to replace the need to set options
     options.instance.set(
         runid=cdf_name,
         shot_type=shot_type,
@@ -71,6 +73,6 @@ if __name__ == '__main__':
         scan_range=None)
 
     # Initialize variable objects and call simple_plot function
-    mmm_vars, cdf_vars, raw_cdf_vars = utils.initialize_variables()
+    mmm_vars, cdf_vars, raw_cdf_vars = datahelper.initialize_variables()
 
     simple_plot(cdf_vars.xb, cdf_vars.gnz, r' (CDF)', mmm_vars.xb, mmm_vars.gnz)

@@ -475,7 +475,7 @@ def adjust_scanned_variable(mmm_vars, var_to_scan, scan_factor):
 
 
 if __name__ == '__main__':  # For Testing Purposes
-    from modules.utils import initialize_variables
+    import modules.datahelper as datahelper
     options.instance.set(
         runid='138536A01',
         input_points=51,
@@ -484,7 +484,7 @@ if __name__ == '__main__':  # For Testing Purposes
         input_time=.63,
     )
 
-    mmm_vars, __, __ = initialize_variables()
+    mmm_vars, __, __ = datahelper.initialize_variables()
 
     # Check that all scan_factors can be found in scan_range (failures will raise a ValueError)
     scan_range = np.hstack(

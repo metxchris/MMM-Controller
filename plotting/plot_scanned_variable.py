@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import settings
 import modules.options as options
 import modules.utils as utils
+import modules.datahelper as datahelper
 import modules.constants as constants
 from modules.enums import ScanType, MergeType
 from modules.controls import InputControls
@@ -33,8 +34,8 @@ def run_plotting_loop(vars_to_plot):
     var_to_scan = options.instance.var_to_scan
     scan_type = options.instance.scan_type
 
-    input_vars_dict, output_vars_dict, input_controls = utils.get_all_rho_data(runid, scan_num, var_to_scan)
-    base_input_vars, base_output_vars, base_input_controls = utils.get_base_data(runid, scan_num)
+    input_vars_dict, output_vars_dict, input_controls = datahelper.get_all_rho_data(runid, scan_num, var_to_scan)
+    base_input_vars, base_output_vars, base_input_controls = datahelper.get_base_data(runid, scan_num)
 
     xbase = None
     if hasattr(base_input_vars, var_to_scan):
@@ -90,7 +91,7 @@ def verify_vars_to_plot(vars_to_plot):
     output_vars = OutputVariables()
     for var_to_plot in vars_to_plot:
         if not hasattr(output_vars, var_to_plot) and not hasattr(InputControls(), var_to_plot):
-            raise NameError(f'Neither OutputVariables nor InputControls contain the variable named {var_to_plot}')
+            raise NameError(f'Neither OutputVariables nor InputControls contain member {var_to_plot}')
 
 
 def main(vars_to_plot, scan_data):
@@ -145,7 +146,7 @@ if __name__ == '__main__':
     # scan_data['129041A10'] = [1]
     # scan_data['TEST'] = [181]
     # scan_data['138536A01'] = [i for i in range(100, 126)]
-    scan_data['138536A01'] = [124]
+    scan_data['TEST'] = [402]
 
     settings.AUTO_OPEN_PDFS = 1
 
