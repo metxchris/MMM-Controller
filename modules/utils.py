@@ -92,7 +92,7 @@ def get_rho_values(runid, scan_num, var_to_scan, save_type):
     return [file.split(f'rho{constants.RHO_VALUE_SEPARATOR}')[1].split('.csv')[0] for file in rho_files]
 
 
-def init_output_dirs(options):
+def init_output_dirs(runid, scan_num, var_to_scan):
     '''
     Initializes all output directories needed for storing output data
 
@@ -103,24 +103,20 @@ def init_output_dirs(options):
     * ./output/runid/scan_num/var_to_scan rho/
 
     Parameters:
-    * options (Options): An instance of the Options class
-
-    Raises:
-    * ValueError: If the runid in options is None
+    * runid (str): The name of the CDF
+    * scan_num (int): The number of the scan
+    * var_to_scan (str): The variable being scanned
     '''
 
-    if options.runid is None:
-        raise ValueError('Cannot initialize output directories since the runid has not been set in Options')
+    create_directory(get_runid_path(runid))
+    create_directory(get_scan_num_path(runid, scan_num))
 
-    create_directory(get_runid_path(options.runid))
-    options.scan_num = set_scan_num(options.runid)
-
-    if options.var_to_scan is not None:
-        create_directory(get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan))
-        create_directory(get_rho_path(options.runid, options.scan_num, options.var_to_scan))
+    if var_to_scan:
+        create_directory(get_var_to_scan_path(runid, scan_num, var_to_scan))
+        create_directory(get_rho_path(runid, scan_num, var_to_scan))
 
 
-def set_scan_num(runid):
+def get_scan_num(runid):
     '''
     Initializes the directory for the current scan by always creating a new folder
 
@@ -139,7 +135,6 @@ def set_scan_num(runid):
     for scan_num in num_range:
         scan_num_path = get_scan_num_path(runid, scan_num)
         if not os.path.exists(scan_num_path):
-            create_directory(scan_num_path)
             break
 
     if scan_num == max(num_range):
@@ -445,6 +440,16 @@ def initialize_variables():
 
 
 def get_scan_type(var_to_scan):
+    '''
+    Gets the scan type from the variable being scanned
+
+    Parameters:
+    * var_to_scan (str): The variable being scanned
+
+    Raises:
+    * TypeError: If var_to_scan is not a member of InputVariables or InputControls
+    '''
+
     scan_type = None
     if var_to_scan is not None:
         if hasattr(variables.InputVariables(), var_to_scan):
@@ -452,6 +457,6 @@ def get_scan_type(var_to_scan):
         elif hasattr(controls.InputControls(), var_to_scan):
             scan_type = ScanType.CONTROL
         else:
-            raise ValueError(f'Variable {var_to_scan} is not defined under InputVariables or InputControls')
+            raise TypeError(f'Variable {var_to_scan} is not defined under InputVariables or InputControls')
 
     return scan_type

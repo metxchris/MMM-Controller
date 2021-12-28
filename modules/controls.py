@@ -101,7 +101,7 @@ class InputControls:
         Gets the header for the MMM input file
 
         Raises:
-        * TypeError: If input_points.values is None (have not been set)
+        * TypeError: If input_points.values is None
         * TypeError: If input_points.values is of type np.ndarray
         '''
 

@@ -1,3 +1,47 @@
+"""Handles all variables both needed for MMM input and produced as MMM output
+
+The Variables class serves at the parent class to both InputVariables and
+OutputVariables.  All variable data here will be defined in terms of rmin
+(or rho).  The Variables class should never be instantiated directly; either
+an InputVariables or OutputVariables class object should be instantiated.
+
+InputVariables will have have two-dimensional value arrays when data is loaded
+from a CDF (arrays radial and time values, in the order [position, time]).
+However, value arrays will only be defined along the radial dimension when
+data is loaded from a CSV.  InputVariables consist of all variables that are
+used as direct input or calculation of direct input to MMM, as well as
+additional variables that are calculated in MMM.  By calculating additional
+variables that are not sent to MMM, we are able to plot and analyze their
+values as needed.
+
+OutputVariables values will always be one-dimensional arrays that are defined
+on the radial dimension. OutputVariables consist of all variables that are
+returned as output after running MMM.
+
+In addition to storing values for each variable, other things such as variable
+units, plot labels, minimum values, and the names of corresponding TRANSP
+variables are stored here as well.  Each variable class also handles the
+saving and loading of its data to CSVs, with the help of the utils class,
+which provides the paths of directories for saving and loading of data.
+
+Example Usage:
+    # Instantiate InputVariables Object
+    input_vars = variables.InputVariables()
+
+    # Load Input Variables from CSV (both base and additional variables)
+    input_vars.load_from_csv(SaveType.INPUT, runid='120968A02', scan_num=1)
+    input_vars.load_from_csv(SaveType.ADDITIONAL, runid='120968A02', scan_num=1)
+
+    # Save Input Variables to CSV
+    input_vars.save_all_vars(time_idx=0, runid='120968A02', scan_num=)
+
+    # Get List of variables with corresponding TRANSP values (in CDF)
+    input_vars.get_cdf_variables()
+
+    # Get all values of rmin at the first time index
+    input_vars.rmin.values[:, 0]
+"""
+
 # Standard Packages
 import sys; sys.path.insert(0, '../')
 
@@ -12,7 +56,7 @@ from modules.enums import SaveType
 
 
 # Used to create units labels to display on plots from units strings
-UNITS_TO_UNITS_LABEL = {
+_UNITS_TO_UNITS_LABEL = {
     'T*m': r'T\,m',
     'm^-3': r'm$^{-3}$',
     'm/s^2': r'm/s$^2$',
@@ -32,7 +76,7 @@ class Variables:
 
     def get_variables(self):
         '''Returns (list of str): all variable names'''
-        return [var for var in dir(self) if not callable(getattr(self, var)) and not var.startswith("__")]
+        return [var for var in dir(self) if isinstance(getattr(self, var), Variable)]
 
     def get_nonzero_variables(self):
         '''Returns (list of str): variable names with nonzero values'''
@@ -40,6 +84,7 @@ class Variables:
         return [var for var in vars if getattr(self, var).values is not None]
 
     def print_nonzero_variables(self):
+        '''Prints various attributes of nonzero variables'''
         var_names = self.get_nonzero_variables()
         for v in var_names:
             print(f'{v}, '
@@ -60,7 +105,7 @@ class Variables:
             else:
                 self.rho.values = self.rmin.values / self.rmin.values[-1]
 
-    def get_data_as_array(self, var_list, time_idx=None):
+    def _get_data_as_array(self, var_list, time_idx=None):
         '''
         Gets data from requested variables in array format
 
@@ -90,7 +135,7 @@ class Variables:
 
         return data, header
 
-    def save_to_csv(self, data, header, save_type, options, scan_factor=None, rho_value=None):
+    def _save_to_csv(self, data, header, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
         '''
         Saves data in np.ndarray format to a CSV
 
@@ -98,12 +143,13 @@ class Variables:
         * data (np.ndarray): The data to save
         * header (str): The header to be saved to the CSV
         * save_type (SaveType): The SaveType of the data being saved
-        * options (Options): An instance of the Options class
+        * runid (str): The runid of the CSV to use
+        * scan_num (int): The scan number of the CSV to use
+        * var_to_scan (str): The scanned variable of the CSV to use (optional)
         * scan_factor (float): The scan_factor, if doing a parameter scan
         '''
 
-        args = (save_type, options.runid, options.scan_num, options.var_to_scan, scan_factor, rho_value)
-        dir_path, file_path = self.get_csv_save_path(*args)
+        dir_path, file_path = self._get_csv_save_path(save_type, runid, scan_num, var_to_scan, scan_factor, rho_value)
         utils.create_directory(dir_path)
         np.savetxt(file_path, data, header=header, fmt='%.6e', delimiter=',')
 
@@ -122,7 +168,7 @@ class Variables:
         * rho_value (str or float): The rho value of the CSV to use (optional)
         '''
 
-        __, file_path = self.get_csv_save_path(save_type, runid, scan_num, var_to_scan, scan_factor, rho_value)
+        __, file_path = self._get_csv_save_path(save_type, runid, scan_num, var_to_scan, scan_factor, rho_value)
         self.load_from_file_path(file_path)
 
     def load_from_file_path(self, file_path):
@@ -131,13 +177,16 @@ class Variables:
 
         Parameters:
         * file_path (str): The path of the file to load
+
+        Raises:
+        * ValueError: If no variable names are loaded
         '''
 
         # TODO: Add check if file exists
         data_array = np.genfromtxt(file_path, delimiter=',', dtype=float, names=True)
         var_names = data_array.dtype.names
 
-        if len(var_names) == 0:
+        if not var_names:
             raise ValueError(f'No variable names were loaded from {file_path}')
 
         for var_name in var_names:
@@ -146,9 +195,10 @@ class Variables:
         if self.rmin.values is not None:
             self.set_rho_values()
 
-    def get_csv_save_path(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
+    def _get_csv_save_path(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
         '''
-        Gets the path where a CSV of variable data will be saved, based on the input parameter values
+        Gets the path where a CSV of variable data will be saved, based on the
+        input parameter values
 
         Parameters:
         * save_type (SaveType): The SaveType of the data being saved
@@ -180,9 +230,13 @@ class Variables:
 
 class InputVariables(Variables):
     '''
-    Input variables are defined as anything that isn't read as output from the MMM driver
+    Input variables are defined as anything that isn't read as output from the
+    MMM driver
 
-    All members are defined using the Variable class.  See the Variable class definition for more info.
+    All members are defined using the Variable class.  See the Variable class
+    definition for more info.  Please read the documentation provided with
+    MMM for more information about the variables that are used as input to
+    MMM.
     '''
 
     def __init__(self):
@@ -278,7 +332,7 @@ class InputVariables(Variables):
         self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$',
                           save_type=SaveType.ADDITIONAL, minvalue=1e-6)
         self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$',
-                             save_type=SaveType.ADDITIONAL)  # MMM uses a different definition of shat than cdfvar='SHAT'
+                             save_type=SaveType.ADDITIONAL)  # MMM definition differs from cdfvar='SHAT'
         self.shear = Variable('Magnetic Shear', label=r'$s$',
                               save_type=SaveType.ADDITIONAL)
         self.tau = Variable('Temperature Ratio', label=r'$\tau$',
@@ -316,7 +370,7 @@ class InputVariables(Variables):
 
     def set_x_values(self):
         '''
-        Sets x from xb
+        Sets variable x from variable xb
 
         x is the grid between xb, and has one fewer point than xb.
         '''
@@ -352,14 +406,17 @@ class InputVariables(Variables):
         else:
             raise ValueError('Failed to set TIPRO since TIPRO is None')
 
-    def save_vars_of_type(self, save_type, options, scan_factor=None):
+    def save_vars_of_type(self, save_type, time_idx, runid, scan_num, var_to_scan=None, scan_factor=None):
         '''
         Saves variable values of the specified save type to a CSV
 
         Parameters:
         * save_type (SaveType): The save type of the variables to save
-        * options (Options): An instance of the Options class
-        * scan_factor (scan_factor): The value of the scan factor (Optional)
+        * time_idx (int): The index of the measurement time
+        * runid (str): The runid of the CSV to use
+        * scan_num (int): The scan number of the CSV to use
+        * var_to_scan (str): The scanned variable of the CSV to use (optional)
+        * scan_factor (scan_factor): The value of the scan factor (optional)
         '''
 
         # Put rmin at the front of the variable list
@@ -369,25 +426,33 @@ class InputVariables(Variables):
         else:
             var_list.insert(0, var_list.pop(var_list.index('rmin')))
 
-        data, header = self.get_data_as_array(var_list, options.time_idx)
-        self.save_to_csv(data, header, save_type, options, scan_factor)
+        data, header = self._get_data_as_array(var_list, time_idx)
+        self._save_to_csv(data, header, save_type, runid, scan_num, var_to_scan, scan_factor)
 
-    def save_all_vars(self, options, scan_factor=None):
+    def save_all_vars(self, time_idx, runid, scan_num, var_to_scan=None, scan_factor=None):
         '''
         Saves variable values of all relevant save types to a CSV
 
         Parameters:
-        * save_type (SaveType): The save type of the variables to save
-        * options (Options): An instance of the Options class
-        * scan_factor (scan_factor): The value of the scan factor (Optional)
+        * time_idx (int): The index of the measurement time
+        * runid (str): The runid of the CSV to use
+        * scan_num (int): The scan number of the CSV to use
+        * var_to_scan (str): The scanned variable of the CSV to use (optional)
+        * scan_factor (scan_factor): The value of the scan factor (optional)
         '''
 
-        self.save_vars_of_type(SaveType.INPUT, options, scan_factor)
-        self.save_vars_of_type(SaveType.ADDITIONAL, options, scan_factor)
+        self.save_vars_of_type(SaveType.INPUT, time_idx, runid, scan_num, var_to_scan, scan_factor)
+        self.save_vars_of_type(SaveType.ADDITIONAL, time_idx, runid, scan_num, var_to_scan, scan_factor)
 
 
 class OutputVariables(Variables):
-    '''Output variables consist of all variable data obtained as output from MMM (other than rho and rmin)'''
+    '''
+    Output variables consist of all variable data obtained as output from MMM
+    (as well as rho and rmin)
+
+    Please read the documentation provided with MMM for more information about
+    the variables that obtained as output from MMM.
+    '''
 
     def __init__(self):
         # Independent Variables
@@ -464,7 +529,7 @@ class OutputVariables(Variables):
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'W20' in var]
 
-    def save_all_vars(self, options, scan_factor=None):
+    def save_all_vars(self, runid, scan_num, var_to_scan=None, scan_factor=None):
         '''Saves output variables to a CSV (other than rho)'''
 
         # Put rmin at the front of the variable list
@@ -472,8 +537,8 @@ class OutputVariables(Variables):
         var_list.insert(0, var_list.pop(var_list.index('rmin')))
         var_list.remove('rho')
 
-        data, header = self.get_data_as_array(var_list)
-        self.save_to_csv(data, header, SaveType.OUTPUT, options, scan_factor)
+        data, header = self._get_data_as_array(var_list)
+        self._save_to_csv(data, header, SaveType.OUTPUT, runid, scan_num, var_to_scan, scan_factor)
 
 
 class Variable:
@@ -494,8 +559,7 @@ class Variable:
         self._dimensions = dimensions if dimensions is not None else ['', '']
         self._values = values
 
-        # Call units setter to also set units_label
-        self.units = units
+        self.units = units  # Call units setter to also set units_label
 
     def __str__(self):
         return str(self.name)
@@ -521,9 +585,8 @@ class Variable:
     def units(self, units):
         self._units = units
         self._units_label = units
-        # Set units_label in LaTeX format
-        if units in UNITS_TO_UNITS_LABEL.keys():
-            self._units_label = UNITS_TO_UNITS_LABEL[units]
+        if units in _UNITS_TO_UNITS_LABEL.keys():
+            self._units_label = _UNITS_TO_UNITS_LABEL[units]  # Set units_label in LaTeX format
 
     @property
     def dimensions(self):
@@ -531,7 +594,7 @@ class Variable:
 
     @dimensions.setter
     def dimensions(self, dimensions):
-        if type(dimensions) != list:
+        if not isinstance(dimensions, list):
             raise ValueError(f'Variable dimensions must be {list} and not {type(dimensions)}')
         self._dimensions = dimensions
 
@@ -541,7 +604,7 @@ class Variable:
 
     @values.setter
     def values(self, values):
-        if type(values) != np.ndarray:
+        if not isinstance(values, np.ndarray):
             raise ValueError(f'Variable values must be {np.ndarray} and not {type(values)}')
         self._values = values
 
@@ -594,6 +657,12 @@ class Variable:
         to be negative, but can't get too close to zero (due to divide by
         zero issues).  No exceptions are raised if variables go below their
         absolute minimum value, since these are not considered to be errors.
+
+        Parameters:
+        * raise_exception (bool): Possible exceptions will not be raised when false
+
+        Raises:
+        * ValueError: If multiple nonphysical values are found
         '''
 
         if self.minvalue is not None:
@@ -615,37 +684,24 @@ class Variable:
                 value_signs[value_signs == 0] = 1  # np.sign(0) = 0, so set these to +1
                 self.values[too_small] = self.absminvalue * value_signs
 
-    def clamp_gradient(self, max):
+    def clamp_gradient(self, max_val):
         '''
-        Clamps values between -max and max, and sets origin value to
+        Clamps values between -max_val and max_val, and sets origin value to
         approximately 0
-
-        Gradient values will later be clamped again within the MMM driver by
-        the variable gmax = g_{max}, which has values lower than the clamping
-        value used here.  This step of clamping first here just helps with
-        making the presentation of input profiles a bit cleaner.
         '''
 
         self.values[0, :] = 1e-6
-        self.values[self.values > max] = max
-        self.values[self.values < -max] = -max
+        self.values[self.values > max_val] = max_val
+        self.values[self.values < -max_val] = -max_val
 
     def check_for_nan(self):
-        '''Checks for nan values and raises an exception if any are found'''
+        '''Checks for nan values and raises a ValueError if any are found'''
         if np.isnan(self.values).any():
             raise ValueError(f'nan values found in variable {self.name}')
 
 
 # For testing purposes
 if __name__ == '__main__':
-    from options import Options
-    Options.instance.set(
-        runid='TEST',
-        scan_num=10,
-        var_to_scan='gti',
-        time_idx=0,
-    )
-
     # Create InputVariables and OutputVariables, and populate with non-zero values
     ivars = InputVariables()
     input_var_names = ivars.get_variables()
@@ -660,11 +716,13 @@ if __name__ == '__main__':
         getattr(ovars, var_name).set(name='name', desc='desc', units='units', dimensions=['X', 'T'], values=values)
 
     # Save variable data to CSV
-    # ivars.save_all_vars(Options.instance)
-    # ovars.save_all_vars(Options.instance)
+    # ivars.save_all_vars(options.instance)
+    # ovars.save_all_vars(options.instance)
 
     ivars = InputVariables()
-    ivars.load_from_csv(SaveType.INPUT, 'TEST', 25, 'tau', scan_factor=1.5)
-    ivars.load_from_csv(SaveType.ADDITIONAL, 'TEST', 25, 'tau', scan_factor=1.5, rho_value=0.5)
+    # ivars.load_from_csv(SaveType.INPUT, 'TEST', 25, 'tau', scan_factor=1.5)
+    # ivars.load_from_csv(SaveType.ADDITIONAL, 'TEST', 25, 'tau', scan_factor=1.5, rho_value=0.5)
 
     ivars.print_nonzero_variables()
+
+    print(ivars.get_variables())
