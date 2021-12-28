@@ -42,6 +42,9 @@ class InputControls:
     '''
     Input Controls for the MMM input file
 
+    Please refer to the documentation for MMM for more information about the
+    various controls used here.
+
     Notes:
     * Controls defined here are will be placed into the header of the MMM input file
     * Controls with vtype=int are expected as Fortran Integer types in the input file

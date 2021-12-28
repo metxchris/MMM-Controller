@@ -234,9 +234,9 @@ class InputVariables(Variables):
     MMM driver
 
     All members are defined using the Variable class.  See the Variable class
-    definition for more info.  Please read the documentation provided with
-    MMM for more information about the variables that are used as input to
-    MMM.
+    definition for more info.  Please refer to the documentation provided
+    with MMM for more information about the variables that are used as input
+    to MMM.
     '''
 
     def __init__(self):
@@ -450,8 +450,8 @@ class OutputVariables(Variables):
     Output variables consist of all variable data obtained as output from MMM
     (as well as rho and rmin)
 
-    Please read the documentation provided with MMM for more information about
-    the variables that obtained as output from MMM.
+    Please refer to the documentation provided with MMM for more information
+    about the variables that obtained as output from MMM.
     '''
 
     def __init__(self):

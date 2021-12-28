@@ -22,7 +22,7 @@ import modules.controls as controls
 import modules.constants as constants
 import modules.calculations as calculations
 import modules.conversions as conversions
-import modules.read_cdf as read_cdf
+import modules.transp as transp
 from modules.enums import SaveType, MergeType, ScanType
 
 
@@ -432,7 +432,7 @@ def initialize_variables():
     * raw_cdf_vars (InputVariables): All unedited CDF variables
     '''
 
-    raw_cdf_vars = read_cdf.read_cdf()
+    raw_cdf_vars = transp.read_cdf()
     cdf_vars = conversions.convert_variables(raw_cdf_vars)
     mmm_vars = calculations.calculate_new_variables(cdf_vars)
 
