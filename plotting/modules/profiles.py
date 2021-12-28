@@ -84,7 +84,7 @@ def init_figure(profile_type, xvar_points, scan_factor):
         else:
             raise TypeError(f'No data class found for {var_to_scan}')
 
-        scan_factor_str = constants.SCAN_FACTOR_PDF_FMT_STR.format(scan_factor)
+        scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_PDF_FMT}}'
         text4_str = f'Parameter Scan {scan_factor_str}' r'$\,$' f'{getattr(data_obj, var_to_scan).label}'
         plt.figtext(*plotlayout.TEXT4_POS, text4_str, fontsize=10, ha='center', color='#444')
 
