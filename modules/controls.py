@@ -48,6 +48,7 @@ Example Usage:
 
 # Standard Packages
 import sys; sys.path.insert(0, '../')
+import logging
 
 # 3rd Party Packages
 import numpy as np
@@ -56,6 +57,9 @@ import numpy as np
 import modules.utils as utils
 import modules.constants as constants
 from modules.enums import SaveType
+
+
+_log = logging.getLogger(__name__)
 
 
 class InputControls:
@@ -235,7 +239,7 @@ class InputControls:
             for data in control_data:
                 f.write(f'{data}\n')
 
-        print(f'Input controls saved to \n    {file_name}\n')
+        _log.info(f'\n\tSaved: {file_name}\n')
 
     def load_from_csv(self, scan_factor=None, use_rho=False):
         '''

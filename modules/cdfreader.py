@@ -14,6 +14,7 @@ Example Usage:
 # Standard Packages
 import sys; sys.path.insert(0, '../')
 import os.path
+import logging
 
 # 3rd Party Packages
 from netCDF4 import Dataset
@@ -22,6 +23,9 @@ import numpy as np
 # Local Packages
 import modules.variables as variables
 import modules.utils as utils
+
+
+_log = logging.getLogger(__name__)
 
 
 def extract_data(options, print_warnings=False):
@@ -47,7 +51,7 @@ def extract_data(options, print_warnings=False):
 
     # Runid from CDF should match input runid, else CDF file might be named incorrectly
     if options.runid != cdf.Runid.strip() and options.runid != 'TEST':
-        print(f'Warning: The CDF Runid {cdf.Runid.strip()} does not match runid {runid}')
+        _log.warning(f'\n\tThe CDF Runid {cdf.Runid.strip()} does not match runid {runid}\n')
 
     cdf_vars = variables.InputVariables(options)
     cdf_vars_to_get = cdf_vars.get_cdf_variables()
@@ -70,7 +74,7 @@ def extract_data(options, print_warnings=False):
 
         elif print_warnings:
             # Not all variables will be found in the CDF, which is expected
-            print(f'*** [read_cdf] WARNING: {getattr(cdf_vars, var_name).cdfvar} not found in CDF')
+            _log.warning(f'\n\t{getattr(cdf_vars, var_name).cdfvar} not found in CDF\n')
 
     cdf_vars.options.set_measurement_time(cdf_vars.time.values)
 

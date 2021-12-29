@@ -55,6 +55,7 @@ Example Usage:
 
 # Standard Packages
 import sys; sys.path.insert(0, '../')
+import logging
 
 # 3rd Party Packages
 import numpy as np
@@ -65,6 +66,8 @@ import modules.constants as constants
 import modules.utils as utils
 from modules.enums import SaveType
 
+
+_log = logging.getLogger(__name__)
 
 # Used to create units labels to display on plots from units strings
 _UNITS_TO_UNITS_LABEL = {
@@ -162,7 +165,7 @@ class Variables:
         utils.create_directory(dir_path)
         np.savetxt(file_path, data, header=header, fmt='%.6e', delimiter=',')
 
-        print(f'{save_type.name.capitalize()} data saved to \n    {file_path}\n')
+        _log.info(f'\n\tSaved: {file_path}\n')
 
     def load_from_csv(self, save_type, scan_factor=None, rho_value=None):
         '''

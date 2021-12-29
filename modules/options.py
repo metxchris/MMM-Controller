@@ -38,6 +38,7 @@ Example Usage:
 # Standard Packages
 import pickle
 import inspect
+import logging
 
 # 3rd Party Packages
 import numpy as np
@@ -47,6 +48,9 @@ import modules.utils as utils
 import modules.datahelper as datahelper
 import modules.constants as constants
 from modules.enums import ShotType, ScanType
+
+
+_log = logging.getLogger(__name__)
 
 
 class Options:
@@ -189,7 +193,7 @@ class Options:
             for o in options_values:
                 handle.write(f'{o[0]}, {o[1]}\n')
 
-        print(f'Options saved to {pickle_path}\n')
+        _log.info(f'\n\tSaved: {pickle_path}\n')
 
     def set_measurement_time(self, time_values):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''

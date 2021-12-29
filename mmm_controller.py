@@ -48,6 +48,7 @@ import numpy as np
 
 # Local Packages
 import settings
+import modules.logginginit
 import modules.options
 import modules.adjustments as adjustments
 import modules.controls as controls
@@ -108,15 +109,11 @@ def _execute_variable_scan(mmm_vars, input_controls):
     var_to_scan = mmm_vars.options.var_to_scan
 
     for i, scan_factor in enumerate(scan_range):
-        print(f'Executing variable scan {i + 1} of {len(scan_range)} for {var_to_scan}')
+        print(f'Executing {var_to_scan} scan: {i + 1} / {len(scan_range)}')
         adjusted_vars = adjustments.adjust_scanned_variable(mmm_vars, scan_factor)
         adjusted_vars.save_all_vars(scan_factor)
         output_vars = mmm.run_wrapper(adjusted_vars, input_controls)
         output_vars.save_all_vars(scan_factor)
-
-    reshaper.create_rho_files(mmm_vars.options)  # Creates CSVs in the rho folder
-
-    print('\nVariable scan complete!')
 
 
 def _execute_control_scan(mmm_vars, input_controls):
@@ -145,16 +142,12 @@ def _execute_control_scan(mmm_vars, input_controls):
     base_control = input_controls.get_scanned_control()
 
     for i, scan_factor in enumerate(scan_range):
-        print(f'Executing control scan {i + 1} of {len(scan_range)} for {var_to_scan}')
+        print(f'Executing {var_to_scan} scan: {i + 1} / {len(scan_range)}')
         scanned_control.values = scan_factor * base_control.values
         mmm_vars.save_all_vars(scan_factor)
         adjusted_controls.save_to_csv(scan_factor)
         output_vars = mmm.run_wrapper(mmm_vars, adjusted_controls)
         output_vars.save_all_vars(scan_factor)
-
-    reshaper.create_rho_files(mmm_vars.options)  # Creates CSVs in the rho folder
-
-    print('\nInput control scan complete!')
 
 
 def main(scanned_vars, input_controls, options):
@@ -199,10 +192,14 @@ def main(scanned_vars, input_controls, options):
         # Basic runs create output profile plots and save output profile CSVs
         _execute_basic_run(mmm_vars, input_controls)
 
-        if options.scan_type == ScanType.VARIABLE:
-            _execute_variable_scan(mmm_vars, input_controls)
-        elif options.scan_type == ScanType.CONTROL:
-            _execute_control_scan(mmm_vars, input_controls)
+        if options.scan_type is not ScanType.NONE:
+            if options.scan_type is ScanType.VARIABLE:
+                _execute_variable_scan(mmm_vars, input_controls)
+            elif options.scan_type is ScanType.CONTROL:
+                _execute_control_scan(mmm_vars, input_controls)
+
+            reshaper.create_rho_files(mmm_vars.options)
+            print(f'\n\n{options.var_to_scan} scan complete!\n\n')
 
 
 # Run this file directly to plot variable profiles and run the MMM driver
@@ -216,20 +213,20 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.630
+    runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.630
     # runid, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
     # runid, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
-    runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
 
     '''
     Scanned Variables:
     * Uncomment the lines you wish to include in scanned_vars
     * Using None as the scanned variable will skip the variable scan
     '''
-    # scanned_vars[None] = None
+    scanned_vars[None] = None
     scanned_vars['etgm_kyrhoe'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
 
-    # scanned_vars['betae'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
@@ -256,7 +253,7 @@ if __name__ == '__main__':
         input_time=input_time,
         input_points=101,
         uniform_rho=0,
-        apply_smoothing=0,
+        apply_smoothing=1,
     )
 
     '''
@@ -276,7 +273,7 @@ if __name__ == '__main__':
         etgm_exbs=1,
     )
 
-    settings.AUTO_OPEN_PDFS = 0
+    settings.AUTO_OPEN_PDFS = 1
     settings.MAKE_PROFILE_PDFS = 0
 
     main(scanned_vars, input_controls, options)

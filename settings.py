@@ -6,3 +6,9 @@ MAKE_PROFILE_PDFS = True
 
 # Automatically open PDFs after they are merged
 AUTO_OPEN_PDFS = True
+
+# Print messages for all saved files
+PRINT_SAVE_MESSAGES = False
+
+# Print non-error responses from MMM
+PRINT_MMM_RESPONSE = False

@@ -119,7 +119,7 @@ def get_scan_type(var_to_scan):
     * TypeError: If var_to_scan is not a member of InputVariables or InputControls
     '''
 
-    scan_type = None
+    scan_type = ScanType.NONE
     if var_to_scan is not None:
         if hasattr(variables.InputVariables(), var_to_scan):
             scan_type = ScanType.VARIABLE

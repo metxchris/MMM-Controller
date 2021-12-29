@@ -12,6 +12,7 @@ See the docstring on _reshape_data for an example of how this work.
 
 # Standard Packages
 import sys; sys.path.insert(0, '../')
+import logging
 
 # 3rd Party Packages
 import numpy as np
@@ -20,6 +21,9 @@ import numpy as np
 import modules.utils as utils
 import modules.constants as constants
 from modules.enums import SaveType
+
+
+_log = logging.getLogger(__name__)
 
 
 def _read_from_files(file_list, dtype):
@@ -172,7 +176,7 @@ def create_rho_files(options):
         control_data = np.array([[float(data[1]) for data in data_file] for data_file in control_names_data])
         _save_simple_csv(control_data, control_names, save_dir, SaveType.CONTROLS.name.capitalize())
 
-    print(f'Saved reshaped scan CSV to {save_dir}')
+    _log.info(f'\n\tSaved: {save_dir}')
 
 
 '''

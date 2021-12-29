@@ -81,7 +81,8 @@ def run_wrapper(input_vars, controls):
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                             universal_newlines=True)
 
-    print(result.stdout)  # Only prints after MMM finishes running
+    if settings.PRINT_MMM_RESPONSE:
+        print(result.stdout)  # Only prints after MMM finishes running
 
     # Error checks
     if result.stderr:
