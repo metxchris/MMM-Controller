@@ -1,3 +1,9 @@
+"""Initializes logging using user settings
+
+If this module is not imported, then the default config for the logging level
+is "WARNING".
+"""
+
 import logging
 
 import settings
