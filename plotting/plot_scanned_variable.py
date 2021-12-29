@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 # Local Packages
 import settings
-import modules.options as options
+import modules.options
 import modules.utils as utils
 import modules.datahelper as datahelper
 import modules.constants as constants
@@ -18,7 +18,7 @@ from plotting.modules.styles import singlescan as plotlayout
 from plotting.modules.colors import mmmscan as plotcolors
 
 
-def run_plotting_loop(vars_to_plot):
+def run_plotting_loop(vars_to_plot, options):
     '''
     Creates PDF Plots of each variable in vars_to_plot
 
@@ -26,16 +26,17 @@ def run_plotting_loop(vars_to_plot):
 
     Parameters:
     * vars_to_plot (list): List of output variables to plot
+    * options (Options): Object containing user options
     '''
 
     fig = plt.figure()
-    runid = options.instance.runid
-    scan_num = options.instance.scan_num
-    var_to_scan = options.instance.var_to_scan
-    scan_type = options.instance.scan_type
+    runid = options.runid
+    scan_num = options.scan_num
+    var_to_scan = options.var_to_scan
+    scan_type = options.scan_type
 
-    input_vars_dict, output_vars_dict, input_controls = datahelper.get_all_rho_data(runid, scan_num, var_to_scan)
-    base_input_vars, base_output_vars, base_input_controls = datahelper.get_base_data(runid, scan_num)
+    input_vars_dict, output_vars_dict, input_controls = datahelper.get_all_rho_data(options)
+    base_input_vars, base_output_vars, base_input_controls = datahelper.get_base_data(options)
 
     xbase = None
     if hasattr(base_input_vars, var_to_scan):
@@ -89,8 +90,9 @@ def verify_vars_to_plot(vars_to_plot):
     '''
 
     output_vars = OutputVariables()
+    controls = InputControls()
     for var_to_plot in vars_to_plot:
-        if not hasattr(output_vars, var_to_plot) and not hasattr(InputControls(), var_to_plot):
+        if not hasattr(output_vars, var_to_plot) and not hasattr(controls, var_to_plot):
             raise NameError(f'Neither OutputVariables nor InputControls contain member {var_to_plot}')
 
 
@@ -104,7 +106,7 @@ def main(vars_to_plot, scan_data):
     '''
 
     verify_vars_to_plot(vars_to_plot)
-
+    options = modules.options.Options()
     plotlayout.init()
     plotcolors.init()
 
@@ -112,9 +114,9 @@ def main(vars_to_plot, scan_data):
         for scan_num in scan_nums:
             print(f'Initializing data for {runid}, scan {scan_num}...')
             utils.clear_temp_folder()
-            options.instance.load(runid, scan_num)
-            if options.instance.var_to_scan:
-                run_plotting_loop(vars_to_plot)
+            options.load(runid, scan_num)
+            if options.var_to_scan:
+                run_plotting_loop(vars_to_plot, options)
             else:
                 print(f'ERROR: No variable scan detected')
 
@@ -146,7 +148,7 @@ if __name__ == '__main__':
     # scan_data['129041A10'] = [1]
     # scan_data['TEST'] = [181]
     # scan_data['138536A01'] = [i for i in range(100, 126)]
-    scan_data['TEST'] = [402]
+    scan_data['TEST'] = [463]
 
     settings.AUTO_OPEN_PDFS = 1
 

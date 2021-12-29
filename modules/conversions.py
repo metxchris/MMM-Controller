@@ -33,9 +33,6 @@ from copy import deepcopy
 import numpy as np
 from scipy.interpolate import interp1d
 
-# Local Packages
-import modules.options as options
-
 
 class _XValues:
     '''Stores single dimension arrays of the values of X, XB, and XB + origin (xbo)'''
@@ -146,8 +143,8 @@ def _interp_to_input_points(input_vars):
     * ValueError: If variable to interpolate is None
     '''
 
-    input_points = options.instance.input_points
     mmm_vars = deepcopy(input_vars)
+    input_points = mmm_vars.options.input_points
 
     # Interpolation only needed if input_points != xb points
     if input_points != input_vars.get_nboundaries():
@@ -192,8 +189,8 @@ def _interp_to_uniform_rho(input_vars):
     * ValueError: If variable to interpolate is None
     '''
 
-    input_points = options.instance.input_points
     mmm_vars = deepcopy(input_vars)
+    input_points = mmm_vars.options.input_points
 
     # Single column arrays for interpolation
     rho_old = mmm_vars.rho.values
@@ -237,7 +234,6 @@ def _initial_conversion(cdf_vars):
     * input_vars (InputVariables): Object containing MMM formatted variable data
     '''
 
-    opts = options.instance
     input_vars = deepcopy(cdf_vars)
 
     # Cache single column arrays of x-values
@@ -246,12 +242,9 @@ def _initial_conversion(cdf_vars):
     # Add the origin to the boundary grid
     input_vars.xb.set(values=np.concatenate((np.zeros((1, cdf_vars.get_ntimes())), cdf_vars.xb.values), axis=0))
 
-    # Set the array index and measurement time value corresponding to the input time
-    opts.set_measurement_time(input_vars.time)
-
     # Update the number of input points, if needed
-    if opts.input_points is None:
-        opts.input_points = input_vars.get_nboundaries()
+    if not input_vars.options.input_points:
+        input_vars.options.input_points = input_vars.get_nboundaries()
 
     # Get list of CDF variables to convert to the format needed for MMM
     # Independent variables listed below don't need to be converted
@@ -267,7 +260,7 @@ def _initial_conversion(cdf_vars):
             _interp_to_boundarygrid(input_var, xvals)
 
     # Use TEPRO, TIPRO in place of TE, TI
-    if opts.temperature_profiles:
+    if input_vars.options.temperature_profiles:
         input_vars.use_temperature_profiles()
 
     input_vars.rmin.values[0, :] = 0  # Set value of rmin at origin to 0
@@ -293,15 +286,17 @@ def convert_variables(cdf_vars):
     input_vars = _initial_conversion(cdf_vars)
     input_vars.set_rho_values()
 
-    uniform_rho = options.instance.uniform_rho
-    mmm_vars = _interp_to_uniform_rho(input_vars) if uniform_rho else _interp_to_input_points(input_vars)
+    if input_vars.options.uniform_rho:
+        mmm_vars = _interp_to_uniform_rho(input_vars)
+    else:
+        mmm_vars = _interp_to_input_points(input_vars)
 
     full_var_list = mmm_vars.get_nonzero_variables()
     # Apply smoothing, then verify minimum values (fixes errors due to interpolation)
     for var_name in full_var_list:
         mmm_var = getattr(mmm_vars, var_name)
-        if options.instance.apply_smoothing:
-            mmm_var.apply_smoothing(options.instance.input_points)
+        if mmm_vars.options.apply_smoothing:
+            mmm_var.apply_smoothing()
 
         # Since interpolation can create multiple expected nonphysical values,
         # no exceptions are raised for fixing these issues

@@ -37,7 +37,6 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 # Local Packages
-import modules.options as options
 import modules.constants as constants
 
 
@@ -447,9 +446,8 @@ def calculate_gradient(gvar_name, var_name, drmin, calc_vars):
     gradient_values = rmaj * dxvar / var.values
     gvar.set(values=gradient_values, units='')
 
-    opts = options.instance
-    if opts.apply_smoothing:
-        gvar.apply_smoothing(opts.input_points)
+    if calc_vars.options.apply_smoothing:
+        gvar.apply_smoothing()
 
     gvar.clamp_gradient(100)  # TODO: should we be doing this?
     gvar.set_minvalue()
@@ -481,8 +479,8 @@ def calculate_variable(var_function, calc_vars):
     # Get the variable name corresponding to var_function by reflection
     var_name = var_function.__name__
 
-    if options.instance.apply_smoothing:
-        getattr(calc_vars, var_name).apply_smoothing(options.instance.input_points)
+    if calc_vars.options.apply_smoothing:
+        getattr(calc_vars, var_name).apply_smoothing()
 
     getattr(calc_vars, var_name).set_minvalue()
     getattr(calc_vars, var_name).check_for_nan()
@@ -615,5 +613,6 @@ def get_calculated_vars():
     '''Returns (list of str): function names of calculated non-gradient variables'''
     return ([
         o[0] for o in inspect.getmembers(sys.modules[__name__])
-        if inspect.isfunction(o[1]) and 'calculate' not in o[0]
+        if inspect.isfunction(o[1])
+        and 'calculate' not in o[0]
     ])

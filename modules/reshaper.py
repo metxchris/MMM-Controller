@@ -17,7 +17,6 @@ import sys; sys.path.insert(0, '../')
 import numpy as np
 
 # Local Packages
-import modules.options as options
 import modules.utils as utils
 import modules.constants as constants
 from modules.enums import SaveType
@@ -127,7 +126,7 @@ def _save_simple_csv(data, var_names, save_dir, save_type):
     np.savetxt(file_name, data, fmt='%.4e', delimiter=',', header=header_str)
 
 
-def create_rho_files():
+def create_rho_files(options):
     '''
     Parses all CSVs from a scan of var_to_scan and creates new CSVs for each
     rho point.
@@ -138,11 +137,13 @@ def create_rho_files():
     the scanned parameter.  When doing a control scan, only one CSV of
     controls will be created in the rho folder, since input controls are
     independent of rho.
+
+    Parameters:
+    * options (Options): Object containing user options
     '''
 
-    opts = options.instance
-    save_dir = utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan)
-    scanned_dir = utils.get_var_to_scan_path(opts.runid, opts.scan_num, opts.var_to_scan)
+    save_dir = utils.get_rho_path(options.runid, options.scan_num, options.var_to_scan)
+    scanned_dir = utils.get_var_to_scan_path(options.runid, options.scan_num, options.var_to_scan)
 
     save_types = [SaveType.INPUT, SaveType.ADDITIONAL, SaveType.OUTPUT]
     for save_type in save_types:
@@ -175,17 +176,13 @@ def create_rho_files():
 
 
 '''
-For testing purposes:
-* Options.instance.runid needs to match an existing ./output/runid folder
-* Options.instance.scan_num needs to match an existing scan number in the ./output/runid folder
-* Options.instance.var_to_scan needs to match an existing var_to_scan folder within the scan_num folder
-* Options.instance.scan_range just needs to be some np.ndarray
+For testing purposes
 '''
 if __name__ == '__main__':
-    opts = options.instance
-    opts.runid = 'TEST'
-    opts.scan_num = 129
-    opts.var_to_scan = 'shear'
-    opts.scan_range = np.arange(1)
-    utils.clear_folder(utils.get_rho_path(opts.runid, opts.scan_num, opts.var_to_scan), '*.csv')
-    create_rho_files()
+    from modules.options import Options
+    runid = 'TEST'
+    scan_num = 397
+    var_to_scan = 'betae'
+    options = Options(runid=runid, scan_num=scan_num, var_to_scan=var_to_scan)
+    utils.clear_folder(utils.get_rho_path(runid, scan_num, var_to_scan), '*.csv')
+    create_rho_files(options)

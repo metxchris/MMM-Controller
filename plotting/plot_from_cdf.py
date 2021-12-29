@@ -6,21 +6,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Local Packages
+import modules.options
 import modules.datahelper as datahelper
-import modules.options as options
 from modules.enums import ShotType
 from plotting.modules.styles import single as plotlayout
 from plotting.modules.colors import mmm as plotcolors
 
 
-def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
+def simple_plot(options, x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
 
     plotlayout.init()
     plotcolors.init()
 
-    opts = options.instance
-
-    t_idx = opts.time_idx
+    t_idx = options.time_idx
 
     plt.figure(figsize=(3.5, 3))
     plt.subplots_adjust(left=0.15, right=0.9, bottom=0.15, top=0.9)
@@ -37,7 +35,7 @@ def simple_plot(x1var, y1var, l1='', x2var=None, y2var=None, l2=''):
     plt.xlabel(x1var.label)
     plt.ylabel(y1var.units_label)
     plt.legend()
-    plt.title(f'{opts.runid}, t={opts.time_str}s')
+    plt.title(f'{options.runid}, t={options.time_str}s')
     plt.show()
 
 
@@ -63,16 +61,13 @@ if __name__ == '__main__':
     '''
 
     # TODO: Add local dataclass to replace the need to set options
-    options.instance.set(
+    options = modules.options.Options(
         runid=cdf_name,
         shot_type=shot_type,
         input_time=input_time,
-        input_points=None,
-        uniform_rho=False,
-        var_to_scan=None,
-        scan_range=None)
+    )
 
     # Initialize variable objects and call simple_plot function
-    mmm_vars, cdf_vars, raw_cdf_vars = datahelper.initialize_variables()
+    mmm_vars, cdf_vars, raw_cdf_vars = datahelper.initialize_variables(options)
 
-    simple_plot(cdf_vars.xb, cdf_vars.gnz, r' (CDF)', mmm_vars.xb, mmm_vars.gnz)
+    simple_plot(options, cdf_vars.xb, cdf_vars.gnz, r' (CDF)', mmm_vars.xb, mmm_vars.gnz)

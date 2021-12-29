@@ -17,10 +17,13 @@ import modules.utils as utils
 from modules.enums import SaveType, ScanType
 
 
-def initialize_variables():
+def initialize_variables(options):
     '''
     Initializes all input variables needed to run the MMM Driver and plot
     variable profiles
+
+    Parameters:
+    * options (Options): Contains user specified options
 
     Returns:
     * mmm_vars (InputVariables): All calculated variables
@@ -28,26 +31,24 @@ def initialize_variables():
     * raw_cdf_vars (InputVariables): All unedited CDF variables
     '''
 
-    raw_cdf_vars = cdfreader.extract_data()
+    raw_cdf_vars = cdfreader.extract_data(options)
     cdf_vars = conversions.convert_variables(raw_cdf_vars)
     mmm_vars = calculations.calculate_new_variables(cdf_vars)
 
     return mmm_vars, cdf_vars, raw_cdf_vars
 
 
-def get_all_rho_data(runid, scan_num, var_to_scan):
+def get_all_rho_data(options):
     '''
     Creates dictionaries that map rho values to InputVariables and
     OutputVariables objects
 
     Data is loaded from CSVs stored in the rho folder of the runid, scan_num,
-    and var_to_scan currently stored in Options.instance. A list of rho
-    values for the scan is created from the filenames of the CSVs.
+    and var_to_scan, which are supplied via the options parameter. A list of
+    rho values for the scan is created from the filenames of the CSVs.
 
     Parameters:
-    * runid (str): The runid of the saved data
-    * scan_num (int): The scan number of the saved data
-    * var_to_scan (str): The variable that was scanned in the saved data
+    * options (Options): Object containing user options
 
     Returns:
     * input_vars_dict (dict): Dictionary mapping rho values (str) to InputVariables input data
@@ -55,36 +56,38 @@ def get_all_rho_data(runid, scan_num, var_to_scan):
     * input_controls (InputControls or None): InputControls object with np.ndarray for values
     '''
 
+    runid = options.runid
+    scan_num = options.scan_num
+    var_to_scan = options.var_to_scan
+
     input_vars_dict, output_vars_dict = {}, {}
     rho_values = utils.get_rho_values(runid, scan_num, var_to_scan, SaveType.OUTPUT)
 
     # Stores InputVariables and OutputVariables data objects for each rho_value
     for rho in rho_values:
-        input_vars = variables.InputVariables()
-        output_vars = variables.OutputVariables()
+        input_vars = variables.InputVariables(options)
+        output_vars = variables.OutputVariables(options)
 
-        args = (runid, scan_num, var_to_scan, None, rho)
-        input_vars.load_from_csv(SaveType.INPUT, *args)
-        input_vars.load_from_csv(SaveType.ADDITIONAL, *args)
-        output_vars.load_from_csv(SaveType.OUTPUT, *args)
+        input_vars.load_from_csv(SaveType.INPUT, rho_value=rho)
+        input_vars.load_from_csv(SaveType.ADDITIONAL, rho_value=rho)
+        output_vars.load_from_csv(SaveType.OUTPUT, rho_value=rho)
 
         input_vars_dict[rho] = input_vars
         output_vars_dict[rho] = output_vars
 
     # Get control_file from rho folder (there's at most one control file, as controls are independent of rho values)
-    input_controls = controls.InputControls()
-    input_controls.load_from_csv(runid, scan_num, var_to_scan, use_rho=True)
+    input_controls = controls.InputControls(options)
+    input_controls.load_from_csv(use_rho=True)
 
     return input_vars_dict, output_vars_dict, input_controls
 
 
-def get_base_data(runid, scan_num):
+def get_base_data(options):
     '''
     Gets all data pertaining to the unmodified values of the scanned variable
 
     Parameters:
-    * runid (str): The runid of the saved data
-    * scan_num (int): The scan number of the saved data
+    * options (Options): Object containing user options
 
     Returns:
     * input_vars (InputVariables): Object containing base input variable data
@@ -92,14 +95,14 @@ def get_base_data(runid, scan_num):
     * input_controls (InputControls): Object containing base input control data
     '''
 
-    input_vars = variables.InputVariables()
-    output_vars = variables.OutputVariables()
-    input_controls = controls.InputControls()
+    input_vars = variables.InputVariables(options)
+    output_vars = variables.OutputVariables(options)
+    input_controls = controls.InputControls(options)
 
-    input_vars.load_from_csv(SaveType.INPUT, runid, scan_num)
-    input_vars.load_from_csv(SaveType.ADDITIONAL, runid, scan_num)
-    output_vars.load_from_csv(SaveType.OUTPUT, runid, scan_num)
-    input_controls.load_from_csv(runid, scan_num)
+    input_vars.load_from_csv(SaveType.INPUT)
+    input_vars.load_from_csv(SaveType.ADDITIONAL)
+    output_vars.load_from_csv(SaveType.OUTPUT)
+    input_controls.load_from_csv()
 
     return input_vars, output_vars, input_controls
 
@@ -110,6 +113,7 @@ def get_scan_type(var_to_scan):
 
     Parameters:
     * var_to_scan (str): The variable being scanned
+    * options (Options): Object containing user options
 
     Raises:
     * TypeError: If var_to_scan is not a member of InputVariables or InputControls

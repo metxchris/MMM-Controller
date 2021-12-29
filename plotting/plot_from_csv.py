@@ -8,10 +8,12 @@ import matplotlib.pyplot as plt
 # Local Packages
 import modules.variables as variables
 from modules.enums import SaveType
+from modules.options import Options
 from plotting.modules.styles import single as plotlayout
 from plotting.modules.colors import mmm as plotcolors
 
 
+# TODO: Turn into dataclass
 class VarData:
     def __init__(self, xvar_name, yvar_name, label, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
         self.xvar_name = xvar_name
@@ -28,13 +30,13 @@ class VarData:
 
 def load_variable_data(data_list):
     for data in data_list:
-        input_vars = variables.InputVariables()
-        output_vars = variables.OutputVariables()
-
-        args = (data.runid, data.scan_num, data.var_to_scan, data.scan_factor, data.rho_value)
-        input_vars.load_from_csv(SaveType.INPUT, *args)
-        input_vars.load_from_csv(SaveType.ADDITIONAL, *args)
-        output_vars.load_from_csv(SaveType.OUTPUT, *args)
+        options = Options()
+        options.load(data.runid, data.scan_num)
+        input_vars = variables.InputVariables(options)
+        output_vars = variables.OutputVariables(options)
+        input_vars.load_from_csv(SaveType.INPUT, data.scan_factor, data.rho_value)
+        input_vars.load_from_csv(SaveType.ADDITIONAL, data.scan_factor, data.rho_value)
+        output_vars.load_from_csv(SaveType.OUTPUT, data.scan_factor, data.rho_value)
 
         var_list = [input_vars, output_vars]
         for v in var_list:
