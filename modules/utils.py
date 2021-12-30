@@ -22,11 +22,20 @@ import pdftk
 import output
 import temp
 import cdfs
+import settings
 import modules.constants as constants
 from modules.enums import MergeType
 
 
 _log = logging.getLogger(__name__)
+
+
+def init_logging():
+    '''Initializes logging based on settings'''
+    if settings.PRINT_SAVE_MESSAGES:
+        logging.basicConfig(level="INFO")
+    else:
+        logging.basicConfig(level="WARNING")
 
 
 def get_cdf_path(file_name):
@@ -111,6 +120,7 @@ def init_output_dirs(runid, scan_num, var_to_scan):
     * var_to_scan (str): The variable being scanned
     '''
 
+    clear_temp_folder()
     create_directory(get_runid_path(runid))
     create_directory(get_scan_num_path(runid, scan_num))
 

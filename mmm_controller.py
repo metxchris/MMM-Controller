@@ -48,7 +48,6 @@ import numpy as np
 
 # Local Packages
 import settings
-import modules.logginginit
 import modules.options
 import modules.adjustments as adjustments
 import modules.controls as controls
@@ -58,27 +57,6 @@ import modules.reshaper as reshaper
 import modules.utils as utils
 import plotting.modules.profiles as profiles
 from modules.enums import ShotType, ScanType, ProfileType
-
-
-def _execute_basic_run(mmm_vars, input_controls):
-    '''
-    Executes a single MMM run, without varying any input parameters
-
-    Creates an input file for the MMM driver using mmm_vars.  The MMM driver
-    is then ran, which produces an output file.  This output file is parsed
-    and a CSV of both the input and output data are stored, and an output
-    profile PDF is created.
-
-    Parameters:
-    * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
-    * input_controls (InputControls): Specifies input control values in the MMM input file
-    '''
-
-    output_vars = mmm.run_wrapper(mmm_vars, input_controls)
-    output_vars.save_all_vars()
-
-    if settings.MAKE_PROFILE_PDFS:
-        profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
 
 
 def _execute_variable_scan(mmm_vars, input_controls):
@@ -152,7 +130,7 @@ def _execute_control_scan(mmm_vars, input_controls):
 
 def main(scanned_vars, input_controls, options):
     '''
-    Runs the MMM controller
+    Runs the controller for MMM
 
     Needed output folders are created and a unique scan number is chosen for
     storing output data. All input variable objects are initialized and
@@ -167,31 +145,33 @@ def main(scanned_vars, input_controls, options):
     * options (Options): Object containing user options
     '''
 
+    utils.init_logging()
+
     # TODO: Add validation for all items in scanned_vars
     for var_to_scan, scan_range in scanned_vars.items():
-        print(f'Running MMM Controller...\n')
+        print(f'\nRunning MMM Controller...')
 
         # Updating these options also updates input_controls.options
         options.scan_num = utils.get_scan_num(options.runid)
         options.set(var_to_scan=var_to_scan, scan_range=scan_range)
 
-        utils.clear_temp_folder()
         utils.init_output_dirs(options.runid, options.scan_num, options.var_to_scan)
 
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
-
         mmm_vars.options.save()
         mmm_vars.save_all_vars()
         input_controls.save_to_csv()
+
+        output_vars = mmm.run_wrapper(mmm_vars, input_controls)
+        output_vars.save_all_vars()
 
         if settings.MAKE_PROFILE_PDFS:
             profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
             profiles.plot_profiles(ProfileType.ADDITIONAL, mmm_vars)
             profiles.plot_profiles(ProfileType.COMPARED, mmm_vars, cdf_vars)
+            profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
 
-        # Basic runs create output profile plots and save output profile CSVs
-        _execute_basic_run(mmm_vars, input_controls)
-
+        # Variable and control scans
         if options.scan_type is not ScanType.NONE:
             if options.scan_type is ScanType.VARIABLE:
                 _execute_variable_scan(mmm_vars, input_controls)
@@ -199,7 +179,7 @@ def main(scanned_vars, input_controls, options):
                 _execute_control_scan(mmm_vars, input_controls)
 
             reshaper.create_rho_files(mmm_vars.options)
-            print(f'\n\n{options.var_to_scan} scan complete!\n\n')
+            print(f'\n{options.var_to_scan} scan complete!\n')
 
 
 # Run this file directly to plot variable profiles and run the MMM driver
@@ -227,7 +207,7 @@ if __name__ == '__main__':
     scanned_vars['etgm_kyrhoe'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
 
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
-    # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
@@ -273,7 +253,7 @@ if __name__ == '__main__':
         etgm_exbs=1,
     )
 
-    settings.AUTO_OPEN_PDFS = 1
-    settings.MAKE_PROFILE_PDFS = 0
+    settings.AUTO_OPEN_PDFS = 0
+    settings.MAKE_PROFILE_PDFS = 1
 
     main(scanned_vars, input_controls, options)
