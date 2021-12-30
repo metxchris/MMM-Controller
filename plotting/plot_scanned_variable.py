@@ -1,5 +1,6 @@
 # Standard Packages
 import sys; sys.path.insert(0, '../')
+import logging
 
 # 3rd Party Packages
 import numpy as np
@@ -18,6 +19,9 @@ from plotting.modules.styles import singlescan as plotlayout
 from plotting.modules.colors import mmmscan as plotcolors
 
 
+_log = logging.getLogger(__name__)
+
+
 def run_plotting_loop(vars_to_plot, options):
     '''
     Creates PDF Plots of each variable in vars_to_plot
@@ -30,8 +34,6 @@ def run_plotting_loop(vars_to_plot, options):
     '''
 
     fig = plt.figure()
-    runid = options.runid
-    scan_num = options.scan_num
     var_to_scan = options.var_to_scan
     scan_type = options.scan_type
 
@@ -118,7 +120,7 @@ def main(vars_to_plot, scan_data):
             if options.var_to_scan:
                 run_plotting_loop(vars_to_plot, options)
             else:
-                print(f'ERROR: No variable scan detected')
+                _log.error(f'\n\tNo variable scan detected for {runid}, scan {scan_num}\n')
 
 
 # Run this file directly to plot scanned variable profiles from previously created scanned data

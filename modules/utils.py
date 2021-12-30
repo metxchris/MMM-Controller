@@ -6,9 +6,9 @@ path here should not disrupt the creation of new scans, but will likely break
 old scan data from being read. Several other directory and file related
 operations are stored here as well.
 
-Utils was written to be independent of any class instances used in MMM
-Explorer.  See the datahelper module for utility type functions that
-interface between the different data classes.
+Utils was written to be independent of classes that hold MMM related data,
+other than the Options class.  See the datahelper module for utility type
+functions that interface between the different data classes.
 """
 
 # Standard Packages
