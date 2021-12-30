@@ -24,16 +24,27 @@ variables are stored here as well.  Each variable class also handles the
 saving and loading of its data to CSVs, with the help of the utils class,
 which provides the paths of directories for saving and loading of data.
 
+The Variables class and its children are all coupled with the Options class,
+which is used for storing options needed for plotting, checking values, and
+both saving and loading variable data.  An Options object must be
+instantiated and passed in when instantiating Variables objects.  When
+loading variable data from CSVs, it is advised to load the options data
+first, and then use the loaded options to load the variables.
+
 Example Usage:
+    # Instantiate and Load Options from CSV
+    options = modules.options.Options()
+    options.load(runid='120968A02', scan_num=1)
+
     # Instantiate InputVariables Object
-    input_vars = variables.InputVariables()
+    input_vars = variables.InputVariables(options)
 
     # Load Input Variables from CSV (both base and additional variables)
-    input_vars.load_from_csv(SaveType.INPUT, runid='120968A02', scan_num=1)
-    input_vars.load_from_csv(SaveType.ADDITIONAL, runid='120968A02', scan_num=1)
+    input_vars.load_from_csv(SaveType.INPUT)
+    input_vars.load_from_csv(SaveType.ADDITIONAL)
 
     # Save Input Variables to CSV
-    input_vars.save_all_vars(time_idx=0, runid='120968A02', scan_num=)
+    input_vars.save_all_vars()
 
     # Get List of variables with corresponding TRANSP values (in CDF)
     input_vars.get_cdf_variables()
@@ -44,6 +55,7 @@ Example Usage:
 
 # Standard Packages
 import sys; sys.path.insert(0, '../')
+import logging
 
 # 3rd Party Packages
 import numpy as np
@@ -54,6 +66,8 @@ import modules.constants as constants
 import modules.utils as utils
 from modules.enums import SaveType
 
+
+_log = logging.getLogger(__name__)
 
 # Used to create units labels to display on plots from units strings
 _UNITS_TO_UNITS_LABEL = {
@@ -67,9 +81,8 @@ _UNITS_TO_UNITS_LABEL = {
 
 # Parent class for input and output variables
 class Variables:
-    def __init__(self):
-        self.rho = None
-        self.rmin = None
+    def __init__(self, options):
+        self.options = options
 
     def __str__(self):
         return str(self.get_nonzero_variables())
@@ -105,37 +118,38 @@ class Variables:
             else:
                 self.rho.values = self.rmin.values / self.rmin.values[-1]
 
-    def _get_data_as_array(self, var_list, time_idx=None):
+    def _get_data_as_array(self, var_list):
         '''
         Gets data from requested variables in array format
 
         Parameters:
         * var_list (list): List of names (str) of variables to get data for
-        * time_idx (int): Index of the measurement_time, if applicable
 
         Returns:
         * data (np.ndarray): The requested data in a 2-dimensional array
         * header (str): The string of variable names corresponding to data in the array
+
+        Raises:
+        * ValueError: If the time index in options has not been initialized
         '''
 
-        num_points = self.rmin.values.shape[0]
         num_vars = len(var_list)
-        data = np.zeros((num_points, num_vars), dtype=float)
+        data = np.zeros((self.options.input_points, num_vars), dtype=float)
         header = ','.join(var_list)
 
-        # InputVariables data can use time_idx
-        if time_idx is not None:
+        if isinstance(self, InputVariables):
+            if self.options.time_idx is None:
+                raise ValueError('The time index has not been initialized')
             for i, var_name in enumerate(var_list):
-                data[:, i] = getattr(self, var_name).values[:, time_idx]
+                data[:, i] = getattr(self, var_name).values[:, self.options.time_idx]
 
-        # OutputVariables data does not use time_idx
-        else:
+        elif isinstance(self, OutputVariables):
             for i, var_name in enumerate(var_list):
                 data[:, i] = getattr(self, var_name).values
 
         return data, header
 
-    def _save_to_csv(self, data, header, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
+    def _save_to_csv(self, data, header, save_type, scan_factor=None, rho_value=None):
         '''
         Saves data in np.ndarray format to a CSV
 
@@ -143,32 +157,27 @@ class Variables:
         * data (np.ndarray): The data to save
         * header (str): The header to be saved to the CSV
         * save_type (SaveType): The SaveType of the data being saved
-        * runid (str): The runid of the CSV to use
-        * scan_num (int): The scan number of the CSV to use
-        * var_to_scan (str): The scanned variable of the CSV to use (optional)
         * scan_factor (float): The scan_factor, if doing a parameter scan
+        * rho_value (str | float): The rho value of the CSV to use (optional)
         '''
 
-        dir_path, file_path = self._get_csv_save_path(save_type, runid, scan_num, var_to_scan, scan_factor, rho_value)
+        dir_path, file_path = self._get_csv_save_path(save_type, scan_factor, rho_value)
         utils.create_directory(dir_path)
         np.savetxt(file_path, data, header=header, fmt='%.6e', delimiter=',')
 
-        print(f'{save_type.name.capitalize()} data saved to \n    {file_path}\n')
+        _log.info(f'\n\tSaved: {file_path}\n')
 
-    def load_from_csv(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
+    def load_from_csv(self, save_type, scan_factor=None, rho_value=None):
         '''
         Loads data from a CSV into the current Variables subclass object
 
         Parameters:
         * save_type (SaveType): The SaveType of the data being saved
-        * runid (str): The runid of the CSV to use
-        * scan_num (int): The scan number of the CSV to use
-        * var_to_scan (str): The scanned variable of the CSV to use (optional)
         * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
-        * rho_value (str or float): The rho value of the CSV to use (optional)
+        * rho_value (str | float): The rho value of the CSV to use (optional)
         '''
 
-        __, file_path = self._get_csv_save_path(save_type, runid, scan_num, var_to_scan, scan_factor, rho_value)
+        __, file_path = self._get_csv_save_path(save_type, scan_factor, rho_value)
         self.load_from_file_path(file_path)
 
     def load_from_file_path(self, file_path):
@@ -195,19 +204,20 @@ class Variables:
         if self.rmin.values is not None:
             self.set_rho_values()
 
-    def _get_csv_save_path(self, save_type, runid, scan_num, var_to_scan=None, scan_factor=None, rho_value=None):
+    def _get_csv_save_path(self, save_type, scan_factor=None, rho_value=None):
         '''
         Gets the path where a CSV of variable data will be saved, based on the
         input parameter values
 
         Parameters:
         * save_type (SaveType): The SaveType of the data being saved
-        * runid (str): The runid of the CSV to use
-        * scan_num (int): The scan number of the CSV to use
-        * var_to_scan (str): The scanned variable of the CSV to use (optional)
         * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
         * rho_value (str or float): The rho value of the CSV to use (optional)
         '''
+
+        runid = self.options.runid
+        scan_num = self.options.scan_num
+        var_to_scan = self.options.var_to_scan
 
         if rho_value is not None:
             rho_str = rho_value if isinstance(rho_value, str) else f'{rho_value:{constants.RHO_VALUE_FMT}}'
@@ -239,7 +249,7 @@ class InputVariables(Variables):
     to MMM.
     '''
 
-    def __init__(self):
+    def __init__(self, options=None):
         self.rho = Variable('Normalized Radius', label=r'$\rho$')
         # CDF Independent Variables
         self.time = Variable('Time', cdfvar='TIME')
@@ -368,6 +378,8 @@ class InputVariables(Variables):
         self.gvtor = Variable('Toroidal Velocity Gradient', label=r'$g_{v_\phi}$',
                               save_type=SaveType.INPUT)
 
+        super().__init__(options)  # Init parent class
+
     def set_x_values(self):
         '''
         Sets variable x from variable xb
@@ -406,7 +418,7 @@ class InputVariables(Variables):
         else:
             raise ValueError('Failed to set TIPRO since TIPRO is None')
 
-    def save_vars_of_type(self, save_type, time_idx, runid, scan_num, var_to_scan=None, scan_factor=None):
+    def save_vars_of_type(self, save_type, scan_factor=None):
         '''
         Saves variable values of the specified save type to a CSV
 
@@ -426,10 +438,10 @@ class InputVariables(Variables):
         else:
             var_list.insert(0, var_list.pop(var_list.index('rmin')))
 
-        data, header = self._get_data_as_array(var_list, time_idx)
-        self._save_to_csv(data, header, save_type, runid, scan_num, var_to_scan, scan_factor)
+        data, header = self._get_data_as_array(var_list)
+        self._save_to_csv(data, header, save_type, scan_factor)
 
-    def save_all_vars(self, time_idx, runid, scan_num, var_to_scan=None, scan_factor=None):
+    def save_all_vars(self, scan_factor=None):
         '''
         Saves variable values of all relevant save types to a CSV
 
@@ -441,8 +453,8 @@ class InputVariables(Variables):
         * scan_factor (scan_factor): The value of the scan factor (optional)
         '''
 
-        self.save_vars_of_type(SaveType.INPUT, time_idx, runid, scan_num, var_to_scan, scan_factor)
-        self.save_vars_of_type(SaveType.ADDITIONAL, time_idx, runid, scan_num, var_to_scan, scan_factor)
+        self.save_vars_of_type(SaveType.INPUT, scan_factor)
+        self.save_vars_of_type(SaveType.ADDITIONAL, scan_factor)
 
 
 class OutputVariables(Variables):
@@ -454,7 +466,7 @@ class OutputVariables(Variables):
     about the variables that obtained as output from MMM.
     '''
 
-    def __init__(self):
+    def __init__(self, options=None):
         # Independent Variables
         self.rho = Variable('rho', units='', label=r'$\rho$')
         self.rmin = Variable('rmin', units='m', label=r'$r_\mathrm{min}$')
@@ -497,6 +509,8 @@ class OutputVariables(Variables):
 
         self.dbsqprf = Variable('dbsqprf', units='', label=r'$|\delta B/B|^2$')
 
+        super().__init__(options)  # Init parent class
+
     def get_all_output_vars(self):
         '''Returns (list of str): all output variable names (other than rho and rmin)'''
         all_vars = self.get_variables()
@@ -529,7 +543,7 @@ class OutputVariables(Variables):
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'W20' in var]
 
-    def save_all_vars(self, runid, scan_num, var_to_scan=None, scan_factor=None):
+    def save_all_vars(self, scan_factor=None):
         '''Saves output variables to a CSV (other than rho)'''
 
         # Put rmin at the front of the variable list
@@ -538,7 +552,7 @@ class OutputVariables(Variables):
         var_list.remove('rho')
 
         data, header = self._get_data_as_array(var_list)
-        self._save_to_csv(data, header, SaveType.OUTPUT, runid, scan_num, var_to_scan, scan_factor)
+        self._save_to_csv(data, header, SaveType.OUTPUT, scan_factor)
 
 
 class Variable:
@@ -613,17 +627,17 @@ class Variable:
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def apply_smoothing(self, input_points):
+    def apply_smoothing(self):
         '''
         Variable smoothing using a Gaussian filter
 
         The value of sigma needs to increase nearly linearly as the amount of
-        input_points increases, to maintain the same level of smoothing.  To
-        achieve this, the self.smooth value is multiplied by input_points.
-        Additionally, the amount of smoothing applied also depends on how
-        closely grouped values are along the x-axis.  Specifically, for a
-        given value of sigma, loosely spaced values will be smoothed more
-        than tightly clustered values.
+        input points increases, to maintain the same level of smoothing.  To
+        achieve this, the self.smooth value is multiplied by the number of
+        data points it has. Additionally, the amount of smoothing applied
+        also depends on how closely grouped values are along the x-axis.
+        Specifically, for a given value of sigma, loosely spaced values will
+        be smoothed more than tightly clustered values.
 
         For this reason, using the uniform rho input option will result in
         uniform smoothing across a variable (since the values in rmin become
@@ -631,13 +645,10 @@ class Variable:
         rho input option is not used, then variables will have stronger
         smoothing applied near rmin = 0, and weaker smoothing applied near
         rmin = 1.
-
-        Parameters:
-        * input_points (int): Number of radial points each variable has
         '''
 
         if self.smooth is not None:
-            sigma = int(input_points * self.smooth / 100)
+            sigma = int(self.values.shape[0] * self.smooth / 100)
             self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(sigma, 0))
 
     def set_minvalue(self, raise_exception=True):
@@ -702,6 +713,9 @@ class Variable:
 
 # For testing purposes
 if __name__ == '__main__':
+    import modules.options
+    options = modules.options.Options(runid='TEST', scan_num=25)
+
     # Create InputVariables and OutputVariables, and populate with non-zero values
     ivars = InputVariables()
     input_var_names = ivars.get_variables()
@@ -716,12 +730,12 @@ if __name__ == '__main__':
         getattr(ovars, var_name).set(name='name', desc='desc', units='units', dimensions=['X', 'T'], values=values)
 
     # Save variable data to CSV
-    # ivars.save_all_vars(options.instance)
-    # ovars.save_all_vars(options.instance)
+    # ivars.save_all_vars(options)
+    # ovars.save_all_vars(options)
 
     ivars = InputVariables()
-    # ivars.load_from_csv(SaveType.INPUT, 'TEST', 25, 'tau', scan_factor=1.5)
-    # ivars.load_from_csv(SaveType.ADDITIONAL, 'TEST', 25, 'tau', scan_factor=1.5, rho_value=0.5)
+    # ivars.load_from_csv(SaveType.INPUT, scan_factor=1.5)
+    # ivars.load_from_csv(SaveType.ADDITIONAL, scan_factor=1.5, rho_value=0.5)
 
     ivars.print_nonzero_variables()
 

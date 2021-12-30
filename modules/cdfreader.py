@@ -14,22 +14,26 @@ Example Usage:
 # Standard Packages
 import sys; sys.path.insert(0, '../')
 import os.path
+import logging
 
 # 3rd Party Packages
 from netCDF4 import Dataset
 import numpy as np
 
 # Local Packages
-import modules.options as options
 import modules.variables as variables
 import modules.utils as utils
 
 
-def extract_data(print_warnings=False):
+_log = logging.getLogger(__name__)
+
+
+def extract_data(options, print_warnings=False):
     '''
     Extracts variable data from a CDF and stores it in a variables object
 
     Parameters:
+    * options (Options): Object containing user options
     * print_warnings (bool): Prints warning messages
 
     Returns:
@@ -39,19 +43,17 @@ def extract_data(print_warnings=False):
     * FileNotFoundError: If the CDF file was not found
     '''
 
-    runid = options.instance.runid
-
-    cdf_file = utils.get_cdf_path(runid)
+    cdf_file = utils.get_cdf_path(options.runid)
     if not os.path.exists(cdf_file):
-        raise FileNotFoundError(f'CDF {runid} could not be found in the cdf folder')
+        raise FileNotFoundError(f'CDF {options.runid} could not be found in the cdf folder')
 
     cdf = Dataset(cdf_file)
 
     # Runid from CDF should match input runid, else CDF file might be named incorrectly
-    if runid != cdf.Runid.strip() and runid != 'TEST':
-        print(f'Warning: The CDF Runid {cdf.Runid.strip()} does not match runid {runid}')
+    if options.runid != cdf.Runid.strip() and options.runid != 'TEST':
+        _log.warning(f'\n\tThe CDF Runid {cdf.Runid.strip()} does not match runid {runid}\n')
 
-    cdf_vars = variables.InputVariables()
+    cdf_vars = variables.InputVariables(options)
     cdf_vars_to_get = cdf_vars.get_cdf_variables()
 
     # Get values for all specified CDF variables
@@ -72,20 +74,22 @@ def extract_data(print_warnings=False):
 
         elif print_warnings:
             # Not all variables will be found in the CDF, which is expected
-            print(f'*** [read_cdf] WARNING: {getattr(cdf_vars, var_name).cdfvar} not found in CDF')
+            _log.warning(f'\n\t{getattr(cdf_vars, var_name).cdfvar} not found in CDF\n')
+
+    cdf_vars.options.set_measurement_time(cdf_vars.time.values)
 
     return cdf_vars
 
 
-def print_variables(cdf_name):
+def print_variables(runid):
     '''
     Print names, descriptions, units, and dimensions of all variables in the CDF
 
     Parameters:
-    * cdf_name (str): The file name of the CDF (without the path)
+    * runid (str): The file name of the CDF (without the path)
     '''
 
-    cdf = Dataset(utils.get_cdf_path(cdf_name))
+    cdf = Dataset(utils.get_cdf_path(runid))
     cdf_cdf_vars = sorted(cdf.variables.keys())
 
     for var_name in cdf_cdf_vars:
@@ -94,15 +98,15 @@ def print_variables(cdf_name):
         print(f'{var.name}, {var.long_name.strip()}, {var.units.strip()}, {str(var_dims)}')
 
 
-def print_dimensions(cdf_name):
+def print_dimensions(runid):
     '''
     Print names and sizes of dimensions in the CDF
 
     Parameters:
-    * cdf_name (str): The file name of the CDF (without the path)
+    * runid (str): The file name of the CDF (without the path)
     '''
 
-    cdf = Dataset(utils.get_cdf_path(cdf_name))
+    cdf = Dataset(utils.get_cdf_path(runid))
     cdf_dims = sorted(cdf.dimensions.keys())
 
     for dim_name in cdf_dims:
@@ -112,8 +116,7 @@ def print_dimensions(cdf_name):
 
 if __name__ == '__main__':
     # For testing purposes
-    opts = options.instance
-    opts.runid = '132017T01'
-    cdf_cdf_vars = extract_data(True)
-    print_dimensions(opts.runid)
-    print_variables(opts.runid)
+    runid = '132017T01'
+    cdf_cdf_vars = extract_data(runid, True)
+    print_dimensions(runid)
+    print_variables(runid)

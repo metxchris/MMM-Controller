@@ -7,9 +7,24 @@ kyrhoe in any of the component models. The InputControls class stores all
 control values needed by MMM, and also handles generating the header of the
 MMM input file, as used by the MMM wrapper.
 
+The InputControls class is coupled with the Options class, which is used for
+storing options needed for plotting, checking values, and both saving and
+loading control data.  An Options object must be instantiated and passed in
+when instantiating InputControls objects.  When loading control data from
+CSVs, it is advised to load the options data first, and then use the loaded
+options to load the controls.
+
 Example Usage:
-    # Instantiate Controls and Set Values
+    # Instantiate Options for New InputControls
+    options = modules.options.Options(
+        runid='132017T01',
+        shot_type=ShotType.NSTX,
+        input_points=101,
+    )
+
+    # Instantiate InputControls and Set Values
     controls = InputControls(
+        options,
         input_points=101,
         cmodel_weiland=1,
         cmodel_dribm=0,
@@ -19,15 +34,21 @@ Example Usage:
     # Get MMM Header
     controls.get_mmm_header()
 
+    # Load Options for Loading InputControls
+    options = modules.options.Options()
+    options.load(runid='132017T01', scan_num=1)
+
     # Load Controls
-    controls.load_from_csv('120968A02', 1)
+    controls = InputControls(options)
+    controls.load_from_csv()
 
     # Save Controls
-    controls.save_to_csv('120968A02', 1)
+    controls.save_to_csv()
 """
 
 # Standard Packages
 import sys; sys.path.insert(0, '../')
+import logging
 
 # 3rd Party Packages
 import numpy as np
@@ -36,6 +57,9 @@ import numpy as np
 import modules.utils as utils
 import modules.constants as constants
 from modules.enums import SaveType
+
+
+_log = logging.getLogger(__name__)
 
 
 class InputControls:
@@ -50,9 +74,16 @@ class InputControls:
     * Controls with vtype=int are expected as Fortran Integer types in the input file
     * Controls with vtype=float are expected as Fortran Real types in the input file
     * The value defined in each Control object is the default value of that control
+
+    Raises:
+    * ValueError: If keyword arguments (kwargs) are provided on init and options are not
     '''
 
-    def __init__(self, **kwargs):
+    def __init__(self, options=None, **kwargs):
+        if kwargs and not options:
+            # options is only allowed to be None when instantiating the class solely for membership checks
+            raise ValueError('options must be provided when providing keyword arguments')
+
         self.input_points = Control('npoints', 'Number of radial points', values=None, vtype=int)
         # Switches for component models
         self.cmodel_weiland = Control('cmodel_weiland', 'Weiland', values=1, vtype=float)
@@ -85,6 +116,8 @@ class InputControls:
         # Verbose level
         self.lprint = Control('lprint', 'Verbose Level', values=0, vtype=int)
 
+        self.input_points.values = options.input_points if options else None
+        self.options = options
         self.set(**kwargs)
 
     def set(self, **kwargs):
@@ -159,6 +192,9 @@ class InputControls:
             f'lprint = {self.lprint.get_value_str()}  ! Verbose level\n\n'
         )
 
+    def get_scanned_control(self):
+        return getattr(self, self.options.var_to_scan)
+
     def get_keys(self):
         '''Returns (list): All keys of input controls'''
         return [o for o in dir(self) if isinstance(getattr(self, o), Control)]
@@ -174,18 +210,19 @@ class InputControls:
         for kvp in kvps:
             print(kvp)
 
-    def save_to_csv(self, runid, scan_num, var_to_scan=None, scan_factor=None):
+    def save_to_csv(self, scan_factor=None):
         '''
         Saves InputControls data to CSV
 
         If scan_factor is specified, then var_to_scan must also be specified
 
         Parameters:
-        * runid (str): The runid of the CSV to use
-        * scan_num (int): The scan number of the CSV to use
-        * var_to_scan (str): The scanned variable of the CSV to use (optional)
         * scan_factor (float): The value of the scan factor (Optional)
         '''
+
+        runid = self.options.runid
+        scan_num = self.options.scan_num
+        var_to_scan = self.options.var_to_scan
 
         if scan_factor:
             scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_FMT}}'
@@ -202,9 +239,9 @@ class InputControls:
             for data in control_data:
                 f.write(f'{data}\n')
 
-        print(f'Input controls saved to \n    {file_name}\n')
+        _log.info(f'\n\tSaved: {file_name}\n')
 
-    def load_from_csv(self, runid, scan_num, var_to_scan=None, scan_factor=None, use_rho=False):
+    def load_from_csv(self, scan_factor=None, use_rho=False):
         '''
         Loads Controls data from a CSV into the current Controls object
 
@@ -212,13 +249,13 @@ class InputControls:
         var_to_scan must also be specified.
 
         Parameters:
-        * runid (str): The runid of the CSV to use
-        * scan_num (int): The scan number of the CSV to use
-        * var_to_scan (str): The scanned variable of the CSV to use (optional)
         * scan_factor (float): The scan_factor, if doing a variable scan (optional)
         * use_rho (bool): True if the CSV to load is in the rho folder (optional)
         '''
 
+        runid = self.options.runid
+        scan_num = self.options.scan_num
+        var_to_scan = self.options.var_to_scan
         controls_name = SaveType.CONTROLS.name.capitalize()
 
         if use_rho:
@@ -288,17 +325,19 @@ For testing purposes:
 * There need to be existing folders corresponding to the runid and scan_num when saving controls
 '''
 if __name__ == '__main__':
+    import modules.options
+    options = modules.options.Options(runid='TEST', scan_num=373, input_points=51)
+
     '''Print sample MMM Header from user-specified Options'''
-    controls = InputControls(input_points=5)
+    controls = InputControls(options)
     print(f'Example MMM Header:\n{"-"*50}')
     print(controls.get_mmm_header())
 
     '''Print Controls values loaded from CSV'''
-    runid, scan_num = 'TEST', 373
-    controls = InputControls()
-    controls.load_from_csv(runid, scan_num)
+    controls = InputControls(options)
+    controls.load_from_csv()
     print(f'Controls Values Loaded From CSV:\n{"-"*50}')
     controls.print_key_values_pairs()
 
     '''Save Controls to CSV'''
-    controls.save_to_csv(runid, scan_num)
+    controls.save_to_csv()

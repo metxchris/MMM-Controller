@@ -1,22 +1,26 @@
 """Stores options needed to run modules in MMM Explorer
 
 Some options are set at runtime by the user, and others may be set while
-various code executes.  Since options values are needed in the majority of
-modules used by MMM Explorer, the Options class is meant to be accessed by
-the public instance of it that's created at the bottom of the module.  This
-lets us reference options values without having to pass the object around.
+various code executes.  Options are saved using the pickle module, which
+serializes the entire object in binary, and is unreadable by the user.
+Consequently, we also save a CSV of all options values stored in the pickle
+file, which allows the user to see what options values were stored for each
+scan; this CSV is otherwise not used by MMM Explorer.
 
-Options are saved using the pickle module, which serializes the entire object
-in binary, and is unreadable by the user.  Consequently, we also save a CSV
-of all options values stored in the pickle file, which allows the user to see
-what options values were stored for each scan; this CSV is otherwise not used
-by MMM Explorer.
+The Options class is coupled to both the InputControls and Variables classes,
+as options values are needed frequently when working with controls or
+variables objects.  Specifically, the Options class must be instantiated
+before instantiating either InputControls or Variables classes.  When loading
+data, options should be loaded first, and then the loaded options object
+should be used to load controls and variables objects.
+
+As a consequence of this coupling, the options module does not import either
+the controls or variables modules.  Any options related methods requiring
+either of these modules are implemented in those modules themselves.
 
 Example Usage:
-    import modules.options as options
-
     # Set options values
-    options.instance.set(
+    options = modules.options.Options(
         runid='120968A02',
         shot_type=ShotType.NSTX,
         input_time=0.5,
@@ -24,15 +28,17 @@ Example Usage:
     )
 
     # Save options (to pickle file)
-    options.instance.save()
+    options.save()
 
     # Load options (from pickle file)
-    options.instance.load('120968A02', 1)
+    options = modules.options.Options()
+    options.load('120968A02', 1)
 """
 
 # Standard Packages
 import pickle
 import inspect
+import logging
 
 # 3rd Party Packages
 import numpy as np
@@ -42,6 +48,9 @@ import modules.utils as utils
 import modules.datahelper as datahelper
 import modules.constants as constants
 from modules.enums import ShotType, ScanType
+
+
+_log = logging.getLogger(__name__)
 
 
 class Options:
@@ -65,22 +74,24 @@ class Options:
     * var_to_scan (str): the variable to scan; syntax must match a member of InputVariables
     '''
 
-    # Private members (each has a property)
-    _input_points = None
-    _runid = None
-    _scan_range = None
-    _var_to_scan = None
+    def __init__(self, **kwargs):
+        # Private members (each has a property)
+        self._input_points = None
+        self._runid = None
+        self._scan_range = None
+        self._var_to_scan = None
+        # Public members
+        self.apply_smoothing = False
+        self.input_time = None
+        self.scan_num = None
+        self.scan_type = ScanType.NONE
+        self.shot_type = ShotType.NONE
+        self.temperature_profiles = False
+        self.time_str = None
+        self.time_idx = None
+        self.uniform_rho = False
 
-    # Public members
-    apply_smoothing = False
-    input_time = None
-    scan_num = None
-    scan_type = ScanType.NONE
-    shot_type = ShotType.NONE
-    temperature_profiles = False
-    time_str = None
-    time_idx = None
-    uniform_rho = False
+        self.set(**kwargs)
 
     # Properties
     @property
@@ -178,24 +189,34 @@ class Options:
         csv_path = pickle_path.replace('.pickle', '.csv')
         options_values = self.get_key_value_pairs()
         with open(csv_path, 'w') as handle:
+            handle.write('# Note: This file is for inspection of values, and is not otherwise used by MMM Explorer\n')
             for o in options_values:
                 handle.write(f'{o[0]}, {o[1]}\n')
 
-        print(f'Options saved to {pickle_path}\n')
+        _log.info(f'\n\tSaved: {pickle_path}\n')
 
-    def set_measurement_time(self, tvar):
+    def set_measurement_time(self, time_values):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''
-        self.time_idx = np.argmin(np.abs(tvar.values - self.input_time))
-        self.time_str = f'{tvar.values[self.time_idx]:{constants.TIME_VALUE_FMT}}'
+        self.time_idx = np.argmin(np.abs(time_values - self.input_time))
+        self.time_str = f'{time_values[self.time_idx]:{constants.TIME_VALUE_FMT}}'
 
     def find_scan_factor(self, scan_factor):
-        '''Returns (float or None): Value in scan_range closest to the specified scan_factor'''
+        '''
+        Finds the value in scan range closest to the supplied scan factor
+
+        Parameters:
+        * scan_factor (float): The scan factor to find
+
+        Returns:
+        * (float | None): Value in scan_range closest to the specified
+          scan_factor, and None if scan_factor is None
+
+        Raises:
+        * ValueError: If scan_range is None
+        '''
+
         if scan_factor is None:
             return scan_factor
         elif self.scan_range is None:
             raise ValueError('Cannot find scan_factor value when scan_range is None')
         return self.scan_range[np.argmin(np.abs(self.scan_range - scan_factor))]
-
-
-# Store a public instance of the Options class
-instance = Options()

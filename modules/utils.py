@@ -14,6 +14,7 @@ interface between the different data classes.
 # Standard Packages
 import os
 import glob
+import logging
 from math import floor, log10
 
 # Local Packages
@@ -21,8 +22,20 @@ import pdftk
 import output
 import temp
 import cdfs
+import settings
 import modules.constants as constants
 from modules.enums import MergeType
+
+
+_log = logging.getLogger(__name__)
+
+
+def init_logging():
+    '''Initializes logging based on settings'''
+    if settings.PRINT_SAVE_MESSAGES:
+        logging.basicConfig(level="INFO")
+    else:
+        logging.basicConfig(level="WARNING")
 
 
 def get_cdf_path(file_name):
@@ -107,6 +120,7 @@ def init_output_dirs(runid, scan_num, var_to_scan):
     * var_to_scan (str): The variable being scanned
     '''
 
+    clear_temp_folder()
     create_directory(get_runid_path(runid))
     create_directory(get_scan_num_path(runid, scan_num))
 
@@ -245,7 +259,7 @@ def clear_folder(dir_path, file_type):
     folder = f'{dir_path}\\{file_type}'
     for file in glob.glob(folder):
         os.remove(file)
-    print(f'Cleared all files of type {file_type} from {dir_path}\n')
+    _log.info(f'\n\tCleared all files of type {file_type} from {dir_path}\n')
 
 
 def clear_temp_folder():
@@ -272,7 +286,7 @@ def get_files_in_dir(dir_path, file_type='', show_warning=True):
     file_names = [file for file in glob.glob(files)]
 
     if len(file_names) == 0 and show_warning:
-        print(f'*** Warning: No files found for {files}')
+        _log.warning(f'No files found for {files}')
 
     return file_names
 
@@ -327,7 +341,7 @@ def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=
     # Shell command to use pdftk.exe
     # TODO: Replace os.system with subprocess.run()
     os.system(f'cd {temp_path} & {pdftk_path} *{profile_type}*.pdf cat output \"{output_file}\"')
-    print(f'Profiles saved to \n    {output_file}\n')
+    _log.info(f'\n\tSaved: {output_file}\n')
 
     return output_file
 

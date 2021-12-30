@@ -20,7 +20,6 @@ import subprocess
 # Local Packages
 import settings
 import modules.utils as utils
-import modules.options as options
 import modules.variables as variables
 import modules.constants as constants
 from modules.enums import SaveType
@@ -56,6 +55,8 @@ def run_wrapper(input_vars, controls):
     * ValueError: If MMM produces an empty output file
     '''
 
+    time_idx = input_vars.options.time_idx
+
     # Create input file in temp directory
     with open(_input_file, 'w') as f:
         f.write(controls.get_mmm_header())
@@ -68,7 +69,7 @@ def run_wrapper(input_vars, controls):
             f.write(f'! {var.name}{units_str}\n')
             f.write(f'{var_name} = \n')
 
-            values = var.values[:, options.instance.time_idx]
+            values = var.values[:, time_idx]
             for value in values:
                 f.write(f'   {value:{constants.INPUT_VARIABLE_VALUE_FMT}}\n')
             f.write('\n')
@@ -80,7 +81,8 @@ def run_wrapper(input_vars, controls):
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                             universal_newlines=True)
 
-    print(result.stdout)  # Only prints after MMM finishes running
+    if settings.PRINT_MMM_RESPONSE:
+        print(result.stdout)  # Only prints after MMM finishes running
 
     # Error checks
     if result.stderr:
@@ -90,7 +92,7 @@ def run_wrapper(input_vars, controls):
     if not os.stat(_output_file).st_size:
         raise ValueError('MMM produced an empty output file')
 
-    output_vars = variables.OutputVariables()
+    output_vars = variables.OutputVariables(input_vars.options)
     output_vars.load_from_file_path(_output_file)
     os.remove(_output_file)  # ensure accurate error checks on next run
 

@@ -31,26 +31,109 @@ TODO:
 import sys
 import copy
 import inspect
+import functools
 
 # 3rd Party Packages
 import numpy as np
 from scipy.interpolate import interp1d
 
 # Local Packages
-import modules.options as options
 import modules.constants as constants
 
 
+_gradients = set()  # Stores the names of calculated gradient variables
+
+
+def gradient(gvar_name, var_name, drmin, calc_vars):
+    '''
+    Calculates the normalized gradient
+
+    After the gradient value is calculated, optional smoothing is applied, and
+    then the gradient is checked for min and nan values.  The overall sign of
+    the gradient equation is determined by the sign given for drmin.
+
+    Parameters:
+    * gvar_name (str): The name of the variable to store the gradient result in
+    * var_name (str): The name of the variable to take the gradient of
+    * drmin (np.ndarray): Differential rmin
+    * calc_vars (InputVariables): Object containing variable data
+    '''
+
+    _gradients.add(gvar_name)
+    rmaj = calc_vars.rmaj.values
+    x = calc_vars.x.values[:, 0]
+    xb = calc_vars.xb.values[:, 0]  # includes origin
+
+    # get variables related to the gradient from variable names
+    gvar = getattr(calc_vars, gvar_name)
+    var = getattr(calc_vars, var_name)
+
+    # partial derivative along radial dimension
+    dxvar = np.diff(var.values, axis=0) / drmin
+
+    # interpolate from x grid to xb grid
+    set_interp = interp1d(x, dxvar, kind='cubic', fill_value="extrapolate", axis=0)
+    dxvar = set_interp(xb)
+
+    # take gradient
+    gradient_values = rmaj * dxvar / var.values
+    gvar.set(values=gradient_values, units='')
+
+    if calc_vars.options.apply_smoothing:
+        gvar.apply_smoothing()
+
+    gvar.clamp_gradient(100)  # TODO: should we be doing this?
+    gvar.set_minvalue()
+    gvar.check_for_nan()
+
+
+def calculation(func):
+    '''
+    Decorator function that wraps each non-gradient variable calculation
+
+    In addition to storing the result of each calculation function to the
+    corresponding variable object, the calculation decorator adds additional
+    functionality at the end of each variable calculation as well.  In
+    particular, optional smoothing is applied to the variable, and then the
+    variable is checked for min and nan values. The units of each calculation
+    are as specified for each corresponding variable in the InputVariables
+    class.
+
+    Note: The name of the variable functions must match the name of the
+    variable in the InputVariables class in order for the calculations to
+    work.
+
+    Parameters:
+    * func (function): Function of the variable to calculate
+    '''
+
+    @functools.wraps(func)  # Preserves the name of functions decorated with @calculation
+    def wrapper(calc_vars):
+        var = getattr(calc_vars, func.__name__)  # Get the variable corresponding to func
+        var.values = func(calc_vars)  # Do the calculation
+
+        if calc_vars.options.apply_smoothing:
+            var.apply_smoothing()
+
+        var.set_minvalue()
+        var.check_for_nan()
+
+        return func
+
+    wrapper.calculation = True
+    return wrapper
+
+
+@calculation
 def ahyd(calc_vars):
     '''Mean Atomic Mass of Hydrogenic Ions (Hydrogen + Deuterium)'''
     nh0 = calc_vars.nh0.values
     nd = calc_vars.nd.values
 
-    ahyd = (nh0 + 2 * nd) / (nh0 + nd)
-
-    calc_vars.ahyd.set(values=ahyd, units='')
+    return (nh0 + 2 * nd) / (nh0 + nd)
 
 
+@calculation
 def aimass(calc_vars):
     '''Mean Atomic Mass of Thermal Ions'''
     ahyd = calc_vars.ahyd.values
@@ -58,11 +141,10 @@ def aimass(calc_vars):
     nh = calc_vars.nh.values
     nz = calc_vars.nz.values
 
-    aimass = (ahyd * nh + aimp * nz) / (nh + nz)
-
-    calc_vars.aimass.set(values=aimass, units='')
+    return (ahyd * nh + aimp * nz) / (nh + nz)
 
 
+@calculation
 def alphamhd(calc_vars):
     '''Alpha MHD (Weiland Definition)'''
     betae = calc_vars.betae.values
@@ -74,22 +156,20 @@ def alphamhd(calc_vars):
     te = calc_vars.te.values
     ti = calc_vars.ti.values
 
-    alphamhd = q**2 * betae * (gne + gte + ti / te * (gni + gti))
-
-    calc_vars.alphamhd.set(values=alphamhd, units='')
+    return q**2 * betae * (gne + gte + ti / te * (gni + gti))
 
 
+@calculation
 def beta(calc_vars):
     '''Beta'''
     zcmu0 = constants.ZCMU0
     btor = calc_vars.btor.values
     p = calc_vars.p.values
 
-    beta = 2 * zcmu0 * p / btor**2
-
-    calc_vars.beta.set(values=beta, units='')
+    return 2 * zcmu0 * p / btor**2
 
 
+@calculation
 def betae(calc_vars):
     '''Electron Beta'''
     zckb = constants.ZCKB
@@ -98,11 +178,10 @@ def betae(calc_vars):
     ne = calc_vars.ne.values
     te = calc_vars.te.values
 
-    betae = 2 * zcmu0 * ne * te * zckb / btor**2
-
-    calc_vars.betae.set(values=betae, units='')
+    return 2 * zcmu0 * ne * te * zckb / btor**2
 
 
+@calculation
 def bpol(calc_vars):
     '''Poloidal Magnetic Field'''
     btor = calc_vars.btor.values
@@ -110,41 +189,37 @@ def bpol(calc_vars):
     rmaj = calc_vars.rmaj.values
     rmin = calc_vars.rmin.values
 
-    bpol = rmin / rmaj * btor / q
-
-    calc_vars.bpol.set(values=bpol, units=calc_vars.btor.units)
+    return rmin / rmaj * btor / q
 
 
+@calculation
 def btor(calc_vars):
     '''Toroidal Magnetic Field'''
     bz = calc_vars.bz.values
     raxis = calc_vars.rmaj.values[0, :]
     rmaj = calc_vars.rmaj.values
 
-    btor = raxis / rmaj * bz
-
-    calc_vars.btor.set(values=btor, units=calc_vars.bz.units)
+    return raxis / rmaj * bz
 
 
+@calculation
 def eps(calc_vars):
     '''Inverse Aspect Ratio'''
     arat = calc_vars.arat.values
 
-    eps = 1 / arat
-
-    calc_vars.eps.set(values=eps, units='')
+    return 1 / arat
 
 
+@calculation
 def etae(calc_vars):
     '''etae = gte / gne'''
     gte = calc_vars.gte.values
     gne = calc_vars.gne.values
 
-    etae = gte / gne
-
-    calc_vars.etae.set(values=etae, units='')
+    return gte / gne
 
 
+@calculation
 def etai(calc_vars):
     '''
     etae = gti / gni
@@ -157,11 +232,10 @@ def etai(calc_vars):
     gti = calc_vars.gti.values
     gni = calc_vars.gni.values
 
-    etai = gti / gni
-
-    calc_vars.etai.set(values=etai, units='')
+    return gti / gni
 
 
+@calculation
 def gmax(calc_vars):
     '''Upper bound for ne, nh, te, and ti gradients in DRBM model (modmmm.f90)'''
     eps = calc_vars.eps.values
@@ -170,11 +244,10 @@ def gmax(calc_vars):
     gyrfi = calc_vars.gyrfi.values
     vthi = calc_vars.vthi.values
 
-    gmax = rmaj / (vthi / gyrfi * q / eps)
-
-    calc_vars.gmax.set(values=gmax, units='')
+    return rmaj / (vthi / gyrfi * q / eps)
 
 
+@calculation
 def gyrfi(calc_vars):
     '''Ion Gyrofrequency'''
     zce = constants.ZCE
@@ -182,21 +255,19 @@ def gyrfi(calc_vars):
     aimass = calc_vars.aimass.values
     btor = calc_vars.btor.values
 
-    gyrfi = zce * btor / (zcmp * aimass)
-
-    calc_vars.gyrfi.set(values=gyrfi, units='s^-1')
+    return zce * btor / (zcmp * aimass)
 
 
+@calculation
 def gave(calc_vars):
     '''Average Magnetic Surface Curvature'''
     shear = calc_vars.shear.values
     alphamhd = calc_vars.alphamhd.values
 
-    gave = 2 / 3 + 5 / 9 * shear - 5 / 12 * alphamhd
-
-    calc_vars.gave.set(values=gave, units='')
+    return 2 / 3 + 5 / 9 * shear - 5 / 12 * alphamhd
 
 
+@calculation
 def loge(calc_vars):
     '''Electron Coulomb Logarithm'''
 
@@ -205,15 +276,14 @@ def loge(calc_vars):
     te = calc_vars.te.values
 
     # NRL Plasma Formulary Definition
-    loge = 37.8 - np.log(ne**(1 / 2) / te)
+    return 37.8 - np.log(ne**(1 / 2) / te)
 
     # TRANSP definition (equivalent)
     # zeff = calc_vars.zeff.values
-    # loge = 39.23 - np.log(zeff*ne**(1 / 2) / te)
-
-    calc_vars.loge.set(values=loge, units='')
+    # return 39.23 - np.log(zeff*ne**(1 / 2) / te)
 
 
+@calculation
 def p(calc_vars):
     '''Plasma Pressure'''
     zckb = constants.ZCKB
@@ -222,11 +292,10 @@ def p(calc_vars):
     te = calc_vars.te.values
     ti = calc_vars.ti.values
 
-    p = (ne * te + ni * ti) * zckb
-
-    calc_vars.p.set(values=p, units='Pa')
+    return (ne * te + ni * ti) * zckb
 
 
+@calculation
 def nh0(calc_vars):
     '''Hydrogen Ion Density'''
     nd = calc_vars.nd.values
@@ -235,32 +304,29 @@ def nh0(calc_vars):
     nz = calc_vars.nz.values
     zimp = calc_vars.zimp.values
 
-    nh0 = ne - zimp * nz - nf - nd
-
-    calc_vars.nh0.set(values=nh0, units=calc_vars.ne.units)
+    return ne - zimp * nz - nf - nd
 
 
+@calculation
 def nh(calc_vars):
     '''Total Hydrogenic Ion Density'''
     nh0 = calc_vars.nh0.values
     nd = calc_vars.nd.values
 
-    nh = nh0 + nd
-
-    calc_vars.nh.set(values=nh, units=calc_vars.nd.units)
+    return nh0 + nd
 
 
+@calculation
 def ni(calc_vars):
     '''Thermal Ion Density'''
     nh = calc_vars.nh.values
     nz = calc_vars.nz.values
 
     # TRANSP Definition
-    ni = nh + nz
-
-    calc_vars.ni.set(values=ni, units=calc_vars.ne.units)
+    return nh + nz
 
 
+@calculation
 def nuei(calc_vars):
     '''Collision Frequency'''
     zcf = constants.ZCF
@@ -269,11 +335,10 @@ def nuei(calc_vars):
     zeff = calc_vars.zeff.values
     loge = calc_vars.loge.values
 
-    nuei = zcf * 2**(1 / 2) * ne * loge * zeff / te**(3 / 2)
-
-    calc_vars.nuei.set(values=nuei, units='s^-1')
+    return zcf * 2**(1 / 2) * ne * loge * zeff / te**(3 / 2)
 
 
+@calculation
 def nuei2(calc_vars):
     '''OLD NOTE: Not sure what to call this, but it leads to the approx the correct NUSTI'''
     zcf = constants.ZCF
@@ -282,11 +347,10 @@ def nuei2(calc_vars):
     zeff = calc_vars.zeff.values
     loge = calc_vars.loge.values
 
-    nuei2 = zcf * 2**(1 / 2) * ni * loge * zeff / ti**(3 / 2)
-
-    calc_vars.nuei2.set(values=nuei2, units='s^-1')
+    return zcf * 2**(1 / 2) * ni * loge * zeff / ti**(3 / 2)
 
 
+@calculation
 def nuste(calc_vars):
     '''
     Electron Collisionality
@@ -304,11 +368,10 @@ def nuste(calc_vars):
     rmaj = calc_vars.rmaj.values
     vthe = calc_vars.vthe.values
 
-    nuste = nuei * eps**(-3 / 2) * q * rmaj / vthe
-
-    calc_vars.nuste.set(values=nuste, units='')
+    return nuei * eps**(-3 / 2) * q * rmaj / vthe
 
 
+@calculation
 def nusti(calc_vars):
     '''
     Ion Collisionality
@@ -326,11 +389,10 @@ def nusti(calc_vars):
     rmaj = calc_vars.rmaj.values
     vthi = calc_vars.vthi.values
 
-    nusti = nuei2 * eps**(-3 / 2) * q * rmaj / (2 * vthi) * (zcme / zcmp)**(1 / 2)
-
-    calc_vars.nusti.set(values=nusti, units='')
+    return nuei2 * eps**(-3 / 2) * q * rmaj / (2 * vthi) * (zcme / zcmp)**(1 / 2)
 
 
+@calculation
 def shat(calc_vars):
     '''
     Effective Magnetic Shear
@@ -344,42 +406,39 @@ def shat(calc_vars):
 
     shat = (2 * shear - 1 + (elong * (shear - 1))**2)**(1 / 2)
     shat[shat < 0] = 0
+    return shat
 
-    calc_vars.shat.set(values=shat, units='')
 
-
+@calculation
 def shear(calc_vars):
     '''Magnetic Shear'''
     gq = calc_vars.gq.values
     rmaj = calc_vars.rmaj.values
     rmin = calc_vars.rmin.values
 
-    shear = gq * rmin / rmaj
-
-    calc_vars.shear.set(values=shear, units='')
+    return gq * rmin / rmaj
 
 
+@calculation
 def tau(calc_vars):
     '''Temperature Ratio te / ti'''
     te = calc_vars.te.values
     ti = calc_vars.ti.values
 
-    tau = te / ti
-
-    calc_vars.tau.set(values=tau, units='')
+    return te / ti
 
 
+@calculation
 def vthe(calc_vars):
     '''Thermal Velocity of Electrons'''
     zckb = constants.ZCKB
     zcme = constants.ZCME
     te = calc_vars.te.values
 
-    vthe = (2 * zckb * te / zcme)**(1 / 2)
-
-    calc_vars.vthe.set(values=vthe, units='m/s')
+    return (2 * zckb * te / zcme)**(1 / 2)
 
 
+@calculation
 def vthi(calc_vars):
     '''Thermal Velocity of Ions'''
     zckb = constants.ZCKB
@@ -387,11 +446,10 @@ def vthi(calc_vars):
     aimass = calc_vars.aimass.values
     ti = calc_vars.ti.values
 
-    vthi = (zckb * ti / (zcmp * aimass))**(1 / 2)
-
-    calc_vars.vthi.set(values=vthi, units='m/s')
+    return (zckb * ti / (zcmp * aimass))**(1 / 2)
 
 
+@calculation
 def vpar(calc_vars):
     '''Parallel Velocity'''
     bpol = calc_vars.bpol.values
@@ -399,11 +457,10 @@ def vpar(calc_vars):
     vpol = calc_vars.vpol.values
     vtor = calc_vars.vtor.values
 
-    vpar = vtor + vpol * bpol / btor
-
-    calc_vars.vpar.set(values=vpar, units=calc_vars.vtor.units)
+    return vtor + vpol * bpol / btor
 
 
+@calculation
 def zeff(calc_vars):
     '''Effective Charge'''
     ne = calc_vars.ne.values
@@ -412,80 +469,7 @@ def zeff(calc_vars):
     nz = calc_vars.nz.values
     zimp = calc_vars.zimp.values
 
-    zeff = (nh + nf + zimp**2 * nz) / ne
-
-    calc_vars.zeff.set(values=zeff, units='')
-
-
-def calculate_gradient(gvar_name, var_name, drmin, calc_vars):
-    '''
-    Calculates the normalized gradient
-
-    Parameters:
-    * gvar_name (str): The name of the variable to store the gradient result
-    * var_name (str): The name of the variable to take the gradient of
-    * drmin (np.ndarray): Differential rmin
-    * calc_vars (InputVariables): Object containing variable data
-    '''
-
-    rmaj = calc_vars.rmaj.values
-    x = calc_vars.x.values[:, 0]
-    xb = calc_vars.xb.values[:, 0]  # includes origin
-
-    # get variables related to the gradient from variable names
-    gvar = getattr(calc_vars, gvar_name)
-    var = getattr(calc_vars, var_name)
-
-    # partial derivative along x-axis
-    dxvar = np.diff(var.values, axis=0) / drmin
-
-    # interpolate from x to xb
-    set_interp = interp1d(x, dxvar, kind='cubic', fill_value="extrapolate", axis=0)
-    dxvar = set_interp(xb)
-
-    # take gradient
-    gradient_values = rmaj * dxvar / var.values
-    gvar.set(values=gradient_values, units='')
-
-    opts = options.instance
-    if opts.apply_smoothing:
-        gvar.apply_smoothing(opts.input_points)
-
-    gvar.clamp_gradient(100)  # TODO: should we be doing this?
-    gvar.set_minvalue()
-    gvar.check_for_nan()
-
-
-def calculate_variable(var_function, calc_vars):
-    '''
-    Calculates the specified variable
-
-    Values are saved to the input variables object by reference, so no return
-    statements are needed.  After these values are calculated, we also apply
-    optional smoothing, check variable minimum values, and check for nan
-    values in the event that any errors occurred.  Note that the name of
-    var_function must match the name of the variable in InputVariables in
-    order for the calculation to be correctly called.
-
-    This function was implemented in such a way that each variable can be
-    checked as needed after completing it's calculation as if a callback
-    function was passed to the calculation directly.
-
-    Parameters:
-    * var_function (function): Local function of the variable to calculate
-    * calc_vars (InputVariables): Object containing variable data
-    '''
-
-    var_function(calc_vars)
-
-    # Get the variable name corresponding to var_function by reflection
-    var_name = var_function.__name__
-
-    if options.instance.apply_smoothing:
-        getattr(calc_vars, var_name).apply_smoothing(options.instance.input_points)
-
-    getattr(calc_vars, var_name).set_minvalue()
-    getattr(calc_vars, var_name).check_for_nan()
+    return (nh + nf + zimp**2 * nz) / ne
 
 
 def calculate_base_variables(calc_vars):
@@ -505,15 +489,15 @@ def calculate_base_variables(calc_vars):
     # same name as the variable it calculates. Note that calculation order
     # matters here.
 
-    calculate_variable(nh0, calc_vars)
-    calculate_variable(nh, calc_vars)
-    calculate_variable(ni, calc_vars)
-    calculate_variable(ahyd, calc_vars)
-    calculate_variable(aimass, calc_vars)
-    calculate_variable(zeff, calc_vars)
-    calculate_variable(btor, calc_vars)
-    calculate_variable(bpol, calc_vars)
-    calculate_variable(vpar, calc_vars)
+    nh0(calc_vars)
+    nh(calc_vars)
+    ni(calc_vars)
+    ahyd(calc_vars)
+    aimass(calc_vars)
+    zeff(calc_vars)
+    btor(calc_vars)
+    bpol(calc_vars)
+    vpar(calc_vars)
 
 
 def calculate_gradient_variables(calc_vars):
@@ -534,16 +518,16 @@ def calculate_gradient_variables(calc_vars):
     # drmin (differential rmin) sets the sign of the gradient equation
 
     drmin = np.diff(calc_vars.rmin.values, axis=0)
-    calculate_gradient('gq', 'q', drmin, calc_vars)  # Only gq has positive drmin
-    calculate_gradient('gne', 'ne', -drmin, calc_vars)
-    calculate_gradient('gnh', 'nh', -drmin, calc_vars)
-    calculate_gradient('gni', 'ni', -drmin, calc_vars)
-    calculate_gradient('gnz', 'nz', -drmin, calc_vars)
-    calculate_gradient('gte', 'te', -drmin, calc_vars)
-    calculate_gradient('gti', 'ti', -drmin, calc_vars)
-    calculate_gradient('gvpar', 'vpar', -drmin, calc_vars)
-    calculate_gradient('gvpol', 'vpol', -drmin, calc_vars)
-    calculate_gradient('gvtor', 'vtor', -drmin, calc_vars)
+    gradient('gq', 'q', drmin, calc_vars)  # Only gq has positive drmin
+    gradient('gne', 'ne', -drmin, calc_vars)
+    gradient('gnh', 'nh', -drmin, calc_vars)
+    gradient('gni', 'ni', -drmin, calc_vars)
+    gradient('gnz', 'nz', -drmin, calc_vars)
+    gradient('gte', 'te', -drmin, calc_vars)
+    gradient('gti', 'ti', -drmin, calc_vars)
+    gradient('gvpar', 'vpar', -drmin, calc_vars)
+    gradient('gvpol', 'vpol', -drmin, calc_vars)
+    gradient('gvtor', 'vtor', -drmin, calc_vars)
 
 
 def calculate_additional_variables(calc_vars):
@@ -564,26 +548,26 @@ def calculate_additional_variables(calc_vars):
     # same name as the variable it calculates. Note that calculation order
     # matters here.
 
-    calculate_variable(tau, calc_vars)
-    calculate_variable(eps, calc_vars)
-    calculate_variable(p, calc_vars)
-    calculate_variable(beta, calc_vars)
-    calculate_variable(betae, calc_vars)
-    calculate_variable(loge, calc_vars)
-    calculate_variable(nuei, calc_vars)
-    calculate_variable(nuei2, calc_vars)
-    calculate_variable(vthe, calc_vars)
-    calculate_variable(vthi, calc_vars)
-    calculate_variable(nuste, calc_vars)
-    calculate_variable(nusti, calc_vars)
-    calculate_variable(gyrfi, calc_vars)
-    calculate_variable(gmax, calc_vars)
-    calculate_variable(shear, calc_vars)
-    calculate_variable(shat, calc_vars)
-    calculate_variable(alphamhd, calc_vars)
-    calculate_variable(gave, calc_vars)
-    calculate_variable(etae, calc_vars)
-    calculate_variable(etai, calc_vars)
+    tau(calc_vars)
+    eps(calc_vars)
+    p(calc_vars)
+    beta(calc_vars)
+    betae(calc_vars)
+    loge(calc_vars)
+    nuei(calc_vars)
+    nuei2(calc_vars)
+    vthe(calc_vars)
+    vthi(calc_vars)
+    nuste(calc_vars)
+    nusti(calc_vars)
+    gyrfi(calc_vars)
+    gmax(calc_vars)
+    shear(calc_vars)
+    shat(calc_vars)
+    alphamhd(calc_vars)
+    gave(calc_vars)
+    etae(calc_vars)
+    etai(calc_vars)
 
 
 def calculate_new_variables(cdf_vars):
@@ -612,8 +596,17 @@ def calculate_new_variables(cdf_vars):
 
 
 def get_calculated_vars():
-    '''Returns (list of str): function names of calculated non-gradient variables'''
-    return ([
+    '''
+    Gets list of all calculated variables
+
+    Note: Gradients only show up here after their calculations were made
+
+    Returns:
+    * (list[str]): Names of all calculated variables
+    '''
+
+    calculations = ([
         o[0] for o in inspect.getmembers(sys.modules[__name__])
-        if inspect.isfunction(o[1]) and 'calculate' not in o[0]
+        if inspect.isfunction(o[1]) and hasattr(o[1], calculation.__name__)
     ])
+    return calculations + list(_gradients)

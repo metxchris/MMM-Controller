@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 
 # Local Packages
 import settings
-import modules.options as options
 import modules.utils as utils
 import modules.calculations as calculations
 import modules.constants as constants
@@ -38,19 +37,20 @@ class PlotData:
     yvars: list
 
 
-def init_figure(profile_type, xvar_points, scan_factor):
+def init_figure(options, profile_type, xvar_points, scan_factor):
     '''
     Initializes a new figure and figure subplots
 
     Parameters:
+    * options (Options): Object containing user options
     * profile_type (ProfileType): The type of profiles being made
     * xvar_points (int): The number of points the xvar being plotted has
     * scan_factor (float or None): The value of the scan factor
     '''
 
-    runid = options.instance.runid
-    shot_type = options.instance.shot_type
-    time = options.instance.time_str
+    runid = options.runid
+    shot_type = options.shot_type
+    time = options.time_str
     points = xvar_points
 
     # Init figure and subplots
@@ -64,9 +64,9 @@ def init_figure(profile_type, xvar_points, scan_factor):
 
     # Set attributes text
     attributes = []
-    if options.instance.uniform_rho:
+    if options.uniform_rho:
         attributes.append('Uniformly Spaced')
-    if options.instance.apply_smoothing:
+    if options.apply_smoothing:
         attributes.append('Smoothed')
     attributes_str = ', '.join(attributes)
     if len(attributes_str):
@@ -76,7 +76,7 @@ def init_figure(profile_type, xvar_points, scan_factor):
 
     # Set scan factor text
     if scan_factor:
-        var_to_scan = options.instance.var_to_scan
+        var_to_scan = options.var_to_scan
         if hasattr(InputVariables(), var_to_scan):
             data_obj = InputVariables()
         elif hasattr(InputControls(), var_to_scan):
@@ -122,11 +122,12 @@ def make_plot(ax, data, profile_type, time_idx=None):
         ax.legend()
 
 
-def run_plotting_loop(plotdata, profile_type, scan_factor):
+def run_plotting_loop(options, plotdata, profile_type, scan_factor):
     '''
     Runs a loop to create figures and plots for each PlotData object in plotdata
 
     Parameters:
+    * options (Options): Object containing user options
     * plotdata (list of PlotData): Contains all data being plotted
     * profile_type (ProfileType): The type of profiles being plotted
     * scan_factor (float or None): The value of the scan factor
@@ -134,8 +135,6 @@ def run_plotting_loop(plotdata, profile_type, scan_factor):
 
     plotlayout.init()
     plotcolors.init()
-
-    opts = options.instance
 
     print(f'Creating {profile_type.name.lower()} profile figures...')
 
@@ -149,7 +148,7 @@ def run_plotting_loop(plotdata, profile_type, scan_factor):
         if row == 0 and col == 0:
             if data is None:
                 raise TypeError('The first plot on a new figure cannot be set to None')
-            fig, axs = init_figure(profile_type, data.xvar.values.shape[0], scan_factor)
+            fig, axs = init_figure(options, profile_type, data.xvar.values.shape[0], scan_factor)
 
             # Disable all subplot axes until they are used
             for sub_axs in axs:
@@ -159,7 +158,7 @@ def run_plotting_loop(plotdata, profile_type, scan_factor):
         # Create subplot and enable axis.  Setting data to None will leave the subplot position empty
         if data is not None:
             if profile_type in [ProfileType.INPUT, ProfileType.COMPARED, ProfileType.ADDITIONAL]:
-                make_plot(axs[row, col], data, profile_type, opts.time_idx)
+                make_plot(axs[row, col], data, profile_type, options.time_idx)
             elif profile_type == ProfileType.OUTPUT:
                 make_plot(axs[row, col], data, profile_type)
 
@@ -173,7 +172,7 @@ def run_plotting_loop(plotdata, profile_type, scan_factor):
 
     merge_type = MergeType.PROFILES if not scan_factor else MergeType.PROFILEFACTORS
 
-    args = (opts.runid, opts.scan_num, profile_type.name.capitalize(), merge_type, opts.var_to_scan, scan_factor)
+    args = (options.runid, options.scan_num, profile_type.name.capitalize(), merge_type, options.var_to_scan, scan_factor)
     merged_pdf = utils.merge_profile_sheets(*args)
 
     # File opening may only work on Windows
@@ -189,8 +188,8 @@ def get_compared_data(mmm_vars, cdf_vars):
     Gets plotdata for comparisons of calculated values with values found in the CDF
 
     Use these Options for the most accurate comparison when verifying calculations against CDF variables:
-    * options.instance.apply_smoothing = False
-    * options.instance.input_points = None
+    * options.apply_smoothing = False
+    * options.input_points = None
 
     Parameters:
     * cdf_vars (InputVariables): All CDF variables
@@ -339,4 +338,4 @@ def plot_profiles(profile_type, vars, cdf_vars=None, scan_factor=None):
     else:
         raise TypeError(f'The ProfileType {profile_type} does not have a plotdata definition')
 
-    run_plotting_loop(plotdata, profile_type, scan_factor)
+    run_plotting_loop(vars.options, plotdata, profile_type, scan_factor)
