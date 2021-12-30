@@ -44,7 +44,7 @@ Example Usage:
     input_vars.load_from_csv(SaveType.ADDITIONAL)
 
     # Save Input Variables to CSV
-    input_vars.save_all_vars()
+    input_vars.save()
 
     # Get List of variables with corresponding TRANSP values (in CDF)
     input_vars.get_cdf_variables()
@@ -441,7 +441,7 @@ class InputVariables(Variables):
         data, header = self._get_data_as_array(var_list)
         self._save_to_csv(data, header, save_type, scan_factor)
 
-    def save_all_vars(self, scan_factor=None):
+    def save(self, scan_factor=None):
         '''
         Saves variable values of all relevant save types to a CSV
 
@@ -543,7 +543,7 @@ class OutputVariables(Variables):
         output_vars = self.get_all_output_vars()
         return [var for var in output_vars if 'W20' in var]
 
-    def save_all_vars(self, scan_factor=None):
+    def save(self, scan_factor=None):
         '''Saves output variables to a CSV (other than rho)'''
 
         # Put rmin at the front of the variable list
@@ -730,8 +730,8 @@ if __name__ == '__main__':
         getattr(ovars, var_name).set(name='name', desc='desc', units='units', dimensions=['X', 'T'], values=values)
 
     # Save variable data to CSV
-    # ivars.save_all_vars(options)
-    # ovars.save_all_vars(options)
+    # ivars.save(options)
+    # ovars.save(options)
 
     ivars = InputVariables()
     # ivars.load_from_csv(SaveType.INPUT, scan_factor=1.5)
