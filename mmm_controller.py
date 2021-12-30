@@ -40,17 +40,14 @@ Example Usage:
 * See commands listed at the bottom of this file
 """
 
-# Standard Packages
-from copy import deepcopy
-
 # 3rd Party Packages
 import numpy as np
 
 # Local Packages
 import settings
+import modules.controls
 import modules.options
 import modules.adjustments as adjustments
-import modules.controls as controls
 import modules.datahelper as datahelper
 import modules.mmm as mmm
 import modules.reshaper as reshaper
@@ -80,7 +77,7 @@ def _execute_variable_scan(mmm_vars, input_controls):
 
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write the MMM input file
-    * input_controls (InputControls): Specifies input control values in the MMM input file
+    * controls (InputControls): Specifies input control values in the MMM input file
     '''
 
     scan_range = mmm_vars.options.scan_range
@@ -89,12 +86,12 @@ def _execute_variable_scan(mmm_vars, input_controls):
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing {var_to_scan} scan: {i + 1} / {len(scan_range)}')
         adjusted_vars = adjustments.adjust_scanned_variable(mmm_vars, scan_factor)
-        adjusted_vars.save_all_vars(scan_factor)
-        output_vars = mmm.run_wrapper(adjusted_vars, input_controls)
-        output_vars.save_all_vars(scan_factor)
+        adjusted_vars.save(scan_factor)
+        output_vars = mmm.run_wrapper(adjusted_vars, controls)
+        output_vars.save(scan_factor)
 
 
-def _execute_control_scan(mmm_vars, input_controls):
+def _execute_control_scan(mmm_vars, controls):
     '''
     Executes an input control scan, where the values of an input control are
     varied over a specified range and are then sent to the MMM driver for
@@ -105,7 +102,7 @@ def _execute_control_scan(mmm_vars, input_controls):
 
     Parameters:
     * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
-    * input_controls (InputControls): Specifies input control values in the MMM input file
+    * controls (InputControls): Specifies input control values in the MMM input file
     '''
 
     # Create a reference to control being scanned in InputControls. Modifying
@@ -115,20 +112,20 @@ def _execute_control_scan(mmm_vars, input_controls):
     scan_range = mmm_vars.options.scan_range
     var_to_scan = mmm_vars.options.var_to_scan
 
-    adjusted_controls = deepcopy(input_controls)
+    adjusted_controls = datahelper.deepcopy_data(controls)
     scanned_control = adjusted_controls.get_scanned_control()
-    base_control = input_controls.get_scanned_control()
+    base_control = controls.get_scanned_control()
 
     for i, scan_factor in enumerate(scan_range):
         print(f'Executing {var_to_scan} scan: {i + 1} / {len(scan_range)}')
         scanned_control.values = scan_factor * base_control.values
-        mmm_vars.save_all_vars(scan_factor)
-        adjusted_controls.save_to_csv(scan_factor)
+        mmm_vars.save(scan_factor)
+        adjusted_controls.save(scan_factor)
         output_vars = mmm.run_wrapper(mmm_vars, adjusted_controls)
-        output_vars.save_all_vars(scan_factor)
+        output_vars.save(scan_factor)
 
 
-def main(scanned_vars, input_controls, options):
+def main(scanned_vars, controls):
     '''
     Runs the controller for MMM
 
@@ -141,29 +138,28 @@ def main(scanned_vars, input_controls, options):
     * scanned_vars (Dict): Dictionary of variables being scanned
         - keys (str | None): The variable being scanned
         - values (np.ndarray | None): The range of factors to scan over
-    * input_controls (InputControls): Specifies input control values in the MMM input file
-    * options (Options): Object containing user options
+    * controls (InputControls): Specifies input control values in the MMM input file
     '''
 
     utils.init_logging()
+    options = controls.options  # Creates a reference
 
     # TODO: Add validation for all items in scanned_vars
     for var_to_scan, scan_range in scanned_vars.items():
-        print(f'\nRunning MMM Controller...')
-
-        # Updating these options also updates input_controls.options
         options.scan_num = utils.get_scan_num(options.runid)
         options.set(var_to_scan=var_to_scan, scan_range=scan_range)
 
-        utils.init_output_dirs(options.runid, options.scan_num, options.var_to_scan)
+        print(f'\nRunning MMM Controller for {options.runid}, scan {options.scan_num}...')
+
+        utils.init_output_dirs(options)
 
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
-        mmm_vars.options.save()
-        mmm_vars.save_all_vars()
-        input_controls.save_to_csv()
+        output_vars = mmm.run_wrapper(mmm_vars, controls)
 
-        output_vars = mmm.run_wrapper(mmm_vars, input_controls)
-        output_vars.save_all_vars()
+        options.save()
+        controls.save()
+        mmm_vars.save()
+        output_vars.save()
 
         if settings.MAKE_PROFILE_PDFS:
             profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
@@ -172,13 +168,13 @@ def main(scanned_vars, input_controls, options):
             profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
 
         # Variable and control scans
-        if options.scan_type is not ScanType.NONE:
+        if options.scan_type.value:
             if options.scan_type is ScanType.VARIABLE:
-                _execute_variable_scan(mmm_vars, input_controls)
+                _execute_variable_scan(mmm_vars, controls)
             elif options.scan_type is ScanType.CONTROL:
-                _execute_control_scan(mmm_vars, input_controls)
+                _execute_control_scan(mmm_vars, controls)
 
-            reshaper.create_rho_files(mmm_vars.options)
+            reshaper.create_rho_files(options)
             print(f'\n{options.var_to_scan} scan complete!\n')
 
 
@@ -201,13 +197,13 @@ if __name__ == '__main__':
     '''
     Scanned Variables:
     * Uncomment the lines you wish to include in scanned_vars
-    * Using None as the scanned variable will skip the variable scan
+    * Using None as the scanned variable will just run MMM once
     '''
-    scanned_vars[None] = None
+    # scanned_vars[None] = None
     scanned_vars['etgm_kyrhoe'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
 
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
-    scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
@@ -240,7 +236,7 @@ if __name__ == '__main__':
     Input Controls:
     * cmodel enables (disables) the corresponding model if set to 1 (0)
     '''
-    input_controls = controls.InputControls(
+    controls = modules.controls.InputControls(
         options,
         cmodel_weiland=0,
         cmodel_dribm=0,
@@ -253,7 +249,7 @@ if __name__ == '__main__':
         etgm_exbs=1,
     )
 
-    settings.AUTO_OPEN_PDFS = 0
+    settings.AUTO_OPEN_PDFS = 1
     settings.MAKE_PROFILE_PDFS = 1
 
-    main(scanned_vars, input_controls, options)
+    main(scanned_vars, controls)

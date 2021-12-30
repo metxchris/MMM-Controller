@@ -172,8 +172,7 @@ def run_plotting_loop(options, plotdata, profile_type, scan_factor):
 
     merge_type = MergeType.PROFILES if not scan_factor else MergeType.PROFILEFACTORS
 
-    args = (options.runid, options.scan_num, profile_type.name.capitalize(), merge_type, options.var_to_scan, scan_factor)
-    merged_pdf = utils.merge_profile_sheets(*args)
+    merged_pdf = utils.merge_profile_sheets(options, profile_type.name.capitalize(), merge_type, scan_factor)
 
     # File opening may only work on Windows
     if settings.AUTO_OPEN_PDFS:

@@ -1,5 +1,6 @@
 # Standard Packages
 import sys; sys.path.insert(0, '../')
+import logging
 
 # 3rd Party Packages
 import numpy as np
@@ -18,6 +19,9 @@ from plotting.modules.styles import singlescan as plotlayout
 from plotting.modules.colors import mmmscan as plotcolors
 
 
+_log = logging.getLogger(__name__)
+
+
 def run_plotting_loop(vars_to_plot, options):
     '''
     Creates PDF Plots of each variable in vars_to_plot
@@ -30,8 +34,6 @@ def run_plotting_loop(vars_to_plot, options):
     '''
 
     fig = plt.figure()
-    runid = options.runid
-    scan_num = options.scan_num
     var_to_scan = options.var_to_scan
     scan_type = options.scan_type
 
@@ -71,7 +73,7 @@ def run_plotting_loop(vars_to_plot, options):
             fig.savefig(utils.get_temp_path(f'{profile_type} {sheet_num}.pdf'))
             fig.clear()
 
-        merged_pdf = utils.merge_profile_sheets(runid, scan_num, profile_type, MergeType.RHOVALUES, var_to_scan)
+        merged_pdf = utils.merge_profile_sheets(options, profile_type, MergeType.RHOVALUES)
 
         # File opening may only work on Windows
         if settings.AUTO_OPEN_PDFS:
@@ -118,7 +120,7 @@ def main(vars_to_plot, scan_data):
             if options.var_to_scan:
                 run_plotting_loop(vars_to_plot, options)
             else:
-                print(f'ERROR: No variable scan detected')
+                _log.error(f'\n\tNo variable scan detected for {runid}, scan {scan_num}\n')
 
 
 # Run this file directly to plot scanned variable profiles from previously created scanned data
@@ -148,7 +150,7 @@ if __name__ == '__main__':
     # scan_data['129041A10'] = [1]
     # scan_data['TEST'] = [181]
     # scan_data['138536A01'] = [i for i in range(100, 126)]
-    scan_data['TEST'] = [463]
+    scan_data['138536A01'] = [185]
 
     settings.AUTO_OPEN_PDFS = 1
 

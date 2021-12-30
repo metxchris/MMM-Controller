@@ -66,13 +66,13 @@ Example Usage:
 # Standard Packages
 import sys; sys.path.insert(0, '../')
 from math import log10
-from copy import deepcopy
 
 # 3rd Party Packages
 import numpy as np
 
 # Local Packages
 import modules.calculations as calculations
+import modules.datahelper as datahelper
 
 
 EQUALITY_ERROR_TOLERANCE = 1e-8
@@ -189,7 +189,7 @@ def _adjust_nuei(mmm_vars, scan_factor):
     t = mmm_vars.options.time_idx
     r = _get_nonzero_idx(mmm_vars.nuei.values[:, t])
 
-    adjusted_vars = deepcopy(mmm_vars)
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
     adjustment_total = scan_factor**(-2 / 5)  # based on the formula for nuei
     adjustment_step = adjustment_total
 
@@ -253,7 +253,7 @@ def _adjust_tau(mmm_vars, scan_factor):
     '''
 
     t = mmm_vars.options.time_idx
-    adjusted_vars = deepcopy(mmm_vars)
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
     adjustment_total = scan_factor**(1 / 2)  # based on the formula for tau
     adjusted_vars.te.values *= adjustment_total
     adjusted_vars.ti.values /= adjustment_total
@@ -291,7 +291,7 @@ def _adjust_zeff(mmm_vars, scan_factor):
 
     t = mmm_vars.options.time_idx
 
-    adjusted_vars = deepcopy(mmm_vars)
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
     adjusted_vars.nz.values *= scan_factor
     adjusted_vars.ne.values += adjusted_vars.zimp.values * (adjusted_vars.nz.values - mmm_vars.nz.values)
 
@@ -324,7 +324,7 @@ def _adjust_etae(mmm_vars, scan_factor):
     '''
 
     t = mmm_vars.options.time_idx
-    adjusted_vars = deepcopy(mmm_vars)
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
     adjustment_total = scan_factor**(1 / 2)  # based on the formula for etae
     adjusted_vars.gte.values *= adjustment_total
     adjusted_vars.gne.values /= adjustment_total
@@ -351,7 +351,7 @@ def _adjust_shear(mmm_vars, scan_factor):
     '''
 
     t = mmm_vars.options.time_idx
-    adjusted_vars = deepcopy(mmm_vars)
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
     adjusted_vars.gq.values *= scan_factor
 
     calculations.calculate_additional_variables(adjusted_vars)
@@ -376,7 +376,7 @@ def _adjust_btor(mmm_vars, scan_factor):
     '''
 
     t = mmm_vars.options.time_idx
-    adjusted_vars = deepcopy(mmm_vars)
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
     adjusted_vars.bz.values *= scan_factor
 
     calculations.calculate_base_variables(adjusted_vars)
@@ -404,7 +404,7 @@ def _adjust_betae(mmm_vars, scan_factor):
     '''
 
     t = mmm_vars.options.time_idx
-    adjusted_vars = deepcopy(mmm_vars)
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
     adjustment_total = scan_factor**(1 / 4)  # based on the formula for betae
     adjusted_vars.ne.values *= adjustment_total
     adjusted_vars.te.values *= adjustment_total
@@ -465,7 +465,7 @@ def adjust_scanned_variable(mmm_vars, scan_factor):
 
     else:
         # Simple Scan (no advanced logic needed)
-        adjusted_vars = deepcopy(mmm_vars)
+        adjusted_vars = datahelper.deepcopy_data(mmm_vars)
         base_var = getattr(mmm_vars, var_to_scan)
         scanned_var = getattr(adjusted_vars, var_to_scan)
         scanned_var.values = scan_factor * base_var.values

@@ -8,6 +8,8 @@ Example Usage:
 * mmm_vars, cdf_vars, raw_cdf_vars = initialize_variables()
 """
 
+from copy import deepcopy
+
 import modules.variables as variables
 import modules.controls as controls
 import modules.calculations as calculations
@@ -36,6 +38,29 @@ def initialize_variables(options):
     mmm_vars = calculations.calculate_new_variables(cdf_vars)
 
     return mmm_vars, cdf_vars, raw_cdf_vars
+
+
+def deepcopy_data(obj):
+    '''
+    Creates a deepcopy of the given object and reference between their
+    options
+
+    A deepcopy is needed to avoid creating a reference between two object
+    classes.  However, we do want to create a reference between the options
+    stored in each class, so that only one options object exists between all
+    copied objects.
+
+    Parameters:
+    * obj (InputControls | InputVariables | OutputVariables): The obj to deepcopy
+
+    Returns
+    * new_obj (InputControls | InputVariables | OutputVariables): deepcopy of obj
+    '''
+
+    new_obj = deepcopy(obj)
+    new_obj.options = obj.options
+
+    return new_obj
 
 
 def get_all_rho_data(options):

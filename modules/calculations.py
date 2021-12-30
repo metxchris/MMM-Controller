@@ -29,7 +29,6 @@ TODO:
 
 # Standard Packages
 import sys
-import copy
 import inspect
 import functools
 
@@ -39,6 +38,7 @@ from scipy.interpolate import interp1d
 
 # Local Packages
 import modules.constants as constants
+import modules.datahelper as datahelper
 
 
 _gradients = set()  # Stores the names of calculated gradient variables
@@ -587,7 +587,7 @@ def calculate_new_variables(cdf_vars):
     * calc_vars (InputVariables): Variables object containing calculation results
     '''
 
-    calc_vars = copy.deepcopy(cdf_vars)
+    calc_vars = datahelper.deepcopy_data(cdf_vars)
     calculate_base_variables(calc_vars)
     calculate_gradient_variables(calc_vars)
     calculate_additional_variables(calc_vars)

@@ -26,12 +26,12 @@ larger grid, comparing the values of A and B will show a difference greater
 than that attributed to floating point errors.
 """
 
-# Standard Packages
-from copy import deepcopy
-
 # 3rd Party Packages
 import numpy as np
 from scipy.interpolate import interp1d
+
+# Local Packages
+import modules.datahelper as datahelper
 
 
 class _XValues:
@@ -143,7 +143,7 @@ def _interp_to_input_points(input_vars):
     * ValueError: If variable to interpolate is None
     '''
 
-    mmm_vars = deepcopy(input_vars)
+    mmm_vars = datahelper.deepcopy_data(input_vars)
     input_points = mmm_vars.options.input_points
 
     # Interpolation only needed if input_points != xb points
@@ -189,7 +189,7 @@ def _interp_to_uniform_rho(input_vars):
     * ValueError: If variable to interpolate is None
     '''
 
-    mmm_vars = deepcopy(input_vars)
+    mmm_vars = datahelper.deepcopy_data(input_vars)
     input_points = mmm_vars.options.input_points
 
     # Single column arrays for interpolation
@@ -234,7 +234,7 @@ def _initial_conversion(cdf_vars):
     * input_vars (InputVariables): Object containing MMM formatted variable data
     '''
 
-    input_vars = deepcopy(cdf_vars)
+    input_vars = datahelper.deepcopy_data(cdf_vars)
 
     # Cache single column arrays of x-values
     xvals = _XValues(input_vars.x, input_vars.xb)

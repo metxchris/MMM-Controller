@@ -43,7 +43,7 @@ Example Usage:
     controls.load_from_csv()
 
     # Save Controls
-    controls.save_to_csv()
+    controls.save()
 """
 
 # Standard Packages
@@ -210,7 +210,7 @@ class InputControls:
         for kvp in kvps:
             print(kvp)
 
-    def save_to_csv(self, scan_factor=None):
+    def save(self, scan_factor=None):
         '''
         Saves InputControls data to CSV
 
@@ -340,4 +340,4 @@ if __name__ == '__main__':
     controls.print_key_values_pairs()
 
     '''Save Controls to CSV'''
-    controls.save_to_csv()
+    controls.save()
