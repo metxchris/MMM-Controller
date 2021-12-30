@@ -55,3 +55,5 @@ Sublime Text allows MMM Explorer to be ran easily, without the need for terminal
 }
 ```
 Note that the `"cmd"` line should point to your Python executable.  Additionally, the `"shell"` line is required for MatPlotLib plots to appear while using Sublime Text (Sublime Text suppresses plot generation by default).
+
+After Sublime Text has been setup, individual Python files can be ran using the `Tools > Build` command, or by pressing `Ctrl+B` on Windows.
