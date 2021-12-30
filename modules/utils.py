@@ -104,7 +104,7 @@ def get_rho_values(runid, scan_num, var_to_scan, save_type):
     return [file.split(f'rho{constants.RHO_VALUE_SEPARATOR}')[1].split('.csv')[0] for file in rho_files]
 
 
-def init_output_dirs(runid, scan_num, var_to_scan):
+def init_output_dirs(options):
     '''
     Initializes all output directories needed for storing output data
 
@@ -115,10 +115,12 @@ def init_output_dirs(runid, scan_num, var_to_scan):
     * ./output/runid/scan_num/var_to_scan rho/
 
     Parameters:
-    * runid (str): The name of the CDF
-    * scan_num (int): The number of the scan
-    * var_to_scan (str): The variable being scanned
+    * options (Options): Object containing user options
     '''
+
+    runid = options.runid
+    scan_num = options.scan_num
+    var_to_scan = options.var_to_scan
 
     clear_temp_folder()
     create_directory(get_runid_path(runid))
@@ -291,7 +293,7 @@ def get_files_in_dir(dir_path, file_type='', show_warning=True):
     return file_names
 
 
-def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=None, scan_factor=None):
+def merge_profile_sheets(options, profile_name, merge_type, scan_factor=None):
     '''
     Merges individual PDF sheets into a single PDF
 
@@ -302,11 +304,9 @@ def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=
     for installation instructions for pdftk.exe.
 
     Parameters:
-    * runid (str): The name of the CDF
-    * scan_num (int): The number of the scan
-    * profile_type (str): The type of profile to merge (Input, Output, etc.)
+    * options (Options): Object containing user options
+    * profile_name (str): The name of the profiles being merged
     * merge_type (MergeType): The type of PDF merge
-    * var_to_scan (str): The variable being scanned
     * scan_factor (float): The value of the scan factor
 
     Returns:
@@ -316,17 +316,21 @@ def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=
     * NotImplementedError: If a merge_type does not have an output path
     '''
 
+    runid = options.runid
+    scan_num = options.scan_num
+    var_to_scan = options.var_to_scan
+
     if merge_type == MergeType.PROFILES:
         output_path = get_scan_num_path(runid, scan_num)
-        output_file = f'{output_path}\\{runid} {profile_type} Profiles.pdf'
+        output_file = f'{output_path}\\{runid} {profile_name} Profiles.pdf'
     elif merge_type == MergeType.PROFILEFACTORS:
         output_path = get_merged_profile_factors_path(runid, scan_num)
-        output_file = (f'{output_path}\\{runid} {profile_type} {var_to_scan}'
+        output_file = (f'{output_path}\\{runid} {profile_name} {var_to_scan}'
                        f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}'
                        f'{scan_factor:{constants.SCAN_FACTOR_PDF_FMT}}.pdf')
     elif merge_type == MergeType.RHOVALUES:
         output_path = get_merged_rho_path(runid, scan_num, var_to_scan)
-        output_file = f'{output_path}\\{runid} {profile_type}.pdf'
+        output_file = f'{output_path}\\{runid} {profile_name}.pdf'
     else:
         raise NotImplementedError(f'No output path defined for {merge_type}')
 
@@ -340,13 +344,13 @@ def merge_profile_sheets(runid, scan_num, profile_type, merge_type, var_to_scan=
 
     # Shell command to use pdftk.exe
     # TODO: Replace os.system with subprocess.run()
-    os.system(f'cd {temp_path} & {pdftk_path} *{profile_type}*.pdf cat output \"{output_file}\"')
+    os.system(f'cd {temp_path} & {pdftk_path} *{profile_name}*.pdf cat output \"{output_file}\"')
     _log.info(f'\n\tSaved: {output_file}\n')
 
     return output_file
 
 
-def convert_sci_notation(number, precision=1):
+def get_sci_notation(number, precision=1):
     '''
     Converts a number into scientific notation for use with LaTeX formatting
 

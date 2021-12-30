@@ -149,13 +149,13 @@ def main(scanned_vars, input_controls, options):
 
     # TODO: Add validation for all items in scanned_vars
     for var_to_scan, scan_range in scanned_vars.items():
-        print(f'\nRunning MMM Controller...')
-
         # Updating these options also updates input_controls.options
         options.scan_num = utils.get_scan_num(options.runid)
         options.set(var_to_scan=var_to_scan, scan_range=scan_range)
 
-        utils.init_output_dirs(options.runid, options.scan_num, options.var_to_scan)
+        print(f'\nRunning MMM Controller for {options.runid}, scan {options.scan_num}...')
+
+        utils.init_output_dirs(options)
 
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
         mmm_vars.options.save()
@@ -172,13 +172,13 @@ def main(scanned_vars, input_controls, options):
             profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
 
         # Variable and control scans
-        if options.scan_type is not ScanType.NONE:
+        if options.scan_type.value:
             if options.scan_type is ScanType.VARIABLE:
                 _execute_variable_scan(mmm_vars, input_controls)
             elif options.scan_type is ScanType.CONTROL:
                 _execute_control_scan(mmm_vars, input_controls)
 
-            reshaper.create_rho_files(mmm_vars.options)
+            reshaper.create_rho_files(options)
             print(f'\n{options.var_to_scan} scan complete!\n')
 
 
@@ -201,13 +201,13 @@ if __name__ == '__main__':
     '''
     Scanned Variables:
     * Uncomment the lines you wish to include in scanned_vars
-    * Using None as the scanned variable will skip the variable scan
+    * Using None as the scanned variable will run MMM without a variable scan
     '''
-    scanned_vars[None] = None
+    # scanned_vars[None] = None
     scanned_vars['etgm_kyrhoe'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
 
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
-    scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
@@ -253,7 +253,7 @@ if __name__ == '__main__':
         etgm_exbs=1,
     )
 
-    settings.AUTO_OPEN_PDFS = 0
+    settings.AUTO_OPEN_PDFS = 1
     settings.MAKE_PROFILE_PDFS = 1
 
     main(scanned_vars, input_controls, options)

@@ -71,7 +71,7 @@ def run_plotting_loop(vars_to_plot, options):
             fig.savefig(utils.get_temp_path(f'{profile_type} {sheet_num}.pdf'))
             fig.clear()
 
-        merged_pdf = utils.merge_profile_sheets(runid, scan_num, profile_type, MergeType.RHOVALUES, var_to_scan)
+        merged_pdf = utils.merge_profile_sheets(options, profile_type, MergeType.RHOVALUES)
 
         # File opening may only work on Windows
         if settings.AUTO_OPEN_PDFS:
@@ -148,7 +148,7 @@ if __name__ == '__main__':
     # scan_data['129041A10'] = [1]
     # scan_data['TEST'] = [181]
     # scan_data['138536A01'] = [i for i in range(100, 126)]
-    scan_data['TEST'] = [463]
+    scan_data['138536A01'] = [185]
 
     settings.AUTO_OPEN_PDFS = 1
 
