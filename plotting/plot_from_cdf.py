@@ -13,7 +13,7 @@ created in variables.py if the user wishes to plot any variables not already
 declared in InputVariables.
 
 Example Usage:
-    * Plot of Electron Temperature and Ion Temperature:
+    * Plot of Electron Temperature and Ion Temperature (vs rho):
 
         all_data = AllPlotData(
                 PlotData(runid='129041A10', yname='te', time=0.50),
@@ -87,7 +87,11 @@ class PlotData:
     Makes a PlotData object from user input parameters
 
     The names of the x-variable and y-variable must match member definitions
-    in the InputVariables class.
+    in the InputVariables class.  For example, InputVariables contains the
+    member definition 'self.te', corresponding to Electron Temperature, so
+    that variable should be referenced using 'te' as the name here.  See
+    variables.py for a full list of variables defined in the InputVariables
+    class.
 
     Parameters:
     * runid (str): The runid of the CDF
