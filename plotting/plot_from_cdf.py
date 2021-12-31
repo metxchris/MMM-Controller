@@ -12,6 +12,10 @@ symbols are stored here.  This means that a new Variable object needs to be
 created in variables.py if the user wishes to plot any variables not already
 declared in InputVariables.
 
+An example of how to use this module has been provided below, but please refer
+to both the PlotSettings and PlotData classes for a full list of parameters
+that can be specified when creating plots.
+
 Example Usage:
     * Plot of Electron Temperature and Ion Temperature (vs rho):
 
@@ -29,7 +33,8 @@ Example Usage:
 
         # Note that the runid and time value will automatically appear in the
         # title of the plot, since all PlotData objects share the same values
-        # for these attributes.  If instead we use different values such as:
+        # for these attributes.  If instead we use different attribute values
+        # such as:
 
         all_data = AllPlotData(
                 PlotData(runid='138536A01', yname='te', time=0.75),
@@ -38,9 +43,6 @@ Example Usage:
 
         # Then both the runid and time values will instead appear in the
         # legend for each variable.
-
-Refer to both the PlotSettings and PlotData classes for a full list of
-parameters that can be specified when creating plots.
 """
 
 # Standard Packages
@@ -205,6 +207,10 @@ class AllPlotData:
         Parameters:
         * psettings (PlotSettings): Plot settings object
         * all_data (list[PlotData]): List of PlotData objects
+
+        Returns:
+        * (tuple[float]): The xlims of the plot
+        * (tuple[float]): The ylims of the plot
         '''
 
         xmin = ymin = float("inf")
@@ -322,6 +328,13 @@ class AllPlotData:
 class LegendAttributes:
     '''
     Stores a bool for whether each attribute should appear in the legend
+
+    Parameters:
+    * ysymbol (bool): True if the y-variable symbol should be shown in the legend
+    * runid (bool): True if the runid should be shown in the legend
+    * runname (bool): True if the runname should be shown in the legend
+    * time (bool): True if the time value should be shown in the legend
+    * override (bool): True if legend overrides have been specified
     '''
 
     def __init__(self, ysymbol, runid, runname, time, override):
@@ -349,10 +362,10 @@ class LegendAttributes:
 
 def main(psettings, all_data):
     '''
-    Create a plot using CDF data
+    Create a plot using data loaded from CDF files
 
     Parameters:
-    * psettings (PlotSettings): Plot settings object
+    * psettings (PlotSettings): Object containing plot settings
     * all_data (AllPlotData): Object containing all PlotData objects
     '''
 
