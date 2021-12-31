@@ -88,11 +88,11 @@ class Variables:
         return str(self.get_nonzero_variables())
 
     def get_variables(self):
-        '''Returns (list of str): all variable names'''
+        '''Returns (list[str]): all variable names'''
         return [var for var in dir(self) if isinstance(getattr(self, var), Variable)]
 
     def get_nonzero_variables(self):
-        '''Returns (list of str): variable names with nonzero values'''
+        '''Returns (list[str]): variable names with nonzero values'''
         vars = self.get_variables()
         return [var for var in vars if getattr(self, var).values is not None]
 
