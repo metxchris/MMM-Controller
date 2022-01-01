@@ -13,10 +13,8 @@ import modules.utils as utils
 import modules.datahelper as datahelper
 import modules.constants as constants
 from modules.enums import ScanType, MergeType
-from modules.controls import InputControls
 from modules.variables import OutputVariables
-from plotting.modules.styles import singlescan as plotlayout
-from plotting.modules.colors import mmmscan as plotcolors
+from plotting.modules.plotstyles import PlotStyles, StyleType
 
 
 _log = logging.getLogger(__name__)
@@ -89,13 +87,15 @@ def verify_vars_to_plot(vars_to_plot):
 
     Parameters:
     * vars_to_plot (list):  List of output variables to plot
+
+    Raises:
+    * NameError: If the variable to plot is not found in OutputVariables
     '''
 
     output_vars = OutputVariables()
-    controls = InputControls()
     for var_to_plot in vars_to_plot:
-        if not hasattr(output_vars, var_to_plot) and not hasattr(controls, var_to_plot):
-            raise NameError(f'Neither OutputVariables nor InputControls contain member {var_to_plot}')
+        if not hasattr(output_vars, var_to_plot):
+            raise NameError(f'{var_to_plot} not found in OutputVariables class')
 
 
 def main(vars_to_plot, scan_data):
@@ -109,8 +109,6 @@ def main(vars_to_plot, scan_data):
 
     verify_vars_to_plot(vars_to_plot)
     options = modules.options.Options()
-    plotlayout.init()
-    plotcolors.init()
 
     for runid, scan_nums in scan_data.items():
         for scan_num in scan_nums:
@@ -126,6 +124,12 @@ def main(vars_to_plot, scan_data):
 # Run this file directly to plot scanned variable profiles from previously created scanned data
 if __name__ == '__main__':
     scan_data = {}
+
+    PlotStyles(
+        axes=StyleType.Axes.GRAY,
+        lines=StyleType.Lines.MMM_RHO,
+        layout=StyleType.Layout.SINGLE,
+    )
 
     '''
     Input options:
@@ -150,7 +154,7 @@ if __name__ == '__main__':
     # scan_data['129041A10'] = [1]
     # scan_data['TEST'] = [181]
     # scan_data['138536A01'] = [i for i in range(100, 126)]
-    scan_data['138536A01'] = [185]
+    scan_data['138536A01'] = [1]
 
     settings.AUTO_OPEN_PDFS = 1
 

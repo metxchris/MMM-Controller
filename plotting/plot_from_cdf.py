@@ -56,8 +56,7 @@ import matplotlib.pyplot as plt
 # Local Packages
 import modules.options
 import modules.datahelper as datahelper
-from plotting.modules.styles import single as plotlayout
-from plotting.modules.colors import mmm as plotcolors
+from plotting.modules.plotstyles import PlotStyles, StyleType
 
 
 @dataclass
@@ -369,8 +368,6 @@ def main(psettings, all_data):
     * all_data (AllPlotData): Object containing all PlotData objects
     '''
 
-    plotlayout.init()
-    plotcolors.init()
     ax = plt.gca()
 
     legend_attrs = LegendAttributes(
@@ -401,7 +398,20 @@ def main(psettings, all_data):
 
 
 if __name__ == '__main__':
-    '''Run this module directly to plot variable data stored in CDF files'''
+    '''
+    Run this module directly to plot variable data stored in CDF files
+
+    Use the following classes:
+    * PlotStyles: To define visual styles for the plot
+    * PlotSettings: To define settings for the plot
+    * AllPlotData: To define each line for the plot
+    '''
+
+    PlotStyles(
+        axes=StyleType.Axes.WHITE,
+        lines=StyleType.Lines.MMM,
+        layout=StyleType.Layout.SINGLE,
+    )
 
     psettings = PlotSettings(
         allow_title_runid=True,

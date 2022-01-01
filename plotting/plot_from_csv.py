@@ -9,8 +9,7 @@ import matplotlib.pyplot as plt
 import modules.variables as variables
 from modules.enums import SaveType
 from modules.options import Options
-from plotting.modules.styles import single as plotlayout
-from plotting.modules.colors import mmm as plotcolors
+from plotting.modules.plotstyles import PlotStyles, StyleType
 
 
 # TODO: Turn into dataclass
@@ -47,8 +46,6 @@ def load_variable_data(data_list):
 
 
 def main(data_list, title):
-    plotlayout.init()
-    plotcolors.init()
     plt.figure()
 
     for data in data_list:
@@ -81,6 +78,12 @@ def get_var_compare2(title, varx_name, vary_name, s1, s2):
 
 if __name__ == '__main__':
 
+    PlotStyles(
+        axes=StyleType.Axes.GRAY,
+        lines=StyleType.Lines.MMM,
+        layout=StyleType.Layout.SINGLE,
+    )
+
     # title, data_list = 'Collisionality', [
     #     VarData('rho', 'nuei', '120968A02 (High)', '120968A02', scan_num=1),
     #     VarData('rho', 'nuei', '120982A09 (Med.)', '120982A09', scan_num=1),
@@ -103,7 +106,7 @@ if __name__ == '__main__':
     # title, data_list = get_var_compare('Growth Rate', 'rho', 'gmaETGM', 2)
     # title, data_list = get_var_compare('Frequency', 'rho', 'omgETGM', 2)
 
-    scan1, scan2 = 100, 113
+    scan1, scan2 = 1, 2
     title, data_list = get_var_compare2('Frequency', 'rho', 'omgETGM', scan1, scan2)
     title, data_list = get_var_compare2('Growth Rate', 'rho', 'gmaETGM', scan1, scan2)
     title, data_list = get_var_compare2('xdiETGM', 'rho', 'xdiETGM', scan1, scan2)
