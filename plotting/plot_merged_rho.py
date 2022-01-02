@@ -63,7 +63,7 @@ def run_plotting_loop(vars_to_plot, options):
 
             # Plot base value
             xbase_values = xbase.values[i] if type(xbase.values) is np.ndarray else xbase.values
-            plt.plot(xbase_values, ybase.values[i], 'o', markeredgewidth=1.25, markersize=3, alpha=0.8)
+            plt.plot(xbase_values, ybase.values[i])
 
             plt.xlabel(f'{xvar.label}  {xvar.units_label}')
             plt.ylabel(f'{yvar.label}  {yvar.units_label}')

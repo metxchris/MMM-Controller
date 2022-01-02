@@ -383,13 +383,7 @@ class AllPlotData:
         * (str): The title for the plot
         """
 
-        if plot_settings.title_override:
-            base_title = plot_settings.title_override
-        elif len(self.data) == 1:
-            base_title = self.data[0].yname
-        else:
-            base_title = self._generate_unique_title()
-
+        base_title = plot_settings.title_override or self._generate_unique_title()
         title_details = self._get_title_details(plot_settings, legend_attrs)
 
         return f'{base_title}{title_details}'
@@ -627,9 +621,27 @@ def main(plot_settings, all_data):
 
 if __name__ == '__main__':
     """
-    Run this module directly to plot variable data stored in CDF files
+    Run this module directly to plot variable data stored in CDF files.
+    AllPlotData can contain both plot data from a CDF (PlotDataCdf) and from
+    a CSV (PlotDataCsv).
 
-    AllPlotData can accept both PlotFromCdf and PlotFromCsv objects as input
+    * AllPlotData loaded from a CDF:
+        all_data = AllPlotData(
+            PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.50),
+            PlotDataCdf(runid='138536A01', yname='ni', xname='rho', time=0.50,),
+        )
+
+    * AllPlotData loaded from a CSV (using a scan factor):
+        all_data = AllPlotData(
+            PlotDataCsv(runid='138536A01', yname='ti', xname='rho', scan_num=1, scan_factor=2),
+            PlotDataCsv(runid='138536A01', yname='te', xname='rho', scan_num=1, scan_factor=2),
+        )
+
+    * AllPlotData loaded from a CSV (using a rho value):
+        all_data = AllPlotData(
+            PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2),
+            PlotDataCsv(runid='138536A01', yname='omgETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2),
+        )
     """
 
     utils.init_logging()
@@ -658,10 +670,10 @@ if __name__ == '__main__':
     all_data = AllPlotData(
         # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.50, runname=''),
         # PlotDataCdf(runid='138536A01', yname='ni', xname='rho', time=0.50, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='ti', xname='rho', scan_num=1, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='te', xname='rho', scan_num=1, runname=''),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
-        PlotDataCsv(runid='138536A01', yname='omgETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
+        PlotDataCsv(runid='138536A01', yname='ti', xname='rho', scan_num=1, scan_factor=2, runname=''),
+        PlotDataCsv(runid='138536A01', yname='te', xname='rho', scan_num=1, scan_factor=2, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
     )
 
     main(plot_settings, all_data)

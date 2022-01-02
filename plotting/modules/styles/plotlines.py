@@ -38,9 +38,6 @@ def init(style):
         )
 
     elif style is ps.StyleType.Lines.MMM_RHO:
-        # Note: Line dashes were removed because dashes defined here override
-        # linestyles when actually making a plot, which prevents us from
-        # disabling a line and only plotting a marker instead.
         line_cycle = cycler(
             color=[
                 (0.094, 0.353, 0.663),  # Blue
@@ -50,15 +47,49 @@ def init(style):
                 (0.957, 0.490, 0.137),  # Orange
                 (0.984, 0.722, 0.153),  # Yellow
             ],
+            # Defining blank lines using dashes produces artifacts when saving
+            # the image as a PDF or EPS
+            linestyle=[
+                '-',
+                '',
+                '-.',
+                '',
+                ':',
+                '',
+            ],
+            marker=[
+                '',
+                'o',
+                '',
+                'o',
+                '',
+                'o',
+            ],
             linewidth=[
                 1.7,
+                0,
                 1.6,
+                0,
                 1.5,
-                1.5,
-                1.4,
-                1.4,
+                0,
             ],
+            alpha=[
+                1.0,
+                0.8,
+                1.0,
+                0.8,
+                1.0,
+                0.8,
+            ]
         )
+
+        rcParams.update({
+            'lines.markeredgewidth': 0,
+            'lines.markersize': 4.25,
+            'lines.dashdot_pattern': [6.5, 1.1, 1.25, 1.1],
+            'lines.dashed_pattern': [4.5, 1.5],
+            'lines.dotted_pattern': [3, 0.8, 1, 0.5, 1, 0.8],
+        })
 
     elif style is ps.StyleType.Lines.FTE:
         line_cycle = cycler(
