@@ -107,6 +107,7 @@ def main(vars_to_plot, scan_data):
     * scan_data (dict): Dictionary of runid to list of scan numbers
     '''
 
+    utils.init_logging()
     verify_vars_to_plot(vars_to_plot)
     options = modules.options.Options()
 

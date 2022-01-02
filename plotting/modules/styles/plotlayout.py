@@ -27,22 +27,29 @@ def init(style):
         'axes.unicode_minus': False,  # unicode_minus does not work in Computer Modern font (cm, cmr10)
         'axes.formatter.limits': [-2, 3],  # Forces exponent notation below 1e-2 and above 1e3
         'axes.formatter.use_mathtext': True,
-        'legend.frameon': False,
-        'legend.borderpad': 0,
-        'legend.borderaxespad': 0.5,
-        'legend.labelspacing': 0.1,
-        'legend.handlelength': 1.9,
-        'legend.handleheight': 0.7,
-        'legend.handletextpad': 0.5,
+        'legend.frameon': True,  # enables legend border and face
+        'legend.loc': 'best',
+        'legend.framealpha': 0.6,  # alpha of the border and face
+        'legend.edgecolor': '1',  # border color
+        'legend.borderpad': 0,  # inner padding of frame
+        'legend.borderaxespad': 0.5,  # outer padding of frame
+        'legend.labelspacing': 0.1,  # spacing between each label (typically vertical)
+        'legend.handlelength': 1.9,  # length of lines
+        'legend.handleheight': 1,  # height for each line (and label)
+        'legend.handletextpad': 0.5,  # padding between lines and text
+        'legend.facecolor': 'inherit',
+        'legend.fancybox': False,  # rounded legend frame corners
         'lines.dash_joinstyle': 'round',
         'lines.dash_capstyle': 'butt',
+        'patch.linewidth': 0,  # legend frame line width
     })
 
     if style is ps.StyleType.Layout.SINGLE:
         rcParams.update({
             'axes.labelpad': 2,
-            'axes.labelsize': 9,
+            'axes.labelsize': 8.5,
             'axes.titlesize': 8.5,
+            'axes.titlepad': 4,
             'figure.figsize': [3.5, 3],
             'figure.subplot.bottom': 0.15,
             'figure.subplot.hspace': 0.38,

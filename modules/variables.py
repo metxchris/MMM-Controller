@@ -213,6 +213,9 @@ class Variables:
         * save_type (SaveType): The SaveType of the data being saved
         * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
         * rho_value (str or float): The rho value of the CSV to use (optional)
+
+        Raises:
+        * FileNotFoundError: If the file corresponding to the rho value cannot be found
         '''
 
         runid = self.options.runid
@@ -224,6 +227,14 @@ class Variables:
             dir_path = utils.get_rho_path(runid, scan_num, var_to_scan)
             file_path = (f'{dir_path}\\{save_type.name.capitalize()} '
                          f'rho{constants.RHO_VALUE_SEPARATOR}{rho_str}.csv')
+            if not utils.check_exists(file_path):
+                raise FileNotFoundError(
+                    f'Rho file not found for value {rho_str}\n'
+                    f'Use utils.get_closest_rho function to find the correct rho value to load'
+                )
+
+            if scan_factor:
+                _log.warning(f'\n\tThe scan_factor input parameter is not used when rho_value is specified')
 
         elif scan_factor is not None:
             scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_FMT}}'

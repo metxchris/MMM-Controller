@@ -86,7 +86,7 @@ def get_all_rho_data(options):
     var_to_scan = options.var_to_scan
 
     input_vars_dict, output_vars_dict = {}, {}
-    rho_values = utils.get_rho_values(runid, scan_num, var_to_scan, SaveType.OUTPUT)
+    rho_values = utils.get_rho_strings(runid, scan_num, var_to_scan, SaveType.OUTPUT)
 
     # Stores InputVariables and OutputVariables data objects for each rho_value
     for rho in rho_values:

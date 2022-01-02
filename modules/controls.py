@@ -262,6 +262,9 @@ class InputControls:
             dir_path = utils.get_rho_path(runid, scan_num, var_to_scan)
             control_files = utils.get_files_in_dir(dir_path, f'{controls_name}*', show_warning=False)
 
+            if scan_factor:
+                _log.warning(f'\n\tThe scan_factor input parameter is not used when use_rho is True')
+
         elif scan_factor is not None:
             dir_path = utils.get_var_to_scan_path(runid, scan_num, var_to_scan)
             control_files = utils.get_files_in_dir(dir_path, f'{controls_name}*', show_warning=False)

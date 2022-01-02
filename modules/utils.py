@@ -17,6 +17,9 @@ import glob
 import logging
 from math import floor, log10
 
+# 3rd Party Packages
+import numpy as np
+
 # Local Packages
 import pdftk
 import output
@@ -98,10 +101,20 @@ def get_rho_files(runid, scan_num, var_to_scan, save_type):
     return get_files_in_dir(get_rho_path(runid, scan_num, var_to_scan), f'{save_type.name.capitalize()}*')
 
 
-def get_rho_values(runid, scan_num, var_to_scan, save_type):
-    '''Returns (list): the rho values of all rho files in the rho folder'''
+def get_rho_strings(runid, scan_num, var_to_scan, save_type):
+    '''Returns (list[str]): the rho values of all rho files in the rho folder as strings'''
     rho_files = get_rho_files(runid, scan_num, var_to_scan, save_type)
     return [file.split(f'rho{constants.RHO_VALUE_SEPARATOR}')[1].split('.csv')[0] for file in rho_files]
+
+
+def get_closest_rho(options, save_type, rho_value):
+    '''Returns (str): The actual saved rho value closest to the specified rho value'''
+    runid = options.runid
+    scan_num = options.scan_num
+    var_to_scan = options.var_to_scan
+
+    rho_values = np.array(get_rho_strings(runid, scan_num, var_to_scan, save_type), dtype=float)
+    return f'{rho_values[np.argmin(np.abs(rho_values - float(rho_value)))]:{constants.RHO_VALUE_FMT}}'
 
 
 def init_output_dirs(options):
@@ -170,6 +183,11 @@ def create_directory(dir_name):
         os.mkdir(dir_name)
 
 
+def check_exists(file_path):
+    '''Returns (bool): True if the file exists'''
+    return os.path.exists(file_path)
+
+
 def check_filename(file_path, file_extension):
     '''
     Checks if file exists and returns a file path
@@ -190,7 +208,7 @@ def check_filename(file_path, file_extension):
     * ValueError: If too many duplicate files exist for the checked file
     '''
 
-    if os.path.exists(file_path):
+    if check_exists(file_path):
         num_range = range(2, 1000)
         for i in num_range:
             path_split = file_path.split(file_extension)

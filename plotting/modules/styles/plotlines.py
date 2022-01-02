@@ -21,10 +21,10 @@ def init(style):
             ],
             dashes=[
                 (1, 0),  # Solid line
-                (6.5, 1.5, 1, 1.5),  # Dash-dot
+                (6.5, 1.1, 1.25, 1.1),  # Dash-dot
                 (4.5, 1.5),  # Dashed line
-                (3, 1, 1, 0.5, 1, 1),  # Dash-dot-dot
-                (1.5, 1),  # Dashed line (short dashes)
+                (3, 0.8, 1, 0.5, 1, 0.8),  # Dash-dot-dot
+                (1.0, 0.9),  # Dashed line (short dashes)
                 (1.5, 0.5, 1.5, 0.5, 1.5, 2.0),  # Dashes as Dot-dot-dot
             ],
             linewidth=[

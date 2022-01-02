@@ -3,6 +3,7 @@ import sys; sys.path.insert(0, '../')
 
 # Local Packages
 import modules.options
+import modules.utils as utils
 import plotting.modules.profiles as profiles
 from modules.variables import InputVariables, OutputVariables
 from modules.enums import SaveType, ProfileType
@@ -19,6 +20,7 @@ def main(runid, scan_num, input_scan_factor, save_types):
     scan_factor (float): The value of the scan factor file to reference
     save_types (list[Savetype]): The save types to plot profiles of
     '''
+    utils.init_logging()
 
     options = modules.options.Options()
     options.load(runid, scan_num)
