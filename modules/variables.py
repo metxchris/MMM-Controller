@@ -173,7 +173,7 @@ class Variables:
 
         Parameters:
         * save_type (SaveType): The SaveType of the data being saved
-        * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
+        * scan_factor (str | float): The scan_factor, if doing a parameter scan (optional)
         * rho_value (str | float): The rho value of the CSV to use (optional)
         '''
 
@@ -211,8 +211,8 @@ class Variables:
 
         Parameters:
         * save_type (SaveType): The SaveType of the data being saved
-        * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
-        * rho_value (str or float): The rho value of the CSV to use (optional)
+        * scan_factor (str | float): The scan_factor, if doing a parameter scan (optional)
+        * rho_value (str | float): The rho value of the CSV to use (optional)
 
         Raises:
         * FileNotFoundError: If the file corresponding to the rho value cannot be found
@@ -237,7 +237,9 @@ class Variables:
                 _log.warning(f'\n\tThe scan_factor input parameter is not used when rho_value is specified')
 
         elif scan_factor is not None:
-            scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_FMT}}'
+            scan_factor_str = (
+                scan_factor if isinstance(scan_factor, str) else f'{scan_factor:{constants.SCAN_FACTOR_FMT}}'
+            )
             dir_path = utils.get_var_to_scan_path(runid, scan_num, var_to_scan)
             file_path = (f'{dir_path}\\{save_type.name.capitalize()} {var_to_scan}'
                          f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}{scan_factor_str}.csv')

@@ -22,8 +22,7 @@ def main(runid, scan_num, input_scan_factor, save_types):
     '''
     utils.init_logging()
 
-    options = modules.options.Options()
-    options.load(runid, scan_num)
+    options = modules.options.Options().load(runid, scan_num)
     scan_factor = options.find_scan_factor(input_scan_factor)
 
     input_vars = InputVariables(options)
