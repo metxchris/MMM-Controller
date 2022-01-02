@@ -71,7 +71,7 @@ _log = logging.getLogger(__name__)
 
 @dataclass
 class PlotSettings:
-    '''
+    """
     Settings to control various behaviors of the plot
 
     Parameters (all Optional):
@@ -84,9 +84,9 @@ class PlotSettings:
     * xlabel_override (str): Overrides auto generated xlabel if non-empty
     * xpad (int): The percentage to pad the xaxis limits in each direction
     * ypad (int): The percentage to pad the yaxis limits in each direction
-    '''
+    """
 
-    replace_offset_text: bool = False
+    replace_offset_text: bool = True
     allow_title_runid: bool = True
     allow_title_time: bool = True
     allow_title_rho: bool = True
@@ -98,7 +98,7 @@ class PlotSettings:
 
 
 class PlotData:
-    '''
+    """
     Contains data to be plotted
 
     This class is meant to be inherited by either PlotDataCdf or PlotDataCsv
@@ -111,16 +111,11 @@ class PlotData:
     * rho_value (str | None): The rho value to plot (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
     * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
-    '''
-
-    @staticmethod
-    def unpack_values(values, time_idx):
-        '''Returns (np.ndarray): Variable values to be plotted'''
-        return values[:, time_idx] if isinstance(values, np.ndarray) and values.ndim == 2 else values
+    """
 
     def __init__(self, runid, yvar, xvar, options, rho_value=None, runname='', legend_override=''):
-        self.xvals: np.ndarray = self.unpack_values(xvar.values, options.time_idx)
-        self.yvals: np.ndarray = self.unpack_values(yvar.values, options.time_idx)
+        self.xvals: np.ndarray = self._unpack_values(xvar.values, options.time_idx)
+        self.yvals: np.ndarray = self._unpack_values(yvar.values, options.time_idx)
         self.xsymbol: str = xvar.label
         self.ysymbol: str = yvar.label
         self.xunits: str = xvar.units_label
@@ -133,9 +128,14 @@ class PlotData:
         self.runname: str = runname
         self.legend_override: str = legend_override
 
+    @staticmethod
+    def _unpack_values(values, time_idx):
+        """Returns (np.ndarray): Variable values to be plotted"""
+        return values[:, time_idx] if isinstance(values, np.ndarray) and values.ndim == 2 else values
+
     def get_legend_label(self, legend_attrs):
-        '''
-        Gets the y-variable label for the plot legend
+        """
+        Get the y-variable label for the plot legend
 
         If the legend override is set, then that value is used for the legend
         label.  Otherwise, either the y-variable symbol, the runname (if set) or
@@ -144,11 +144,11 @@ class PlotData:
         different values for a given attribute.
 
         Parameters:
-        * attr_name (str): The name of a LegendAttributes member
+        * legend_attrs (LegendAttributes): Object containing legend attributes
 
         Returns:
-        * (str): The y-variable label for the legend
-        '''
+        * (str): The legend label for the variable
+        """
 
         # TODO: Show ysymbol vs xsymbol when xsymbols are different
         if self.legend_override:
@@ -168,8 +168,8 @@ class PlotData:
 
 
 class PlotDataCdf(PlotData):
-    '''
-    Loads data from a CDF to be plotted
+    """
+    Load data from a CDF to be plotted
 
     The names of the x-variable and y-variable must match member definitions
     in the InputVariables class.  For example, InputVariables contains the
@@ -186,7 +186,7 @@ class PlotDataCdf(PlotData):
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
     * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
     * use_cdf_vars (bool): Uses uncalculated CDF variables instead of calculated MMM variables (Optional)
-    '''
+    """
 
     def __init__(self, runid, time, yname, xname='rho', runname='', legend_override='', use_cdf_vars=False):
         options = modules.options.Options(runid=runid, input_time=time)
@@ -201,8 +201,8 @@ class PlotDataCdf(PlotData):
 
 
 class PlotDataCsv(PlotData):
-    '''
-    Loads data from a CSV to be plotted
+    """
+    Load data from a CSV to be plotted
 
     The names of the x-variable and y-variable must match member definitions
     in the InputVariables class.  For example, InputVariables contains the
@@ -220,7 +220,7 @@ class PlotDataCsv(PlotData):
     * rho_value (float): The rho value of the CSV to load (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
     * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
-    '''
+    """
 
     def __init__(self, runid, scan_num, yname, xname='rho',
                  scan_factor=None, rho_value=None, runname='', legend_override=''):
@@ -256,15 +256,35 @@ class PlotDataCsv(PlotData):
 
 
 class AllPlotData:
-    '''
-    Stores all individual PlotData objects
+    """
+    Store all individual PlotData objects
 
     Parameters:
     * args (tuple[PlotData]): Contains PlotData objects to store
-    '''
+    """
+
+    def __init__(self, *args):
+        self.data: list[PlotData] = [a for a in args if isinstance(a, PlotData)]
 
     @staticmethod
-    def format_offset_text(offset_text):
+    def _format_offset_text(offset_text):
+        """
+        Format the offset text for each axis
+
+        Offset text is generated by MatPlotLib and is usually just the
+        exponent '\\times 10^{n}' that can appear for each axis.  This offset
+        text can also contain an additive term however, which happens when
+        the values being plotted change by a very small amount that's not
+        nearly 0.  For example, if values ranged from 2 + 1e-6 to 2 + 2e-6,
+        then an additive term of +2 would appear in the offset text.
+
+        Parameters:
+        * offset_text (str): The offset text of the axis
+
+        Returns:
+        * (str): The formatted offset text
+        """
+
         if not offset_text:
             return offset_text
 
@@ -275,12 +295,9 @@ class AllPlotData:
 
         return f' {offset_text}'
 
-    def __init__(self, *args):
-        self.data: list[PlotData] = [a for a in args if isinstance(a, PlotData)]
-
     def get_legend_include(self, attr_name):
-        '''
-        Determines if a LegendAttribute should be included in the legend
+        """
+        Determine if a LegendAttribute should be included in the legend
 
         The rule for adding an attribute to the legend is if multiple plotted
         variables have different values for a checked attribute.  For example, if
@@ -289,12 +306,11 @@ class AllPlotData:
         will be added to the legend.
 
         Parameters:
-        * all_data (list[PlotData]): List of PlotData objects
         * attr_name (str): The name of a LegendAttributes member
 
         Returns:
         * (bool) True if the attribute should be added to the legend
-        '''
+        """
 
         attrs = set()
         for pdata in self.data:
@@ -302,28 +318,28 @@ class AllPlotData:
 
         return len(attrs) > 1
 
-    def get_plot_limits(self, psettings):
-        '''
-        Gets the limits of the plot, adjusted by padding parameters set in psettings
+    def get_plot_limits(self, plot_settings):
+        """
+        Get the limits of the plot, adjusted by padding parameters set in plot settings
 
-        The axes limits are adjusted by the percentage given for xpad and ypad in
-        the psettings object, in each direction for either axis.  For example, if
-        ypad = 1, then the limits of the yaxis are both increased and decreased
-        by 1%.  Note that MatPlotLib uses default padding of something like 5% on
-        each axis, so setting padding values smaller than this value will produce
-        tighter plots than what would be created if the padding wasn't adjusted.
+        The axes limits are adjusted by the percentage given for xpad and ypad
+        in the plot settings object, in each direction for either axis.  For
+        example, if ypad = 1, then the limits of the yaxis are both increased
+        and decreased by 1%.  Note that MatPlotLib uses default padding of
+        something like 5% on each axis, so setting padding values smaller
+        than this value will produce tighter plots than what would be created
+        if the padding wasn't adjusted.
 
         Parameters:
-        * psettings (PlotSettings): Plot settings object
-        * all_data (list[PlotData]): List of PlotData objects
+        * plot_settings (PlotSettings): Plot settings object
 
         Returns:
         * (tuple[float]): The xlims of the plot
         * (tuple[float]): The ylims of the plot
-        '''
+        """
 
-        xpad = psettings.xpad / 100  # Convert from percentage to number
-        ypad = psettings.ypad / 100
+        xpad = plot_settings.xpad / 100  # Convert from percentage to number
+        ypad = plot_settings.ypad / 100
 
         xmin = ymin = float("inf")
         xmax = ymax = -float("inf")
@@ -351,43 +367,36 @@ class AllPlotData:
 
         return (xmin, xmax), (ymin, ymax)
 
-    def get_plot_title(self, psettings, legend_attrs):
-        '''
-        Gets the title for the plot
+    def get_plot_title(self, plot_settings, legend_attrs):
+        """
+        Get the title for the plot
 
         If the title override is set, then the title override value is used
         for the title of the plot.
 
         Parameters:
-        * psettings (PlotSettings): Plot settings object
-        * all_data (list[PlotData]): List of PlotData objects
+        * plot_settings (PlotSettings): Plot settings object
         * legend_attrs (LegendAttributes): Legend data object
 
         Returns:
         * (str): The title for the plot
-        '''
+        """
 
-        if psettings.title_override:
-            base_title = psettings.title_override
-
+        if plot_settings.title_override:
+            base_title = plot_settings.title_override
         elif len(self.data) == 1:
             base_title = self.data[0].yname
-
         else:
-            base_title = self._get_unique_title()
+            base_title = self._generate_unique_title()
 
-        title_details = self._get_title_details(psettings, legend_attrs)
-
-        if title_details and base_title:
-            # Add parenthesis and a space when the title and details are non-empty
-            title_details = f' ({title_details})'
+        title_details = self._get_title_details(plot_settings, legend_attrs)
 
         return f'{base_title}{title_details}'
 
-    def _get_unique_title(self):
-        '''
-        the plot title is generated using words that are repeated in the
-        y-variable name for each variable being plotted.
+    def _generate_unique_title(self):
+        """
+        Generate a title by taking the intersection of all words that appear
+        in the name of each y-variable being plotted.
 
         Example 1:
             name1 = 'Thermal Ion Density'
@@ -404,9 +413,12 @@ class AllPlotData:
             >>> The generated title would be 'Density', since this is the only
                 word that is in each name.
 
-        Note that the title will be blank if there are no repeated words in
-        each y-variable name.
-        '''
+        Note that the title will be blank if the intersection of all words is
+        empty.
+
+        Returns:
+        * (str): The unique title for the plot
+        """
 
         unique_ynames = set([data.yname for data in self.data])
         first_name_words = self.data[0].yname.split()
@@ -424,36 +436,46 @@ class AllPlotData:
 
         return ' '.join(title_words)
 
-    def _get_title_details(self, psettings, legend_attrs):
-        '''
-         Gets the title details
+    def _get_title_details(self, plot_settings, legend_attrs):
+        """
+        Get the title details
 
-         Details are added to the title if the corresponding title details
-         switches are enabled. For example, if all plotted variables share
-         the same runid, then the runid is added to the title.
-        '''
+        Details are added to the title if the corresponding title details
+        switch is enabled and all variables share the same value for that
+        attribute. Possible title details include the runid, time, and rho
+        value for each plotted variable.  For example, if all plotted
+        variables share the same runid, then the runid is added to the
+        title.
 
-        title_details = ''
-        if psettings.allow_title_runid or psettings.allow_title_time or psettings.allow_title_rho:
-            title_details_list = []
-            if psettings.allow_title_runid and not (legend_attrs.show_runid or legend_attrs.show_runname):
+        Parameters:
+        * plot_settings (PlotSettings): Plot settings object
+        * legend_attrs (LegendAttributes): Legend data object
+
+        Returns:
+        * (str): The details to add to the title
+        """
+
+        title_details_list = []
+        allow_runid = plot_settings.allow_title_runid
+        allow_time = plot_settings.allow_title_time
+        allow_rho = plot_settings.allow_title_rho
+
+        if allow_runid or allow_time or allow_rho:
+            if allow_runid and not (legend_attrs.show_runid or legend_attrs.show_runname):
                 # all lines have same runid or runname
                 title_details_list.append(self.data[0].runname or self.data[0].runid)
-            if psettings.allow_title_time and not legend_attrs.show_time:
+            if allow_time and not legend_attrs.show_time:
                 # all lines have same time
                 title_details_list.append(f'{self.data[0].time}s')
-            if psettings.allow_title_rho and not legend_attrs.show_rho and self.data[0].rho:
+            if allow_rho and not legend_attrs.show_rho and self.data[0].rho:
                 # all lines have same rho, and rho is not None
                 title_details_list.append(fr'$\rho = ${self.data[0].rho}')
 
-            if title_details_list:
-                title_details = f'{", ".join(title_details_list)}'
+        return f' ({", ".join(title_details_list)})' if title_details_list else ''
 
-        return title_details
-
-    def get_plot_ylabel(self, psettings, legend_attrs, offset_text):
-        '''
-        Gets the yaxis label for the plot
+    def get_plot_ylabel(self, plot_settings, legend_attrs, offset_text):
+        """
+        Get the yaxis label for the plot
 
         If the ylabel override is set, then that is used for the ylabel of the
         plot.  Otherwise, the unique units of each y-variable are added to the
@@ -462,56 +484,56 @@ class AllPlotData:
         added to the ylabel.
 
         Parameters:
-        * psettings (PlotSettings): Plot settings object
+        * plot_settings (PlotSettings): Plot settings object
         * legend_attrs (LegendAttributes): Legend data object
         * offset_text (str): The offset text from the y-axis of the plot
 
         Returns:
         * (str): The ylabel for the plot
-        '''
+        """
 
-        offset_text = self.format_offset_text(offset_text)
+        offset_text = self._format_offset_text(offset_text)
 
-        if psettings.ylabel_override:
-            return f'{psettings.ylabel_override}{offset_text}'
+        if plot_settings.ylabel_override:
+            return f'{plot_settings.ylabel_override}{offset_text}'
 
         ylabels = []  # Not using a set to preserve order
-        for pd in self.data:
+        for d in self.data:
             if not legend_attrs.show_ysymbol:  # ysymbol is not in the legend
-                ystr = f'{pd.ysymbol} {pd.yunits}'
+                ystr = f'{d.ysymbol} {d.yunits}'
                 if ystr not in ylabels:
                     ylabels.append(ystr)
-            elif pd.yunits not in ylabels:  # ysymbol is in the legend
-                ylabels.append(pd.yunits)
+            elif d.yunits not in ylabels:  # ysymbol is in the legend
+                ylabels.append(d.yunits)
 
         joined_labels = '   '.join(ylabels)
         return f'{joined_labels}{offset_text}'
 
-    def get_plot_xlabel(self, psettings, legend_attrs, offset_text):
-        '''
-        Gets the xaxis label for the plot
+    def get_plot_xlabel(self, plot_settings, legend_attrs, offset_text):
+        """
+        Get the xaxis label for the plot
 
         If the xlabel override is set, then that is used for the xlabel of the
         plot.  Otherwise, the unique symbols and units of each x-variable are
         added to the ylabel (the same units aren't repeated).
 
         Parameters:
-        * psettings (PlotSettings): Plot settings object
-        * all_data (list[PlotData]): List of PlotData objects
+        * plot_settings (PlotSettings): Plot settings object
         * legend_attrs (LegendAttributes): Legend data object
+        * offset_text (str): The offset text from the x-axis of the plot
 
         Returns:
         * (str): The xlabel for the plot
-        '''
+        """
 
-        offset_text = self.format_offset_text(offset_text)
+        offset_text = self._format_offset_text(offset_text)
 
-        if psettings.xlabel_override:
-            return f'{psettings.xlabel_override}{offset_text}'
+        if plot_settings.xlabel_override:
+            return f'{plot_settings.xlabel_override}{offset_text}'
 
         xlabels = []  # Not using a set to preserve order
-        for pd in self.data:
-            xstr = f'{pd.xsymbol} {pd.xunits}'
+        for d in self.data:
+            xstr = f'{d.xsymbol} {d.xunits}'
             if xstr not in xlabels:
                 xlabels.append(xstr)
 
@@ -520,8 +542,8 @@ class AllPlotData:
 
 
 class LegendAttributes:
-    '''
-    Stores a bool for whether each attribute should appear in the legend
+    """
+    Store a bool for whether each attribute should appear in the legend
 
     Parameters:
     * ysymbol (bool): True if the y-variable symbol should be shown in the legend
@@ -529,7 +551,7 @@ class LegendAttributes:
     * runname (bool): True if the runname should be shown in the legend
     * time (bool): True if the time value should be shown in the legend
     * override (bool): True if legend overrides have been specified
-    '''
+    """
 
     def __init__(self, ysymbol, runid, runname, time, rho, override):
         self.show_ysymbol: bool = ysymbol
@@ -540,7 +562,7 @@ class LegendAttributes:
         self.show_override: bool = override
 
     def show_legend(self):
-        '''Returns (bool): True if the legend should be shown'''
+        """Returns (bool): True if the legend should be shown"""
 
         show_legend = False
         attributes = self.get_attributes()
@@ -551,18 +573,18 @@ class LegendAttributes:
         return show_legend
 
     def get_attributes(self):
-        '''Returns (list[str]): all boolean legend attributes'''
+        """Returns (list[str]): all boolean legend attributes"""
         return [a for a in dir(self) if isinstance(getattr(self, a), bool)]
 
 
-def main(psettings, all_data):
-    '''
+def main(plot_settings, all_data):
+    """
     Create a plot using data loaded from CDF files
 
     Parameters:
-    * psettings (PlotSettings): Object containing plot settings
+    * plot_settings (PlotSettings): Object containing plot settings
     * all_data (AllPlotData): Object containing all PlotData objects
-    '''
+    """
 
     ax = plt.gca()
 
@@ -575,18 +597,15 @@ def main(psettings, all_data):
         override=all_data.get_legend_include('legend_override')
     )
 
-    for pdata in all_data.data:
-        ax.plot(pdata.xvals, pdata.yvals, label=pdata.get_legend_label(legend_attrs))
+    for d in all_data.data:
+        ax.plot(d.xvals, d.yvals, label=d.get_legend_label(legend_attrs))
 
-
-
-    xlims, ylims = all_data.get_plot_limits(psettings)
+    xlims, ylims = all_data.get_plot_limits(plot_settings)
 
     ax.set(xlim=xlims, ylim=ylims)
 
-
     offset_text_x = offset_text_y = ''
-    if psettings.replace_offset_text:
+    if plot_settings.replace_offset_text:
         plt.gcf().canvas.draw()  # needed to grab offsetText string
         ax.xaxis.offsetText.set_visible(False)
         ax.yaxis.offsetText.set_visible(False)
@@ -594,24 +613,23 @@ def main(psettings, all_data):
         offset_text_y = ax.yaxis.offsetText._text
 
     ax.set(
-        title=all_data.get_plot_title(psettings, legend_attrs),
-        xlabel=all_data.get_plot_xlabel(psettings, legend_attrs, offset_text_x),
-        ylabel=all_data.get_plot_ylabel(psettings, legend_attrs, offset_text_y),
+        title=all_data.get_plot_title(plot_settings, legend_attrs),
+        xlabel=all_data.get_plot_xlabel(plot_settings, legend_attrs, offset_text_x),
+        ylabel=all_data.get_plot_ylabel(plot_settings, legend_attrs, offset_text_y),
     )
 
     if legend_attrs.show_legend():
-        leg = ax.legend()
-        leg.set_draggable(state=True)
+        ax.legend().set_draggable(state=True)
 
     plt.show()
 
 
 if __name__ == '__main__':
-    '''
+    """
     Run this module directly to plot variable data stored in CDF files
 
     AllPlotData can accept both PlotFromCdf and PlotFromCsv objects as input
-    '''
+    """
 
     utils.init_logging()
 
@@ -623,7 +641,7 @@ if __name__ == '__main__':
     )
 
     # Define settings for the plot
-    psettings = PlotSettings(
+    plot_settings = PlotSettings(
         replace_offset_text=True,
         allow_title_runid=True,
         allow_title_time=True,
@@ -637,12 +655,12 @@ if __name__ == '__main__':
 
     # Define data for the plot
     all_data = AllPlotData(
-        PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.50, runname=''),
-        PlotDataCdf(runid='138536A01', yname='ni', xname='rho', time=0.50, runname=''),
+        # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.50, runname=''),
+        # PlotDataCdf(runid='138536A01', yname='ni', xname='rho', time=0.50, runname=''),
         # PlotDataCsv(runid='138536A01', yname='ti', xname='rho', scan_num=1, runname=''),
         # PlotDataCsv(runid='138536A01', yname='te', xname='rho', scan_num=1, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
+        PlotDataCsv(runid='138536A01', yname='omgETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
     )
 
-    main(psettings, all_data)
+    main(plot_settings, all_data)
