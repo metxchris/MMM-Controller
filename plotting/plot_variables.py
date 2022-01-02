@@ -144,7 +144,6 @@ class PlotData:
         different values for a given attribute.
 
         Parameters:
-        * all_data (list[PlotData]): List of PlotData objects
         * attr_name (str): The name of a LegendAttributes member
 
         Returns:
@@ -357,9 +356,38 @@ class AllPlotData:
         Gets the title for the plot
 
         If the title override is set, then the title override value is used
-        for the title of the plot. Otherwise, the plot title is generated
-        using words that are repeated in the y-variable name for each
-        variable being plotted.
+        for the title of the plot.
+
+        Parameters:
+        * psettings (PlotSettings): Plot settings object
+        * all_data (list[PlotData]): List of PlotData objects
+        * legend_attrs (LegendAttributes): Legend data object
+
+        Returns:
+        * (str): The title for the plot
+        '''
+
+        if psettings.title_override:
+            base_title = psettings.title_override
+
+        elif len(self.data) == 1:
+            base_title = self.data[0].yname
+
+        else:
+            base_title = self._get_unique_title()
+
+        title_details = self._get_title_details(psettings, legend_attrs)
+
+        if title_details and base_title:
+            # Add parenthesis and a space when the title and details are non-empty
+            title_details = f' ({title_details})'
+
+        return f'{base_title}{title_details}'
+
+    def _get_unique_title(self):
+        '''
+        the plot title is generated using words that are repeated in the
+        y-variable name for each variable being plotted.
 
         Example 1:
             name1 = 'Thermal Ion Density'
@@ -378,49 +406,32 @@ class AllPlotData:
 
         Note that the title will be blank if there are no repeated words in
         each y-variable name.
-
-        Additionally, details are added to the title if the corresponding
-        title details switches are enabled. For example, if all plotted
-        variables share the same runid, then the runid is added to the
-        title.
-
-        Parameters:
-        * psettings (PlotSettings): Plot settings object
-        * all_data (list[PlotData]): List of PlotData objects
-        * legend_attrs (LegendAttributes): Legend data object
-
-        Returns:
-        * (str): The title for the plot
         '''
 
-        if psettings.title_override:
-            base_title = psettings.title_override
+        unique_ynames = set([data.yname for data in self.data])
+        first_name_words = self.data[0].yname.split()
+        title_words = []
 
-        elif len(self.data) == 1:
-            base_title = self.data[0].yname
-
-        else:
-            unique_ynames = set([data.yname for data in self.data])
-            unique_words, title_words = [], []
-
-            # Form list of unique words from each y-variable name
+        # Form list of title words for words that appear in the first y-variable name
+        for word in first_name_words:
+            append_word = True
             for name in unique_ynames:
-                words = name.split()
-                for word in words:
-                    if word not in unique_words:
-                        unique_words.append(word)   # using list to preserve order
+                if word not in name:
+                    append_word = False
+                    break
+            if append_word:
+                title_words.append(word)
 
-            # Form list of title words for words that appear in each y-variable name
-            for word in unique_words:
-                append_word = True
-                for name in unique_ynames:
-                    if word not in name:
-                        append_word = False
-                        break
-                if append_word:
-                    title_words.append(word)
+        return ' '.join(title_words)
 
-            base_title = ' '.join(title_words)
+    def _get_title_details(self, psettings, legend_attrs):
+        '''
+         Gets the title details
+
+         Details are added to the title if the corresponding title details
+         switches are enabled. For example, if all plotted variables share
+         the same runid, then the runid is added to the title.
+        '''
 
         title_details = ''
         if psettings.allow_title_runid or psettings.allow_title_time or psettings.allow_title_rho:
@@ -437,11 +448,8 @@ class AllPlotData:
 
             if title_details_list:
                 title_details = f'{", ".join(title_details_list)}'
-                if title_details and base_title:
-                    # Add parenthesis and a space when the title and details are non-empty
-                    title_details = f' ({title_details})'
 
-        return f'{base_title}{title_details}'
+        return title_details
 
     def get_plot_ylabel(self, psettings, legend_attrs, offset_text):
         '''
@@ -629,12 +637,12 @@ if __name__ == '__main__':
 
     # Define data for the plot
     all_data = AllPlotData(
-        # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.50, runname=''),
-        # PlotDataCdf(runid='138536A01', yname='ni', xname='rho', time=0.50, runname=''),
+        PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.50, runname=''),
+        PlotDataCdf(runid='138536A01', yname='ni', xname='rho', time=0.50, runname=''),
         # PlotDataCsv(runid='138536A01', yname='ti', xname='rho', scan_num=1, runname=''),
         # PlotDataCsv(runid='138536A01', yname='te', xname='rho', scan_num=1, runname=''),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
-        PlotDataCsv(runid='138536A01', yname='omgETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='etgm_kyrhos', scan_num=3, rho_value=0.2, runname=''),
     )
 
     main(psettings, all_data)
