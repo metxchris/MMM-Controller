@@ -766,8 +766,8 @@ def main(plot_settings, all_data):
         plt.gcf().canvas.draw()  # needed to grab offsetText string
         ax.xaxis.offsetText.set_visible(False)
         ax.yaxis.offsetText.set_visible(False)
-        offset_text_x = ax.xaxis.offsetText._text
-        offset_text_y = ax.yaxis.offsetText._text
+        offset_text_x = ax.xaxis.offsetText.get_text()
+        offset_text_y = ax.yaxis.offsetText.get_text()
 
     ax.set(
         title=all_data.get_plot_title(plot_settings, legend_attrs),
