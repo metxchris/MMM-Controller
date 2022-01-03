@@ -96,24 +96,23 @@ def get_rho_path(runid, scan_num, var_to_scan):
     return f'{get_scan_num_path(runid, scan_num)}\\{var_to_scan} rho'
 
 
-def get_rho_files(runid, scan_num, var_to_scan, save_type):
+def get_rho_files(options, save_type):
     '''Returns (list): all rho files of save_type in the rho folder'''
-    return get_files_in_dir(get_rho_path(runid, scan_num, var_to_scan), f'{save_type.name.capitalize()}*')
+    return get_files_in_dir(
+        get_rho_path(options.runid, options.scan_num, options.var_to_scan),
+        f'{save_type.name.capitalize()}*'
+    )
 
 
-def get_rho_strings(runid, scan_num, var_to_scan, save_type):
+def get_rho_strings(options, save_type):
     '''Returns (list[str]): the rho values of all rho files in the rho folder as strings'''
-    rho_files = get_rho_files(runid, scan_num, var_to_scan, save_type)
+    rho_files = get_rho_files(options, save_type)
     return [file.split(f'rho{constants.RHO_VALUE_SEPARATOR}')[1].split('.csv')[0] for file in rho_files]
 
 
 def get_closest_rho(options, save_type, rho_value):
     '''Returns (str): The actual saved rho value closest to the specified rho value'''
-    runid = options.runid
-    scan_num = options.scan_num
-    var_to_scan = options.var_to_scan
-
-    rho_values = np.array(get_rho_strings(runid, scan_num, var_to_scan, save_type), dtype=float)
+    rho_values = np.array(get_rho_strings(options, save_type), dtype=float)
     return f'{rho_values[np.argmin(np.abs(rho_values - float(rho_value)))]:{constants.RHO_VALUE_FMT}}'
 
 

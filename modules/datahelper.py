@@ -81,12 +81,8 @@ def get_all_rho_data(options):
     * input_controls (InputControls or None): InputControls object with np.ndarray for values
     '''
 
-    runid = options.runid
-    scan_num = options.scan_num
-    var_to_scan = options.var_to_scan
-
     input_vars_dict, output_vars_dict = {}, {}
-    rho_values = utils.get_rho_strings(runid, scan_num, var_to_scan, SaveType.OUTPUT)
+    rho_values = utils.get_rho_strings(options, SaveType.OUTPUT)
 
     # Stores InputVariables and OutputVariables data objects for each rho_value
     for rho in rho_values:
@@ -107,12 +103,14 @@ def get_all_rho_data(options):
     return input_vars_dict, output_vars_dict, input_controls
 
 
-def get_base_data(options):
+def get_data_objects(options, scan_factor=None, rho_value=None):
     '''
-    Gets all data pertaining to the unmodified values of the scanned variable
+    Get InputVariables, OutputVariables, and InputControls data objects
 
     Parameters:
     * options (Options): Object containing user options
+    * scan_factor (float): The scan factor to load (Optional)
+    * rho_value (str): The rho value to load (Optional)
 
     Returns:
     * input_vars (InputVariables): Object containing base input variable data
@@ -124,10 +122,12 @@ def get_base_data(options):
     output_vars = variables.OutputVariables(options)
     input_controls = controls.InputControls(options)
 
-    input_vars.load_from_csv(SaveType.INPUT)
-    input_vars.load_from_csv(SaveType.ADDITIONAL)
-    output_vars.load_from_csv(SaveType.OUTPUT)
-    input_controls.load_from_csv()
+    input_vars.load_from_csv(SaveType.INPUT, scan_factor, rho_value)
+    input_vars.load_from_csv(SaveType.ADDITIONAL, scan_factor, rho_value)
+    output_vars.load_from_csv(SaveType.OUTPUT, scan_factor, rho_value)
+
+    use_rho = True if rho_value is not None else False
+    input_controls.load_from_csv(scan_factor=scan_factor, use_rho=use_rho)
 
     return input_vars, output_vars, input_controls
 

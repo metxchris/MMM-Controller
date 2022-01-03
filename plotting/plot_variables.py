@@ -76,6 +76,8 @@ class PlotSettings:
     * allow_title_time (bool): If the time is allowed to appear in the title
     * allow_title_rho (bool): If the rho value is allowed to appear in the title
     * allow_title_factor (bool): If the scan factor is allowed to appear in the title
+    * invert_y_axis (bool): If the y-axis should be inverted
+    * invert_x_axis (bool): If the x-axis should be inverted
     * title_override (str): Overrides auto generated title if non-empty
     * ylabel_override (str): Overrides auto generated ylabel if non-empty
     * xlabel_override (str): Overrides auto generated xlabel if non-empty
@@ -88,6 +90,8 @@ class PlotSettings:
     allow_title_time: bool = True
     allow_title_rho: bool = True
     allow_title_factor: bool = True
+    invert_y_axis: bool = False
+    invert_x_axis: bool = False
     title_override: str = ''
     ylabel_override: str = ''
     xlabel_override: str = ''
@@ -106,7 +110,8 @@ class PlotData:
     * runid (str): The runid of the CDF
     * yvar (Variable): The Variable object of the y-variable to plot
     * xvar (Variable): The Variable object of the x-variable to plot
-    * base_idx (int | None): The index of the base variable data (when using rho_value) (Optional)
+    * yval_base (list[float]): The base y-variable value when plotting at a rho point
+    * xval_base (list[float]): The base x-variable value when plotting at a rho point
     * factor_symbol (str | None): The symbol of the scanned variable (Optional)
     * scan_factor (str | None): The scan factor value to plot (Optional)
     * rho_value (str | None): The rho value to plot (Optional)
@@ -117,12 +122,12 @@ class PlotData:
     * ValueError: If values for the x-variable or y-variable are None
     """
 
-    def __init__(self, options, runid, yvar, xvar, base_idx=None,
+    def __init__(self, options, runid, yvar, xvar, yval_base=None, xval_base=None,
                  factor_symbol=None, scan_factor=None, rho_value=None, runname='', legend_override=''):
         self.xvals: np.ndarray = self._get_values(xvar.values, options.time_idx)
         self.yvals: np.ndarray = self._get_values(yvar.values, options.time_idx)
-        self.xbaseval: list[float] = self._get_base_value(xvar.values, base_idx)
-        self.ybaseval: list[float] = self._get_base_value(yvar.values, base_idx)
+        self.xval_base: list[float] = xval_base or []  # plotting an empty list advances the cycler
+        self.yval_base: list[float] = yval_base or []
         self.xsymbol: str = xvar.label
         self.ysymbol: str = yvar.label
         self.xunits: str = xvar.units_label
@@ -132,7 +137,6 @@ class PlotData:
         self.time: str = options.time_str
         self.runid: str = runid
         self.runname: str = runname
-        self.base_idx: int | None = base_idx
         self.rho: str | None = rho_value
         self.factor: str | None = scan_factor
         self.factor_symbol: str | None = factor_symbol
@@ -147,11 +151,6 @@ class PlotData:
     def _get_values(values, time_idx):
         """Returns (np.ndarray): Variable values to be plotted"""
         return values[:, time_idx] if isinstance(values, np.ndarray) and values.ndim == 2 else values
-
-    @staticmethod
-    def _get_base_value(values, base_idx):
-        """Returns (list[float | empty]): Variable values to be plotted"""
-        return values[base_idx] if isinstance(values, np.ndarray) and base_idx is not None else []
 
     def get_legend_label(self, legend_attrs):
         """
@@ -255,8 +254,9 @@ class PlotDataCsv(PlotData):
     in the InputVariables class.  For example, InputVariables contains the
     member definition 'self.te', corresponding to Electron Temperature, so
     that variable should be referenced using 'te' as the name here.  See
-    variables.py for a full list of variables defined in the InputVariables
-    class.
+    variables.py and controls.py for a full list of InputVariables,
+    OutputVariables, and InputControls members that can be referenced by
+    name.
 
     Parameters:
     * runid (str): The runid of the CSV
@@ -267,74 +267,109 @@ class PlotDataCsv(PlotData):
     * rho_value (float): The rho value of the CSV to load (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
     * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
-
-    Raises:
-    * NameError: If the xname, yname, or scanned variable name is not found in one of the data classes
     """
 
     def __init__(self, runid, scan_num, yname, xname='rho',
                  scan_factor=None, rho_value=None, runname='', legend_override=''):
+
         options = modules.options.Options().load(runid, scan_num)
-        input_vars = variables.InputVariables(options)
-        output_vars = variables.OutputVariables(options)
-        input_controls = controls.InputControls(options)
         scan_factor_str = None
 
-        if rho_value and scan_factor:
-            _log.warning(f'PlotDataCsv:\n\tscan_factor is not used when rho_value is specified')
-            scan_factor = None
-
         if rho_value:
-            # rho values should be the same for each output type, so we choose SaveType.OUTPUT
             rho_value = utils.get_closest_rho(options, SaveType.OUTPUT, rho_value)
 
-        if scan_factor:
+        elif scan_factor:
             scan_factor = options.find_scan_factor(scan_factor)
             scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_DISPLAY_FMT}}'
 
-        # Load data objects
-        input_vars.load_from_csv(SaveType.INPUT, scan_factor, rho_value)
-        input_vars.load_from_csv(SaveType.ADDITIONAL, scan_factor, rho_value)
-        output_vars.load_from_csv(SaveType.OUTPUT, scan_factor, rho_value)
-        input_controls.load_from_csv(use_rho=True)
-        data_objects = [input_vars, output_vars, input_controls]
+        yvar, xvar, factor_symbol = self._get_vars_from_data(options, scan_factor, rho_value, yname, xname)
+        yval_base, xval_base = self._get_base_values_from_data(options, rho_value, yname, xname)
 
-        # Load variables from names found in data objects
-        fname = options.get_adjusted_var()
-        yvar = xvar = fvar = None
+        super().__init__(options, runid, yvar, xvar, factor_symbol=factor_symbol,
+                         yval_base=yval_base, xval_base=xval_base,
+                         rho_value=rho_value, scan_factor=scan_factor_str,
+                         runname=runname, legend_override=legend_override)
+
+    @staticmethod
+    def _get_vars_from_data(options, scan_factor, rho_value, yname, xname):
+        '''
+        Get the x- and y- variables, along with the symbol of the scan factor
+        (if applicable)
+
+        Parameters:
+        * options (Options): Object containing user options
+        * scan_factor (float): The scan factor to load
+        * rho_value (str): The rho value to load
+        * yname (str): The name of the y-variable to plot
+        * xname (str): The name of the x-variable to plot
+
+        Returns:
+        * yvar (Variable): The Variable object of the y-variable to plot
+        * xvar (Variable): The Variable object of the x-variable to plot
+        * factor_symbol (str | None): The symbol of the scanned variable
+
+        Raises:
+        * NameError: If xname or yname cannot be found in the data objects
+        '''
+
+        yvar = xvar = factor_symbol = None
+        adjusted_var = options.get_adjusted_var()
+        data_objects = list(datahelper.get_data_objects(options, scan_factor, rho_value))
+
         for o in data_objects:
             if not yvar and hasattr(o, yname):
                 yvar = getattr(o, yname)
             if not xvar and hasattr(o, xname):
                 xvar = getattr(o, xname)
-            if not fvar and hasattr(o, fname):
-                fvar = getattr(o, fname)
+            if not factor_symbol and adjusted_var and hasattr(o, adjusted_var):
+                factor_symbol = getattr(o, adjusted_var).label
 
-        # Check that variables loaded correctly
-        name_error = None
-        if not yvar:
-            name_error = yname
-        if not xvar:
-            name_error = xname
-        if not fvar:
-            name_error = fname
-        if name_error:
+        if not yvar or not xvar:
             raise NameError(
-                f'The variable "{xname}" is not specified in '
+                f'One of the variables "{xname}" or "{yname}" is not specified in '
                 f'InputVariables, OutputVariables, or InputControls (typo?)'
             )
 
-        base_idx = None  # index of base variable value (when plotting with a rho value)
-        if rho_value:
-            # Store base values
-            rho_strs = np.array(
-                utils.get_rho_strings(runid, scan_num, options.var_to_scan, SaveType.OUTPUT), dtype=str
-            )
-            idx_list = np.where(rho_strs == rho_value)[0]
-            base_idx = idx_list[0] if idx_list else None
+        return yvar, xvar, factor_symbol
 
-        super().__init__(options, runid, yvar, xvar, base_idx=base_idx, factor_symbol=fvar.label, rho_value=rho_value,
-                         scan_factor=scan_factor_str, runname=runname, legend_override=legend_override)
+    @staticmethod
+    def _get_base_values_from_data(options, rho_value, yname, xname):
+        '''
+        Get the base value of the x- and y- variables, when using a rho value
+
+        Parameters:
+        * options (Options): Object containing user options
+        * rho_value (str): The rho value to load
+        * yname (str): The name of the y-variable to plot
+        * xname (str): The name of the x-variable to plot
+
+        Returns:
+        * yval_base (list[float]): The base value of the y-variable
+        * xval_base (list[float]): The base value of the x-variable
+
+        Raises:
+        * ValueError: If the rho value cannot be found in the rho folder
+        '''
+
+        yval_base = xval_base = None
+
+        if rho_value is not None:
+            rho_strs = np.array(utils.get_rho_strings(options, SaveType.OUTPUT), dtype=str)
+            base_value_idx_list = np.where(rho_strs == rho_value)[0]
+
+            if not base_value_idx_list:
+                raise ValueError(f'The rho value {rho_value} does not match any files saved in the rho folder')
+
+            base_value_idx = base_value_idx_list[0]
+            data_objects = list(datahelper.get_data_objects(options))
+
+            for o in data_objects:
+                if not yval_base and hasattr(o, yname):
+                    yval_base = [getattr(o, yname).values[base_value_idx]]
+                if not xval_base and hasattr(o, xname):
+                    xval_base = [getattr(o, xname).values[base_value_idx]]
+
+        return yval_base, xval_base
 
 
 class AllPlotData:
@@ -427,8 +462,8 @@ class AllPlotData:
         xmin = ymin = float("inf")
         xmax = ymax = -float("inf")
         for pdata in self.data:
-            xmin = min(xmin, pdata.xvals.min())
-            xmax = max(xmax, pdata.xvals.max())
+            xmin = min(xmin, pdata.xvals[pdata.yvals != 0].min())  # trim trivial values
+            xmax = max(xmax, pdata.xvals[pdata.yvals != 0].max())
             ymin = min(ymin, pdata.yvals.min())
             ymax = max(ymax, pdata.yvals.max())
 
@@ -447,6 +482,11 @@ class AllPlotData:
         if ymin == ymax:
             ymin = -ypad
             ymax = 1 + ypad
+
+        if plot_settings.invert_x_axis:
+            xmin, xmax = xmax, xmin
+        if plot_settings.invert_y_axis:
+            ymin, ymax = ymax, ymin
 
         return (xmin, xmax), (ymin, ymax)
 
@@ -705,7 +745,7 @@ def main(plot_settings, all_data):
 
     for i, d in enumerate(all_data.data):
         ax.plot(d.xvals, d.yvals, label=d.get_legend_label(legend_attrs))
-        ax.plot(d.xbaseval, d.ybaseval)  # Advance the cycler when base values are empty lists
+        ax.plot(d.xval_base, d.yval_base)  # Advance the cycler when base values are empty lists
 
     xlims, ylims = all_data.get_plot_limits(plot_settings)
 
@@ -771,6 +811,8 @@ if __name__ == '__main__':
         allow_title_time=True,
         allow_title_rho=True,
         allow_title_factor=True,
+        invert_y_axis=False,
+        invert_x_axis=False,
         title_override='',
         ylabel_override='',
         xlabel_override='',
@@ -778,20 +820,20 @@ if __name__ == '__main__':
 
     # Define data for the plot
     all_data = AllPlotData(
-        # PlotDataCdf(runid='138536A01', yname='rmin', xname='xb', time=0.50, runname=''),
-        # PlotDataCdf(runid='138536A01', yname='rmin', xname='rho', time=0.50, runname=''),
-        # PlotDataCdf(runid='138536A01', yname='ni', xname='xb', time=0.50, runname=''),
-        # PlotDataCdf(runid='138536A01', yname='ni', xname='rho', time=0.50, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='rho', scan_num=1, scan_factor=2, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='rho', scan_num=2, scan_factor=2, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='rmin', scan_num=3, scan_factor=2, runname=''),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.14, runname=''),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.2, runname=''),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.25, runname=''),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='zeff', scan_num=2, rho_value=0.15, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=2, rho_value=0.25, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='zeff', scan_num=2, rho_value=0.25, runname=''),
+        # CDF: Different runid, y-variables, and times
+        # PlotDataCdf(runid='138536A01', yname='ni', xname='rho', time=0.50),
+        # PlotDataCdf(runid='120968A02', yname='ne', xname='rho', time=0.60),
+        # CSV: Different scanned variables with same scan factor
+        PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=1, scan_factor=2.5),
+        PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2, scan_factor=2.5),
+        # CSV: Growth rate vs Effective Charge
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.15),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.63),
+        # CSV: Growth rate vs Average Magnetic Surface Curvature
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.15),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.31),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.63),
     )
 
     main(plot_settings, all_data)

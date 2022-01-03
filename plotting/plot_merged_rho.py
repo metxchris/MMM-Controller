@@ -36,7 +36,7 @@ def run_plotting_loop(vars_to_plot, options):
     scan_type = options.scan_type
 
     input_vars_dict, output_vars_dict, input_controls = datahelper.get_all_rho_data(options)
-    base_input_vars, base_output_vars, base_input_controls = datahelper.get_base_data(options)
+    base_input_vars, base_output_vars, base_input_controls = datahelper.get_data_objects(options)
 
     xbase = None
     if hasattr(base_input_vars, var_to_scan):
