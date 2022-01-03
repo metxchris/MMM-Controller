@@ -195,7 +195,7 @@ class PlotData:
 
     def get_xsymbol_label_str(self):
         """Returns (str): The xsymbol string used in the legend label"""
-        return f'{self.ysymbol}({self.xsymbol})'
+        return fr'{self.ysymbol}$\,$({self.xsymbol})'
 
     def get_run_label_str(self):
         """Returns (str): The runname or runid string used in the legend label and title details"""
@@ -596,7 +596,7 @@ class AllPlotData:
             elif d.yunits not in ylabels:  # ysymbol is in the legend
                 ylabels.append(d.yunits)
 
-        joined_labels = '   '.join(ylabels)
+        joined_labels = ',  '.join(ylabels)
         return f'{joined_labels}{offset_text}'
 
     def get_plot_xlabel(self, plot_settings, legend_attrs, offset_text):
@@ -627,7 +627,7 @@ class AllPlotData:
             if xstr not in xlabels:
                 xlabels.append(xstr)
 
-        joined_labels = '   '.join(xlabels)
+        joined_labels = ',  '.join(xlabels)
         return f'{joined_labels}{offset_text}'
 
 
@@ -778,14 +778,17 @@ if __name__ == '__main__':
 
     # Define data for the plot
     all_data = AllPlotData(
-        # PlotDataCdf(runid='138536A01', yname='ahyd', xname='rho', time=0.50, runname=''),
+        # PlotDataCdf(runid='138536A01', yname='rmin', xname='xb', time=0.50, runname=''),
+        # PlotDataCdf(runid='138536A01', yname='rmin', xname='rho', time=0.50, runname=''),
+        # PlotDataCdf(runid='138536A01', yname='ni', xname='xb', time=0.50, runname=''),
         # PlotDataCdf(runid='138536A01', yname='ni', xname='rho', time=0.50, runname=''),
-        PlotDataCsv(runid='138536A01', yname='alphamhd', xname='rho', scan_num=1, scan_factor=2, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='rho', scan_num=1, scan_factor=2, runname=''),
         # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='rho', scan_num=2, scan_factor=2, runname=''),
-        PlotDataCsv(runid='138536A01', yname='alphamhd', xname='rmin', scan_num=3, scan_factor=2, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=2, rho_value=0.2, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='zeff', scan_num=2, rho_value=0.2, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=2, rho_value=0.15, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='rmin', scan_num=3, scan_factor=2, runname=''),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.14, runname=''),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.2, runname=''),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.25, runname=''),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31, runname=''),
         # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='zeff', scan_num=2, rho_value=0.15, runname=''),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=2, rho_value=0.25, runname=''),
         # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='zeff', scan_num=2, rho_value=0.25, runname=''),

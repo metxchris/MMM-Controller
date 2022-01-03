@@ -175,7 +175,7 @@ def main(scanned_vars, controls):
                 _execute_control_scan(mmm_vars, controls)
 
             reshaper.create_rho_files(options)
-            print(f'\n{options.var_to_scan} scan complete!\n')
+            print(f'\nScan complete: {options.runid}, scan {options.scan_num}, {options.var_to_scan}\n')
 
 
 # Run this file directly to plot variable profiles and run the MMM driver
