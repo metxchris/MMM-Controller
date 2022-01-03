@@ -436,6 +436,10 @@ class AllPlotData:
 
         return len(attrs) > 1
 
+    def _is_using_rho(self):
+        '''Returns (bool): True if any PlotData have rho values'''
+        return (np.array([d.rho for d in self.data]) != None).any()
+
     def get_plot_limits(self, plot_settings):
         """
         Get the limits of the plot, adjusted by padding parameters set in plot settings
@@ -461,9 +465,15 @@ class AllPlotData:
 
         xmin = ymin = float("inf")
         xmax = ymax = -float("inf")
+
+        is_using_rho = self._is_using_rho()
+
         for pdata in self.data:
-            xmin = min(xmin, pdata.xvals[pdata.yvals != 0].min())  # trim trivial values
-            xmax = max(xmax, pdata.xvals[pdata.yvals != 0].max())
+            # Trim x-axis of zero y-values values when plotting with a rho value
+            xvals = pdata.xvals[pdata.yvals != 0] if is_using_rho else pdata.xvals
+
+            xmin = min(xmin, xvals.min())
+            xmax = max(xmax, xvals.max())
             ymin = min(ymin, pdata.yvals.min())
             ymax = max(ymax, pdata.yvals.max())
 
@@ -475,7 +485,7 @@ class AllPlotData:
         ymin -= yoffset
         ymax += yoffset
 
-        # Default limits when min equals max
+        # Default limits when min equals max (avoids MatPlotLib warning)
         if xmin == xmax:
             xmin = -xpad
             xmax = 1 + xpad
@@ -824,12 +834,15 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='138536A01', yname='ni', xname='rho', time=0.50),
         # PlotDataCdf(runid='120968A02', yname='ne', xname='rho', time=0.60),
         # CSV: Different scanned variables with same scan factor
-        PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=1, scan_factor=2.5),
-        PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2, scan_factor=2.5),
+        # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=1, scan_factor=2.5),
+        # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2, scan_factor=2.5),
+        # CSV: Different output variables
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=1),
+        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='rho', scan_num=1),
         # CSV: Growth rate vs Effective Charge
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.15),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.63),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.15),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.63),
         # CSV: Growth rate vs Average Magnetic Surface Curvature
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.15),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.31),
