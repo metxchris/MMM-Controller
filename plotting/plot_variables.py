@@ -110,8 +110,9 @@ class PlotData:
     * xvar (Variable): The Variable object of the x-variable to plot
     * yval_base (list[float]): The base y-variable value when plotting at a rho point
     * xval_base (list[float]): The base x-variable value when plotting at a rho point
-    * is_cdf (bool): If the data source is from a CDF = TRANSP (Optional)
-    * is_csv (bool): If the data source is from a CSV = MMM (Optional)
+    * transp_calcs (bool): If the data source is using variables calculated in TRANSP (Optional)
+    * is_cdf (bool): If the data source is loaded from a CDF (Optional)
+    * is_csv (bool): If the data source is loaded from a CSV (Optional)
     * factor_symbol (str | None): The symbol of the scanned variable (Optional)
     * scan_factor (str | None): The scan factor value to plot (Optional)
     * rho_value (str | None): The rho value to plot (Optional)
@@ -122,8 +123,8 @@ class PlotData:
     * ValueError: If values for the x-variable or y-variable are None
     """
 
-    def __init__(self, options, runid, yvar, xvar, yval_base=None, xval_base=None, is_cdf=False, is_csv=False,
-                 factor_symbol=None, scan_factor=None, rho_value=None, runname='', legend_override=''):
+    def __init__(self, options, runid, yvar, xvar, yval_base=None, xval_base=None, transp_calcs=False, is_cdf=False,
+                 is_csv=False, factor_symbol=None, scan_factor=None, rho_value=None, runname='', legend_override=''):
         self.xvals: np.ndarray = self._get_values(xvar.values, options.time_idx)
         self.yvals: np.ndarray = self._get_values(yvar.values, options.time_idx)
         self.xval_base: list[float] = xval_base or []  # plotting an empty list advances the cycler
@@ -141,6 +142,7 @@ class PlotData:
         self.factor: str | None = scan_factor
         self.factor_symbol: str | None = factor_symbol
         self.legend_override: str = legend_override
+        self.transp_calcs: bool = transp_calcs
         self.is_cdf: bool = is_cdf
         self.is_csv: bool = is_csv
 
@@ -159,9 +161,10 @@ class PlotData:
         Get the y-variable label for the plot legend
 
         If the legend override is set, then that value is used for the legend
-        label.  Otherwise, either the y-variable symbol, the runname (if set) or
-        runid, and the time value may be added to the legend.  Each of these
-        attributes are only added to the legend if multiple y-variables have
+        label.  Otherwise, attributes such as the variable symbol, runid,
+        time, rho value, scan factor, calculation source, or data source may
+        each be automatically added to the legend.  In general, attributes
+        are only added to the legend if multiple plotted variables have
         different values for a given attribute.
 
         Parameters:
@@ -187,8 +190,10 @@ class PlotData:
             legend_items.append(self.get_rho_label_str())
         if legend_attrs.show_factor and self.factor is not None:
             legend_items.append(self.get_factor_label_str())
-        if legend_attrs.show_source:
-            legend_items.append(self.get_source_str())
+        if legend_attrs.show_calc_source:
+            legend_items.append(self.get_calc_source_str())
+        if legend_attrs.show_data_source and not legend_items:  # only show when legend is empty
+            legend_items.append(self.get_data_source_str())
 
         return ' '.join(legend_items)
 
@@ -216,9 +221,13 @@ class PlotData:
         """Returns (str): The factor string used in the legend label and title details"""
         return fr'${self.factor}\cdot${self.factor_symbol}'
 
-    def get_source_str(self):
+    def get_calc_source_str(self):
         """Returns (str): The data source string used in the legend label"""
-        return 'TRANSP' if self.is_cdf else 'MMM' if self.is_csv else None
+        return 'TRANSP' if self.transp_calcs else 'MMM'
+
+    def get_data_source_str(self):
+        """Returns (str): The data source string used in the legend label"""
+        return 'CDF' if self.is_cdf else 'CSV' if self.is_csv else ''
 
 
 class PlotDataCdf(PlotData):
@@ -242,15 +251,15 @@ class PlotDataCdf(PlotData):
     * use_cdf_vars (bool): Uses uncalculated CDF variables instead of calculated MMM variables (Optional)
     """
 
-    def __init__(self, runid, time, yname, xname='rho', runname='', legend_override='', use_cdf_vars=False):
+    def __init__(self, runid, time, yname, xname='rho', runname='', legend_override='', transp_calcs=False):
         options = modules.options.Options(runid=runid, input_time=time)
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
-        plot_vars = mmm_vars if not use_cdf_vars else cdf_vars
+        plot_vars = mmm_vars if not transp_calcs else cdf_vars
 
         yvar = getattr(plot_vars, yname)
         xvar = getattr(plot_vars, xname)
 
-        super().__init__(options, runid, yvar, xvar, is_cdf=True,
+        super().__init__(options, runid, yvar, xvar, transp_calcs=transp_calcs, is_cdf=True,
                          runname=runname, legend_override=legend_override)
 
 
@@ -688,27 +697,30 @@ class LegendAttributes:
     Store a bool for whether each attribute should appear in the legend
 
     Parameters:
-    * ysymbol (bool): True if the y-variable symbol should be shown in the legend
-    * xsymbol (bool): True if the x-variable symbol should be shown in the legend
-    * runid (bool): True if the runid should be shown in the legend
-    * runname (bool): True if the runname should be shown in the legend
-    * time (bool): True if the time value should be shown in the legend
-    * rho (bool): True if the rho value should be shown in the legend
-    * factor (bool): True if the scan factor should be shown in the legend
-    * source (bool): True if the data source should be shown in the legend
-    * override (bool): True if legend overrides have been specified
+    * show_ysymbol (bool): True if the y-variable symbol should be shown in the legend
+    * show_xsymbol (bool): True if the x-variable symbol should be shown in the legend
+    * show_runid (bool): True if the runid should be shown in the legend
+    * show_runname (bool): True if the runname should be shown in the legend
+    * show_time (bool): True if the time value should be shown in the legend
+    * show_rho (bool): True if the rho value should be shown in the legend
+    * show_factor (bool): True if the scan factor should be shown in the legend
+    * show_data_source (bool): True if the data source should be shown in the legend
+    * show_calc_source (bool): True if the calculation source should be shown in the legend
+    * show_override (bool): True if legend overrides have been specified
     """
 
-    def __init__(self, ysymbol, xsymbol, runid, runname, time, rho, factor, source, override):
-        self.show_ysymbol: bool = ysymbol
-        self.show_xsymbol: bool = xsymbol
-        self.show_runid: bool = runid
-        self.show_runname: bool = runname
-        self.show_time: bool = time
-        self.show_rho: bool = rho
-        self.show_factor: bool = factor
-        self.show_source: bool = source
-        self.show_override: bool = override
+    def __init__(self, show_ysymbol, show_xsymbol, show_runid, show_runname, show_time, show_rho,
+                 show_factor, show_data_source, show_calc_source, show_override):
+        self.show_ysymbol: bool = show_ysymbol
+        self.show_xsymbol: bool = show_xsymbol
+        self.show_runid: bool = show_runid
+        self.show_runname: bool = show_runname
+        self.show_time: bool = show_time
+        self.show_rho: bool = show_rho
+        self.show_factor: bool = show_factor
+        self.show_data_source: bool = show_data_source
+        self.show_calc_source: bool = show_calc_source
+        self.show_override: bool = show_override
 
     def show_legend(self):
         """Returns (bool): True if the legend should be shown"""
@@ -749,15 +761,16 @@ def main(plot_settings, all_data):
     ax = plt.gca()
 
     legend_attrs = LegendAttributes(
-        ysymbol=all_data.get_legend_include('ysymbol'),
-        xsymbol=all_data.get_legend_include('xsymbol'),
-        runid=all_data.get_legend_include('runid'),
-        runname=all_data.get_legend_include('runname'),
-        time=all_data.get_legend_include('time'),
-        rho=all_data.get_legend_include('rho'),
-        factor=all_data.get_legend_include('factor') or all_data.get_legend_include('factor_symbol'),
-        source=all_data.get_legend_include('is_cdf') or all_data.get_legend_include('is_csv'),
-        override=all_data.get_legend_include('legend_override')
+        show_ysymbol=all_data.get_legend_include('ysymbol'),
+        show_xsymbol=all_data.get_legend_include('xsymbol'),
+        show_runid=all_data.get_legend_include('runid'),
+        show_runname=all_data.get_legend_include('runname'),
+        show_time=all_data.get_legend_include('time'),
+        show_rho=all_data.get_legend_include('rho'),
+        show_factor=all_data.get_legend_include('factor') and all_data.get_legend_include('factor_symbol'),
+        show_data_source=all_data.get_legend_include('is_cdf') and all_data.get_legend_include('is_csv'),
+        show_calc_source=all_data.get_legend_include('transp_calcs'),
+        show_override=all_data.get_legend_include('legend_override')
     )
 
     for i, d in enumerate(all_data.data):
@@ -830,9 +843,12 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='120982A09', yname='ne', xname='rho', time=0.60),
         # PlotDataCdf(runid='120968A02', yname='ni', xname='rho', time=0.50),
         # PlotDataCdf(runid='129041A10', yname='nd', xname='rho', time=0.40),
-        # CDF and CSV: Compare TRANSP variable with calculated MMM variable
-        PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629),
-        PlotDataCsv(runid='138536A01', yname='etae', xname='rho', scan_num=1,),
+        # CDF: Compare TRANSP and MMM calculations (must be defined in calculations.py)
+        PlotDataCdf(runid='138536A01', yname='loge', xname='rho', time=0.629, transp_calcs=True),
+        PlotDataCdf(runid='138536A01', yname='loge', xname='rho', time=0.629),
+        # CDF and CSV: Compare same variable from two data sources
+        # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.629),
+        # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2),
         # CSV: Different scanned variables with same scan factor
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=1, scan_factor=2.5),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2, scan_factor=2.5),
