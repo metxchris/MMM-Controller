@@ -54,9 +54,7 @@ import numpy as np
 # Local Packages
 import modules.options
 import modules.constants as constants
-import modules.controls as controls
 import modules.datahelper as datahelper
-import modules.variables as variables
 import modules.utils as utils
 from modules.enums import SaveType
 from plotting.modules.plotstyles import PlotStyles, StyleType
@@ -832,7 +830,7 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='120982A09', yname='ne', xname='rho', time=0.60),
         # PlotDataCdf(runid='120968A02', yname='ni', xname='rho', time=0.50),
         # PlotDataCdf(runid='129041A10', yname='nd', xname='rho', time=0.40),
-        # CDF and CSV: Same variable from different sources
+        # CDF and CSV: Compare TRANSP variable with calculated MMM variable
         PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629),
         PlotDataCsv(runid='138536A01', yname='etae', xname='rho', scan_num=1,),
         # CSV: Different scanned variables with same scan factor
