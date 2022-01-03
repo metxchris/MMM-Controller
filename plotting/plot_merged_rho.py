@@ -128,7 +128,7 @@ if __name__ == '__main__':
 
     PlotStyles(
         axes=StyleType.Axes.GRAY,
-        lines=StyleType.Lines.MMM_RHO,
+        lines=StyleType.Lines.RHO_MMM,
         layout=StyleType.Layout.SINGLE,
     )
 
@@ -155,7 +155,7 @@ if __name__ == '__main__':
     # scan_data['129041A10'] = [1]
     # scan_data['TEST'] = [181]
     # scan_data['138536A01'] = [i for i in range(100, 126)]
-    scan_data['138536A01'] = [1]
+    scan_data['138536A01'] = [3]
 
     settings.AUTO_OPEN_PDFS = 1
 

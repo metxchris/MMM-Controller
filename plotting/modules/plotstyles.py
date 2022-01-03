@@ -49,8 +49,8 @@ class StyleType:
 
         NONE = 0
         MMM = 1
-        MMM_RHO = 2
-        FTE = 3
+        FTE = 2
+        RHO_MMM = 3
 
     class Layout(Enum):
         '''
