@@ -43,8 +43,8 @@ class StyleType:
 
         Members:
         * MMM: Default theme for MMM Explorer
-        * MMM_RHO: Default theme for MMM Explorer rho plots (no dashes defined)
         * FTE: FiveThirtyEight.com styled lines
+        * RHO_MMM: Default theme for MMM Explorer with support for rho plots
         '''
 
         NONE = 0
