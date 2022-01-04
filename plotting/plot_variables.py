@@ -158,47 +158,6 @@ class PlotData:
         """Returns (np.ndarray): Variable values to be plotted"""
         return values[:, time_idx] if isinstance(values, np.ndarray) and values.ndim == 2 else values
 
-    def get_legend_label(self, legend_attrs):
-        """
-        Get the y-variable label for the plot legend
-
-        If the legend override is set, then that value is used for the legend
-        label.  Otherwise, attributes such as the variable symbol, runid,
-        time, rho value, scan factor, calculation source, or data source may
-        each be automatically added to the legend.  In general, attributes
-        are only added to the legend if multiple plotted variables have
-        different values for a given attribute.
-
-        Parameters:
-        * legend_attrs (LegendAttributes): Object containing legend attributes
-
-        Returns:
-        * (str): The legend label for the variable
-        """
-
-        if self.legend_override:
-            return self.legend_override
-
-        legend_items = []
-        if legend_attrs.show_ysymbol and not legend_attrs.show_xsymbol:
-            legend_items.append(self.get_ysymbol_label_str())
-        if legend_attrs.show_xsymbol:
-            legend_items.append(self.get_xsymbol_label_str())
-        if legend_attrs.show_runid or legend_attrs.show_runname:
-            legend_items.append(self.get_run_label_str())
-        if legend_attrs.show_time:
-            legend_items.append(self.get_time_label_str())
-        if legend_attrs.show_rho and self.rho is not None:
-            legend_items.append(self.get_rho_label_str())
-        if legend_attrs.show_factor or legend_attrs.show_factor_symbol:
-            legend_items.append(self.get_factor_label_str())
-        if legend_attrs.show_calc_source:
-            legend_items.append(self.get_calc_source_str())
-        if legend_attrs.show_is_cdf and legend_attrs.show_is_csv and not legend_items:
-            legend_items.append(self.get_data_source_str())  # only show when legend is empty
-
-        return ' '.join(legend_items)
-
     def get_ysymbol_label_str(self):
         """Returns (str): The ysymbol string used in the legend label"""
         return self.ysymbol
@@ -221,9 +180,8 @@ class PlotData:
 
     def get_factor_label_str(self):
         """Returns (str): The factor string used in the legend label and title details"""
-        if not self.factor_symbol or self.factor is None:
-            return r'$\mathtt{Base}$'
-        return fr'${self.factor}\cdot${self.factor_symbol}'
+        no_factor = not self.factor_symbol or self.factor is None
+        return r'$\mathtt{Base}$' if no_factor else fr'${self.factor}\cdot${self.factor_symbol}'
 
     def get_calc_source_str(self):
         """Returns (str): The data source string used in the legend label"""
@@ -404,6 +362,24 @@ class AllPlotData:
     def __init__(self, *args):
         self.data: list[PlotData] = [a for a in args if isinstance(a, PlotData)]
 
+        # Store whether each attribute should be included in the legend
+        self.legend_attrs: dict[str, bool] = {
+            'show_ysymbol': self.get_legend_include('ysymbol'),
+            'show_xsymbol': self.get_legend_include('xsymbol'),
+            'show_runid': self.get_legend_include('runid'),
+            'show_runname': self.get_legend_include('runname'),
+            'show_time': self.get_legend_include('time'),
+            'show_rho': self.get_legend_include('rho'),
+            'show_factor': self.get_legend_include('factor'),
+            'show_factor_symbol': self.get_legend_include('factor_symbol'),
+            'show_is_cdf': self.get_legend_include('is_cdf'),
+            'show_is_csv': self.get_legend_include('is_csv'),
+            'show_calc_source': self.get_legend_include('transp_calcs'),
+            'show_override': self.get_legend_include('legend_override'),
+        }
+
+        self.show_legend: bool = np.array([v for v in self.legend_attrs.values()]).any()
+
     @staticmethod
     def _format_offset_text(offset_text):
         """
@@ -434,6 +410,51 @@ class AllPlotData:
 
         return f' {offset_text}'
 
+    def get_legend_label(self, plotdata):
+        """
+        Get the individual label for the plot legend
+
+        Since the rules for constructing legend labels depend on the loaded
+        data as a whole, a PlotData object needing a legend label is passed
+        into here first, before having it's own label methods called.
+
+        If the legend override is set, then that value is used for the legend
+        label.  Otherwise, attributes such as the variable symbol, runid,
+        time, rho value, scan factor, calculation source, or data source may
+        each be automatically added to the legend.  In general, attributes
+        are only added to the legend if multiple plotted variables have
+        different values for a given attribute.
+
+        Parameters:
+        * plotdata (PlotData): Object containing plot data
+
+        Returns:
+        * (str): The legend label for the variable
+        """
+
+        if plotdata.legend_override:
+            return plotdata.legend_override
+
+        legend_items = []
+        if self.legend_attrs['show_ysymbol'] and not self.legend_attrs['show_xsymbol']:
+            legend_items.append(plotdata.get_ysymbol_label_str())
+        if self.legend_attrs['show_xsymbol']:
+            legend_items.append(plotdata.get_xsymbol_label_str())
+        if self.legend_attrs['show_runid'] or self.legend_attrs['show_runname']:
+            legend_items.append(plotdata.get_run_label_str())
+        if self.legend_attrs['show_time']:
+            legend_items.append(plotdata.get_time_label_str())
+        if self.legend_attrs['show_rho'] and plotdata.rho is not None:
+            legend_items.append(plotdata.get_rho_label_str())
+        if self.legend_attrs['show_factor'] or self.legend_attrs['show_factor_symbol']:
+            legend_items.append(plotdata.get_factor_label_str())
+        if self.legend_attrs['show_calc_source']:
+            legend_items.append(plotdata.get_calc_source_str())
+        if self.legend_attrs['show_is_cdf'] and self.legend_attrs['show_is_csv'] and not legend_items:
+            legend_items.append(plotdata.get_data_source_str())  # only show when legend is empty
+
+        return ' '.join(legend_items)
+
     def get_legend_include(self, attr_name):
         """
         Determine if a legend attribute should be included in the legend
@@ -452,8 +473,8 @@ class AllPlotData:
         """
 
         attrs = set()
-        for pdata in self.data:
-            attrs.add(getattr(pdata, attr_name))
+        for d in self.data:
+            attrs.add(getattr(d, attr_name))
 
         return len(attrs) > 1
 
@@ -505,7 +526,7 @@ class AllPlotData:
 
         return xlims, ylims
 
-    def get_plot_title(self, plot_settings, legend_attrs):
+    def get_plot_title(self, plot_settings):
         """
         Get the title for the plot
 
@@ -522,14 +543,13 @@ class AllPlotData:
 
         Parameters:
         * plot_settings (PlotSettings): Plot settings object
-        * legend_attrs (LegendAttributes): Legend data object
 
         Returns:
         * (str): The title for the plot
         """
 
         base_title = plot_settings.title_override or self._generate_unique_title()
-        title_details = self._get_title_details(plot_settings, legend_attrs)
+        title_details = self._get_title_details(plot_settings)
 
         return f'{base_title}{title_details}'
 
@@ -576,7 +596,7 @@ class AllPlotData:
 
         return ' '.join(title_words)
 
-    def _get_title_details(self, plot_settings, legend_attrs):
+    def _get_title_details(self, plot_settings):
         """
         Get the title details
 
@@ -589,7 +609,6 @@ class AllPlotData:
 
         Parameters:
         * plot_settings (PlotSettings): Plot settings object
-        * legend_attrs (LegendAttributes): Legend data object
 
         Returns:
         * (str): The details to add to the title
@@ -604,21 +623,22 @@ class AllPlotData:
         if allow_runid or allow_time or allow_rho:
             var = self.data[0]  # use first variable values for title details (same for all variables)
 
-            if allow_runid and not (legend_attrs.show_runid or legend_attrs.show_runname):
+            if allow_runid and not self.legend_attrs['show_runid'] and not self.legend_attrs['show_runname']:
                 # all lines have same runid or runname
                 title_details_list.append(var.get_run_label_str())
-            if allow_time and not legend_attrs.show_time:
+            if allow_time and not self.legend_attrs['show_time']:
                 # all lines have same time
                 title_details_list.append(var.get_time_label_str())
-            if allow_rho and not legend_attrs.show_rho and var.rho is not None:
+            if allow_rho and not self.legend_attrs['show_rho'] and var.rho is not None:
                 # all lines have same rho, and rho is not None
                 title_details_list.append(var.get_rho_label_str())
-            if allow_factor and not legend_attrs.show_factor and var.factor is not None:
+            if (allow_factor and not self.legend_attrs['show_factor']
+                    and not self.legend_attrs['show_factor_symbol'] and var.factor is not None):
                 title_details_list.append(var.get_factor_label_str())
 
         return f' ({", ".join(title_details_list)})' if title_details_list else ''
 
-    def get_plot_ylabel(self, plot_settings, legend_attrs, offset_text):
+    def get_plot_ylabel(self, plot_settings, offset_text):
         """
         Get the yaxis label for the plot
 
@@ -630,7 +650,6 @@ class AllPlotData:
 
         Parameters:
         * plot_settings (PlotSettings): Plot settings object
-        * legend_attrs (LegendAttributes): Legend data object
         * offset_text (str): The offset text from the y-axis of the plot
 
         Returns:
@@ -644,17 +663,18 @@ class AllPlotData:
 
         ylabels = []  # Not using a set to preserve order
         for d in self.data:
-            if not legend_attrs.show_ysymbol and not legend_attrs.show_xsymbol:  # ysymbol is not in the legend
+            if not self.legend_attrs['show_ysymbol'] and not self.legend_attrs['show_xsymbol']:
+                # ysymbol is not in the legend
                 ystr = f'{d.ysymbol} {d.yunits}'
                 if ystr not in ylabels:
                     ylabels.append(ystr)
-            elif d.yunits not in ylabels:  # ysymbol is in the legend
+            elif d.yunits not in ylabels:  # ysymbol is in the legend (showing xsymbol also shows ysymbol)
                 ylabels.append(d.yunits)
 
         joined_labels = r'$\!$,  '.join(ylabels)  # small negative space before each comma
         return f'{joined_labels}{offset_text}'
 
-    def get_plot_xlabel(self, plot_settings, legend_attrs, offset_text):
+    def get_plot_xlabel(self, plot_settings, offset_text):
         """
         Get the xaxis label for the plot
 
@@ -664,7 +684,6 @@ class AllPlotData:
 
         Parameters:
         * plot_settings (PlotSettings): Plot settings object
-        * legend_attrs (LegendAttributes): Legend data object
         * offset_text (str): The offset text from the x-axis of the plot
 
         Returns:
@@ -686,56 +705,6 @@ class AllPlotData:
         return f'{joined_labels}{offset_text}'
 
 
-class LegendAttributes:
-    """
-    Store a bool for whether each attribute should appear in the legend
-
-    Parameters:
-    * show_ysymbol (bool): True if the y-variable symbol should be shown in the legend
-    * show_xsymbol (bool): True if the x-variable symbol should be shown in the legend
-    * show_runid (bool): True if the runid should be shown in the legend
-    * show_runname (bool): True if the runname should be shown in the legend
-    * show_time (bool): True if the time value should be shown in the legend
-    * show_rho (bool): True if the rho value should be shown in the legend
-    * show_factor (bool): True if the scan factor should be shown in the legend
-    * show_calc_source (bool): True if the calculation source should be shown in the legend
-    * show_override (bool): True if legend overrides have been specified
-    * show_is_cdf (bool): True if the source should be shown as CDF in the legend
-    * show_is_csv (bool): True if the source should be shown as CSV in the legend
-    """
-
-    def __init__(self, show_ysymbol, show_xsymbol, show_runid, show_runname, show_time, show_rho,
-                 show_factor, show_factor_symbol, show_calc_source, show_override,
-                 show_is_cdf, show_is_csv):
-        self.show_ysymbol: bool = show_ysymbol
-        self.show_xsymbol: bool = show_xsymbol
-        self.show_runid: bool = show_runid
-        self.show_runname: bool = show_runname
-        self.show_time: bool = show_time
-        self.show_rho: bool = show_rho
-        self.show_factor: bool = show_factor
-        self.show_factor_symbol: bool = show_factor_symbol
-        self.show_calc_source: bool = show_calc_source
-        self.show_override: bool = show_override
-        self.show_is_cdf: bool = show_is_cdf
-        self.show_is_csv: bool = show_is_csv
-
-    def show_legend(self):
-        """Returns (bool): True if the legend should be shown"""
-
-        show_legend = False
-        attributes = self.get_attributes()
-        for a in attributes:
-            if getattr(self, a):
-                show_legend = True
-                break
-        return show_legend
-
-    def get_attributes(self):
-        """Returns (list[str]): all boolean legend attributes"""
-        return [a for a in dir(self) if isinstance(getattr(self, a), bool)]
-
-
 def main(plot_settings, all_data):
     """
     Create a plot using data loaded from CDF files
@@ -749,8 +718,6 @@ def main(plot_settings, all_data):
     cycler without adding anything to the plot, as no methods exist for us to
     directly increment the cycler.
 
-    The cycler for this plotting loop
-
     Parameters:
     * plot_settings (PlotSettings): Object containing plot settings
     * all_data (AllPlotData): Object containing all PlotData objects
@@ -758,59 +725,40 @@ def main(plot_settings, all_data):
 
     ax = plt.gca()
 
-    legend_attrs = LegendAttributes(
-        show_ysymbol=all_data.get_legend_include('ysymbol'),
-        show_xsymbol=all_data.get_legend_include('xsymbol'),
-        show_runid=all_data.get_legend_include('runid'),
-        show_runname=all_data.get_legend_include('runname'),
-        show_time=all_data.get_legend_include('time'),
-        show_rho=all_data.get_legend_include('rho'),
-        show_factor=all_data.get_legend_include('factor'),
-        show_factor_symbol=all_data.get_legend_include('factor_symbol'),
-        show_is_cdf=all_data.get_legend_include('is_cdf'),
-        show_is_csv=all_data.get_legend_include('is_csv'),
-        show_calc_source=all_data.get_legend_include('transp_calcs'),
-        show_override=all_data.get_legend_include('legend_override')
-    )
-
     for d in all_data.data:
-        ax.plot(d.xvals, d.yvals, label=d.get_legend_label(legend_attrs))
+        ax.plot(d.xvals, d.yvals, label=all_data.get_legend_label(d))
         ax.plot(d.xval_base, d.yval_base)  # Advance the cycler when base values are empty lists
 
     xlims, ylims = all_data.get_plot_limits(plot_settings)
 
-    ax.set(xlim=xlims, ylim=ylims)
+    ax.set(xlim=xlims, ylim=ylims)  # lims need to be set before getting offsetText
 
     offset_text_x = offset_text_y = ''
     if plot_settings.replace_offset_text:
-        plt.gcf().canvas.draw()  # needed to grab offsetText string
+        plt.gcf().canvas.draw()  # needed to get offsetText string
         ax.xaxis.offsetText.set_visible(False)
         ax.yaxis.offsetText.set_visible(False)
         offset_text_x = ax.xaxis.offsetText.get_text()
         offset_text_y = ax.yaxis.offsetText.get_text()
 
     ax.set(
-        title=all_data.get_plot_title(plot_settings, legend_attrs),
-        xlabel=all_data.get_plot_xlabel(plot_settings, legend_attrs, offset_text_x),
-        ylabel=all_data.get_plot_ylabel(plot_settings, legend_attrs, offset_text_y),
+        title=all_data.get_plot_title(plot_settings),
+        xlabel=all_data.get_plot_xlabel(plot_settings, offset_text_x),
+        ylabel=all_data.get_plot_ylabel(plot_settings, offset_text_y),
     )
 
-    if legend_attrs.show_legend():
+    if all_data.show_legend:
         ax.legend().set_draggable(state=True)
 
     plt.show()
 
 
 if __name__ == '__main__':
-    """
-    Run this module directly to plot variable data stored in CDF files.
-    AllPlotData can contain both plot data from a CDF (PlotDataCdf) and from
-    a CSV (PlotDataCsv).
-    """
+    """Run this module directly to plot variable data stored in CDF files"""
 
     utils.init_logging()
 
-    # Define visual styles for the plot
+    # Initialize visual styles for the plot
     PlotStyles(
         axes=StyleType.Axes.GRAY,
         lines=StyleType.Lines.RHO_MMM,
@@ -844,7 +792,7 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='120968A02', yname='ni', xname='rho', time=0.50),
         # PlotDataCdf(runid='129041A10', yname='nd', xname='rho', time=0.40),
         # CDF: Compare TRANSP and MMM calculations (must be defined in calculations.py)
-        # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.629, transp_calcs=True),
+        # PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629, transp_calcs=True),
         # PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629),
         # CDF and CSV: Compare same variable from different data sources
         # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.629),
@@ -853,17 +801,21 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=1, scan_factor=2.5),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2, scan_factor=2.5),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=5, scan_factor=2.5),
-        # CSV: Different output variables
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=2),
-        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='rho', scan_num=2),
+        # CSV: Comparing output results
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=19, runname='Without Scan'),
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=20, runname='With Scan'),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=19, runname='With Scan'),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=20, runname='kyrhoe=0.25'),
+        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='rho', scan_num=19, runname='Without Scan'),
+        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='rho', scan_num=20, runname='With Scan'),
         # CSV: Growth rate vs Effective Charge
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.15),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.63),
         # CSV: Growth rate vs Average Magnetic Surface Curvature
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.15),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.31),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.63),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.15),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.31),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.63),
     )
 
     main(plot_settings, all_data)
