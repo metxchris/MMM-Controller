@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """Creates single plots of data stored in CDFs or CSVs
 
 This module aims to quickly produce publication quality plots using data
@@ -792,7 +794,7 @@ def main(plot_settings, all_data):
 
 
 if __name__ == '__main__':
-    """Run this module directly to plot variable data stored in CDF files"""
+    """Run this module directly to plot variable data stored in CDF or CSV files"""
 
     utils.init_logging()
 
