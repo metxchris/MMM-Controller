@@ -134,6 +134,7 @@ input_profiles_*
 output/*
 temp/*
 mmm/*
+plotting/csv/*
 *.sublime*
 .idea/*
 

@@ -16,30 +16,9 @@ variables.py if the user wishes to plot any variables not already declared in
 either InputVariables or OutputVariables.  Likewise, new Control objects will
 need to be created in controls.py if needed.
 
-An example of how to use this module has been provided below, but please refer
-to both the PlotSettings and PlotData classes for a full list of parameters
-that can be specified when creating plots.
-
-Example Usage:
-    * Plot of Electron Temperature and Ion Temperature (vs rho):
-
-        all_data = AllPlotData(
-                PlotData(runid='129041A10', yname='te', time=0.50),
-                PlotData(runid='129041A10', yname='ti', time=0.50),
-        )
-
-        # Note that the runid and time value will automatically appear in the
-        # title of the plot, since all PlotData objects share the same values
-        # for these attributes.  If instead we use different attribute values
-        # such as:
-
-        all_data = AllPlotData(
-                PlotData(runid='138536A01', yname='te', time=0.75),
-                PlotData(runid='129041A10', yname='ti', time=0.50),
-        )
-
-        # Then both the runid and time values will instead appear in the
-        # legend for each variable.
+Examples of how to use this module has been provided at the bottom of this
+file, but please refer to both the PlotSettings and PlotData classes for a
+full list of parameters that can be specified when creating plots.
 """
 
 # Standard Packages
@@ -69,6 +48,7 @@ class PlotSettings:
     Settings to control various behaviors of the plot
 
     Parameters (all Optional):
+    * save_data_to_csv (bool): If plotted data should be saved to a CSV in the CSV subfolder
     * replace_offset_text (bool): If the offset axes text should be put in the axes labels
     * allow_title_runid (bool): If the runid is allowed to appear in the title
     * allow_title_time (bool): If the time is allowed to appear in the title
@@ -84,6 +64,7 @@ class PlotSettings:
     * xaxis_trim_padding (float): The amount to pad the trimmed xaxis limits when using rho values
     """
 
+    save_data_to_csv: bool = True
     replace_offset_text: bool = True
     allow_title_runid: bool = True
     allow_title_time: bool = True
@@ -108,6 +89,8 @@ class PlotData:
     Parameters:
     * options (Options): Object containing user options
     * runid (str): The runid of the CDF
+    * yname (str): The name of the y-variable to plot
+    * xname (str): The name of the x-variable to plot
     * yvar (Variable): The Variable object of the y-variable to plot
     * xvar (Variable): The Variable object of the x-variable to plot
     * yval_base (list[float]): The base y-variable value when plotting at a rho point
@@ -125,8 +108,9 @@ class PlotData:
     * ValueError: If values for the x-variable or y-variable are None
     """
 
-    def __init__(self, options, runid, yvar, xvar, yval_base=None, xval_base=None, transp_calcs=False, is_cdf=False,
-                 is_csv=False, factor_symbol=None, scan_factor=None, rho_value=None, runname='', legend_override=''):
+    def __init__(self, options, runid, yname, xname, yvar, xvar, yval_base=None, xval_base=None,
+                 transp_calcs=False, is_cdf=False, is_csv=False, factor_symbol=None, scan_factor=None,
+                 rho_value=None, runname='', legend_override=''):
         self.xvals: np.ndarray = self._get_values(xvar.values, options.time_idx)
         self.yvals: np.ndarray = self._get_values(yvar.values, options.time_idx)
         self.xval_base: list[float] = xval_base or []  # plotting an empty list advances the cycler
@@ -135,8 +119,10 @@ class PlotData:
         self.ysymbol: str = yvar.label
         self.xunits: str = xvar.units_label
         self.yunits: str = yvar.units_label
-        self.xname: str = xvar.name
-        self.yname: str = yvar.name
+        self.xvarname: str = xvar.name
+        self.yvarname: str = yvar.name
+        self.xname: str = xname
+        self.yname: str = yname
         self.time: str = options.time_str
         self.runid: str = runid
         self.runname: str = runname
@@ -221,7 +207,7 @@ class PlotDataCdf(PlotData):
         yvar = getattr(plot_vars, yname)
         xvar = getattr(plot_vars, xname)
 
-        super().__init__(options, runid, yvar, xvar, transp_calcs=transp_calcs, is_cdf=True,
+        super().__init__(options, runid, yname, xname, yvar, xvar, transp_calcs=transp_calcs, is_cdf=True,
                          runname=runname, legend_override=legend_override)
 
 
@@ -264,14 +250,13 @@ class PlotDataCsv(PlotData):
         yvar, xvar, factor_symbol = self._get_vars_from_data(options, scan_factor, rho_value, yname, xname)
         yval_base, xval_base = self._get_base_values_from_data(options, rho_value, yname, xname)
 
-        super().__init__(options, runid, yvar, xvar, factor_symbol=factor_symbol, is_csv=True,
-                         yval_base=yval_base, xval_base=xval_base,
-                         rho_value=rho_value, scan_factor=scan_factor_str,
-                         runname=runname, legend_override=legend_override)
+        super().__init__(options, runid, yname, xname, yvar, xvar, factor_symbol=factor_symbol,
+                         is_csv=True, yval_base=yval_base, xval_base=xval_base, rho_value=rho_value,
+                         scan_factor=scan_factor_str, runname=runname, legend_override=legend_override)
 
     @staticmethod
     def _get_vars_from_data(options, scan_factor, rho_value, yname, xname):
-        '''
+        """
         Get the x- and y- variables, along with the symbol of the scan factor
         (if applicable)
 
@@ -289,7 +274,7 @@ class PlotDataCsv(PlotData):
 
         Raises:
         * NameError: If xname or yname cannot be found in the data objects
-        '''
+        """
 
         yvar = xvar = factor_symbol = None
         adjusted_var = options.get_adjusted_var()
@@ -313,7 +298,7 @@ class PlotDataCsv(PlotData):
 
     @staticmethod
     def _get_base_values_from_data(options, rho_value, yname, xname):
-        '''
+        """
         Get the base value of the x- and y- variables, when using a rho value
 
         Parameters:
@@ -328,7 +313,7 @@ class PlotDataCsv(PlotData):
 
         Raises:
         * ValueError: If the rho value cannot be found in the rho folder
-        '''
+        """
 
         yval_base = xval_base = None
 
@@ -580,8 +565,8 @@ class AllPlotData:
         * (str): The unique title for the plot
         """
 
-        unique_ynames = set([data.yname for data in self.data])
-        first_name_words = self.data[0].yname.split()
+        unique_ynames = set([data.yvarname for data in self.data])
+        first_name_words = self.data[0].yvarname.split()
         title_words = []
 
         # Form list of title words for words that appear in the first y-variable name
@@ -704,6 +689,56 @@ class AllPlotData:
         joined_labels = r'$\!$,  '.join(xlabels)  # small negative space before each comma
         return f'{joined_labels}{offset_text}'
 
+    def save_to_csv(self):
+        """
+        Save plotted data to a CSV
+
+        Data is saved in the order it is generated, so the first CSV column
+        will be the first variable defined in AllPlotData, etc.  Filenames
+        are chosen as sequentially increasing integers.
+
+        Raises:
+        * NameError: If a file name can not be chosen
+        * FileNotFoundError: If the file cannot be found after saving it
+        """
+
+        file_name = ''
+        save_name_digits = 4
+        save_dir = utils.get_plotting_csv_path()
+
+        saved_files = utils.get_files_in_dir(save_dir, '*.csv')
+        for save_number in range(1, 10**save_name_digits):
+            file_name = f'{save_dir}\\{save_number:0>{save_name_digits}d}.csv'
+            if file_name not in saved_files:
+                break
+
+        if not file_name:
+            raise NameError('The filename for the CSV could not be set\n'
+                            '\tMake sure Python has file reading permissions,'
+                            ' and try deleting old CSVs from the CSV folder\n'
+                            '\tNote: Be sure not to delete the __init__.py file when cleaning the CSV folder')
+
+        max_var_length = max([len(d.xvals) for d in self.data])
+        num_vars = 2 * len(self.data)
+
+        output = np.full((max_var_length, num_vars), np.nan, dtype=float)
+        for i, d in enumerate(self.data):
+            output[:len(d.xvals), 2 * i] = d.xvals
+            output[:len(d.yvals), 2 * i + 1] = d.yvals
+
+        prec, col_pad = 8, 8
+        col_len = prec + col_pad
+        fmt_str = f'%{col_len}.{prec}e'
+        header = ',  '.join([f'{d.xname:>{col_len - 2}},  {d.yname:>{col_len - 2}}' for d in self.data])
+
+        np.savetxt(file_name, output, header=header, fmt=fmt_str, delimiter=',')
+
+        if not utils.check_exists(file_name):
+            raise FileNotFoundError('Failed to save plot data to a CSV in the CSV folder\n'
+                                    '\tMake sure Python has file writing permissions')
+
+        print(f'Plot Data Saved:\n\t{file_name}\n')  # Intentionally not using logging
+
 
 def main(plot_settings, all_data):
     """
@@ -735,7 +770,7 @@ def main(plot_settings, all_data):
 
     offset_text_x = offset_text_y = ''
     if plot_settings.replace_offset_text:
-        plt.gcf().canvas.draw()  # needed to get offsetText string
+        plt.gcf().canvas.draw()  # needed to populate the offsetText string
         ax.xaxis.offsetText.set_visible(False)
         ax.yaxis.offsetText.set_visible(False)
         offset_text_x = ax.xaxis.offsetText.get_text()
@@ -749,6 +784,9 @@ def main(plot_settings, all_data):
 
     if all_data.show_legend:
         ax.legend().set_draggable(state=True)
+
+    if plot_settings.save_data_to_csv:
+        all_data.save_to_csv()
 
     plt.show()
 
@@ -767,6 +805,7 @@ if __name__ == '__main__':
 
     # Define settings for the plot
     plot_settings = PlotSettings(
+        save_data_to_csv=True,
         allow_title_factor=True,
         allow_title_runid=True,
         allow_title_time=True,
@@ -788,9 +827,9 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='138536A01', yname='ti', xname='rho', time=0.50),
         # PlotDataCdf(runid='138536A01', yname='btor', xname='rho', time=0.50),
         # CDF: Different runid, y-variables, and times
-        # PlotDataCdf(runid='120982A09', yname='ne', xname='rho', time=0.60),
-        # PlotDataCdf(runid='120968A02', yname='ni', xname='rho', time=0.50),
-        # PlotDataCdf(runid='129041A10', yname='nd', xname='rho', time=0.40),
+        PlotDataCdf(runid='120982A09', yname='ne', xname='rho', time=0.60),
+        PlotDataCdf(runid='120968A02', yname='ni', xname='rho', time=0.50),
+        PlotDataCdf(runid='129041A10', yname='nd', xname='rho', time=0.40),
         # CDF: Compare TRANSP and MMM calculations (must be defined in calculations.py)
         # PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629, transp_calcs=True),
         # PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629),
@@ -802,13 +841,9 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2, scan_factor=2.5),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=5, scan_factor=2.5),
         # CSV: Comparing output results
-        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=19, runname='Without Scan'),
-        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=20, runname='With Scan'),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=19, runname='With Scan'),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=20, runname='kyrhoe=0.25'),
         # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='rho', scan_num=19, runname='Without Scan'),
         # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='rho', scan_num=20, runname='With Scan'),
-        # CSV: Growth rate vs Effective Charge
+        # # CSV: Growth rate vs Effective Charge
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.15),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.63),

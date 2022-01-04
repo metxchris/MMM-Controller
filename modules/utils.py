@@ -26,6 +26,7 @@ import output
 import temp
 import cdfs
 import settings
+import plotting.csv
 import modules.constants as constants
 from modules.enums import MergeType
 
@@ -59,6 +60,11 @@ def get_pdftk_path():
 def get_output_path():
     '''Returns (str): the path to the output folder'''
     return f'{os.path.dirname(output.__file__)}'
+
+
+def get_plotting_csv_path():
+    '''Returns (str): the path to the output folder'''
+    return f'{os.path.dirname(plotting.csv.__file__)}'
 
 
 def get_runid_path(runid):
