@@ -190,12 +190,12 @@ class PlotData:
             legend_items.append(self.get_time_label_str())
         if legend_attrs.show_rho and self.rho is not None:
             legend_items.append(self.get_rho_label_str())
-        if legend_attrs.show_factor and self.factor is not None:
+        if legend_attrs.show_factor or legend_attrs.show_factor_symbol:
             legend_items.append(self.get_factor_label_str())
         if legend_attrs.show_calc_source:
             legend_items.append(self.get_calc_source_str())
-        if legend_attrs.show_data_source and not legend_items:  # only show when legend is empty
-            legend_items.append(self.get_data_source_str())
+        if legend_attrs.show_is_cdf and legend_attrs.show_is_csv and not legend_items:
+            legend_items.append(self.get_data_source_str())  # only show when legend is empty
 
         return ' '.join(legend_items)
 
@@ -221,15 +221,17 @@ class PlotData:
 
     def get_factor_label_str(self):
         """Returns (str): The factor string used in the legend label and title details"""
+        if not self.factor_symbol or self.factor is None:
+            return r'$\mathtt{Base}$'
         return fr'${self.factor}\cdot${self.factor_symbol}'
 
     def get_calc_source_str(self):
         """Returns (str): The data source string used in the legend label"""
-        return 'TRANSP' if self.transp_calcs else 'MMM'
+        return r'$\mathtt{TRANSP}$' if self.transp_calcs else r'$\mathtt{MMM}$'
 
     def get_data_source_str(self):
         """Returns (str): The data source string used in the legend label"""
-        return 'CDF' if self.is_cdf else 'CSV' if self.is_csv else ''
+        return r'$\mathtt{CDF}$' if self.is_cdf else r'$\mathtt{CSV}$' if self.is_csv else ''
 
 
 class PlotDataCdf(PlotData):
@@ -341,7 +343,6 @@ class PlotDataCsv(PlotData):
             if not xvar and hasattr(o, xname):
                 xvar = getattr(o, xname)
             if scan_factor and not factor_symbol and adjusted_var and hasattr(o, adjusted_var):
-                # Don't load factor symbol when no scan factor is specified
                 factor_symbol = getattr(o, adjusted_var).label
 
         if not yvar or not xvar:
@@ -697,13 +698,15 @@ class LegendAttributes:
     * show_time (bool): True if the time value should be shown in the legend
     * show_rho (bool): True if the rho value should be shown in the legend
     * show_factor (bool): True if the scan factor should be shown in the legend
-    * show_data_source (bool): True if the data source should be shown in the legend
     * show_calc_source (bool): True if the calculation source should be shown in the legend
     * show_override (bool): True if legend overrides have been specified
+    * show_is_cdf (bool): True if the source should be shown as CDF in the legend
+    * show_is_csv (bool): True if the source should be shown as CSV in the legend
     """
 
     def __init__(self, show_ysymbol, show_xsymbol, show_runid, show_runname, show_time, show_rho,
-                 show_factor, show_data_source, show_calc_source, show_override):
+                 show_factor, show_factor_symbol, show_calc_source, show_override,
+                 show_is_cdf, show_is_csv):
         self.show_ysymbol: bool = show_ysymbol
         self.show_xsymbol: bool = show_xsymbol
         self.show_runid: bool = show_runid
@@ -711,9 +714,11 @@ class LegendAttributes:
         self.show_time: bool = show_time
         self.show_rho: bool = show_rho
         self.show_factor: bool = show_factor
-        self.show_data_source: bool = show_data_source
+        self.show_factor_symbol: bool = show_factor_symbol
         self.show_calc_source: bool = show_calc_source
         self.show_override: bool = show_override
+        self.show_is_cdf: bool = show_is_cdf
+        self.show_is_csv: bool = show_is_csv
 
     def show_legend(self):
         """Returns (bool): True if the legend should be shown"""
@@ -760,8 +765,10 @@ def main(plot_settings, all_data):
         show_runname=all_data.get_legend_include('runname'),
         show_time=all_data.get_legend_include('time'),
         show_rho=all_data.get_legend_include('rho'),
-        show_factor=all_data.get_legend_include('factor') or all_data.get_legend_include('factor_symbol'),
-        show_data_source=all_data.get_legend_include('is_cdf') and all_data.get_legend_include('is_csv'),
+        show_factor=all_data.get_legend_include('factor'),
+        show_factor_symbol=all_data.get_legend_include('factor_symbol'),
+        show_is_cdf=all_data.get_legend_include('is_cdf'),
+        show_is_csv=all_data.get_legend_include('is_csv'),
         show_calc_source=all_data.get_legend_include('transp_calcs'),
         show_override=all_data.get_legend_include('legend_override')
     )
@@ -826,8 +833,8 @@ if __name__ == '__main__':
     # Define data for the plot
     all_data = AllPlotData(
         # CDF: Same y-variable, different x-variables
-        PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
-        PlotDataCdf(runid='138536A01', yname='te', xname='xb', time=0.50),
+        # PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
+        # PlotDataCdf(runid='138536A01', yname='te', xname='xb', time=0.50),
         # CDF: Different y-variable units
         # PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
         # PlotDataCdf(runid='138536A01', yname='ti', xname='rho', time=0.50),
@@ -837,7 +844,7 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='120968A02', yname='ni', xname='rho', time=0.50),
         # PlotDataCdf(runid='129041A10', yname='nd', xname='rho', time=0.40),
         # CDF: Compare TRANSP and MMM calculations (must be defined in calculations.py)
-        # PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629, transp_calcs=True),
+        # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.629, transp_calcs=True),
         # PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629),
         # CDF and CSV: Compare same variable from different data sources
         # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.629),
@@ -854,9 +861,9 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.63),
         # CSV: Growth rate vs Average Magnetic Surface Curvature
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.15),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.31),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.63),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.15),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.31),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.63),
     )
 
     main(plot_settings, all_data)
