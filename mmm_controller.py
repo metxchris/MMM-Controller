@@ -175,7 +175,7 @@ def main(scanned_vars, controls):
                 _execute_control_scan(mmm_vars, controls)
 
             reshaper.create_rho_files(options)
-            print(f'\n{options.var_to_scan} scan complete!\n')
+            print(f'\nScan complete: {options.runid}, scan {options.scan_num}, {options.var_to_scan}\n')
 
 
 # Run this file directly to plot variable profiles and run the MMM driver
@@ -189,10 +189,10 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
-    runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.630
+    # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.630
     # runid, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
     # runid, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
-    # runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
+    runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
 
     '''
     Scanned Variables:
@@ -202,7 +202,7 @@ if __name__ == '__main__':
     # scanned_vars[None] = None
     scanned_vars['etgm_kyrhoe'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
 
-    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['betae'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)

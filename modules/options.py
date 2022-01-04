@@ -161,6 +161,9 @@ class Options:
         Parameters:
         * runid (str): The run id to load options from
         * scan_num (int): The scan number to load options from
+
+        Returns:
+        * self (Options)
         '''
 
         pickle_path = utils.get_options_path(runid, scan_num)
@@ -172,6 +175,8 @@ class Options:
         options_to_set = loaded_options.get_keys()
         for option in options_to_set:
             setattr(self, option, getattr(loaded_options, option))
+
+        return self
 
     def save(self):
         '''
@@ -208,7 +213,7 @@ class Options:
         * scan_factor (float): The scan factor to find
 
         Returns:
-        * (float | None): Value in scan_range closest to the specified
+        * (str | None): Value in scan_range closest to the specified
           scan_factor, and None if scan_factor is None
 
         Raises:
@@ -220,3 +225,20 @@ class Options:
         elif self.scan_range is None:
             raise ValueError('Cannot find scan_factor value when scan_range is None')
         return self.scan_range[np.argmin(np.abs(self.scan_range - scan_factor))]
+
+    def get_adjusted_var(self):
+        '''
+        Get the adjusted variable
+
+        This method defines special rules when the adjustment during a scan is
+        done in a non-linear fashion.
+
+        Returns:
+        * adjusted_var (str): The adjusted variable
+        '''
+
+        adjusted_var = self.var_to_scan
+        if self.var_to_scan == 'zeff':
+            adjusted_var = 'nz'
+
+        return adjusted_var

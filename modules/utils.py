@@ -17,12 +17,16 @@ import glob
 import logging
 from math import floor, log10
 
+# 3rd Party Packages
+import numpy as np
+
 # Local Packages
 import pdftk
 import output
 import temp
 import cdfs
 import settings
+import plotting.csv
 import modules.constants as constants
 from modules.enums import MergeType
 
@@ -56,6 +60,11 @@ def get_pdftk_path():
 def get_output_path():
     '''Returns (str): the path to the output folder'''
     return f'{os.path.dirname(output.__file__)}'
+
+
+def get_plotting_csv_path():
+    '''Returns (str): the path to the output folder'''
+    return f'{os.path.dirname(plotting.csv.__file__)}'
 
 
 def get_runid_path(runid):
@@ -93,15 +102,24 @@ def get_rho_path(runid, scan_num, var_to_scan):
     return f'{get_scan_num_path(runid, scan_num)}\\{var_to_scan} rho'
 
 
-def get_rho_files(runid, scan_num, var_to_scan, save_type):
+def get_rho_files(options, save_type):
     '''Returns (list): all rho files of save_type in the rho folder'''
-    return get_files_in_dir(get_rho_path(runid, scan_num, var_to_scan), f'{save_type.name.capitalize()}*')
+    return get_files_in_dir(
+        get_rho_path(options.runid, options.scan_num, options.var_to_scan),
+        f'{save_type.name.capitalize()}*'
+    )
 
 
-def get_rho_values(runid, scan_num, var_to_scan, save_type):
-    '''Returns (list): the rho values of all rho files in the rho folder'''
-    rho_files = get_rho_files(runid, scan_num, var_to_scan, save_type)
+def get_rho_strings(options, save_type):
+    '''Returns (list[str]): the rho values of all rho files in the rho folder as strings'''
+    rho_files = get_rho_files(options, save_type)
     return [file.split(f'rho{constants.RHO_VALUE_SEPARATOR}')[1].split('.csv')[0] for file in rho_files]
+
+
+def get_closest_rho(options, save_type, rho_value):
+    '''Returns (str): The actual saved rho value closest to the specified rho value'''
+    rho_values = np.array(get_rho_strings(options, save_type), dtype=float)
+    return f'{rho_values[np.argmin(np.abs(rho_values - float(rho_value)))]:{constants.RHO_VALUE_FMT}}'
 
 
 def init_output_dirs(options):
@@ -170,6 +188,11 @@ def create_directory(dir_name):
         os.mkdir(dir_name)
 
 
+def check_exists(file_path):
+    '''Returns (bool): True if the file exists'''
+    return os.path.exists(file_path)
+
+
 def check_filename(file_path, file_extension):
     '''
     Checks if file exists and returns a file path
@@ -190,7 +213,7 @@ def check_filename(file_path, file_extension):
     * ValueError: If too many duplicate files exist for the checked file
     '''
 
-    if os.path.exists(file_path):
+    if check_exists(file_path):
         num_range = range(2, 1000)
         for i in num_range:
             path_split = file_path.split(file_extension)
@@ -327,7 +350,7 @@ def merge_profile_sheets(options, profile_name, merge_type, scan_factor=None):
         output_path = get_merged_profile_factors_path(runid, scan_num)
         output_file = (f'{output_path}\\{runid} {profile_name} {var_to_scan}'
                        f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}'
-                       f'{scan_factor:{constants.SCAN_FACTOR_PDF_FMT}}.pdf')
+                       f'{scan_factor:{constants.SCAN_FACTOR_DISPLAY_FMT}}.pdf')
     elif merge_type == MergeType.RHOVALUES:
         output_path = get_merged_rho_path(runid, scan_num, var_to_scan)
         output_file = f'{output_path}\\{runid} {profile_name}.pdf'

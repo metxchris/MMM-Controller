@@ -102,6 +102,7 @@ class InputControls:
         self.dribm_exbs = Control('dribm_exbs', 'ExB shear coefficient', values=1, vtype=float)
         self.dribm_kyrhos = Control('dribm_kyrhos', 'kyrhos', values=0.1, vtype=float, label=r'$k_y \rho_s$')
         # MTM options
+        self.mtm_kyrhos_loops = Control('mtm_kyrhos_loops', 'loop count for kyrhos scan', values=30000, vtype=int, label=r'$k_y/k_x$')
         self.mtm_ky_kx = Control('mtm_ky_kx', 'ky/kx for MTM', values=0.2, vtype=float, label=r'$k_y/k_x$')
         self.mtm_cf = Control('mtm_cf', 'calibration factor', values=1.0, vtype=float)
         # ETG options
@@ -113,6 +114,7 @@ class InputControls:
         self.etgm_exbs = Control('etgm_exbs', 'ExB shear coefficient', values=0.0, vtype=float)
         self.etgm_kyrhoe = Control('etgm_kyrhoe', 'kyrhoe', values=0.25, vtype=float, label=r'$k_y \rho_e$')
         self.etgm_kyrhos = Control('etgm_kyrhos', 'kyrhos', values=0.33, vtype=float, label=r'$k_y \rho_s$')
+        self.etgm_kyrhoe_scan = Control('etgm_kyrhoe_scan', 'Kyrhoe Scan Switch', values=1, vtype=int)
         # Verbose level
         self.lprint = Control('lprint', 'Verbose Level', values=0, vtype=int)
 
@@ -170,6 +172,9 @@ class InputControls:
             'cDBM =\n'
             f'   {self.dribm_exbs.get_value_str()}  ! ExB shear coefficient\n'
             f'   {self.dribm_kyrhos.get_value_str()}  ! kyrhos\n\n'
+            '!.. MTM integer options\n'
+            'lMTM =\n'
+            f'   {self.mtm_kyrhos_loops.get_value_str()}   ! kyrhos scan iterations\n\n'
             '!.. MTM real options\n'
             'cMTM =\n'
             f'   {self.mtm_ky_kx.get_value_str()}   ! ky/kx for MTM\n'
@@ -183,7 +188,8 @@ class InputControls:
             f'   {self.etg_ceem_scale.get_value_str()}  ! CEEM scale\n\n'
             '!.. ETGM integer options\n'
             'lETGM =\n'
-            f'   {self.etgm_cl.get_value_str()}  ! Collisionless limit\n\n'
+            f'   {self.etgm_cl.get_value_str()}  ! Collisionless limit\n'
+            f'   {self.etgm_kyrhoe_scan.get_value_str()}  ! 1 kyrhoe scan and 0 without kyrhoe scan\n\n'
             '!.. ETGM real options\n'
             'cETGM =\n'
             f'   {self.etgm_exbs.get_value_str()}  ! ExB shear coefficient\n'
@@ -261,6 +267,9 @@ class InputControls:
         if use_rho:
             dir_path = utils.get_rho_path(runid, scan_num, var_to_scan)
             control_files = utils.get_files_in_dir(dir_path, f'{controls_name}*', show_warning=False)
+
+            if scan_factor:
+                _log.warning(f'\n\tThe scan_factor input parameter is not used when use_rho is True')
 
         elif scan_factor is not None:
             dir_path = utils.get_var_to_scan_path(runid, scan_num, var_to_scan)

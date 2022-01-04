@@ -88,11 +88,11 @@ class Variables:
         return str(self.get_nonzero_variables())
 
     def get_variables(self):
-        '''Returns (list of str): all variable names'''
+        '''Returns (list[str]): all variable names'''
         return [var for var in dir(self) if isinstance(getattr(self, var), Variable)]
 
     def get_nonzero_variables(self):
-        '''Returns (list of str): variable names with nonzero values'''
+        '''Returns (list[str]): variable names with nonzero values'''
         vars = self.get_variables()
         return [var for var in vars if getattr(self, var).values is not None]
 
@@ -173,7 +173,7 @@ class Variables:
 
         Parameters:
         * save_type (SaveType): The SaveType of the data being saved
-        * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
+        * scan_factor (str | float): The scan_factor, if doing a parameter scan (optional)
         * rho_value (str | float): The rho value of the CSV to use (optional)
         '''
 
@@ -211,8 +211,11 @@ class Variables:
 
         Parameters:
         * save_type (SaveType): The SaveType of the data being saved
-        * scan_factor (float): The scan_factor, if doing a parameter scan (optional)
-        * rho_value (str or float): The rho value of the CSV to use (optional)
+        * scan_factor (str | float): The scan_factor, if doing a parameter scan (optional)
+        * rho_value (str | float): The rho value of the CSV to use (optional)
+
+        Raises:
+        * FileNotFoundError: If the file corresponding to the rho value cannot be found
         '''
 
         runid = self.options.runid
@@ -224,9 +227,19 @@ class Variables:
             dir_path = utils.get_rho_path(runid, scan_num, var_to_scan)
             file_path = (f'{dir_path}\\{save_type.name.capitalize()} '
                          f'rho{constants.RHO_VALUE_SEPARATOR}{rho_str}.csv')
+            if not utils.check_exists(file_path):
+                raise FileNotFoundError(
+                    f'Rho file not found for value {rho_str}\n'
+                    f'Use utils.get_closest_rho function to find the correct rho value to load'
+                )
+
+            if scan_factor:
+                _log.warning(f'\n\tThe scan_factor input parameter is not used when rho_value is specified')
 
         elif scan_factor is not None:
-            scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_FMT}}'
+            scan_factor_str = (
+                scan_factor if isinstance(scan_factor, str) else f'{scan_factor:{constants.SCAN_FACTOR_FMT}}'
+            )
             dir_path = utils.get_var_to_scan_path(runid, scan_num, var_to_scan)
             file_path = (f'{dir_path}\\{save_type.name.capitalize()} {var_to_scan}'
                          f'{constants.SCAN_FACTOR_VALUE_SEPARATOR}{scan_factor_str}.csv')

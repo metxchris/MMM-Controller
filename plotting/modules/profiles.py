@@ -13,12 +13,7 @@ import modules.constants as constants
 from modules.enums import ProfileType, MergeType
 from modules.variables import InputVariables
 from modules.controls import InputControls
-from plotting.modules.styles import grid3x2 as plotlayout
-from plotting.modules.colors import mmm as plotcolors
-
-
-# Subplot row and column counts
-ROWS, COLS = plotlayout.ROWS, plotlayout.COLS
+from plotting.modules.plotstyles import PlotStyles, StyleType
 
 
 @dataclass
@@ -37,12 +32,13 @@ class PlotData:
     yvars: list
 
 
-def init_figure(options, profile_type, xvar_points, scan_factor):
+def init_figure(options, dim, profile_type, xvar_points, scan_factor):
     '''
     Initializes a new figure and figure subplots
 
     Parameters:
     * options (Options): Object containing user options
+    * dim (Dimensions): Object containing plot dimension data
     * profile_type (ProfileType): The type of profiles being made
     * xvar_points (int): The number of points the xvar being plotted has
     * scan_factor (float or None): The value of the scan factor
@@ -54,13 +50,13 @@ def init_figure(options, profile_type, xvar_points, scan_factor):
     points = xvar_points
 
     # Init figure and subplots
-    fig, axs = plt.subplots(ROWS, COLS)
+    fig, axs = plt.subplots(dim.rows, dim.cols)
 
     # Set figure text (title and subtitles)
     title_txt = f'{profile_type.name.capitalize()} Profiles'
     subtitle_txt = f'{shot_type.name} Shot {runid}, Time {time}s, {points} Radial Points'
-    plt.figtext(*plotlayout.TEXT1_POS, title_txt, fontsize=21, ha='center')
-    plt.figtext(*plotlayout.TEXT2_POS, subtitle_txt, fontsize=10, ha='center', color='#444')
+    plt.figtext(*dim.text1_pos, title_txt, fontsize=21, ha='center')
+    plt.figtext(*dim.text2_pos, subtitle_txt, fontsize=10, ha='center', color='#444')
 
     # Set attributes text
     attributes = []
@@ -72,7 +68,7 @@ def init_figure(options, profile_type, xvar_points, scan_factor):
     if len(attributes_str):
         attributes_str += ' '
     text3_str = f'Using {attributes_str}TRANSP Data'
-    plt.figtext(*plotlayout.TEXT3_POS, text3_str, fontsize=10, ha='center', color='#444')
+    plt.figtext(*dim.text3_pos, text3_str, fontsize=10, ha='center', color='#444')
 
     # Set scan factor text
     if scan_factor:
@@ -84,9 +80,9 @@ def init_figure(options, profile_type, xvar_points, scan_factor):
         else:
             raise TypeError(f'No data class found for {var_to_scan}')
 
-        scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_PDF_FMT}}'
+        scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_DISPLAY_FMT}}'
         text4_str = f'Parameter Scan {scan_factor_str}' r'$\,$' f'{getattr(data_obj, var_to_scan).label}'
-        plt.figtext(*plotlayout.TEXT4_POS, text4_str, fontsize=10, ha='center', color='#444')
+        plt.figtext(*dim.text4_pos, text4_str, fontsize=10, ha='center', color='#444')
 
     return fig, axs
 
@@ -133,22 +129,27 @@ def run_plotting_loop(options, plotdata, profile_type, scan_factor):
     * scan_factor (float or None): The value of the scan factor
     '''
 
-    plotlayout.init()
-    plotcolors.init()
+    plotstyles = PlotStyles(
+        axes=StyleType.Axes.GRAY,
+        lines=StyleType.Lines.MMM,
+        layout=StyleType.Layout.GRID3X2,
+    )
+
+    dim = plotstyles.dimensions
 
     print(f'Creating {profile_type.name.lower()} profile figures...')
 
     for i, data in enumerate(plotdata):
 
         # Logic to count (row, col) by col first, then by row; (0, 0), (0, 1), (0, 2), (1, 0), etc.
-        row = int(i / COLS) % ROWS
-        col = i % COLS
+        row = int(i / dim.cols) % dim.rows
+        col = i % dim.cols
 
         # Create a new figure when we're on the first subplot
         if row == 0 and col == 0:
             if data is None:
                 raise TypeError('The first plot on a new figure cannot be set to None')
-            fig, axs = init_figure(options, profile_type, data.xvar.values.shape[0], scan_factor)
+            fig, axs = init_figure(options, dim, profile_type, data.xvar.values.shape[0], scan_factor)
 
             # Disable all subplot axes until they are used
             for sub_axs in axs:
@@ -163,11 +164,11 @@ def run_plotting_loop(options, plotdata, profile_type, scan_factor):
                 make_plot(axs[row, col], data, profile_type)
 
         # Figure is full of subplots, so save the sheet
-        if (i + 1) % (ROWS * COLS) == 0:
+        if not (i + 1) % (dim.rows * dim.cols):
             fig.savefig(utils.get_temp_path(f'{profile_type.name.lower()}_profiles_{int((i + 1) / 6)}.pdf'))
 
     # Save any remaining subplots to one final sheet
-    if (i + 1) % (ROWS * COLS) != 0:
+    if (i + 1) % (dim.rows * dim.cols):
         fig.savefig(utils.get_temp_path(f'{profile_type.name.lower()}_profiles_{int((i + 1) / 6) + 1}.pdf'))
 
     merge_type = MergeType.PROFILES if not scan_factor else MergeType.PROFILEFACTORS

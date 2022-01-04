@@ -3,6 +3,7 @@ import sys; sys.path.insert(0, '../')
 
 # Local Packages
 import modules.options
+import modules.utils as utils
 import plotting.modules.profiles as profiles
 from modules.variables import InputVariables, OutputVariables
 from modules.enums import SaveType, ProfileType
@@ -17,11 +18,11 @@ def main(runid, scan_num, input_scan_factor, save_types):
     runid (str): The name of the CDF or run to reference
     scan_number (int): The number of the scan to reference
     scan_factor (float): The value of the scan factor file to reference
-    save_types (list of Savetype): The save types to plot profiles of
+    save_types (list[Savetype]): The save types to plot profiles of
     '''
+    utils.init_logging()
 
-    options = modules.options.Options()
-    options.load(runid, scan_num)
+    options = modules.options.Options().load(runid, scan_num)
     scan_factor = options.find_scan_factor(input_scan_factor)
 
     input_vars = InputVariables(options)
@@ -42,7 +43,7 @@ def main(runid, scan_num, input_scan_factor, save_types):
 if __name__ == '__main__':
     # Runid and Scan Number (uncomment the line you wish to use)
     # runid, scan_num = '120982A09', 1
-    runid, scan_num = 'TEST', 460
+    runid, scan_num = '138536A01', 2
 
     # Scan Factor (var_to_scan will be read from the saved options file)
     input_scan_factor = 2.5
