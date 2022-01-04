@@ -79,8 +79,9 @@ class PlotSettings:
     * title_override (str): Overrides auto generated title if non-empty
     * ylabel_override (str): Overrides auto generated ylabel if non-empty
     * xlabel_override (str): Overrides auto generated xlabel if non-empty
-    * ypad (int): The percentage to pad the yaxis limits in each direction
-    * xpad (int): The percentage to pad the xaxis limits in each direction
+    * yaxis_padding (float): The amount to pad the yaxis limits
+    * xaxis_padding (float): The amount to pad the xaxis limits
+    * xaxis_trim_padding (float): The amount to pad the trimmed xaxis limits when using rho values
     """
 
     replace_offset_text: bool = True
@@ -93,8 +94,9 @@ class PlotSettings:
     title_override: str = ''
     ylabel_override: str = ''
     xlabel_override: str = ''
-    ypad: int = 1
-    xpad: int = 0
+    yaxis_padding: float = 0.005
+    xaxis_padding: float = 0
+    xaxis_trim_padding: float = 0.015
 
 
 class PlotData:
@@ -338,7 +340,8 @@ class PlotDataCsv(PlotData):
                 yvar = getattr(o, yname)
             if not xvar and hasattr(o, xname):
                 xvar = getattr(o, xname)
-            if not factor_symbol and adjusted_var and hasattr(o, adjusted_var):
+            if scan_factor and not factor_symbol and adjusted_var and hasattr(o, adjusted_var):
+                # Don't load factor symbol when no scan factor is specified
                 factor_symbol = getattr(o, adjusted_var).label
 
         if not yvar or not xvar:
@@ -473,41 +476,31 @@ class AllPlotData:
         * ylims (tuple[float]): The y-axis limits of the plot
         """
 
-        xpad = plot_settings.xpad / 100  # Convert from percentage to number
-        ypad = plot_settings.ypad / 100
+        def get_lims(minval, maxval, padding, invert_axis):
+            """Get the axis limits after applying padding, checking values, and checking axis inversion"""
+            if minval < maxval:
+                offset = (maxval - minval) * padding
+                minval, maxval = minval - offset, maxval + offset
+            else:
+                minval, maxval = 0, 1  # default values
+            return (minval, maxval) if not invert_axis else (maxval, minval)
 
-        xmin = ymin = float("inf")
-        xmax = ymax = -float("inf")
+        all_xvals = np.hstack([d.xvals for d in self.data])
+        all_yvals = np.hstack([d.yvals for d in self.data])
+        xmin, xmax = all_xvals.min(), all_xvals.max()
+        ymin, ymax = all_yvals.min(), all_yvals.max()
 
-        is_using_rho = (np.array([d.rho for d in self.data]) != None).any()  # '!= None' syntax is needed with numpy
+        using_rho = (np.array([d.rho for d in self.data]) != None).any()  # '!= None' syntax is needed with numpy
 
-        for pdata in self.data:
-            # Trim x-axis of zero y-values values when plotting with a rho value
-            xvals = pdata.xvals[pdata.yvals != 0] if is_using_rho else pdata.xvals
+        if using_rho:
+            xvals_trim = all_xvals[all_yvals != 0]  # Trim the x-limits of zeros
+            xmin_trim, xmax_trim = xvals_trim.min(), xvals_trim.max()
+            xoffset_trim = (xmax_trim - xmin_trim) * plot_settings.xaxis_trim_padding
+            xmin = max(xmin, xmin_trim - xoffset_trim)  # Keep trimmed xmin >= actual xmin
+            xmax = min(xmax, xmax_trim + xoffset_trim)  # Keep trimmed xmax <= actual xmax
 
-            xmin = min(xmin, xvals.min())
-            xmax = max(xmax, xvals.max())
-            ymin = min(ymin, pdata.yvals.min())
-            ymax = max(ymax, pdata.yvals.max())
-
-        xoffset = (xmax - xmin) * xpad
-        yoffset = (ymax - ymin) * ypad
-
-        xmin -= xoffset
-        xmax += xoffset
-        ymin -= yoffset
-        ymax += yoffset
-
-        # Default limits when min equals max (avoids MatPlotLib warning)
-        if xmin == xmax:
-            xmin = -xpad
-            xmax = 1 + xpad
-        if ymin == ymax:
-            ymin = -ypad
-            ymax = 1 + ypad
-
-        xlims = (xmin, xmax) if not plot_settings.invert_x_axis else (xmax, xmin)
-        ylims = (ymin, ymax) if not plot_settings.invert_y_axis else (ymax, ymin)
+        xlims = get_lims(xmin, xmax, plot_settings.xaxis_padding, plot_settings.invert_x_axis)
+        ylims = get_lims(ymin, ymax, plot_settings.yaxis_padding, plot_settings.invert_y_axis)
 
         return xlims, ylims
 
@@ -767,13 +760,13 @@ def main(plot_settings, all_data):
         show_runname=all_data.get_legend_include('runname'),
         show_time=all_data.get_legend_include('time'),
         show_rho=all_data.get_legend_include('rho'),
-        show_factor=all_data.get_legend_include('factor') and all_data.get_legend_include('factor_symbol'),
+        show_factor=all_data.get_legend_include('factor') or all_data.get_legend_include('factor_symbol'),
         show_data_source=all_data.get_legend_include('is_cdf') and all_data.get_legend_include('is_csv'),
         show_calc_source=all_data.get_legend_include('transp_calcs'),
         show_override=all_data.get_legend_include('legend_override')
     )
 
-    for i, d in enumerate(all_data.data):
+    for d in all_data.data:
         ax.plot(d.xvals, d.yvals, label=d.get_legend_label(legend_attrs))
         ax.plot(d.xval_base, d.yval_base)  # Advance the cycler when base values are empty lists
 
@@ -833,8 +826,8 @@ if __name__ == '__main__':
     # Define data for the plot
     all_data = AllPlotData(
         # CDF: Same y-variable, different x-variables
-        # PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
-        # PlotDataCdf(runid='138536A01', yname='te', xname='rmin', time=0.50),
+        PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
+        PlotDataCdf(runid='138536A01', yname='te', xname='xb', time=0.50),
         # CDF: Different y-variable units
         # PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
         # PlotDataCdf(runid='138536A01', yname='ti', xname='rho', time=0.50),
@@ -844,9 +837,9 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='120968A02', yname='ni', xname='rho', time=0.50),
         # PlotDataCdf(runid='129041A10', yname='nd', xname='rho', time=0.40),
         # CDF: Compare TRANSP and MMM calculations (must be defined in calculations.py)
-        PlotDataCdf(runid='138536A01', yname='loge', xname='rho', time=0.629, transp_calcs=True),
-        PlotDataCdf(runid='138536A01', yname='loge', xname='rho', time=0.629),
-        # CDF and CSV: Compare same variable from two data sources
+        # PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629, transp_calcs=True),
+        # PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629),
+        # CDF and CSV: Compare same variable from different data sources
         # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.629),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2),
         # CSV: Different scanned variables with same scan factor
