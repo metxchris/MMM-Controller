@@ -98,7 +98,7 @@ REAL(R8), ALLOCATABLE, DIMENSION(:) :: &
     aimp,   &  ! Mean atomic mass of impurities
     ahyd,   &  ! Mean atomic mass of hydrogen ions
     aimass, &  ! Mean atomic mass of thermal ions
-    wexbs,  &  ! ExB shearing rate in [rad/s]
+    wexbs,  &  ! ExB shearing rate [s^-1]
     vtor,   &  ! Toroidal velocity [m/s]
     vpol,   &  ! Poloidal velocity [m/s]
     vpar,   &  ! Parallel velocity [m/s]
@@ -172,29 +172,33 @@ NAMELIST /testmmm_input_1stkind/               &
 !------------------------------------------------------------------------------
 !                               Program Execution
 !------------------------------------------------------------------------------
-
-! Initialize the system_clock
 CALL SYSTEM_CLOCK(count_rate=count_rate, count_max=count_max)
+
+! Open output.csv first, so that it's empty if errors occur before calling mmm
+OPEN(hfOut, file='output.csv', form='formatted', status='replace', iostat=nerr)
+IF (nerr /= 0) THEN
+    PRINT '(A)', "ERROR: output.csv could not be opened for writing"
+    STOP
+END IF
 
 OPEN(hfIn, file='input',  form='formatted', status='old', iostat=nerr)
 IF (nerr /= 0) THEN
-    PRINT *, "ERROR: input file could not be opened for reading"
+    PRINT '(A)', "ERROR: input file could not be opened for reading"
     STOP
 END IF
 
 READ(hfIn, NML=testmmm_input_control)
 IF (npoints == BADINT) THEN
-    PRINT *, "ERROR: npoints for the number of radial points needs to be set"
+    PRINT '(A)', "ERROR: npoints for the number of radial points needs to be set"
     STOP
 ELSE IF (input_kind /= 1) THEN
-    PRINT *, "ERROR: Unsupported input kind; please use testmmm"
+    PRINT '(A)', "ERROR: Unsupported input kind; please use testmmm"
     STOP
 END IF
 
 CALL initialize_arrays(npoints)
-PRINT *, "Input of the first kind (values) is detected. Processing..."
+PRINT '(A)', "Input of the first kind (values) is detected. Processing..."
 READ(hfIn, NML=testmmm_input_1stkind)
-
 CLOSE(hfIn)
 
 ! Fill parameter arrays with default values from modmmm
@@ -202,24 +206,18 @@ CALL set_mmm_switches(cmmm=cswitch, lmmm=lswitch)
 
 ! Assign user specified parameters
 DO i = 1, MAXNOPT 
-    cswitch(i, KW20) = cW20(i)
-    cswitch(i, KDBM) = cDBM(i)
-    cswitch(i, KMTM) = cMTM(i)
-    cswitch(i, KETG) = cETG(i)
-    cswitch(i, KETGM) = cETGM(i)
+    If (abs(cW20(i) - BADREAL) > 1E-6_R8) cswitch(i, KW20) = cW20(i)
+    If (abs(cDBM(i) - BADREAL) > 1E-6_R8) cswitch(i, KDBM) = cDBM(i)
+    If (abs(cMTM(i) - BADREAL) > 1E-6_R8) cswitch(i, KMTM) = cMTM(i)
+    If (abs(cETG(i) - BADREAL) > 1E-6_R8) cswitch(i, KETG) = cETG(i)
+    If (abs(cETGM(i) - BADREAL) > 1E-6_R8) cswitch(i, KETGM) = cETGM(i)
+
+    if (lW20(i) /= BADINT) lswitch(i, KW20) = lW20(i)
+    if (lDBM(i) /= BADINT) lswitch(i, KDBM) = lDBM(i)
+    if (lMTM(i) /= BADINT) lswitch(i, KMTM) = lMTM(i)
+    if (lETG(i) /= BADINT) lswitch(i, KETG) = lETG(i)
+    if (lETGM(i) /= BADINT) lswitch(i, KETGM) = lETGM(i)
 ENDDO
-
-lswitch(1:MAXNOPT, KW20) = lW20
-lswitch(1:MAXNOPT, KDBM) = lDBM
-lswitch(1:MAXNOPT, KMTM) = lMTM
-lswitch(1:MAXNOPT, KETG) = lETG
-lswitch(1:MAXNOPT, KETGM) = lETGM
-
-OPEN(hfOut, file='output.csv', form='formatted', status='replace', iostat=nerr)
-IF (nerr /= 0) THEN
-    PRINT *, "ERROR: output.csv could not be opened for writing"
-    STOP
-END IF
 
 ! Call and time mmm
 CALL SYSTEM_CLOCK(tic)
@@ -244,7 +242,7 @@ IF (nerr /= 0) THEN
     STOP
 END IF    
 
-PRINT '(A, F13.6, A)', "MMM 9.0 finished successfully!  Run Time:", (toc - tic) / REAL(count_rate), "s"
+PRINT '(A, F13.6, A)', "MMM 8.2 finished successfully!  Run Time:", (toc - tic) / REAL(count_rate), "s"
 
 ! Write output variable names 
 WRITE(hfOut,'("#"A11, 34A12)') &
@@ -338,65 +336,65 @@ SUBROUTINE initialize_arrays(np)
     INTEGER, INTENT(IN) :: np  ! Array dimension
 
     ! Input variables
-    IF (.NOT. ALLOCATED(rmin)) ALLOCATE(rmin(np)); rmin = BADREAL
-    IF (.NOT. ALLOCATED(rmaj)) ALLOCATE(rmaj(np)); rmaj = BADREAL
-    IF (.NOT. ALLOCATED(elong)) ALLOCATE(elong(np)); elong = BADREAL
-    IF (.NOT. ALLOCATED(ne)) ALLOCATE(ne(np)); ne = BADREAL
-    IF (.NOT. ALLOCATED(nh)) ALLOCATE(nh(np)); nh = BADREAL
-    IF (.NOT. ALLOCATED(nz)) ALLOCATE(nz(np)); nz = BADREAL
-    IF (.NOT. ALLOCATED(nf)) ALLOCATE(nf(np)); nf = BADREAL
-    IF (.NOT. ALLOCATED(zeff)) ALLOCATE(zeff(np)); zeff = BADREAL
-    IF (.NOT. ALLOCATED(te)) ALLOCATE(te(np)); te = BADREAL
-    IF (.NOT. ALLOCATED(ti)) ALLOCATE(ti(np)); ti = BADREAL
-    IF (.NOT. ALLOCATED(q)) ALLOCATE(q(np)); q = BADREAL
-    IF (.NOT. ALLOCATED(btor)) ALLOCATE(btor(np)); btor = BADREAL
-    IF (.NOT. ALLOCATED(zimp)) ALLOCATE(zimp(np)); zimp = BADREAL
-    IF (.NOT. ALLOCATED(aimp)) ALLOCATE(aimp(np)); aimp = BADREAL
-    IF (.NOT. ALLOCATED(ahyd)) ALLOCATE(ahyd(np)); ahyd = BADREAL
-    IF (.NOT. ALLOCATED(aimass)) ALLOCATE(aimass(np)); aimass = BADREAL
-    IF (.NOT. ALLOCATED(wexbs)) ALLOCATE(wexbs(np)); wexbs = BADREAL
-    IF (.NOT. ALLOCATED(gne)) ALLOCATE(gne(np)); gne = BADREAL
-    IF (.NOT. ALLOCATED(gni)) ALLOCATE(gni(np)); gni = BADREAL
-    IF (.NOT. ALLOCATED(gnh)) ALLOCATE(gnh(np)); gnh = BADREAL
-    IF (.NOT. ALLOCATED(gnz)) ALLOCATE(gnz(np)); gnz = BADREAL
-    IF (.NOT. ALLOCATED(gte)) ALLOCATE(gte(np)); gte = BADREAL
-    IF (.NOT. ALLOCATED(gti)) ALLOCATE(gti(np)); gti = BADREAL
-    IF (.NOT. ALLOCATED(gq)) ALLOCATE(gq(np)); gq = BADREAL
-    IF (.NOT. ALLOCATED(gvtor)) ALLOCATE(gvtor(np)); gvtor = BADREAL
-    IF (.NOT. ALLOCATED(vtor)) ALLOCATE(vtor(np)); vtor = BADREAL
-    IF (.NOT. ALLOCATED(gvpol)) ALLOCATE(gvpol(np)); gvpol = BADREAL
-    IF (.NOT. ALLOCATED(vpol)) ALLOCATE(vpol(np)); vpol = BADREAL
-    IF (.NOT. ALLOCATED(gvpar)) ALLOCATE(gvpar(np)); gvpar = BADREAL
-    IF (.NOT. ALLOCATED(vpar)) ALLOCATE(vpar(np)); vpar = BADREAL
+    ALLOCATE(rmin(np)); rmin = BADREAL
+    ALLOCATE(rmaj(np)); rmaj = BADREAL
+    ALLOCATE(elong(np)); elong = BADREAL
+    ALLOCATE(ne(np)); ne = BADREAL
+    ALLOCATE(nh(np)); nh = BADREAL
+    ALLOCATE(nz(np)); nz = BADREAL
+    ALLOCATE(nf(np)); nf = BADREAL
+    ALLOCATE(zeff(np)); zeff = BADREAL
+    ALLOCATE(te(np)); te = BADREAL
+    ALLOCATE(ti(np)); ti = BADREAL
+    ALLOCATE(q(np)); q = BADREAL
+    ALLOCATE(btor(np)); btor = BADREAL
+    ALLOCATE(zimp(np)); zimp = BADREAL
+    ALLOCATE(aimp(np)); aimp = BADREAL
+    ALLOCATE(ahyd(np)); ahyd = BADREAL
+    ALLOCATE(aimass(np)); aimass = BADREAL
+    ALLOCATE(wexbs(np)); wexbs = BADREAL
+    ALLOCATE(gne(np)); gne = BADREAL
+    ALLOCATE(gni(np)); gni = BADREAL
+    ALLOCATE(gnh(np)); gnh = BADREAL
+    ALLOCATE(gnz(np)); gnz = BADREAL
+    ALLOCATE(gte(np)); gte = BADREAL
+    ALLOCATE(gti(np)); gti = BADREAL
+    ALLOCATE(gq(np)); gq = BADREAL
+    ALLOCATE(gvtor(np)); gvtor = BADREAL
+    ALLOCATE(vtor(np)); vtor = BADREAL
+    ALLOCATE(gvpol(np)); gvpol = BADREAL
+    ALLOCATE(vpol(np)); vpol = BADREAL
+    ALLOCATE(gvpar(np)); gvpar = BADREAL
+    ALLOCATE(vpar(np)); vpar = BADREAL
 
     ! Output variables
-    IF (.NOT. ALLOCATED(xti)) ALLOCATE(xti(np)); xti = 0_R8
-    IF (.NOT. ALLOCATED(xdi)) ALLOCATE(xdi(np)); xdi = 0_R8
-    IF (.NOT. ALLOCATED(xte)) ALLOCATE(xte(np)); xte = 0_R8
-    IF (.NOT. ALLOCATED(xdz)) ALLOCATE(xdz(np)); xdz = 0_R8
-    IF (.NOT. ALLOCATED(xvt)) ALLOCATE(xvt(np)); xvt = 0_R8
-    IF (.NOT. ALLOCATED(xvp)) ALLOCATE(xvp(np)); xvp = 0_R8
-    IF (.NOT. ALLOCATED(gammaDBM)) ALLOCATE(gammaDBM(np)); gammaDBM = 0_R8
-    IF (.NOT. ALLOCATED(omegaDBM)) ALLOCATE(omegaDBM(np)); omegaDBM = 0_R8
-    IF (.NOT. ALLOCATED(xtiW20)) ALLOCATE(xtiW20(np)); xtiW20 = 0_R8
-    IF (.NOT. ALLOCATED(xdiW20)) ALLOCATE(xdiW20(np)); xdiW20 = 0_R8
-    IF (.NOT. ALLOCATED(xteW20)) ALLOCATE(xteW20(np)); xteW20 = 0_R8
-    IF (.NOT. ALLOCATED(xtiDBM)) ALLOCATE(xtiDBM(np)); xtiDBM = 0_R8
-    IF (.NOT. ALLOCATED(xdiDBM)) ALLOCATE(xdiDBM(np)); xdiDBM = 0_R8
-    IF (.NOT. ALLOCATED(xteDBM)) ALLOCATE(xteDBM(np)); xteDBM = 0_R8
-    IF (.NOT. ALLOCATED(xteETG)) ALLOCATE(xteETG(np)); xteETG = 0_R8
-    IF (.NOT. ALLOCATED(xteETGM)) ALLOCATE(xteETGM(np)); xteETGM = 0_R8
-    IF (.NOT. ALLOCATED(xdiETGM)) ALLOCATE(xdiETGM(np)); xdiETGM = 0_R8
-    IF (.NOT. ALLOCATED(gammaW20)) ALLOCATE(gammaW20(4, np)); gammaW20 = 0_R8
-    IF (.NOT. ALLOCATED(omegaW20)) ALLOCATE(omegaW20(4, np)); omegaW20 = 0_R8
-    IF (.NOT. ALLOCATED(gammaMTM)) ALLOCATE(gammaMTM(np)); gammaMTM = 0_R8
-    IF (.NOT. ALLOCATED(omegaMTM)) ALLOCATE(omegaMTM(np)); omegaMTM = 0_R8
-    IF (.NOT. ALLOCATED(gammaETGM)) ALLOCATE(gammaETGM(np)); gammaETGM = 0_R8
-    IF (.NOT. ALLOCATED(omegaETGM)) ALLOCATE(omegaETGM(np)); omegaETGM = 0_R8
-    IF (.NOT. ALLOCATED(dbsqprf)) ALLOCATE(dbsqprf(np)); dbsqprf = 0_R8
-    IF (.NOT. ALLOCATED(xteMTM)) ALLOCATE(xteMTM(np)); xteMTM = 0_R8
-    IF (.NOT. ALLOCATED(vconv)) ALLOCATE(vconv(6, np)); vconv = 0_R8
-    IF (.NOT. ALLOCATED(vflux)) ALLOCATE(vflux(6, np)); vflux = 0_R8
+    ALLOCATE(xti(np)); xti = 0_R8
+    ALLOCATE(xdi(np)); xdi = 0_R8
+    ALLOCATE(xte(np)); xte = 0_R8
+    ALLOCATE(xdz(np)); xdz = 0_R8
+    ALLOCATE(xvt(np)); xvt = 0_R8
+    ALLOCATE(xvp(np)); xvp = 0_R8
+    ALLOCATE(gammaDBM(np)); gammaDBM = 0_R8
+    ALLOCATE(omegaDBM(np)); omegaDBM = 0_R8
+    ALLOCATE(xtiW20(np)); xtiW20 = 0_R8
+    ALLOCATE(xdiW20(np)); xdiW20 = 0_R8
+    ALLOCATE(xteW20(np)); xteW20 = 0_R8
+    ALLOCATE(xtiDBM(np)); xtiDBM = 0_R8
+    ALLOCATE(xdiDBM(np)); xdiDBM = 0_R8
+    ALLOCATE(xteDBM(np)); xteDBM = 0_R8
+    ALLOCATE(xteETG(np)); xteETG = 0_R8
+    ALLOCATE(xteETGM(np)); xteETGM = 0_R8
+    ALLOCATE(xdiETGM(np)); xdiETGM = 0_R8
+    ALLOCATE(gammaW20(4, np)); gammaW20 = 0_R8
+    ALLOCATE(omegaW20(4, np)); omegaW20 = 0_R8
+    ALLOCATE(gammaMTM(np)); gammaMTM = 0_R8
+    ALLOCATE(omegaMTM(np)); omegaMTM = 0_R8
+    ALLOCATE(gammaETGM(np)); gammaETGM = 0_R8
+    ALLOCATE(omegaETGM(np)); omegaETGM = 0_R8
+    ALLOCATE(dbsqprf(np)); dbsqprf = 0_R8
+    ALLOCATE(xteMTM(np)); xteMTM = 0_R8
+    ALLOCATE(vconv(6, np)); vconv = 0_R8
+    ALLOCATE(vflux(6, np)); vflux = 0_R8
 END SUBROUTINE initialize_arrays
 
 END PROGRAM mmm_wrapper
