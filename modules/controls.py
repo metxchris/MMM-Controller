@@ -102,7 +102,7 @@ class InputControls:
         self.dribm_exbs = Control('dribm_exbs', 'ExB shear coefficient', values=1, vtype=float)
         self.dribm_kyrhos = Control('dribm_kyrhos', 'kyrhos', values=0.1, vtype=float, label=r'$k_y \rho_s$')
         # MTM options
-        self.mtm_kyrhos_loops = Control('mtm_kyrhos_loops', 'loop count for kyrhos scan', values=30000, vtype=int, label=r'$k_y/k_x$')
+        self.mtm_kyrhos_loops = Control('mtm_kyrhos_loops', 'loop count for kyrhos scan', values=3000, vtype=int, label=r'$k_y/k_x$')
         self.mtm_ky_kx = Control('mtm_ky_kx', 'ky/kx for MTM', values=0.2, vtype=float, label=r'$k_y/k_x$')
         self.mtm_cf = Control('mtm_cf', 'calibration factor', values=1.0, vtype=float)
         # ETG options
