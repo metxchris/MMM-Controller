@@ -276,11 +276,11 @@ def loge(calc_vars):
     te = calc_vars.te.values
 
     # NRL Plasma Formulary Definition
-    return 37.8 - np.log(ne**(1 / 2) / te)
+    # return 37.8 - np.log(ne**(1 / 2) / te)
 
     # TRANSP definition (equivalent)
-    # zeff = calc_vars.zeff.values
-    # return 39.23 - np.log(zeff*ne**(1 / 2) / te)
+    zeff = calc_vars.zeff.values
+    return 39.23 - np.log(zeff * ne**(1 / 2) / te)
 
 
 @calculation
