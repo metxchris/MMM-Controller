@@ -228,7 +228,7 @@ if __name__ == '__main__':
         shot_type=shot_type,
         input_time=input_time,
         input_points=101,
-        uniform_rho=0,
+        uniform_rho=1,
         apply_smoothing=1,
     )
 
@@ -243,13 +243,13 @@ if __name__ == '__main__':
         cmodel_etg=0,
         cmodel_etgm=1,
         cmodel_mtm=0,
-        etgm_kyrhoe=0.25,
         etgm_kyrhos=0.33,
         etgm_cl=1,  # etgm_cl=0 is collisionless, etgm_cl=1 is collisional
-        etgm_exbs=1,
+        etgm_exbs=0,
+        etgm_kyrhoe_scan=100,
     )
 
-    settings.AUTO_OPEN_PDFS = 1
-    settings.MAKE_PROFILE_PDFS = 1
+    settings.AUTO_OPEN_PDFS = 0
+    settings.MAKE_PROFILE_PDFS = 0
 
     main(scanned_vars, controls)
