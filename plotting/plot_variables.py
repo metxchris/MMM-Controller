@@ -353,18 +353,6 @@ class AllPlotData:
     def __init__(self, *args):
         self.data: list[PlotData] = [a for a in args if isinstance(a, PlotData)]
 
-        # Get the max number of decimal points used for all rho
-        rho_lengths = [0]
-        for d in self.data:
-            if d.rho:
-                rho_lengths.append(max([len(f'{float(d.rho):.12g}'.split('.')[1])]))
-
-        rho_length = max(rho_lengths)
-
-        for i, d in enumerate(self.data):
-            if d.rho:
-                d.rho = f'{float(d.rho):.{rho_length}}'
-
             # d.xval_base = 1
             # d.xvals = d.scan_range
             # d.xvals = (d.xvals - min(d.xvals)) / (max(d.xvals) - min(d.xvals))
@@ -393,6 +381,8 @@ class AllPlotData:
         }
 
         self.show_legend: bool = np.array([v for v in self.legend_attrs.values()]).any()
+
+        self._update_rho_str()
 
     @staticmethod
     def _format_offset_text(offset_text):
@@ -423,6 +413,34 @@ class AllPlotData:
             offset_text = offset_text.replace(number_str, number)
 
         return f' {offset_text}'
+
+    def _update_rho_str(self):
+        """
+        Update rho strings so that trailing zeros are removed while the same
+        number of decimal points are kept for each rho value.
+
+        Example:
+
+            rho1, rho2 = 0.900, 0.720
+
+            >>> rho1, rho2 = 0.90, 0.72
+        """
+
+        # Get the max number of decimal points used for all rho
+        rho_lengths = [0]  # Fill with 0 so that the list isn't empty when calling max()
+        for d in self.data:
+            if d.rho:
+                split_decimal = f'{float(d.rho):.12g}'.split('.')
+                if len(split_decimal) > 1:
+                    rho_lengths.append(len(split_decimal[1]))  # num decimal points with trailing 0's removed
+
+        rho_length = max(rho_lengths)
+
+        # Update rho strings by removing trailing 0's while keeping the same amount of decimals on each rho
+        if rho_length:
+            for i, d in enumerate(self.data):
+                if d.rho:
+                    d.rho = f'{float(d.rho):.{rho_length}f}'
 
     @staticmethod
     def _get_units_str(units):
@@ -815,7 +833,7 @@ def main(plot_settings, all_data):
 
     for d in all_data.data:
         ax.plot(d.xvals, d.yvals, label=all_data.get_legend_label(d))
-        ax.plot(d.xval_base, d.yval_base)  # Advance the cycler when base values are empty lists
+        ax.plot(d.xval_base, d.yval_base, zorder=3)  # Advance the cycler when base values are empty lists
 
     xlims, ylims = all_data.get_plot_limits(plot_settings)
 
@@ -853,7 +871,7 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.GRAY,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE,
+        layout=StyleType.Layout.SINGLE3,
     )
 
     # Define settings for the plot
@@ -895,15 +913,18 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2, scan_factor=2.5),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=5, scan_factor=2.5),
         # CSV: Comparing output results
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=24, legend_override='exbs = 0'),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=25, legend_override='exbs = 1'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=24, legend_override='exbs = 0'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=25, legend_override='exbs = 1'),
         # # CSV: Growth rate vs Effective Charge
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.15),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.63),
         # CSV: Growth rate vs Average Magnetic Surface Curvature
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.25),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.33),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.20, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.60, runname=''),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=21, rho_value=0.82, runname=''),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=21, rho_value=0.88, runname=''),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=21, rho_value=0.94, runname=''),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.3),
         # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='var_to_scan', scan_num=3, rho_value=0.3),
     )

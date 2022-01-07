@@ -44,41 +44,59 @@ def init(style):
         'patch.linewidth': 0,  # legend frame line width
     })
 
-    if style is ps.StyleType.Layout.SINGLE:
+    if style is ps.StyleType.Layout.SINGLE1:
         rcParams.update({
-            'axes.labelpad': 2,
-            'axes.labelsize': 8.5,
-            'axes.titlesize': 8.5,
-            'axes.titlepad': 4,
-            'figure.figsize': [3.5, 3],
-            'figure.subplot.bottom': 0.15,
-            'figure.subplot.hspace': 0.38,
-            'figure.subplot.left': 0.16,
-            'figure.subplot.right': 0.9,
-            'figure.subplot.top': 0.9,
-            'figure.subplot.wspace': 0.22,
-            'legend.fontsize': 8,
-            'xtick.labelsize': 8,
-            'ytick.labelsize': 8,
-        })
-
-    elif style is ps.StyleType.Layout.SINGLESMALL:
-        rcParams.update({
-            'axes.formatter.limits': [-1, 1],  # Forces exponent notation below 1e-2 and above 1e3
+            'axes.formatter.limits': [-1, 2],  # Forces exponent notation below 1e-1 and above 1e2
             'axes.labelpad': 2,
             'axes.labelsize': 7.5,
             'axes.titlesize': 7.5,
-            'axes.titlepad': 2,
-            'figure.figsize': [2.5, 2],
-            'figure.subplot.bottom': 0.15,
+            'axes.titlepad': 4,
+            'figure.figsize': [2.5, 2.08],
+            'figure.subplot.bottom': 0.16,
             'figure.subplot.hspace': 0.38,
             'figure.subplot.left': 0.16,
-            'figure.subplot.right': 0.95,
+            'figure.subplot.right': 0.94,
             'figure.subplot.top': 0.9,
             'figure.subplot.wspace': 0.22,
             'legend.fontsize': 7,
             'xtick.labelsize': 7,
             'ytick.labelsize': 7,
+        })
+
+    elif style is ps.StyleType.Layout.SINGLE2:
+        rcParams.update({
+            'axes.labelpad': 2,
+            'axes.labelsize': 8,
+            'axes.titlesize': 8,
+            'axes.titlepad': 4,
+            'figure.figsize': [3, 2.5],
+            'figure.subplot.bottom': 0.15,
+            'figure.subplot.hspace': 0.38,
+            'figure.subplot.left': 0.16,
+            'figure.subplot.right': 0.94,
+            'figure.subplot.top': 0.9,
+            'figure.subplot.wspace': 0.22,
+            'legend.fontsize': 7.5,
+            'xtick.labelsize': 7.5,
+            'ytick.labelsize': 7.5,
+        })
+
+    elif style is ps.StyleType.Layout.SINGLE3:
+        rcParams.update({
+            'axes.labelpad': 2,
+            'axes.labelsize': 8.5,
+            'axes.titlesize': 8.5,
+            'axes.titlepad': 4,
+            'figure.figsize': [3.6, 3],
+            'figure.subplot.bottom': 0.15,
+            'figure.subplot.hspace': 0.38,
+            'figure.subplot.left': 0.16,
+            'figure.subplot.right': 0.94,
+            'figure.subplot.top': 0.9,
+            'figure.subplot.wspace': 0.22,
+            'legend.fontsize': 8,
+            'xtick.labelsize': 8,
+            'ytick.labelsize': 8,
         })
 
     elif style is ps.StyleType.Layout.GRID3X2:

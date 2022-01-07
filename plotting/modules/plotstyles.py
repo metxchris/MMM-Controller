@@ -63,9 +63,10 @@ class StyleType:
         '''
 
         NONE = 0
-        SINGLE = 1
-        GRID3X2 = 2
-        SINGLESMALL = 3
+        GRID3X2 = 1
+        SINGLE1 = 2
+        SINGLE2 = 3
+        SINGLE3 = 4
 
 
 class PlotStyles:

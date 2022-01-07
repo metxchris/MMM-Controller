@@ -129,7 +129,7 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.GRAY,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE,
+        layout=StyleType.Layout.SINGLE3,
     )
 
     '''
