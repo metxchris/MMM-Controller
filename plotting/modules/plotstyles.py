@@ -59,11 +59,13 @@ class StyleType:
         Members:
         * SINGLE: Layout for a single plot
         * GRID3X2: Layout for a grid of plots with 3 columns and 2 rows
+        * SINGLE_SMALL: Layout for a small single plot
         '''
 
         NONE = 0
         SINGLE = 1
         GRID3X2 = 2
+        SINGLESMALL = 3
 
 
 class PlotStyles:

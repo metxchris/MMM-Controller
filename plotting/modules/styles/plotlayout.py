@@ -62,6 +62,25 @@ def init(style):
             'ytick.labelsize': 8,
         })
 
+    elif style is ps.StyleType.Layout.SINGLESMALL:
+        rcParams.update({
+            'axes.formatter.limits': [-1, 1],  # Forces exponent notation below 1e-2 and above 1e3
+            'axes.labelpad': 2,
+            'axes.labelsize': 7.5,
+            'axes.titlesize': 7.5,
+            'axes.titlepad': 2,
+            'figure.figsize': [2.5, 2],
+            'figure.subplot.bottom': 0.15,
+            'figure.subplot.hspace': 0.38,
+            'figure.subplot.left': 0.16,
+            'figure.subplot.right': 0.95,
+            'figure.subplot.top': 0.9,
+            'figure.subplot.wspace': 0.22,
+            'legend.fontsize': 7,
+            'xtick.labelsize': 7,
+            'ytick.labelsize': 7,
+        })
+
     elif style is ps.StyleType.Layout.GRID3X2:
         rcParams.update({
             'axes.labelpad': 2,

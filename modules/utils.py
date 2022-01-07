@@ -103,7 +103,14 @@ def get_rho_path(runid, scan_num, var_to_scan):
 
 
 def get_rho_files(options, save_type):
-    '''Returns (list): all rho files of save_type in the rho folder'''
+    '''
+    Returns (list): all rho files of save_type in the rho folder
+
+    Raises:
+    * ValueError: When there is no scanned variable specified in options
+    '''
+    if not options.var_to_scan:
+        raise ValueError('Rho files do not exist when the scanned variable is None')
     return get_files_in_dir(
         get_rho_path(options.runid, options.scan_num, options.var_to_scan),
         f'{save_type.name.capitalize()}*'

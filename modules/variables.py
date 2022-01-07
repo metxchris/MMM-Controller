@@ -341,9 +341,9 @@ class InputVariables(Variables):
         self.logi = Variable('Ion Coulomb Logarithm', cdfvar='CLOGI', label=r'$\lambda_\mathrm{i}$')
         self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', units='m^-3',
                            save_type=SaveType.ADDITIONAL, minvalue=1e-6)
-        self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$', units='m^-3',
+        self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h0}$', units='m^-3',
                             save_type=SaveType.ADDITIONAL)
-        self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h,T}$',
+        self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h}$',
                            save_type=SaveType.INPUT, units='m^-3', minvalue=1e-6)
         self.nuei = Variable('Electron Collision Frequency', label=r'$\nu_\mathrm{ei}$',
                              save_type=SaveType.ADDITIONAL)
@@ -372,7 +372,7 @@ class InputVariables(Variables):
         # Calculated Gradients
         self.gne = Variable('Electron Density Gradient', label=r'$g_{n_\mathrm{e}}$',
                             save_type=SaveType.INPUT)
-        self.gnh = Variable('Hydrogenic Ion Density Gradient', label=r'$g_{n_\mathrm{h, T}}$',
+        self.gnh = Variable('Hydrogenic Ion Density Gradient', label=r'$g_{n_\mathrm{h}}$',
                             save_type=SaveType.INPUT)
         self.gni = Variable('Thermal Ion Density Gradient', label=r'$g_{n_\mathrm{i}}$',
                             save_type=SaveType.INPUT)

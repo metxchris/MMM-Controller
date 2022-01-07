@@ -200,12 +200,11 @@ if __name__ == '__main__':
     * Using None as the scanned variable will just run MMM once
     '''
     # scanned_vars[None] = None
-    scanned_vars['etgm_kyrhoe'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
+    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
 
     # scanned_vars['betae'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['gnh'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['gnz'] = np.arange(start=0.05, stop=9 + 1e-6, step=0.05)
@@ -215,6 +214,8 @@ if __name__ == '__main__':
     # scanned_vars['shear'] = np.arange(start=-6.0, stop=6 + 1e-6, step=0.1)
     # scanned_vars['tau'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['zeff'] = np.arange(start=0.02, stop=4 + 1e-6, step=0.02)**2
+
+    scanned_vars['etgm_kyrhoe'] = np.arange(start=0.02, stop=12 + 1e-6, step=0.02)
 
     '''
     Options:
@@ -246,7 +247,7 @@ if __name__ == '__main__':
         etgm_kyrhos=0.33,
         etgm_cl=1,  # etgm_cl=0 is collisionless, etgm_cl=1 is collisional
         etgm_exbs=0,
-        etgm_kyrhoe_scan=100,
+        etgm_kyrhoe_scan=0,
     )
 
     settings.AUTO_OPEN_PDFS = 0

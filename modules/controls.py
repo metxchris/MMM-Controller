@@ -111,7 +111,7 @@ class InputControls:
         self.etg_ceem_scale = Control('etg_ceem_scale', 'CEEM scale', values=0.06, vtype=float)
         # ETGM options
         self.etgm_cl = Control('etgm_cl', 'Collisionless limit', values=1, vtype=int)
-        self.etgm_exbs = Control('etgm_exbs', 'ExB shear coefficient', values=0.0, vtype=float)
+        self.etgm_exbs = Control('etgm_exbs', 'ExB shear coefficient', values=0, vtype=float)
         self.etgm_kyrhoe = Control('etgm_kyrhoe', 'kyrhoe', values=0.25, vtype=float, label=r'$k_y \rho_e$')
         self.etgm_kyrhos = Control('etgm_kyrhos', 'kyrhos', values=0.33, vtype=float, label=r'$k_y \rho_s$')
         self.etgm_kyrhoe_scan = Control('etgm_kyrhoe_scan', 'Kyrhoe Scan Switch', values=1, vtype=int)
