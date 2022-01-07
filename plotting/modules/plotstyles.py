@@ -57,9 +57,10 @@ class StyleType:
         Specifies the general layout of a plot
 
         Members:
-        * SINGLE: Layout for a single plot
         * GRID3X2: Layout for a grid of plots with 3 columns and 2 rows
-        * SINGLE_SMALL: Layout for a small single plot
+        * SINGLE1: Layout for a single plot (small)
+        * SINGLE2: Layout for a single plot (medium)
+        * SINGLE3: Layout for a single plot (large)
         '''
 
         NONE = 0
