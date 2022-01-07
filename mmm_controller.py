@@ -206,7 +206,7 @@ if __name__ == '__main__':
     # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
-    # scanned_vars['gnh'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['gne'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['gnz'] = np.arange(start=0.05, stop=9 + 1e-6, step=0.05)
     # scanned_vars['gte'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
     # scanned_vars['nuei'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
@@ -244,10 +244,12 @@ if __name__ == '__main__':
         cmodel_etg=0,
         cmodel_etgm=1,
         cmodel_mtm=0,
+        etgm_kyrhoe=0.25,
         etgm_kyrhos=0.33,
         etgm_cl=1,  # etgm_cl=0 is collisionless, etgm_cl=1 is collisional
         etgm_exbs=0,
         etgm_kyrhoe_scan=0,
+        etgm_use_gne_in=1,
     )
 
     settings.AUTO_OPEN_PDFS = 0

@@ -403,7 +403,7 @@ class InputVariables(Variables):
 
     def get_vars_of_type(self, save_type):
         '''Returns (list of str): List of all variables with the specified save_type'''
-        nonzero_variables = self.get_nonzero_variables()
+        nonzero_variables = self.get_variables()
         return [v for v in nonzero_variables if getattr(self, v).save_type == save_type]
 
     def get_cdf_variables(self):

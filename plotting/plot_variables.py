@@ -27,10 +27,13 @@ full list of parameters that can be specified when creating plots.
 import sys; sys.path.insert(0, '../')
 from dataclasses import dataclass
 import logging
+import io
 
 # 3rd Party Packages
 import matplotlib.pyplot as plt
 import numpy as np
+from PyQt5.QtGui import QImage
+from PyQt5.QtWidgets import QApplication
 
 # Local Packages
 import modules.options
@@ -137,6 +140,9 @@ class PlotData:
         self.is_csv: bool = is_csv
         self.scan_range = options.scan_range
 
+        # self.xvals = np.absolute(self.xvals)
+        # self.xval_base = [abs(b) for b in self.xval_base]
+
         if self.xvals is None:
             raise ValueError(f'Unable to load values for variable {xvar.name}')
         if self.yvals is None:
@@ -242,6 +248,7 @@ class PlotDataCsv(PlotData):
 
         options = modules.options.Options().load(runid, scan_num)
         scan_factor_str = None
+
         if xname == 'var_to_scan':
             xname = options.var_to_scan
 
@@ -353,13 +360,14 @@ class AllPlotData:
     def __init__(self, *args):
         self.data: list[PlotData] = [a for a in args if isinstance(a, PlotData)]
 
-            # d.xval_base = 1
-            # d.xvals = d.scan_range
-            # d.xvals = (d.xvals - min(d.xvals)) / (max(d.xvals) - min(d.xvals))
+        # for d in self.data:
+        #     d.xval_base = (d.xval_base - min(d.xvals)) / (max(d.xvals) - min(d.xvals))
+        #     d.xvals = (d.xvals - min(d.xvals)) / (max(d.xvals) - min(d.xvals))
 
-            # if min(d.yvals) != max(d.yvals):
-            #     d.yval_base = (d.yval_base - min(d.yvals)) / (max(d.yvals) - min(d.yvals))
-            #     d.yvals = (d.yvals - min(d.yvals)) / (max(d.yvals) - min(d.yvals))
+        #     if min(d.yvals) != max(d.yvals):
+        #         d.yval_base = (d.yval_base - min(d.yvals)) / (max(d.yvals) - min(d.yvals))
+        #         d.yvals = (d.yvals - min(d.yvals)) / (max(d.yvals) - min(d.yvals))
+
             # else:
             #     d.yval_base = 0
             #     d.yvals[:] = 0
@@ -818,15 +826,18 @@ def main(plot_settings, all_data):
     """
 
     def on_press(event):
-        if event.key == 'x':
-            xlim = ax.get_xlim()
-            ax.set(xlim=(xlim[1], xlim[0]))
+        if event.key == 'x':  # flip x-axis limits
+            plt.xlim(plt.xlim()[::-1])
             plt.gcf().canvas.draw()
 
-        if event.key == 'y':
-            ylim = ax.get_ylim()
-            ax.set(ylim=(ylim[1], ylim[0]))
+        if event.key == 'y':  # flip y-axis limits
+            plt.ylim(plt.ylim()[::-1])
             plt.gcf().canvas.draw()
+
+        if event.key == "ctrl+c":  # copy figure to clipboard
+           with io.BytesIO() as buffer:
+                plt.gcf().savefig(buffer)
+                QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
 
     ax = plt.gca()
     plt.gcf().canvas.mpl_connect('key_press_event', on_press)
@@ -871,13 +882,13 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.GRAY,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE3,
+        layout=StyleType.Layout.SINGLE2,
     )
 
     # Define settings for the plot
     plot_settings = PlotSettings(
         save_data_to_csv=False,
-        replace_offset_text=False,
+        replace_offset_text=True,
         allow_title_runid=True,
         allow_title_time=True,
         allow_title_factor=True,
@@ -913,8 +924,8 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2, scan_factor=2.5),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=5, scan_factor=2.5),
         # CSV: Comparing output results
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=24, legend_override='exbs = 0'),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=25, legend_override='exbs = 1'),
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=17, legend_override='exbs = 0'),
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=54, legend_override='exbs = 1'),
         # # CSV: Growth rate vs Effective Charge
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.15),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31),
@@ -922,9 +933,12 @@ if __name__ == '__main__':
         # CSV: Growth rate vs Average Magnetic Surface Curvature
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.20, runname=''),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.60, runname=''),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=21, rho_value=0.82, runname=''),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=21, rho_value=0.88, runname=''),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=21, rho_value=0.94, runname=''),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.39, runname=r'OLD'),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=55, rho_value=0.39, runname=r'NEW'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.61, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.62, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.7, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=21, rho_value=0.94, runname=''),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.3),
         # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='var_to_scan', scan_num=3, rho_value=0.3),
     )

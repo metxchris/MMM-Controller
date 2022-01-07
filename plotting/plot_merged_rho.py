@@ -55,15 +55,20 @@ def run_plotting_loop(vars_to_plot, options):
         for i, rho_str in enumerate(rho_strs):
             sheet_num = f'{i:{constants.SHEET_NUM_FMT}}'
 
-            # Plot scanned values
+            xbase_values = xbase.values[i] if type(xbase.values) is np.ndarray else xbase.values
             xvar_data = input_vars_dict[rho_str] if scan_type == ScanType.VARIABLE else input_controls
             xvar = getattr(xvar_data, var_to_scan)
             yvar = getattr(output_vars_dict[rho_str], var_to_plot)
-            plt.plot(xvar.values, yvar.values)
 
-            # Plot base value
-            xbase_values = xbase.values[i] if type(xbase.values) is np.ndarray else xbase.values
+            if xbase_values < 0:
+                plt.plot([], [])  # Advance the cycler twice
+                plt.plot([], [])
+
+            plt.plot(xvar.values, yvar.values, dashes=[1, 0])
             plt.plot(xbase_values, ybase.values[i])
+
+            if xbase_values < 0:
+                plt.xlim(plt.xlim()[::-1])
 
             plt.xlabel(f'{xvar.label}  {xvar.units_label}')
             plt.ylabel(f'{yvar.label}  {yvar.units_label}')
