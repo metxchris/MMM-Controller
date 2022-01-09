@@ -202,8 +202,9 @@ class Options:
 
     def set_measurement_time(self, time_values):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''
-        self.time_idx = np.argmin(np.abs(time_values - self.input_time))
-        self.time_str = f'{time_values[self.time_idx]:{constants.TIME_VALUE_FMT}}'
+        if self.input_time:
+            self.time_idx = np.argmin(np.abs(time_values - self.input_time))
+            self.time_str = f'{time_values[self.time_idx]:{constants.TIME_VALUE_FMT}}'
 
     def find_scan_factor(self, scan_factor):
         '''
