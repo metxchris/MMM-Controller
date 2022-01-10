@@ -23,7 +23,6 @@ import numpy as np
 # Local Packages
 import pdftk
 import output
-import temp
 import cdfs
 import settings
 import plotting.csv

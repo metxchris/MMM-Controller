@@ -71,7 +71,7 @@ _log = logging.getLogger(__name__)
 
 # Used to create units labels to display on plots from units strings
 _UNITS_TO_UNITS_LABEL = {
-    'T*m': r'T\,m',
+    'T*m': r'T$\,$m',
     'm^-3': r'm$^{-3}$',
     'm/s^2': r'm/s$^2$',
     'm^2/s': r'm$^2$/s',
@@ -718,11 +718,11 @@ class Variable:
         Sets origin values to approximately zero
 
         Original values (rmin = 0) are multiplied by 1e-6 times the lowest
-        value (along the entire radius) at each time slice.  By doing this,
-        we avoid potential division by zero errors when performing
-        calculations.
+        absolute value (along the entire radius) at each time slice.  By
+        doing this, we avoid potential division by zero errors when
+        performing calculations.
         '''
-        self.values[0, :] = 1e-6 * self.values.min(axis=0)
+        self.values[0, :] = 1e-6 * np.absolute(self.values).min(axis=0)
 
     def check_for_nan(self):
         '''Checks for nan values and raises a ValueError if any are found'''
