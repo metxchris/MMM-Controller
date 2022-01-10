@@ -53,7 +53,6 @@ class PlotSettings:
     Settings to control various behaviors of the plot
 
     Parameters (all Optional):
-    * save_data_to_csv (bool): If plotted data should be saved to a CSV in the CSV subfolder
     * replace_offset_text (bool): If the offset axes text should be put in the axes labels
     * allow_title_runid (bool): If the runid is allowed to appear in the title
     * allow_title_time (bool): If the time is allowed to appear in the title
@@ -69,7 +68,6 @@ class PlotSettings:
     * xaxis_trim_padding (float): The amount to pad the trimmed xaxis limits when using rho values
     """
 
-    save_data_to_csv: bool = True
     replace_offset_text: bool = True
     allow_title_runid: bool = True
     allow_title_time: bool = True
@@ -835,9 +833,12 @@ def main(plot_settings, all_data):
             plt.gcf().canvas.draw()
 
         if event.key == "ctrl+c":  # copy figure to clipboard
-           with io.BytesIO() as buffer:
+            with io.BytesIO() as buffer:
                 plt.gcf().savefig(buffer)
                 QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
+
+        if event.key == 'alt+s':  # save plot lines to csv
+            all_data.save_to_csv()
 
     ax = plt.gca()
     plt.gcf().canvas.mpl_connect('key_press_event', on_press)
@@ -867,9 +868,6 @@ def main(plot_settings, all_data):
     if all_data.show_legend:
         ax.legend().set_draggable(state=True)
 
-    if plot_settings.save_data_to_csv:
-        all_data.save_to_csv()
-
     plt.show()
 
 
@@ -887,7 +885,6 @@ if __name__ == '__main__':
 
     # Define settings for the plot
     plot_settings = PlotSettings(
-        save_data_to_csv=False,
         replace_offset_text=True,
         allow_title_runid=True,
         allow_title_time=True,

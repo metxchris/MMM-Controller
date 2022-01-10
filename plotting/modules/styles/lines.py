@@ -5,11 +5,13 @@ from cycler import cycler
 from matplotlib.pyplot import rcParams
 
 # Local Packages
-import plotting.modules.plotstyles as ps
+import plotting.modules.plotstyles
 
 
 def init(style):
-    if style is ps.StyleType.Lines.MMM:
+    Lines = plotting.modules.plotstyles.StyleType.Lines
+
+    if style is Lines.MMM:
         prop_cycle = cycler(
             color=[
                 (0.094, 0.353, 0.663),  # Blue
@@ -37,7 +39,7 @@ def init(style):
             ],
         )
 
-    elif style is ps.StyleType.Lines.RHO_MMM:
+    elif style is Lines.RHO_MMM:
         '''
         There's a bug in MatPlotLib when saving PDF and EPS when specifying
         dashes as a blank line using (0, 1), where the legend label of a
@@ -132,7 +134,7 @@ def init(style):
             'lines.dotted_pattern': [3, 0.8, 1, 0.5, 1, 0.8],
         })
 
-    elif style is ps.StyleType.Lines.FTE:
+    elif style is Lines.FTE:
         prop_cycle = cycler(
             color=[
                 '#008fd5',

@@ -2,7 +2,7 @@
 from matplotlib.pyplot import rcParams
 
 # Local Packages
-import plotting.modules.plotstyles as ps
+import plotting.modules.plotstyles
 
 
 class Dimensions:
@@ -15,6 +15,7 @@ class Dimensions:
 
 
 def init(style):
+    Layout = plotting.modules.plotstyles.StyleType.Layout
 
     # General rcParams
     rcParams.update({
@@ -44,7 +45,7 @@ def init(style):
         'patch.linewidth': 0,  # legend frame line width
     })
 
-    if style is ps.StyleType.Layout.SINGLE1:
+    if style is Layout.SINGLE1:
         rcParams.update({
             'axes.formatter.limits': [-1, 2],  # Forces exponent notation below 1e-1 and above 1e2
             'axes.labelpad': 2,
@@ -63,7 +64,7 @@ def init(style):
             'ytick.labelsize': 7,
         })
 
-    elif style is ps.StyleType.Layout.SINGLE2:
+    elif style is Layout.SINGLE2:
         rcParams.update({
             'axes.labelpad': 2,
             'axes.labelsize': 8,
@@ -81,7 +82,7 @@ def init(style):
             'ytick.labelsize': 7.5,
         })
 
-    elif style is ps.StyleType.Layout.SINGLE3:
+    elif style is Layout.SINGLE3:
         rcParams.update({
             'axes.labelpad': 2,
             'axes.labelsize': 8.5,
@@ -99,7 +100,7 @@ def init(style):
             'ytick.labelsize': 8,
         })
 
-    elif style is ps.StyleType.Layout.GRID3X2:
+    elif style is Layout.GRID3X2:
         rcParams.update({
             'axes.labelpad': 2,
             'axes.labelsize': 10,
