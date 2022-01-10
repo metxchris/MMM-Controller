@@ -82,7 +82,8 @@ def gradient(gvar_name, var_name, drmin, calc_vars):
     if calc_vars.options.apply_smoothing:
         gvar.apply_smoothing()
 
-    gvar.clamp_gradient(100)  # TODO: should we be doing this?
+    gvar.set_origin_to_zero()
+    gvar.clamp_values(constants.MAX_GRADIENT)
     gvar.set_minvalue()
     gvar.check_for_nan()
 

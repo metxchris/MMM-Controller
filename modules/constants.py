@@ -13,6 +13,7 @@ RHO_VALUE_SEPARATOR = ' = '
 
 # Values
 ABSMIN_SCAN_FACTOR_VALUE = 1e-12
+MAX_GRADIENT = 1e3
 
 # Physical Constants
 PI = 3.1415926535

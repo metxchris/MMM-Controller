@@ -154,6 +154,11 @@ def main(scanned_vars, controls):
         utils.init_output_dirs(options)
 
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
+
+        # Base value adjustments (for testing)
+        # mmm_vars.gne.values *= 1e-8
+        # mmm_vars.gte.values *= 1e-8
+
         output_vars = mmm.run_wrapper(mmm_vars, controls)
 
         options.save()
@@ -205,17 +210,16 @@ if __name__ == '__main__':
     # scanned_vars['betae'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['btor'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etae'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.025)
+    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.025)
     # scanned_vars['gne'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['gnz'] = np.arange(start=0.05, stop=9 + 1e-6, step=0.05)
-    # scanned_vars['gte'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.05)
+    scanned_vars['gte'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['nuei'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['q'] = np.arange(start=0.6, stop=2.4 + 1e-6, step=0.015)
     # scanned_vars['shear'] = np.arange(start=-6.0, stop=6 + 1e-6, step=0.1)
-    # scanned_vars['tau'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['tau'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['zeff'] = np.arange(start=0.02, stop=4 + 1e-6, step=0.02)**2
-
-    scanned_vars['etgm_kyrhoe'] = np.arange(start=0.02, stop=12 + 1e-6, step=0.02)
 
     '''
     Options:

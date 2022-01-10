@@ -708,15 +708,21 @@ class Variable:
                 value_signs[value_signs == 0] = 1  # np.sign(0) = 0, so set these to +1
                 self.values[too_small] = self.absminvalue * value_signs
 
-    def clamp_gradient(self, max_val):
-        '''
-        Clamps values between -max_val and max_val, and sets origin value to
-        approximately 0
-        '''
+    def clamp_values(self, clamp_value):
+        '''Clamps values between -clamp_value and +clamp_value'''
+        self.values[self.values > clamp_value] = clamp_value
+        self.values[self.values < -clamp_value] = -clamp_value
 
-        self.values[0, :] = 1e-6
-        self.values[self.values > max_val] = max_val
-        self.values[self.values < -max_val] = -max_val
+    def set_origin_to_zero(self):
+        '''
+        Sets origin values to approximately zero
+
+        Original values (rmin = 0) are multiplied by 1e-6 times the lowest
+        value (along the entire radius) at each time slice.  By doing this,
+        we avoid potential division by zero errors when performing
+        calculations.
+        '''
+        self.values[0, :] = 1e-6 * self.values.min(axis=0)
 
     def check_for_nan(self):
         '''Checks for nan values and raises a ValueError if any are found'''

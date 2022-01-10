@@ -165,11 +165,17 @@ def run_plotting_loop(options, plotdata, profile_type, scan_factor):
 
         # Figure is full of subplots, so save the sheet
         if not (i + 1) % (dim.rows * dim.cols):
-            fig.savefig(utils.get_temp_path(f'{profile_type.name.lower()}_profiles_{int((i + 1) / 6)}.pdf'))
+            fig.savefig(
+                utils.get_temp_path(options.runid, options.scan_num,
+                                    f'{profile_type.name.lower()}_profiles_{int((i + 1) / 6)}.pdf')
+            )
 
     # Save any remaining subplots to one final sheet
     if (i + 1) % (dim.rows * dim.cols):
-        fig.savefig(utils.get_temp_path(f'{profile_type.name.lower()}_profiles_{int((i + 1) / 6) + 1}.pdf'))
+        fig.savefig(
+            utils.get_temp_path(options.runid, options.scan_num,
+                                f'{profile_type.name.lower()}_profiles_{int((i + 1) / 6) + 1}.pdf')
+        )
 
     merge_type = MergeType.PROFILES if not scan_factor else MergeType.PROFILEFACTORS
 
@@ -179,8 +185,8 @@ def run_plotting_loop(options, plotdata, profile_type, scan_factor):
     if settings.AUTO_OPEN_PDFS:
         utils.open_file(merged_pdf)
 
-    # Clear plots from memory
-    plt.close('all')
+    plt.close('all')  # Clear plots from memory
+    utils.clear_temp_folder(options)
 
 
 def get_compared_data(mmm_vars, cdf_vars):

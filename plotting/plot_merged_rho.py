@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # Standard Packages
 import sys; sys.path.insert(0, '../')
 import logging
@@ -73,7 +75,7 @@ def run_plotting_loop(vars_to_plot, options):
             plt.xlabel(f'{xvar.label}  {xvar.units_label}')
             plt.ylabel(f'{yvar.label}  {yvar.units_label}')
             plt.title(f'{yvar.name}'r' ($\rho = {0}$)'.format(rho_str))
-            fig.savefig(utils.get_temp_path(f'{profile_type} {sheet_num}.pdf'))
+            fig.savefig(utils.get_temp_path(options.runid, options.scan_num, f'{profile_type} {sheet_num}.pdf'))
             fig.clear()
 
         merged_pdf = utils.merge_profile_sheets(options, profile_type, MergeType.RHOVALUES)
@@ -119,10 +121,11 @@ def main(vars_to_plot, scan_data):
     for runid, scan_nums in scan_data.items():
         for scan_num in scan_nums:
             print(f'Initializing data for {runid}, scan {scan_num}...')
-            utils.clear_temp_folder()
             options.load(runid, scan_num)
+            utils.clear_temp_folder(options)
             if options.var_to_scan:
                 run_plotting_loop(vars_to_plot, options)
+                utils.clear_temp_folder(options)
             else:
                 _log.error(f'\n\tNo variable scan detected for {runid}, scan {scan_num}\n')
 
