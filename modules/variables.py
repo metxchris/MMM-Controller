@@ -511,9 +511,9 @@ class OutputVariables(Variables):
         # ETG Component
         self.xteETG = Variable('xteETG', units='m^2/s', label='xteETG')
         # MTM Components
-        self.xteMTM = Variable('xteMTM', units='m^2/s', label='xteMTM')
-        self.gmaMTM = Variable('gmaMTM', units='s^-1', label='gmaMTM')
-        self.omgMTM = Variable('omgMTM', units='s^-1', label='omgMTM')
+        self.xteMTM = Variable('xteMTM', units='m^2/s', label=r'$\chi_\mathrm{e, mtm}$')
+        self.gmaMTM = Variable('gmaMTM', units='s^-1', label=r'$\gamma_\mathrm{mtm}$')
+        self.omgMTM = Variable('omgMTM', units='s^-1', label=r'$\omega_\mathrm{mtm}$')
         # ETGM Components
         self.xteETGM = Variable('xteETGM', units='m^2/s', label=r'$\chi_\mathrm{e, etgm}$')
         self.xdiETGM = Variable('xdiETGM', units='m^2/s', label=r'$D_\mathrm{n, etgm}$')

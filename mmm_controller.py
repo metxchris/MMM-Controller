@@ -254,6 +254,8 @@ if __name__ == '__main__':
         etgm_exbs=0,
         etgm_kyrhoe_scan=0,
         etgm_use_gne_in=1,
+        mtm_kyrhos_loops=4000,
+        mtm_linert=1,
     )
 
     settings.AUTO_OPEN_PDFS = 0

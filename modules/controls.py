@@ -102,9 +102,14 @@ class InputControls:
         self.dribm_exbs = Control('dribm_exbs', 'ExB shear coefficient', values=1, vtype=float)
         self.dribm_kyrhos = Control('dribm_kyrhos', 'kyrhos', values=0.1, vtype=float, label=r'$k_y \rho_s$')
         # MTM options
-        self.mtm_kyrhos_loops = Control('mtm_kyrhos_loops', 'loop count for kyrhos scan', values=3000, vtype=int, label=r'$k_y/k_x$')
+        self.mtm_kyrhos_loops = Control('mtm_kyrhos_loops', 'loop count for kyrhos scan', values=3000, vtype=int)
+        self.mtm_capsw = Control('mtm_capsw', 'mtm_capsw', values=1, vtype=int)
+        self.mtm_linert = Control('mtm_linert', 'mtm_linert', values=1, vtype=int)
         self.mtm_ky_kx = Control('mtm_ky_kx', 'ky/kx for MTM', values=0.2, vtype=float, label=r'$k_y/k_x$')
         self.mtm_cf = Control('mtm_cf', 'calibration factor', values=1.0, vtype=float)
+        self.mtm_kyrhos_lower = Control('mtm_kyrhos_lower', 'lower limit of kyrhos scan', values=0.005, vtype=float)
+        self.mtm_kyrhos_upper = Control('mtm_kyrhos_upper', 'upper limit of kyrhos scan', values=8, vtype=float)
+        self.mtm_kyrhos = Control('mtm_kyrhos', 'kyrhos default value', values=0.25, vtype=float, label=r'$k_y \rho_s$')
         # ETG options
         self.etg_jenko_threshold = Control('etg_jenko_threshold', 'Jenko threshold', values=2, vtype=int)
         self.etg_cees_scale = Control('etg_cees_scale', 'CEES scale', values=0.06, vtype=float)
@@ -180,11 +185,16 @@ class InputControls:
             '!.. MTM integer options\n'
             'lMTM =\n'
             f'   {self.mtm_kyrhos_loops.get_value_str()}   ! kyrhos scan iterations\n'
+            f'   {self.mtm_capsw.get_value_str()}   ! capsw\n'
+            f'   {self.mtm_linert.get_value_str()}   ! inertia\n'
             '\n'
             '!.. MTM real options\n'
             'cMTM =\n'
             f'   {self.mtm_ky_kx.get_value_str()}   ! ky/kx for MTM\n'
             f'   {self.mtm_cf.get_value_str()}   ! calibration factor\n'
+            f'   {self.mtm_kyrhos_lower.get_value_str()}   ! lower limit of kyrhos scan\n'
+            f'   {self.mtm_kyrhos_upper.get_value_str()}   ! upper limit of kyrhos scan\n'
+            f'   {self.mtm_kyrhos.get_value_str()}   ! kyrhos default value (when not summing modes)\n'
             '\n'
             '!.. ETG integer options\n'
             'lETG =\n'
