@@ -237,6 +237,15 @@ def etai(calc_vars):
 
 
 @calculation
+def gave(calc_vars):
+    '''Average Magnetic Surface Curvature'''
+    shear = calc_vars.shear.values
+    alphamhd = calc_vars.alphamhd.values
+
+    return 2 / 3 + 5 / 9 * shear - 5 / 12 * alphamhd
+
+
+@calculation
 def gmax(calc_vars):
     '''Upper bound for ne, nh, te, and ti gradients in DRBM model (modmmm.f90)'''
     eps = calc_vars.eps.values
@@ -257,15 +266,6 @@ def gyrfi(calc_vars):
     btor = calc_vars.btor.values
 
     return zce * btor / (zcmp * aimass)
-
-
-@calculation
-def gave(calc_vars):
-    '''Average Magnetic Surface Curvature'''
-    shear = calc_vars.shear.values
-    alphamhd = calc_vars.alphamhd.values
-
-    return 2 / 3 + 5 / 9 * shear - 5 / 12 * alphamhd
 
 
 @calculation
@@ -447,7 +447,7 @@ def vthi(calc_vars):
     aimass = calc_vars.aimass.values
     ti = calc_vars.ti.values
 
-    return (zckb * ti / (zcmp * aimass))**(1 / 2)
+    return (2 * zckb * ti / (zcmp * aimass))**(1 / 2)
 
 
 @calculation
