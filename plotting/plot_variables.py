@@ -25,7 +25,6 @@ full list of parameters that can be specified when creating plots.
 
 # Standard Packages
 import sys; sys.path.insert(0, '../')
-from dataclasses import dataclass
 import logging
 import io
 
@@ -45,42 +44,6 @@ from plotting.modules.plotstyles import PlotStyles, StyleType
 
 
 _log = logging.getLogger(__name__)
-
-
-@dataclass
-class PlotSettings:
-    """
-    Settings to control various behaviors of the plot
-
-    Parameters (all Optional):
-    * replace_offset_text (bool): If the offset axes text should be put in the axes labels
-    * allow_title_runid (bool): If the runid is allowed to appear in the title
-    * allow_title_time (bool): If the time is allowed to appear in the title
-    * allow_title_rho (bool): If the rho value is allowed to appear in the title
-    * allow_title_factor (bool): If the scan factor is allowed to appear in the title
-    * invert_y_axis (bool): If the y-axis should be inverted
-    * invert_x_axis (bool): If the x-axis should be inverted
-    * title_override (str): Overrides auto generated title if non-empty
-    * ylabel_override (str): Overrides auto generated ylabel if non-empty
-    * xlabel_override (str): Overrides auto generated xlabel if non-empty
-    * yaxis_padding (float): The amount to pad the yaxis limits
-    * xaxis_padding (float): The amount to pad the xaxis limits
-    * xaxis_trim_padding (float): The amount to pad the trimmed xaxis limits when using rho values
-    """
-
-    replace_offset_text: bool = True
-    allow_title_runid: bool = True
-    allow_title_time: bool = True
-    allow_title_rho: bool = True
-    allow_title_factor: bool = True
-    invert_y_axis: bool = False
-    invert_x_axis: bool = False
-    title_override: str = ''
-    ylabel_override: str = ''
-    xlabel_override: str = ''
-    yaxis_padding: float = 0.01
-    xaxis_padding: float = 0.005
-    xaxis_trim_padding: float = 0.03
 
 
 class PlotData:
@@ -203,7 +166,7 @@ class PlotDataCdf(PlotData):
     * xname (str): The name of the x-variable to plot (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
     * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
-    * use_cdf_vars (bool): Uses uncalculated CDF variables instead of calculated MMM variables (Optional)
+    * transp_calcs (bool): Uses uncalculated TRANSP variables instead of calculated MMM variables (Optional)
     """
 
     def __init__(self, runid, time, yname, xname='rho', runname='', legend_override='', transp_calcs=False):
@@ -351,43 +314,84 @@ class AllPlotData:
     """
     Store all individual PlotData objects
 
-    Parameters:
-    * args (tuple[PlotData]): Contains PlotData objects to store
+    Initialization parameters determine plot settings and must be specified as
+    keyword arguments.  Plot data is set in a separate call using the set()
+    method.
+
+    Parameters (all optional keyword arguments):
+    * replace_offset_text (bool): If the offset axes text should be put in the axes labels
+    * allow_title_runid (bool): If the runid is allowed to appear in the title
+    * allow_title_time (bool): If the time is allowed to appear in the title
+    * allow_title_rho (bool): If the rho value is allowed to appear in the title
+    * allow_title_factor (bool): If the scan factor is allowed to appear in the title
+    * invert_y_axis (bool): If the y-axis should be inverted
+    * invert_x_axis (bool): If the x-axis should be inverted
+    * nomralize_y_axis (bool): If the y-axis should be normalized
+    * normalize_x_axis (bool): If the x-axis should be normalized
+    * title_override (str): Overrides auto generated title if non-empty
+    * ylabel_override (str): Overrides auto generated ylabel if non-empty
+    * xlabel_override (str): Overrides auto generated xlabel if non-empty
+    * yaxis_padding (float): The amount to pad the yaxis limits
+    * xaxis_padding (float): The amount to pad the xaxis limits
+    * xaxis_trim_padding (float): The amount to pad the trimmed xaxis limits when using rho values
     """
 
-    def __init__(self, *args):
+    def __init__(self, **kwargs):
+        self.replace_offset_text: bool = True
+        self.allow_title_runid: bool = True
+        self.allow_title_time: bool = True
+        self.allow_title_rho: bool = True
+        self.allow_title_factor: bool = True
+        self.invert_y_axis: bool = False
+        self.invert_x_axis: bool = False
+        self.nomralize_y_axis: bool = False
+        self.nomralize_x_axis: bool = False
+        self.title_override: str = ''
+        self.ylabel_override: str = ''
+        self.xlabel_override: str = ''
+        self.yaxis_padding: float = 0.01
+        self.xaxis_padding: float = 0.005
+        self.xaxis_trim_padding: float = 0.03
+
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                _log.warning(f'\n\t"{key}" is not a valid parameter when initializing AllPlotData')
+
+        self.data = None
+        self.legend_attrs = None
+        self.show_legend = None
+
+    def set(self, *args):
+        """
+        Set data for the plot
+
+        Parameters:
+        * args (tuple[PlotData]): Data to be plotted
+        """
+
         self.data: list[PlotData] = [a for a in args if isinstance(a, PlotData)]
 
-        # for d in self.data:
-        #     d.xval_base = (d.xval_base - min(d.xvals)) / (max(d.xvals) - min(d.xvals))
-        #     d.xvals = (d.xvals - min(d.xvals)) / (max(d.xvals) - min(d.xvals))
+        if self.nomralize_y_axis:
+            for d in self.data:
+                if min(d.yvals) != max(d.yvals):
+                    d.yval_base = (d.yval_base - min(d.yvals)) / (max(d.yvals) - min(d.yvals))
+                    d.yvals = (d.yvals - min(d.yvals)) / (max(d.yvals) - min(d.yvals))
+                else:
+                    d.yval_base = 0
+                    d.yvals[:] = 0
 
-        #     if min(d.yvals) != max(d.yvals):
-        #         d.yval_base = (d.yval_base - min(d.yvals)) / (max(d.yvals) - min(d.yvals))
-        #         d.yvals = (d.yvals - min(d.yvals)) / (max(d.yvals) - min(d.yvals))
+        if self.nomralize_x_axis:
+            for d in self.data:
+                if min(d.xvals) != max(d.xvals):
+                    d.xval_base = (d.xval_base - min(d.xvals)) / (max(d.xvals) - min(d.xvals))
+                    d.xvals = (d.xvals - min(d.xvals)) / (max(d.xvals) - min(d.xvals))
+                else:
+                    d.xval_base = 0
+                    d.xvals[:] = 0
 
-            # else:
-            #     d.yval_base = 0
-            #     d.yvals[:] = 0
-
-        # Store whether each attribute should be included in the legend
-        self.legend_attrs: dict[str, bool] = {
-            'show_ysymbol': self.get_legend_include('ysymbol'),
-            'show_xsymbol': self.get_legend_include('xsymbol'),
-            'show_runid': self.get_legend_include('runid'),
-            'show_runname': self.get_legend_include('runname'),
-            'show_time': self.get_legend_include('time'),
-            'show_rho': self.get_legend_include('rho'),
-            'show_factor': self.get_legend_include('factor'),
-            'show_factor_symbol': self.get_legend_include('factor_symbol'),
-            'show_is_cdf': self.get_legend_include('is_cdf'),
-            'show_is_csv': self.get_legend_include('is_csv'),
-            'show_calc_source': self.get_legend_include('transp_calcs'),
-            'show_override': self.get_legend_include('legend_override'),
-        }
-
-        self.show_legend: bool = np.array([v for v in self.legend_attrs.values()]).any()
-
+        self._init_legend_dict()
         self._update_rho_str()
 
     @staticmethod
@@ -419,6 +423,25 @@ class AllPlotData:
             offset_text = offset_text.replace(number_str, number)
 
         return f' {offset_text}'
+
+    def _init_legend_dict(self):
+        """Store whether each attribute should be shown in the legend"""
+        self.legend_attrs: dict[str, bool] = {
+            'show_ysymbol': self.get_legend_include('ysymbol'),
+            'show_xsymbol': self.get_legend_include('xsymbol'),
+            'show_runid': self.get_legend_include('runid'),
+            'show_runname': self.get_legend_include('runname'),
+            'show_time': self.get_legend_include('time'),
+            'show_rho': self.get_legend_include('rho'),
+            'show_factor': self.get_legend_include('factor'),
+            'show_factor_symbol': self.get_legend_include('factor_symbol'),
+            'show_is_cdf': self.get_legend_include('is_cdf'),
+            'show_is_csv': self.get_legend_include('is_csv'),
+            'show_calc_source': self.get_legend_include('transp_calcs'),
+            'show_override': self.get_legend_include('legend_override'),
+        }
+
+        self.show_legend: bool = np.array([v for v in self.legend_attrs.values()]).any()
 
     def _update_rho_str(self):
         """
@@ -524,7 +547,7 @@ class AllPlotData:
 
         return len(attrs) > 1
 
-    def get_plot_limits(self, plot_settings):
+    def get_plot_limits(self):
         """
         Get the limits of the plot, adjusted by padding parameters set in plot settings
 
@@ -535,9 +558,6 @@ class AllPlotData:
         something like 5% on each axis, so setting padding values smaller
         than this value will produce tighter plots than what would be created
         if the padding wasn't adjusted.
-
-        Parameters:
-        * plot_settings (PlotSettings): Plot settings object
 
         Returns:
         * xlims (tuple[float]): The x-axis limits of the plot
@@ -550,7 +570,8 @@ class AllPlotData:
                 offset = (maxval - minval) * padding
                 minval, maxval = minval - offset, maxval + offset
             else:
-                minval, maxval = 0, 1  # default values
+                minval -= 1  # default values
+                maxval += 1
             return (minval, maxval) if not invert_axis else (maxval, minval)
 
         all_xvals = np.hstack([d.xvals for d in self.data])
@@ -567,12 +588,12 @@ class AllPlotData:
         #     xmin = max(xmin, xmin_trim - xoffset_trim)  # Keep trimmed xmin >= actual xmin
         #     xmax = min(xmax, xmax_trim + xoffset_trim)  # Keep trimmed xmax <= actual xmax
 
-        xlims = get_lims(xmin, xmax, plot_settings.xaxis_padding, plot_settings.invert_x_axis)
-        ylims = get_lims(ymin, ymax, plot_settings.yaxis_padding, plot_settings.invert_y_axis)
+        xlims = get_lims(xmin, xmax, self.xaxis_padding, self.invert_x_axis)
+        ylims = get_lims(ymin, ymax, self.yaxis_padding, self.invert_y_axis)
 
         return xlims, ylims
 
-    def get_plot_title(self, plot_settings):
+    def get_plot_title(self):
         """
         Get the title for the plot
 
@@ -587,15 +608,12 @@ class AllPlotData:
         corresponding attribute.  Possible details are: runid, time, scan
         factor, rho value.
 
-        Parameters:
-        * plot_settings (PlotSettings): Plot settings object
-
         Returns:
         * (str): The title for the plot
         """
 
-        base_title = (plot_settings.title_override or self._generate_unique_title()).strip()
-        title_details = self._get_title_details(plot_settings)
+        base_title = (self.title_override or self._generate_unique_title()).strip()
+        title_details = self._get_title_details()
 
         if base_title and title_details:
             title_details = f' ({title_details})'
@@ -645,7 +663,7 @@ class AllPlotData:
 
         return ' '.join(title_words)
 
-    def _get_title_details(self, plot_settings):
+    def _get_title_details(self):
         """
         Get the title details
 
@@ -656,18 +674,15 @@ class AllPlotData:
         variables share the same runid, then the runid is added to the
         title.
 
-        Parameters:
-        * plot_settings (PlotSettings): Plot settings object
-
         Returns:
         * (str): The details to add to the title
         """
 
         title_details_list = []
-        allow_runid = plot_settings.allow_title_runid
-        allow_time = plot_settings.allow_title_time
-        allow_rho = plot_settings.allow_title_rho
-        allow_factor = plot_settings.allow_title_factor
+        allow_runid = self.allow_title_runid
+        allow_time = self.allow_title_time
+        allow_rho = self.allow_title_rho
+        allow_factor = self.allow_title_factor
 
         if allow_runid or allow_time or allow_rho:
             var = self.data[0]  # use first variable values for title details (same for all variables)
@@ -687,7 +702,7 @@ class AllPlotData:
 
         return f'{", ".join(title_details_list)}' if title_details_list else ''
 
-    def get_plot_ylabel(self, plot_settings, offset_text):
+    def get_plot_ylabel(self, offset_text):
         """
         Get the yaxis label for the plot
 
@@ -698,7 +713,6 @@ class AllPlotData:
         added to the ylabel.
 
         Parameters:
-        * plot_settings (PlotSettings): Plot settings object
         * offset_text (str): The offset text from the y-axis of the plot
 
         Returns:
@@ -707,8 +721,8 @@ class AllPlotData:
 
         offset_text = self._format_offset_text(offset_text)
 
-        if plot_settings.ylabel_override:
-            return f'{plot_settings.ylabel_override}{offset_text}'
+        if self.ylabel_override:
+            return f'{self.ylabel_override}{offset_text}'
 
         ylabels = []  # Not using a set to preserve order
         for d in self.data:
@@ -722,9 +736,13 @@ class AllPlotData:
                 ylabels.append(units_str)
 
         joined_labels = r'$\!$,  '.join(ylabels)  # small negative space before each comma
+
+        if self.nomralize_y_axis:
+            joined_labels = f'{joined_labels} (normalized)'
+
         return f'{joined_labels}{offset_text}'
 
-    def get_plot_xlabel(self, plot_settings, offset_text):
+    def get_plot_xlabel(self, offset_text):
         """
         Get the xaxis label for the plot
 
@@ -733,7 +751,6 @@ class AllPlotData:
         added to the ylabel (the same units aren't repeated).
 
         Parameters:
-        * plot_settings (PlotSettings): Plot settings object
         * offset_text (str): The offset text from the x-axis of the plot
 
         Returns:
@@ -742,8 +759,8 @@ class AllPlotData:
 
         offset_text = self._format_offset_text(offset_text)
 
-        if plot_settings.xlabel_override:
-            return f'{plot_settings.xlabel_override}{offset_text}'
+        if self.xlabel_override:
+            return f'{self.xlabel_override}{offset_text}'
 
         xlabels = []  # Not using a set to preserve order
         for d in self.data:
@@ -752,6 +769,10 @@ class AllPlotData:
                 xlabels.append(xstr)
 
         joined_labels = r'$\!$,  '.join(xlabels)  # small negative space before each comma
+
+        if self.nomralize_x_axis:
+            joined_labels = f'{joined_labels} (normalized)'
+
         return f'{joined_labels}{offset_text}'
 
     def save_to_csv(self):
@@ -805,7 +826,7 @@ class AllPlotData:
         print(f'Plot Data Saved:\n\t{file_name}\n')  # Intentionally not using logging
 
 
-def main(plot_settings, all_data):
+def main(all_data):
     """
     Create a plot using data loaded from CDF files
 
@@ -819,7 +840,6 @@ def main(plot_settings, all_data):
     directly increment the cycler.
 
     Parameters:
-    * plot_settings (PlotSettings): Object containing plot settings
     * all_data (AllPlotData): Object containing all PlotData objects
     """
 
@@ -847,12 +867,12 @@ def main(plot_settings, all_data):
         ax.plot(d.xvals, d.yvals, label=all_data.get_legend_label(d))
         ax.plot(d.xval_base, d.yval_base, zorder=3)  # Advance the cycler when base values are empty lists
 
-    xlims, ylims = all_data.get_plot_limits(plot_settings)
+    xlims, ylims = all_data.get_plot_limits()
 
     ax.set(xlim=xlims, ylim=ylims)  # lims need to be set before getting offsetText
 
     offset_text_x = offset_text_y = ''
-    if plot_settings.replace_offset_text:
+    if all_data.replace_offset_text:
         plt.gcf().canvas.draw()  # needed to populate the offsetText string
         ax.xaxis.offsetText.set_visible(False)
         ax.yaxis.offsetText.set_visible(False)
@@ -860,9 +880,9 @@ def main(plot_settings, all_data):
         offset_text_y = ax.yaxis.offsetText.get_text()
 
     ax.set(
-        title=all_data.get_plot_title(plot_settings),
-        xlabel=all_data.get_plot_xlabel(plot_settings, offset_text_x),
-        ylabel=all_data.get_plot_ylabel(plot_settings, offset_text_y),
+        title=all_data.get_plot_title(),
+        xlabel=all_data.get_plot_xlabel(offset_text_x),
+        ylabel=all_data.get_plot_ylabel(offset_text_y),
     )
 
     if all_data.show_legend:
@@ -880,11 +900,11 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.GRAY,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE2,
+        layout=StyleType.Layout.SINGLE1,
     )
 
     # Define settings for the plot
-    plot_settings = PlotSettings(
+    all_data = AllPlotData(
         replace_offset_text=True,
         allow_title_runid=True,
         allow_title_time=True,
@@ -892,13 +912,15 @@ if __name__ == '__main__':
         allow_title_rho=True,
         invert_y_axis=False,
         invert_x_axis=False,
+        nomralize_y_axis=True,
+        nomralize_x_axis=True,
         title_override=' ',
         ylabel_override='',
         xlabel_override='',
     )
 
     # Define data for the plot
-    all_data = AllPlotData(
+    all_data.set(
         # CDF: Same y-variable, different x-variables
         # PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
         # PlotDataCdf(runid='138536A01', yname='te', xname='xb', time=0.50),
@@ -924,14 +946,21 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=17, legend_override='exbs = 0'),
         # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=54, legend_override='exbs = 1'),
         # # CSV: Growth rate vs Effective Charge
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.15),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.63),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etae', scan_num=35, rho_value=0.10),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=39, rho_value=0.8, legend_override='gte  3, gne  1'),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=36, rho_value=0.8, legend_override='gte  2, gne  0'),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=38, rho_value=0.8, legend_override='gte  1, gne -1'),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=37, rho_value=0.8, legend_override='gte  0, gne -2'),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=40, rho_value=0.8, legend_override='gte -1, gne -3'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etae', scan_num=35, rho_value=0.10),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=47, rho_value=0.1, legend_override=r'$\mathtt{tau\_scan}$'),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=48, rho_value=0.1, legend_override=r'$\mathtt{te\_scan}$'),
+        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=49, rho_value=0.1, legend_override=r'$\mathtt{ti\_scan}$'),
         # CSV: Growth rate vs Average Magnetic Surface Curvature
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.20, runname=''),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.60, runname=''),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.39, runname=r'OLD'),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=55, rho_value=0.39, runname=r'NEW'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.39, runname=r'OLD'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=55, rho_value=0.39, runname=r'NEW'),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.61, runname=''),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.62, runname=''),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.7, runname=''),
@@ -940,4 +969,4 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='var_to_scan', scan_num=3, rho_value=0.3),
     )
 
-    main(plot_settings, all_data)
+    main(all_data)

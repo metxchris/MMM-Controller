@@ -325,9 +325,16 @@ def _adjust_etae(mmm_vars, scan_factor):
 
     t = mmm_vars.options.time_idx
     adjusted_vars = datahelper.deepcopy_data(mmm_vars)
+
     adjustment_total = scan_factor**(1 / 2)  # based on the formula for etae
     adjusted_vars.gte.values *= adjustment_total
     adjusted_vars.gne.values /= adjustment_total
+
+    # adjusted_vars.gte.values *= scan_factor**(3 / 2)
+    # adjusted_vars.gne.values *= scan_factor**(1 / 2)
+
+    # adjusted_vars.gte.values /= scan_factor**(1 / 2)
+    # adjusted_vars.gne.values /= scan_factor**(3 / 2)
 
     calculations.calculate_additional_variables(adjusted_vars)
 
@@ -412,6 +419,13 @@ def _adjust_betae(mmm_vars, scan_factor):
     adjusted_vars.nd.values *= adjustment_total
     adjusted_vars.nz.values *= adjustment_total
     adjusted_vars.nf.values *= adjustment_total
+
+    # NEW: Keep alphamhd constant
+    # adjusted_vars.ti.values *= adjustment_total
+    # adjusted_vars.gte.values /= scan_factor
+    # adjusted_vars.gti.values /= scan_factor
+    # adjusted_vars.gne.values /= scan_factor
+    # adjusted_vars.gni.values /= scan_factor
 
     calculations.calculate_base_variables(adjusted_vars)
     calculations.calculate_additional_variables(adjusted_vars)
