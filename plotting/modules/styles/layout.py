@@ -55,7 +55,7 @@ def init(style):
             'figure.figsize': [2.5, 2.08],
             'figure.subplot.bottom': 0.16,
             'figure.subplot.hspace': 0.38,
-            'figure.subplot.left': 0.16,
+            'figure.subplot.left': 0.17,
             'figure.subplot.right': 0.94,
             'figure.subplot.top': 0.9,
             'figure.subplot.wspace': 0.22,
