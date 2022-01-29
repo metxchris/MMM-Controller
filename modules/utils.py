@@ -26,6 +26,7 @@ import output
 import cdfs
 import settings
 import plotting.csv
+import plotting.singles
 import modules.constants as constants
 from modules.enums import MergeType
 
@@ -59,6 +60,11 @@ def get_output_path():
 def get_plotting_csv_path():
     '''Returns (str): the path to the output folder'''
     return f'{os.path.dirname(plotting.csv.__file__)}'
+
+
+def get_plotting_singles_path():
+    '''Returns (str): the path to the output folder'''
+    return f'{os.path.dirname(plotting.singles.__file__)}'
 
 
 def get_runid_path(runid):

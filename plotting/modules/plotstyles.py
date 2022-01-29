@@ -54,7 +54,9 @@ class StyleType:
         NONE = 0
         MMM = 1
         FTE = 2
-        RHO_MMM = 3
+        MAGMA = 3
+        RHO_MMM = 4
+        RHO_MAGMA = 5
 
     class Layout(Enum):
         '''
@@ -70,8 +72,9 @@ class StyleType:
         NONE = 0
         GRID3X2 = 1
         SINGLE1 = 2
-        SINGLE2 = 3
-        SINGLE3 = 4
+        SINGLE1B = 3
+        SINGLE2 = 4
+        SINGLE3 = 5
 
 
 class PlotStyles:

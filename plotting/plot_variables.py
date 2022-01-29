@@ -68,7 +68,7 @@ class PlotData:
     * scan_factor (str | None): The scan factor value to plot (Optional)
     * rho_value (str | None): The rho value to plot (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
-    * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
+    * legend (str): A string to replace the auto generated legend label of a y-variable (Optional)
 
     Raises:
     * ValueError: If values for the x-variable or y-variable are None
@@ -76,7 +76,7 @@ class PlotData:
 
     def __init__(self, options, runid, yname, xname, yvar, xvar, yval_base=None, xval_base=None,
                  transp_calcs=False, is_cdf=False, is_csv=False, factor_symbol=None, scan_factor=None,
-                 rho_value=None, runname='', legend_override=''):
+                 rho_value=None, runname='', legend=''):
         self.xvals: np.ndarray = self._get_values(xvar.values, options.time_idx)
         self.yvals: np.ndarray = self._get_values(yvar.values, options.time_idx)
         self.xval_base: list[float] = xval_base or []  # plotting an empty list advances the cycler
@@ -95,7 +95,7 @@ class PlotData:
         self.rho: str | None = rho_value
         self.factor: str | None = scan_factor
         self.factor_symbol: str | None = factor_symbol
-        self.legend_override: str = legend_override
+        self.legend: str = legend
         self.transp_calcs: bool = transp_calcs
         self.is_cdf: bool = is_cdf
         self.is_csv: bool = is_csv
@@ -165,12 +165,17 @@ class PlotDataCdf(PlotData):
     * yname (str): The name of the y-variable to plot
     * xname (str): The name of the x-variable to plot (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
-    * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
+    * legend (str): A string to replace the auto generated legend label of a y-variable (Optional)
     * transp_calcs (bool): Uses uncalculated TRANSP variables instead of calculated MMM variables (Optional)
+    * input_points (int): the amount of radial points each variable is interpolated to when sent to MMM (Optional)
+    * apply_smoothing (bool): kill-switch to disable smoothing of all variables (Optional)
+    * uniform_rho (bool): interpolate input variables onto a rho of uniform spacing (Optional)
     """
 
-    def __init__(self, runid, time, yname, xname='rho', runname='', legend_override='', transp_calcs=False):
-        options = modules.options.Options(runid=runid, input_time=time)
+    def __init__(self, runid, time, yname, xname='rho', runname='', legend='', transp_calcs=False,
+                 input_points=None, apply_smoothing=False, uniform_rho=False):
+        options = modules.options.Options(runid=runid, input_time=time, input_points=input_points,
+                                          apply_smoothing=apply_smoothing, uniform_rho=uniform_rho)
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
         plot_vars = mmm_vars if not transp_calcs else cdf_vars
 
@@ -178,7 +183,7 @@ class PlotDataCdf(PlotData):
         xvar = getattr(plot_vars, xname)
 
         super().__init__(options, runid, yname, xname, yvar, xvar, transp_calcs=transp_calcs, is_cdf=True,
-                         runname=runname, legend_override=legend_override)
+                         runname=runname, legend=legend)
 
 
 class PlotDataCsv(PlotData):
@@ -201,11 +206,11 @@ class PlotDataCsv(PlotData):
     * scan_factor (float): The scan factor of the CSV to load (Optional)
     * rho_value (float): The rho value of the CSV to load (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
-    * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
+    * legend (str): A string to replace the auto generated legend label of a y-variable (Optional)
     """
 
     def __init__(self, runid, scan_num, yname, xname='rho',
-                 scan_factor=None, rho_value=None, runname='', legend_override=''):
+                 scan_factor=None, rho_value=None, runname='', legend=''):
 
         options = modules.options.Options().load(runid, scan_num)
         scan_factor_str = None
@@ -225,7 +230,7 @@ class PlotDataCsv(PlotData):
 
         super().__init__(options, runid, yname, xname, yvar, xvar, factor_symbol=factor_symbol,
                          is_csv=True, yval_base=yval_base, xval_base=xval_base, rho_value=rho_value,
-                         scan_factor=scan_factor_str, runname=runname, legend_override=legend_override)
+                         scan_factor=scan_factor_str, runname=runname, legend=legend)
 
     @staticmethod
     def _get_vars_from_data(options, scan_factor, rho_value, yname, xname):
@@ -438,7 +443,7 @@ class AllPlotData:
             'show_is_cdf': self.get_legend_include('is_cdf'),
             'show_is_csv': self.get_legend_include('is_csv'),
             'show_calc_source': self.get_legend_include('transp_calcs'),
-            'show_override': self.get_legend_include('legend_override'),
+            'show_override': self.get_legend_include('legend'),
         }
 
         self.show_legend: bool = np.array([v for v in self.legend_attrs.values()]).any()
@@ -501,8 +506,8 @@ class AllPlotData:
         * (str): The legend label for the variable
         """
 
-        if plotdata.legend_override:
-            return plotdata.legend_override
+        if plotdata.legend:
+            return plotdata.legend
 
         legend_items = []
         if self.legend_attrs['show_ysymbol'] and not self.legend_attrs['show_xsymbol']:
@@ -826,7 +831,7 @@ class AllPlotData:
         print(f'Plot Data Saved:\n\t{file_name}\n')  # Intentionally not using logging
 
 
-def main(all_data):
+def main(all_data, autosave=False):
     """
     Create a plot using data loaded from CDF files
 
@@ -841,27 +846,32 @@ def main(all_data):
 
     Parameters:
     * all_data (AllPlotData): Object containing all PlotData objects
+    * autosave (bool): Automatically save the plot without showing it if True
     """
 
     def on_press(event):
         if event.key == 'x':  # flip x-axis limits
             plt.xlim(plt.xlim()[::-1])
-            plt.gcf().canvas.draw()
+            fig.canvas.draw()
 
         if event.key == 'y':  # flip y-axis limits
             plt.ylim(plt.ylim()[::-1])
-            plt.gcf().canvas.draw()
+            fig.canvas.draw()
 
         if event.key == "ctrl+c":  # copy figure to clipboard
+            save_format = plt.rcParams['savefig.format']
+            plt.rcParams.update({'savefig.format': 'png'})
             with io.BytesIO() as buffer:
-                plt.gcf().savefig(buffer)
+                fig.savefig(buffer)
                 QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
+                plt.rcParams.update({'savefig.format': save_format})
 
         if event.key == 'alt+s':  # save plot lines to csv
             all_data.save_to_csv()
 
-    ax = plt.gca()
-    plt.gcf().canvas.mpl_connect('key_press_event', on_press)
+    fig, ax = plt.gcf(), plt.gca()
+    # ax.set(yscale='log')
+    fig.canvas.mpl_connect('key_press_event', on_press)
 
     for d in all_data.data:
         ax.plot(d.xvals, d.yvals, label=all_data.get_legend_label(d))
@@ -873,7 +883,7 @@ def main(all_data):
 
     offset_text_x = offset_text_y = ''
     if all_data.replace_offset_text:
-        plt.gcf().canvas.draw()  # needed to populate the offsetText string
+        fig.canvas.draw()  # needed to populate the offsetText string
         ax.xaxis.offsetText.set_visible(False)
         ax.yaxis.offsetText.set_visible(False)
         offset_text_x = ax.xaxis.offsetText.get_text()
@@ -888,7 +898,14 @@ def main(all_data):
     if all_data.show_legend:
         ax.legend().set_draggable(state=True)
 
-    plt.show()
+    if autosave:
+        ynames = ''.join([d.yname for d in all_data.data])
+        savename = f'{utils.get_plotting_singles_path()}\\{ynames}'
+        fig.savefig(savename)
+        fig.clear()
+
+    else:
+        plt.show()
 
 
 if __name__ == '__main__':
@@ -898,22 +915,22 @@ if __name__ == '__main__':
 
     # Initialize visual styles for the plot
     PlotStyles(
-        axes=StyleType.Axes.GRAY,
+        axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE1,
+        layout=StyleType.Layout.SINGLE1B,
     )
 
     # Define settings for the plot
     all_data = AllPlotData(
-        replace_offset_text=True,
+        replace_offset_text=False,
         allow_title_runid=True,
         allow_title_time=True,
         allow_title_factor=True,
         allow_title_rho=True,
         invert_y_axis=False,
         invert_x_axis=False,
-        nomralize_y_axis=True,
-        nomralize_x_axis=True,
+        nomralize_y_axis=False,
+        nomralize_x_axis=False,
         title_override=' ',
         ylabel_override='',
         xlabel_override='',

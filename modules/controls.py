@@ -121,6 +121,7 @@ class InputControls:
         self.etgm_kyrhos = Control('etgm_kyrhos', 'kyrhos', values=0.33, vtype=float, label=r'$k_y \rho_s$')
         self.etgm_kyrhoe_scan = Control('etgm_kyrhoe_scan', 'Kyrhoe Scan Switch', values=1, vtype=int)
         self.etgm_use_gne_in = Control('etgm_use_gne_in', 'Use gne from input', values=0, vtype=int)
+        self.etgm_shear_type = Control('etgm_shear_type', 'shear switch', values=0, vtype=int)
         # Verbose level
         self.lprint = Control('lprint', 'Verbose Level', values=0, vtype=int)
 
@@ -149,7 +150,10 @@ class InputControls:
         * TypeError: If input_points.values is of type np.ndarray
         '''
 
-        if self.input_points.values is None:
+        if not self.input_points.values and self.options.input_points:
+            self.input_points.values = self.options.input_points
+
+        if not self.input_points.values:
             raise TypeError('input_points must be set to generate the MMM header')
         if isinstance(self.input_points.values, np.ndarray):
             raise TypeError('Unable to create MMM header for controls loaded with array values')
@@ -209,7 +213,8 @@ class InputControls:
             'lETGM =\n'
             f'   {self.etgm_cl.get_value_str()}  ! 0 Collisionless and 1 collisional limit\n'
             f'   {self.etgm_kyrhoe_scan.get_value_str()}  ! 1 kyrhoe scan and 0 without kyrhoe scan\n'
-            f'   {self.etgm_use_gne_in.get_value_str()}  ! Calculate gne internally if 0, use gne from input if 1\n'
+            f'   {self.etgm_use_gne_in.get_value_str()}  ! 0: gne internally, 1: gne from input\n'
+            f'   {self.etgm_shear_type.get_value_str()}  ! 0: s = shear, 1: s = shat_kappa, 2: s = shat_nablarho\n'
             '\n'
             '!.. ETGM real options\n'
             'cETGM =\n'

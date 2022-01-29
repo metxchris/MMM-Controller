@@ -43,6 +43,7 @@ def init(style):
         'lines.dash_joinstyle': 'round',
         'lines.dash_capstyle': 'butt',
         'patch.linewidth': 0,  # legend frame line width
+        'savefig.format': 'pdf',
     })
 
     if style is Layout.SINGLE1:
@@ -60,6 +61,25 @@ def init(style):
             'figure.subplot.top': 0.9,
             'figure.subplot.wspace': 0.22,
             'legend.fontsize': 7,
+            'xtick.labelsize': 7,
+            'ytick.labelsize': 7,
+        })
+
+    if style is Layout.SINGLE1B:
+        rcParams.update({
+            'axes.formatter.limits': [-1, 2],  # Forces exponent notation below 1e-1 and above 1e2
+            'axes.labelpad': 2,
+            'axes.labelsize': 9,
+            'axes.titlesize': 8,
+            'axes.titlepad': 4,
+            'figure.figsize': [2.5, 2.08],
+            'figure.subplot.bottom': 0.16,
+            'figure.subplot.hspace': 0.38,
+            'figure.subplot.left': 0.17,
+            'figure.subplot.right': 0.94,
+            'figure.subplot.top': 0.9,
+            'figure.subplot.wspace': 0.22,
+            'legend.fontsize': 8,
             'xtick.labelsize': 7,
             'ytick.labelsize': 7,
         })

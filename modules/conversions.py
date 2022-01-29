@@ -54,6 +54,8 @@ def _convert_units(input_var):
     units = input_var.units
     if units == 'CM':
         input_var.set(values=input_var.values / 100, units='m')
+    elif units == 'CM**-1':
+        input_var.set(values=input_var.values * 100, units='m^-1')
     elif units == 'CM/SEC':
         input_var.set(values=input_var.values / 100, units='m/s')
     elif units == 'N/CM**3':
@@ -76,6 +78,8 @@ def _convert_units(input_var):
         input_var.set(units='s')
     elif units == 'TESLA':
         input_var.set(units='T')
+    elif units == 'WEBERS':
+        input_var.set(units='T*m^2')
 
 
 def _interp_to_boundarygrid(input_var, xvals):

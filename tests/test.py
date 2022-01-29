@@ -1,14 +1,19 @@
 # Standard Packages
 import sys
 sys.path.insert(0, '../')
+import io
 
 # 3rd Party Packages
 import numpy as np 
 import matplotlib.pyplot as plt
 import scipy.ndimage
+from PyQt5.QtGui import QImage
+from PyQt5.QtWidgets import QApplication
 
 # Local Packages
-from main.options import Options
+from modules.options import Options
+from plotting.modules.plotstyles import PlotStyles, StyleType
+import modules.datahelper as datahelper
 
 
 def movingaverage_test():
@@ -51,8 +56,75 @@ def plot_etai(vars):
     plt.show()
 
 
+def plot_bunit(vars):
+    t = vars.options.time_idx
+    bunit_cesar = [5.125e-01,5.081e-01,5.080e-01,5.128e-01,5.232e-01,5.382e-01,5.570e-01,5.781e-01,6.009e-01,6.283e-01,6.660e-01,7.212e-01,8.000e-01,9.054e-01,1.025e+00,1.138e+00,1.259e+00]
+    ra_cesar = [1.000e-01,1.500e-01,2.000e-01,2.500e-01,3.000e-01,3.500e-01,4.000e-01,4.500e-01,5.000e-01,5.500e-01,6.000e-01,6.500e-01,7.000e-01,7.500e-01,8.000e-01,8.500e-01,9.000e-01]
+    rho = vars.rho.values[:, t]
+
+    # plt.plot(rho, vars.gti.values[:,0], rho, gTI)
+    # plt.plot(rho, vars.gni.values[:,0], rho, gNI)
+    # btor0 * rho[1:, :] / rmin[1:, :] * dxrho[1:, :]
+    # rho = (bftor / btor0 / (3.1415926535))**(1 / 2)
+    plt.plot(rho, vars.bunit.values[:, t], label=r"$B_0\, \dfrac{\rho}{r}\, \dfrac{d\rho}{dr};\, \rho = \sqrt{\chi / (\pi B_0)}$")
+    plt.plot(rho, vars.bunit3.values[:, t], label=r"$\dfrac{\hat{\rho}}{\pi r} \chi_\mathrm{B} \nabla\rho$")
+    plt.plot(ra_cesar, bunit_cesar, label="Cesar")
+    plt.xlabel('r/a')
+    plt.ylabel(r'$B_\mathrm{unit}$ (T)')
+    plt.legend()
+    plt.show()
+
+def plot_betae(vars):
+    t = vars.options.time_idx
+    betae_cesar = [1.664e+01,1.647e+01,1.606e+01,1.541e+01,1.457e+01,1.359e+01,1.245e+01,1.131e+01,1.031e+01,9.475e+00,8.651e+00,7.813e+00,6.922e+00,5.951e+00,4.804e+00,3.506e+00,2.343e+00]
+    ra_cesar = [1.000e-01,1.500e-01,2.000e-01,2.500e-01,3.000e-01,3.500e-01,4.000e-01,4.500e-01,5.000e-01,5.500e-01,6.000e-01,6.500e-01,7.000e-01,7.500e-01,8.000e-01,8.500e-01,9.000e-01]
+    rho = vars.rho.values[:, t]
+
+    # plt.plot(rho, vars.gti.values[:,0], rho, gTI)
+    # plt.plot(rho, vars.gni.values[:,0], rho, gNI)
+    plt.plot(rho, vars.betae.values[:, t], label="MMM")
+    plt.plot(ra_cesar, np.array(betae_cesar) / 100, label="Cesar")
+    plt.xlabel('r/a')
+    plt.ylabel(r'$\beta_\mathrm{e}$')
+    plt.legend()
+    plt.show()
+
+def on_press(event):
+    fig, ax = plt.gcf(), plt.gca()
+
+    if event.key == 'x':  # flip x-axis limits
+        plt.xlim(plt.xlim()[::-1])
+        fig.canvas.draw()
+
+    if event.key == 'y':  # flip y-axis limits
+        plt.ylim(plt.ylim()[::-1])
+        fig.canvas.draw()
+
+    if event.key == "ctrl+c":  # copy figure to clipboard
+        save_format = plt.rcParams['savefig.format']
+        plt.rcParams.update({'savefig.format': 'png'})
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
+            plt.rcParams.update({'savefig.format': save_format})
+
+
 if __name__ == '__main__':
-    ...
+
+    PlotStyles(
+        axes=StyleType.Axes.WHITE,
+        lines=StyleType.Lines.MMM,
+        layout=StyleType.Layout.SINGLE1,
+    )
+
+    options = Options(runid='120968A02', input_time=0.56)
+    mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
+
+    plt.figure()
+    plt.gcf().canvas.mpl_connect('key_press_event', on_press)
+
+    plot_bunit(mmm_vars)
+
 
 
     '''

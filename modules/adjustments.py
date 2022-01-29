@@ -163,6 +163,37 @@ def _check_equality(base_var, adjusted_var, t):
         )
 
 
+def _adjust_ne(mmm_vars, scan_factor):
+    '''
+    Adjusts the electron density
+
+    All densities dependent on electron density are also adjusted so as to
+    remain physically consistent
+
+    Parameters:
+    * mmm_vars (InputVariables): Contains unmodified variables
+    * scan_factor (float): The factor to modify tau by
+
+    Returns:
+    * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
+    '''
+
+    t = mmm_vars.options.time_idx
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
+    adjusted_vars.ne.values *= scan_factor
+    adjusted_vars.nz.values *= scan_factor
+    adjusted_vars.nd.values *= scan_factor
+    adjusted_vars.nf.values *= scan_factor
+
+    calculations.calculate_base_variables(adjusted_vars)
+    calculations.calculate_additional_variables(adjusted_vars)
+
+    # Check that nh increased by the scan_factor
+    _check_adjusted_factor(scan_factor, mmm_vars.nh, adjusted_vars.nh, t)
+
+    return adjusted_vars
+
+
 def _adjust_nuei(mmm_vars, scan_factor):
     '''
     Adjusts the Collision Frequency
@@ -421,11 +452,11 @@ def _adjust_betae(mmm_vars, scan_factor):
     adjusted_vars.nf.values *= adjustment_total
 
     # NEW: Keep alphamhd constant
-    # adjusted_vars.ti.values *= adjustment_total
-    # adjusted_vars.gte.values /= scan_factor
-    # adjusted_vars.gti.values /= scan_factor
-    # adjusted_vars.gne.values /= scan_factor
-    # adjusted_vars.gni.values /= scan_factor
+    adjusted_vars.ti.values *= adjustment_total
+    adjusted_vars.gte.values /= scan_factor
+    adjusted_vars.gti.values /= scan_factor
+    adjusted_vars.gne.values /= scan_factor
+    adjusted_vars.gni.values /= scan_factor
 
     calculations.calculate_base_variables(adjusted_vars)
     calculations.calculate_additional_variables(adjusted_vars)
@@ -458,6 +489,9 @@ def adjust_scanned_variable(mmm_vars, scan_factor):
 
     if var_to_scan == 'nuei':
         adjusted_vars = _adjust_nuei(mmm_vars, scan_factor)
+
+    elif var_to_scan == 'ne':
+        adjusted_vars = _adjust_ne(mmm_vars, scan_factor)
 
     elif var_to_scan == 'zeff':
         adjusted_vars = _adjust_zeff(mmm_vars, scan_factor)
@@ -517,7 +551,7 @@ if __name__ == '__main__':  # For Testing Purposes
          np.arange(20, 105, 5)),
     )
 
-    advanced_scans = ['nuei', 'zeff', 'tau', 'etae', 'shear', 'btor', 'betae']
+    advanced_scans = ['ne', 'nuei', 'zeff', 'tau', 'etae', 'shear', 'btor', 'betae']
     for var_name in advanced_scans:
         mmm_vars.options.set(var_to_scan=var_name)
         print(f'\n{var_name} scan factors:')

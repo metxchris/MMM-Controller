@@ -98,6 +98,7 @@ def make_plot(ax, data, profile_type, time_idx=None):
     '''
 
     xvals = data.xvar.values if data.xvar.values.ndim == 1 else data.xvar.values[:, time_idx]
+    yvals = None
 
     for i, yvar in enumerate(data.yvars):
         if yvar.values is None:
@@ -109,9 +110,10 @@ def make_plot(ax, data, profile_type, time_idx=None):
     ax.axis('on')
 
     # Check for ylim adjustment (needed when y-values are nearly constant and not nearly 0)
-    ymax, ymin = yvals.max(), yvals.min()
-    if round(ymax - ymin, 3) == 0 and round(ymax, 3) > 0:
-        ax.set(ylim=(ymin - 5, ymax + 5))
+    if yvals is not None:
+        ymax, ymin = yvals.max(), yvals.min()
+        if round(ymax - ymin, 3) == 0 and round(ymax, 3) > 0:
+            ax.set(ylim=(ymin - 5, ymax + 5))
 
     # Legend disabled for output type profiles
     if profile_type != ProfileType.OUTPUT:
@@ -293,13 +295,15 @@ def plot_profiles(profile_type, vars, cdf_vars=None, scan_factor=None):
             PlotData('Gradient Ratios', vars.rho, [vars.etae, vars.etai]),
             PlotData(vars.nuei.name, vars.rho, [vars.nuei]),
             PlotData('Collisionalities', vars.rho, [vars.nuste, vars.nusti]),
-            PlotData('Magnetic Shear', vars.rho, [vars.shear, vars.shat]),
+            PlotData('Magnetic Shear', vars.rho, [vars.shear, vars.shat, vars.shat_gxi]),
             PlotData(vars.alphamhd.name, vars.rho, [vars.alphamhd]),
             PlotData(vars.gave.name, vars.rho, [vars.gave]),
             PlotData(vars.gmax.name, vars.rho, [vars.gmax]),
+            PlotData(vars.gyrfe.name, vars.rho, [vars.gyrfi]),
             PlotData(vars.gyrfi.name, vars.rho, [vars.gyrfi]),
             PlotData(vars.vthe.name, vars.rho, [vars.vthe]),
-            PlotData(vars.vthi.name, vars.rho, [vars.vthi])]
+            PlotData(vars.vthi.name, vars.rho, [vars.vthi]),
+            PlotData(vars.lare.name, vars.rho, [vars.lare])]
 
     elif profile_type == ProfileType.OUTPUT:
         plotdata = [
