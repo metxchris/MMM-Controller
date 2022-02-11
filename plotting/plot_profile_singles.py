@@ -52,7 +52,7 @@ if __name__ == '__main__':
         xlabel_override='',
     )
 
-    n = 182
+    n = 463
     r = '138536A01'
     profiles = [
         # Input profiles
@@ -61,15 +61,16 @@ if __name__ == '__main__':
         (PlotDataCsv(r, n, 'wexbs'), ),
         (PlotDataCsv(r, n, 'gte'), PlotDataCsv(r, n, 'gti'), ),
         (PlotDataCsv(r, n, 'gq'), ),
+        (PlotDataCsv(r, n, 'bunit'), ),
         (PlotDataCsv(r, n, 'btor'), ),
         (PlotDataCsv(r, n, 'ne'), PlotDataCsv(r, n, 'nh'), ),
         (PlotDataCsv(r, n, 'nf'), PlotDataCsv(r, n, 'nz'), ),
         (PlotDataCsv(r, n, 'gne'), PlotDataCsv(r, n, 'gnh'), PlotDataCsv(r, n, 'gni'), ),
         (PlotDataCsv(r, n, 'gnz'), ),
-        (PlotDataCsv(r, n, 'vpol'), ),
-        (PlotDataCsv(r, n, 'vtor'), PlotDataCsv(r, n, 'vpar'), ),
-        (PlotDataCsv(r, n, 'gvpol'), ),
-        (PlotDataCsv(r, n, 'gvtor'), PlotDataCsv(r, n, 'gvpar'), ),
+        # (PlotDataCsv(r, n, 'vpol'), ),
+        # (PlotDataCsv(r, n, 'vtor'), PlotDataCsv(r, n, 'vpar'), ),
+        # (PlotDataCsv(r, n, 'gvpol'), ),
+        # (PlotDataCsv(r, n, 'gvtor'), PlotDataCsv(r, n, 'gvpar'), ),
         (PlotDataCsv(r, n, 'aimass'), ),
         (PlotDataCsv(r, n, 'aimp'), ),
         (PlotDataCsv(r, n, 'ahyd'), ),
@@ -78,32 +79,50 @@ if __name__ == '__main__':
         (PlotDataCsv(r, n, 'elong'), ),
         (PlotDataCsv(r, n, 'rmaj'), ),
         # Additional profiles
+        (PlotDataCsv(r, n, 'bunit_btor'), ),
         (PlotDataCsv(r, n, 'tau'), ),
-        (PlotDataCsv(r, n, 'beta'), PlotDataCsv(r, n, 'betae'), ),
+        # (PlotDataCsv(r, n, 'beta'), PlotDataCsv(r, n, 'betae'), ),
+        (PlotDataCsv(r, n, 'betaeunit'), ),
         (PlotDataCsv(r, n, 'etae'), ),
         (PlotDataCsv(r, n, 'nuste'), PlotDataCsv(r, n, 'nusti'), ),
         (PlotDataCsv(r, n, 'shear'), PlotDataCsv(r, n, 'shat'), PlotDataCsv(r, n, 'shat_gxi'), ),
         (PlotDataCsv(r, n, 'alphamhd'), ),
-        (PlotDataCsv(r, n, 'gave'), PlotDataCsv(r, n, 'gave_shat'), PlotDataCsv(r, n, 'gave_shat_gxi'), ),
-        (PlotDataCsv(r, n, 'gmax'), ),
+        (PlotDataCsv(r, n, 'alphamhdunit'), ),
+        (PlotDataCsv(r, n, 'gave'), ),
+        # (PlotDataCsv(r, n, 'gave'), PlotDataCsv(r, n, 'gave_shat'), PlotDataCsv(r, n, 'gave_shat_gxi'), ),
+        # (PlotDataCsv(r, n, 'gmax'), ),
         (PlotDataCsv(r, n, 'gyrfi'), ),
         (PlotDataCsv(r, n, 'gyrfe'), ),
         (PlotDataCsv(r, n, 'lare'), ),
+        (PlotDataCsv(r, n, 'gmaxunit'), ),
+        (PlotDataCsv(r, n, 'gyrfiunit'), ),
+        (PlotDataCsv(r, n, 'gyrfeunit'), ),
+        (PlotDataCsv(r, n, 'lareunit'), ),
         (PlotDataCsv(r, n, 'xetgm_const'), ),
         (PlotDataCsv(r, n, 'vthe'), ),
         (PlotDataCsv(r, n, 'vthi'), ),
+        (PlotDataCsv(r, n, 'csound'), ),
+        (PlotDataCsv(r, n, 'csound_a'), ),
+        (PlotDataCsv(r, n, 'vthe_qrmaj'), ),
         # Individual parameter scan profiles
         (PlotDataCsv(r, n, 'betae'), ),
-        (PlotDataCsv(r, n, 'shear'), ),
+        (PlotDataCsv(r, n, 'shear'), PlotDataCsv(r, n, 'shat_gxi'), ),
         (PlotDataCsv(r, n, 'gne'), ),
         (PlotDataCsv(r, n, 'gte'), ),
+        (PlotDataCsv(r, n, 'gnh'), ),
         (PlotDataCsv(r, n, 'ne'), ),
         (PlotDataCsv(r, n, 'nuei'), ),
         (PlotDataCsv(r, n, 'te'), ),
         (PlotDataCsv(r, n, 'ti'), ),
+        # Output Profiles
+        (PlotDataCsv(r, n, 'gmaETGM'), ),
+        (PlotDataCsv(r, n, 'omgETGM'), ),
+        (PlotDataCsv(r, n, 'xteETGM'), ),
+        (PlotDataCsv(r, n, 'xte2ETGM'), ),
+        (PlotDataCsv(r, n, 'kyrhoeETGM'), ),
+        (PlotDataCsv(r, n, 'kyrhosETGM'), ),
     ]
 
     for p in profiles:
         all_data.set(*p)
         main(all_data, autosave=True)
-

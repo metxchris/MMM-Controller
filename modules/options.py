@@ -71,6 +71,12 @@ class Options:
     * time_str (str): the string of the measurement time, rounded for better visual presentation
     * time_idx (int): the index of the CDF time value that is closest to input_time
     * uniform_rho (bool): interpolate input variables onto a rho of uniform spacing
+    * use_bunit (bool): use bunit in place of btor
+    * use_gnezero (bool): set gne equal to zero (sets gne to a small number to avoid division by 0)
+    * use_gtezero (bool): set gte equal to zero (sets gte to a small number to avoid division by 0)
+    * use_gneabs (bool): take absolute value of gne
+    * use_gnethreshold (bool): used when calculating the threshold for gne
+    * use_gtethreshold (bool): used when calculating the threshold for gte
     * var_to_scan (str): the variable to scan; syntax must match a member of InputVariables
     '''
 
@@ -90,6 +96,10 @@ class Options:
         self.time_str = None
         self.time_idx = None
         self.uniform_rho = False
+        self.use_bunit = False
+        self.use_gnezero = False
+        self.use_gtezero = False
+        self.use_gneabs = False
 
         self.set(**kwargs)
 

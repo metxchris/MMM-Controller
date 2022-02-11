@@ -264,10 +264,10 @@ def plot_profiles(profile_type, vars, cdf_vars=None, scan_factor=None):
         plotdata = [
             PlotData('Temperatures', vars.rho, [vars.te, vars.ti]),
             PlotData(vars.q.name, vars.rho, [vars.q]),
-            PlotData(vars.wexbs.name, vars.rho, [vars.wexbs]),
+            PlotData(vars.btor.name, vars.rho, [vars.btor]),
             PlotData(r'Temperature Gradients', vars.rho, [vars.gte, vars.gti]),
             PlotData(vars.gq.name, vars.rho, [vars.gq]),
-            PlotData(vars.btor.name, vars.rho, [vars.btor]),
+            PlotData(vars.bunit.name, vars.rho, [vars.bunit]),
             PlotData('Densities', vars.rho, [vars.ne, vars.ni, vars.nf, vars.nd]),
             PlotData(vars.nz.name, vars.rho, [vars.nz]),
             PlotData(vars.nh.name, vars.rho, [vars.nh]),
@@ -286,24 +286,33 @@ def plot_profiles(profile_type, vars, cdf_vars=None, scan_factor=None):
             PlotData(vars.zimp.name, vars.rho, [vars.zimp]),
             PlotData(vars.zeff.name, vars.rho, [vars.zeff]),
             PlotData(vars.elong.name, vars.rho, [vars.elong]),
-            PlotData(vars.rmaj.name, vars.rho, [vars.rmaj])]
+            PlotData(vars.wexbs.name, vars.rho, [vars.wexbs]),
+            PlotData(vars.rmaj.name, vars.rho, [vars.rmaj]),
+            PlotData(vars.gxi.name, vars.rho, [vars.gxi]),
+        ]
 
     elif profile_type == ProfileType.ADDITIONAL:
         plotdata = [
             PlotData(vars.tau.name, vars.rho, [vars.tau]),
             PlotData(vars.beta.name, vars.rho, [vars.beta, vars.betae]),
+            PlotData(vars.betaeunit.name, vars.rho, [vars.betaeunit]),
             PlotData('Gradient Ratios', vars.rho, [vars.etae, vars.etai]),
             PlotData(vars.nuei.name, vars.rho, [vars.nuei]),
             PlotData('Collisionalities', vars.rho, [vars.nuste, vars.nusti]),
             PlotData('Magnetic Shear', vars.rho, [vars.shear, vars.shat, vars.shat_gxi]),
             PlotData(vars.alphamhd.name, vars.rho, [vars.alphamhd]),
-            PlotData(vars.gave.name, vars.rho, [vars.gave]),
+            PlotData(vars.alphamhdunit.name, vars.rho, [vars.alphamhdunit]),
+            PlotData(vars.gave.name, vars.rho, [vars.gave, vars.gave_shat, vars.gave_shat_gxi]),
             PlotData(vars.gmax.name, vars.rho, [vars.gmax]),
-            PlotData(vars.gyrfe.name, vars.rho, [vars.gyrfi]),
+            PlotData(vars.gyrfe.name, vars.rho, [vars.gyrfe]),
+            PlotData(vars.gyrfeunit.name, vars.rho, [vars.gyrfeunit]),
             PlotData(vars.gyrfi.name, vars.rho, [vars.gyrfi]),
+            PlotData(vars.gyrfiunit.name, vars.rho, [vars.gyrfiunit]),
             PlotData(vars.vthe.name, vars.rho, [vars.vthe]),
             PlotData(vars.vthi.name, vars.rho, [vars.vthi]),
-            PlotData(vars.lare.name, vars.rho, [vars.lare])]
+            PlotData(vars.lare.name, vars.rho, [vars.lare]),
+            PlotData(vars.lareunit.name, vars.rho, [vars.lareunit]),
+        ]
 
     elif profile_type == ProfileType.OUTPUT:
         plotdata = [
@@ -337,7 +346,8 @@ def plot_profiles(profile_type, vars, cdf_vars=None, scan_factor=None):
             PlotData(vars.omgMTM.name, vars.rho, [vars.omgMTM]),
             PlotData(vars.gmaETGM.name, vars.rho, [vars.gmaETGM]),
             PlotData(vars.omgETGM.name, vars.rho, [vars.omgETGM]),
-            PlotData(vars.dbsqprf.name, vars.rho, [vars.dbsqprf])]
+            PlotData(vars.dbsqprf.name, vars.rho, [vars.dbsqprf]),
+        ]
 
         # Output PlotData with values of the first yvar equal to 0 everywhere are removed
         plotdata = remove_empty_vars(plotdata)

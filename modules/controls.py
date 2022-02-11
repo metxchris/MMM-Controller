@@ -118,10 +118,15 @@ class InputControls:
         self.etgm_cl = Control('etgm_cl', 'Collisionless limit', values=1, vtype=int)
         self.etgm_exbs = Control('etgm_exbs', 'ExB shear coefficient', values=0, vtype=float)
         self.etgm_kyrhoe = Control('etgm_kyrhoe', 'kyrhoe', values=0.25, vtype=float, label=r'$k_y \rho_e$')
-        self.etgm_kyrhos = Control('etgm_kyrhos', 'kyrhos', values=0.33, vtype=float, label=r'$k_y \rho_s$')
+        self.etgm_kyrhos = Control('etgm_kyrhos', 'kyrhos', values=0.10, vtype=float, label=r'$k_y \rho_s$')
+        self.etgm_kyrhoe_max = Control('etgm_kyrhoe_max', 'kyrhoe scan max', values=1.00, vtype=float)
+        self.etgm_kyrhos_max = Control('etgm_kyrhos_max', 'kyrhos scan max', values=0.80, vtype=float)
         self.etgm_kyrhoe_scan = Control('etgm_kyrhoe_scan', 'Kyrhoe Scan Switch', values=1, vtype=int)
+        self.etgm_kyrhos_scan = Control('etgm_kyrhos_scan', 'Kyrhos Scan Switch', values=1, vtype=int)
         self.etgm_use_gne_in = Control('etgm_use_gne_in', 'Use gne from input', values=0, vtype=int)
-        self.etgm_shear_type = Control('etgm_shear_type', 'shear switch', values=0, vtype=int)
+        self.etgm_diffusivity_type = Control('etgm_diffusivity_type', 'diffusivity definition', values=0, vtype=int)
+        self.etgm_kxoky_mult = Control('etgm_kxoky_mult', 'kxoky', values=1, vtype=float,
+                                       label=r'kxoky')
         # Verbose level
         self.lprint = Control('lprint', 'Verbose Level', values=0, vtype=int)
 
@@ -132,6 +137,8 @@ class InputControls:
     def set(self, **kwargs):
         '''Sets specified control values'''
         for key, value in kwargs.items():
+            if not hasattr(self, key):
+                raise ValueError(f'Invalid control specified: {key}')
             getattr(self, key).values = value
 
         self.verify_values()
@@ -211,16 +218,20 @@ class InputControls:
             '\n'
             '!.. ETGM integer options\n'
             'lETGM =\n'
-            f'   {self.etgm_cl.get_value_str()}  ! 0 Collisionless and 1 collisional limit\n'
-            f'   {self.etgm_kyrhoe_scan.get_value_str()}  ! 1 kyrhoe scan and 0 without kyrhoe scan\n'
+            f'   {self.etgm_cl.get_value_str()}  ! 0: collisionless, 1: collisional limit\n'
+            f'   {self.etgm_kyrhos_scan.get_value_str()}  ! Number of kyrhos scan loops (min = 30), 0: disable kyrhos scan\n'
+            f'   {self.etgm_kyrhoe_scan.get_value_str()}  ! Number of kyrhoe scan loops (min = 10), 0: disable kyrhoe scan\n'
+            f'   {self.etgm_diffusivity_type.get_value_str()}  ! 0: default diffusivity formula, 1: Weiland diffusivity formula\n'
             f'   {self.etgm_use_gne_in.get_value_str()}  ! 0: gne internally, 1: gne from input\n'
-            f'   {self.etgm_shear_type.get_value_str()}  ! 0: s = shear, 1: s = shat_kappa, 2: s = shat_nablarho\n'
             '\n'
             '!.. ETGM real options\n'
             'cETGM =\n'
             f'   {self.etgm_exbs.get_value_str()}  ! ExB shear coefficient\n'
-            f'   {self.etgm_kyrhos.get_value_str()}  ! kyrhos\n'
+            f'   {self.etgm_kyrhos.get_value_str()}  ! kyrhos (only used if lETGM kyrhos scan is 0)\n'
             f'   {self.etgm_kyrhoe.get_value_str()}  ! kyrhoe (only used if lETGM kyrhoe scan is 0)\n'
+            f'   {self.etgm_kyrhos_max.get_value_str()}  ! upper limit of kyrhos scan\n'
+            f'   {self.etgm_kyrhoe_max.get_value_str()}  ! upper limit of kyrhoe scan\n'
+            f'   {self.etgm_kxoky_mult.get_value_str()}  ! kxoky multiplier\n'
             '\n'
             f'lprint = {self.lprint.get_value_str()}  ! Verbose level\n'
             '\n'
@@ -328,7 +339,8 @@ class InputControls:
         with open(file_name, 'r') as file:
             for line in file:
                 key, value = line.replace('\n', '').split(',')
-                getattr(self, key).values = float(value)
+                if hasattr(self, key):
+                    getattr(self, key).values = float(value)
 
     def _load_from_np_csv(self, file_name):
         '''

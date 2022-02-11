@@ -77,6 +77,7 @@ class PlotData:
     def __init__(self, options, runid, yname, xname, yvar, xvar, yval_base=None, xval_base=None,
                  transp_calcs=False, is_cdf=False, is_csv=False, factor_symbol=None, scan_factor=None,
                  rho_value=None, runname='', legend=''):
+        self.options = options
         self.xvals: np.ndarray = self._get_values(xvar.values, options.time_idx)
         self.yvals: np.ndarray = self._get_values(yvar.values, options.time_idx)
         self.xval_base: list[float] = xval_base or []  # plotting an empty list advances the cycler
@@ -581,8 +582,8 @@ class AllPlotData:
 
         all_xvals = np.hstack([d.xvals for d in self.data])
         all_yvals = np.hstack([d.yvals for d in self.data])
-        xmin, xmax = all_xvals.min(), all_xvals.max()
-        ymin, ymax = all_yvals.min(), all_yvals.max()
+        xmin, xmax = all_xvals[~np.isnan(all_xvals)].min(), all_xvals[~np.isnan(all_xvals)].max()
+        ymin, ymax = all_yvals[~np.isnan(all_yvals)].min(), all_yvals[~np.isnan(all_yvals)].max()
 
         using_rho = (np.array([d.rho for d in self.data]) != None).any()  # '!= None' syntax is needed with numpy
 
@@ -878,7 +879,6 @@ def main(all_data, autosave=False):
         ax.plot(d.xval_base, d.yval_base, zorder=3)  # Advance the cycler when base values are empty lists
 
     xlims, ylims = all_data.get_plot_limits()
-
     ax.set(xlim=xlims, ylim=ylims)  # lims need to be set before getting offsetText
 
     offset_text_x = offset_text_y = ''
@@ -900,6 +900,10 @@ def main(all_data, autosave=False):
 
     if autosave:
         ynames = ''.join([d.yname for d in all_data.data])
+        if all_data.data[0].options.use_gnezero:
+            ynames = f'{ynames}_gne0'
+        if all_data.data[0].options.use_gneabs:
+            ynames = f'{ynames}_gneabs'
         savename = f'{utils.get_plotting_singles_path()}\\{ynames}'
         fig.savefig(savename)
         fig.clear()
@@ -970,9 +974,9 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=37, rho_value=0.8, legend_override='gte  0, gne -2'),
         # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=40, rho_value=0.8, legend_override='gte -1, gne -3'),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etae', scan_num=35, rho_value=0.10),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=47, rho_value=0.1, legend_override=r'$\mathtt{tau\_scan}$'),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=48, rho_value=0.1, legend_override=r'$\mathtt{te\_scan}$'),
-        PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=49, rho_value=0.1, legend_override=r'$\mathtt{ti\_scan}$'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=47, rho_value=0.1, legend_override=r'$\mathtt{tau\_scan}$'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=48, rho_value=0.1, legend_override=r'$\mathtt{te\_scan}$'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=49, rho_value=0.1, legend_override=r'$\mathtt{ti\_scan}$'),
         # CSV: Growth rate vs Average Magnetic Surface Curvature
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.20, runname=''),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.60, runname=''),

@@ -154,11 +154,6 @@ def main(scanned_vars, controls):
         utils.init_output_dirs(options)
 
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
-
-        # Base value adjustments (for testing)
-        # mmm_vars.gne.values *= 1e-8
-        # mmm_vars.gte.values *= 1e-8
-
         output_vars = mmm.run_wrapper(mmm_vars, controls)
 
         options.save()
@@ -193,7 +188,8 @@ if __name__ == '__main__':
     '''
     # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.56
     # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.6
+    # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.6
     runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.630
     # runid, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
     # runid, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
@@ -204,26 +200,43 @@ if __name__ == '__main__':
     * Uncomment the lines you wish to include in scanned_vars
     * Using None as the scanned variable will just run MMM once
     '''
-    scanned_vars[None] = None
+    # scanned_vars[None] = None
     # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
 
-    # scanned_vars['betae'] = np.arange(start=0.04, stop=4 + 1e-6, step=0.02)
-    # scanned_vars['btor'] = np.arange(start=0.5, stop=4.6 + 1e-6, step=0.01)
-    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.05, stop=5 + 1e-6, step=0.025)
-    # scanned_vars['etgm_kyrhos'] = np.arange(start=0.05, stop=5 + 1e-6, step=0.025)
+    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.025)
+    # scanned_vars['etgm_kyrhos'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.025)
+
+    # scanned_vars['betaeunit'] = np.arange(start=0.2, stop=2 + 1e-6, step=0.01)
+    scanned_vars['bunit'] = np.arange(start=0.2, stop=3 + 1e-6, step=0.01)
     # scanned_vars['gne'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.025)
     # scanned_vars['gte'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.025)
-    # scanned_vars['ne'] = np.arange(start=0.05, stop=4 + 1e-6, step=0.01)
-    # scanned_vars['nuei'] = np.arange(start=0.05, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['q'] = np.arange(start=0.5, stop=1.8 + 1e-6, step=0.005)
-    # scanned_vars['shear'] = np.arange(start=-4.0, stop=4 + 1e-6, step=0.025)
+    # scanned_vars['ne'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.02)
+    # scanned_vars['nuei'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.02)
+    # scanned_vars['q'] = np.arange(start=0.5, stop=2 + 1e-6, step=0.005)
+    # scanned_vars['shear'] = np.arange(start=-4, stop=4 + 1e-6, step=0.05)
     # scanned_vars['te'] = np.arange(start=0.2, stop=5 + 1e-6, step=0.02)
     # scanned_vars['ti'] = np.arange(start=0.2, stop=5 + 1e-6, step=0.02)
-    # scanned_vars['zeff'] = np.arange(start=0.02, stop=4 + 1e-6, step=0.02)**2
+    # scanned_vars['zeff'] = np.arange(start=0.1, stop=4 + 1e-6, step=0.02)**2
 
-    # scanned_vars['q'] = np.arange(start=0.0, stop=1.8 + 1e-6, step=0.01)
+    # gte = 0
+    # scanned_vars['gne'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.025)
+
+    # gne = 0
+    # scanned_vars['gte'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.025)
+    # scanned_vars['q'] = np.arange(start=0.5, stop=2 + 1e-6, step=0.005)
+
+    # gneabs
+    # scanned_vars['gne'] = np.arange(start=-2.0, stop=6 + 1e-6, step=0.025)
+
+    # gne threshold
+    # scanned_vars['gne'] = np.arange(start=0.00, stop=20 + 1e-6, step=0.05)
+
+    # gte threshold
+    # scanned_vars['gte'] = np.arange(start=0.00, stop=24 + 1e-6, step=0.05)
 
     # scanned_vars['mtm_kyrhos'] = np.arange(start=0.02, stop=32 + 1e-6, step=0.02)
+
+    # scanned_vars['etgm_kxoky_mult'] = np.arange(start=0, stop=1 + 1e-6, step=0.02)
 
     '''
     Options:
@@ -237,8 +250,13 @@ if __name__ == '__main__':
         shot_type=shot_type,
         input_time=input_time,
         input_points=201,
-        uniform_rho=1,
         apply_smoothing=1,
+        use_bunit=1,
+        use_gtezero=0,
+        use_gnezero=0,
+        use_gneabs=0,
+        use_gnethreshold=0,
+        use_gtethreshold=0,
     )
 
     '''
@@ -247,23 +265,44 @@ if __name__ == '__main__':
     '''
     controls = modules.controls.InputControls(
         options,
+        # CMODEL
         cmodel_weiland=0,
         cmodel_dribm=0,
         cmodel_etg=0,
         cmodel_etgm=1,
         cmodel_mtm=0,
+        # ETGM
         etgm_kyrhoe=0.25,
         etgm_kyrhos=0.33,
-        etgm_cl=1,  # etgm_cl=0 is collisionless, etgm_cl=1 is collisional
+        etgm_cl=1,
         etgm_exbs=0,
-        etgm_kyrhoe_scan=0,
+        etgm_kyrhoe_scan=30,
+        etgm_kyrhos_scan=240,
+        etgm_kyrhoe_max=1,
+        etgm_kyrhos_max=0.8,
         etgm_use_gne_in=1,
-        etgm_shear_type=2,
+        etgm_kxoky_mult=1,
+        # MTM
         mtm_kyrhos_loops=4000,
         mtm_linert=1,
     )
 
+    '''
+    Output Profile Comparisons:
+    '''
+    # Base
+    # options.use_bunit = 0
+    # controls.etgm_kyrhoe_scan.values = 0
+    # controls.etgm_kyrhos_scan.values = 0
+    # controls.etgm_exbs.values = 1
+    # options.use_gnezero = 0
+    # options.use_gtezero = 0
+    # shafranov shift (recompile MMM)
+    # shear vs shat_gxi (recompile MMM)
+    # controls.etgm_use_gne_in.values = 0
+
     settings.AUTO_OPEN_PDFS = 0
     settings.MAKE_PROFILE_PDFS = 0
+    settings.PRINT_MMM_RESPONSE = 0
 
     main(scanned_vars, controls)

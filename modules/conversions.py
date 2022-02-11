@@ -288,7 +288,7 @@ def convert_variables(cdf_vars):
     '''
 
     input_vars = _initial_conversion(cdf_vars)
-    input_vars.set_rho_values()
+    input_vars.set_radius_values()
 
     if input_vars.options.uniform_rho:
         mmm_vars = _interp_to_uniform_rho(input_vars)
@@ -307,6 +307,6 @@ def convert_variables(cdf_vars):
         mmm_var.set_minvalue(raise_exception=False)
 
     mmm_vars.set_x_values()
-    mmm_vars.set_rho_values()
+    mmm_vars.set_radius_values()
 
     return mmm_vars
