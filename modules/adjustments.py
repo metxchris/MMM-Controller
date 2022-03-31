@@ -73,6 +73,7 @@ import numpy as np
 # Local Packages
 import modules.calculations as calculations
 import modules.datahelper as datahelper
+from modules.enums import SaveType
 
 
 EQUALITY_ERROR_TOLERANCE = 1e-8
@@ -194,16 +195,15 @@ def _adjust_ne(mmm_vars, scan_factor):
     return adjusted_vars
 
 
-def _adjust_nuei(mmm_vars, scan_factor):
+def _adjust_nuei_alphaconst(mmm_vars, scan_factor):
     '''
     Adjusts the Collision Frequency
 
     nuei is adjusted indirectly by adjusting the values of ne and te. The
     final value of the adjustment total is obtained by running a loop until
     nuei is adjusted by the target scan factor. As part of this scan, we also
-    require that pressure (p) and tau remain constant as nuei is adjusted.
-    Consequently, we also adjust ti, nz, nd, nf, nh, and ni accordingly, and
-    then check that both p and tau have remained constant afterwards.
+    require that alphamhd remain constant as nuei is adjusted, so additional
+    adjustments are made to ti and density variables afterwards.
 
     Parameters:
     * mmm_vars (InputVariables): Contains unmodified variables
@@ -253,7 +253,7 @@ def _adjust_nuei(mmm_vars, scan_factor):
         adjustment_step = 1 + (current_factor - scan_factor) / (2 * scan_factor)
         adjustment_total *= adjustment_step
 
-    # Additional adjustments to keep tau and pressure constant
+    # Additional adjustments to keep alphamhd constant
     adjusted_vars.ti.values *= adjustment_total
     adjusted_vars.nz.values /= adjustment_total
     adjusted_vars.nd.values /= adjustment_total
@@ -263,8 +263,77 @@ def _adjust_nuei(mmm_vars, scan_factor):
     calculations.calculate_additional_variables(adjusted_vars)
 
     _check_adjusted_factor(scan_factor, mmm_vars.nuei, adjusted_vars.nuei, t)
-    _check_equality(mmm_vars.p, adjusted_vars.p, t)
-    _check_equality(mmm_vars.tau, adjusted_vars.tau, t)
+    _check_equality(mmm_vars.alphamhd, adjusted_vars.alphamhd, t)
+
+    return adjusted_vars
+
+
+def _adjust_nuei_lareunitconst(mmm_vars, scan_factor):
+    '''
+    Adjusts the Collision Frequency
+
+    nuei is adjusted indirectly by adjusting the value te. The final value of
+    the adjustment total is obtained by running a loop until nuei is adjusted
+    by the target scan factor. As part of this scan, the Electron Gyroradius
+    (unit) will be held constant by ensuring that te / bunit**2 is constant.
+
+    Parameters:
+    * mmm_vars (InputVariables): Contains unmodified variables
+    * scan_factor (float): The factor to modify nuei by
+
+    Returns:
+    * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
+
+    Raises:
+    * ValueError: If the total adjustment could not be found in the specified max attempts
+    '''
+
+    max_adjustment_attempts = 10
+    t = mmm_vars.options.time_idx
+    r = _get_nonzero_idx(mmm_vars.nuei.values[:, t])
+
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
+    adjustment_total = scan_factor**(-2 / 3)  # based on the formula for nuei
+    adjustment_step = adjustment_total
+
+    # Make adjustments to ne and te until the adjustment_total is found The
+    # adjustment finding loop typically finds the target within 6 attempts
+    # for a tolerance of 1e-4
+
+    for i in range(max_adjustment_attempts):
+
+        adjusted_vars.te.values *= adjustment_step
+
+        # loge must be recalculated to properly recalculate nuei
+        calculations.loge(adjusted_vars)
+        calculations.nuei(adjusted_vars)
+
+        # Check if the current_factor is within our allowable tolerance for the scan_factor
+        current_factor = adjusted_vars.nuei.values[r, t] / mmm_vars.nuei.values[r, t]
+        if abs(current_factor / scan_factor - 1) < SCAN_FACTOR_TOLERANCE:
+            if __name__ == '__main__':  # For testing purposes
+                print(i + 1, end=' ')
+            break
+
+        if i + 1 == max_adjustment_attempts:
+            print(i + 1, end=' ')
+            _print_factors(scan_factor, adjustment_total)
+            raise ValueError(f'nuei factor could not be found after {i + 1} attempts')
+
+        # Make an adjustment_step based on the difference in the current_factor and scan_factor
+        adjustment_step = 1 + (current_factor - scan_factor) / (2 * scan_factor)
+        adjustment_total *= adjustment_step
+
+    # Additional adjustments to electron gyroradius (unit) constant
+    adjusted_vars.ti.values *= adjustment_total
+    adjusted_vars.bftor.values *= adjustment_total**(1 / 2)
+
+    calculations.calculate_base_variables(adjusted_vars)
+    calculations.calculate_additional_variables(adjusted_vars)
+
+    _check_adjusted_factor(scan_factor, mmm_vars.nuei, adjusted_vars.nuei, t)
+    _check_equality(mmm_vars.alphamhdunit, adjusted_vars.alphamhdunit, t)
+    _check_equality(mmm_vars.lareunit, adjusted_vars.lareunit, t)
 
     return adjusted_vars
 
@@ -357,9 +426,9 @@ def _adjust_etae(mmm_vars, scan_factor):
     t = mmm_vars.options.time_idx
     adjusted_vars = datahelper.deepcopy_data(mmm_vars)
 
-    adjustment_total = scan_factor**(1 / 2)  # based on the formula for etae
-    adjusted_vars.gte.values *= adjustment_total
-    adjusted_vars.gne.values /= adjustment_total
+    # adjustment_total = scan_factor**(1 / 2)  # based on the formula for etae
+    # adjusted_vars.gte.values *= adjustment_total
+    # adjusted_vars.gne.values /= adjustment_total
 
     # adjusted_vars.gte.values *= scan_factor**(3 / 2)
     # adjusted_vars.gne.values *= scan_factor**(1 / 2)
@@ -367,9 +436,12 @@ def _adjust_etae(mmm_vars, scan_factor):
     # adjusted_vars.gte.values /= scan_factor**(1 / 2)
     # adjusted_vars.gne.values /= scan_factor**(3 / 2)
 
+    adjusted_vars.gte.values *= scan_factor
+    adjusted_vars.gne.values *= scan_factor
+
     calculations.calculate_additional_variables(adjusted_vars)
 
-    _check_adjusted_factor(scan_factor, mmm_vars.etae, adjusted_vars.etae, t)
+    # _check_adjusted_factor(scan_factor, mmm_vars.etae, adjusted_vars.etae, t)
 
     return adjusted_vars
 
@@ -500,7 +572,7 @@ def _adjust_betaeunit(mmm_vars, scan_factor):
 
     betae is adjusted indirectly by adjusting ne, te, and bzxr. The values of
     nd, nz, and nf depend on changes in ne, so these variables are updated
-    accordingly.  In addition, alphamhd is held constant.
+    accordingly.
 
     Parameters:
     * mmm_vars (InputVariables): Contains unmodified variables
@@ -520,7 +592,42 @@ def _adjust_betaeunit(mmm_vars, scan_factor):
     adjusted_vars.nz.values *= adjustment_total
     adjusted_vars.nf.values *= adjustment_total
 
-    # NEW: Keep alphamhd constant
+    calculations.calculate_base_variables(adjusted_vars)
+    calculations.calculate_additional_variables(adjusted_vars)
+
+    _check_adjusted_factor(scan_factor, mmm_vars.betaeunit, adjusted_vars.betaeunit, t)
+
+    return adjusted_vars
+
+
+def _adjust_betaeunit_alphaconst(mmm_vars, scan_factor):
+    '''
+    Adjust Electron Pressure Ratio
+
+    betae is adjusted indirectly by adjusting ne, te, and bzxr. The values of
+    nd, nz, and nf depend on changes in ne, so these variables are updated
+    accordingly.  In addition, alphamhd is held constant by updating ti and
+    the temperature and density gradients.
+
+    Parameters:
+    * mmm_vars (InputVariables): Contains unmodified variables
+    * scan_factor (float): The factor to modify betae by
+
+    Returns:
+    * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
+    '''
+
+    t = mmm_vars.options.time_idx
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
+    adjustment_total = scan_factor**(1 / 4)  # based on the formula for betae
+    adjusted_vars.ne.values *= adjustment_total
+    adjusted_vars.te.values *= adjustment_total
+    adjusted_vars.bftor.values /= adjustment_total
+    adjusted_vars.nd.values *= adjustment_total
+    adjusted_vars.nz.values *= adjustment_total
+    adjusted_vars.nf.values *= adjustment_total
+
+    # Keep alphamhd constant
     adjusted_vars.ti.values *= adjustment_total
     adjusted_vars.gte.values /= scan_factor
     adjusted_vars.gti.values /= scan_factor
@@ -531,6 +638,36 @@ def _adjust_betaeunit(mmm_vars, scan_factor):
     calculations.calculate_additional_variables(adjusted_vars)
 
     _check_adjusted_factor(scan_factor, mmm_vars.betaeunit, adjusted_vars.betaeunit, t)
+    _check_equality(mmm_vars.alphamhdunit, adjusted_vars.alphamhdunit, t)
+
+    return adjusted_vars
+
+
+def _adjust_gne_alphaconst(mmm_vars, scan_factor):
+    '''
+    Adjust Electron density gradient while keeping alpha MHD constant (ETGM only)
+
+    Since the ion density gradient is only used in the alpha MHD calculation
+    within the ETGM model, we can keep alpha MHD constant by varying gni in a
+    manner that offsets the adjustment to gne.
+
+    Parameters:
+    * mmm_vars (InputVariables): Contains unmodified variables
+    * scan_factor (float): The factor to modify betae by
+
+    Returns:
+    * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
+    '''
+
+    t = mmm_vars.options.time_idx
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
+
+    adjusted_vars.gne.values *= scan_factor
+    adjusted_vars.gni.values += (1 - scan_factor) * mmm_vars.tau.values * mmm_vars.gne.values
+
+    calculations.calculate_additional_variables(adjusted_vars)
+
+    _check_adjusted_factor(scan_factor, mmm_vars.gne, adjusted_vars.gne, t)
     _check_equality(mmm_vars.alphamhdunit, adjusted_vars.alphamhdunit, t)
 
     return adjusted_vars
@@ -553,45 +690,59 @@ def adjust_scanned_variable(mmm_vars, scan_factor):
 
     Returns:
     * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
+
+    Raises:
+    * ValueError: If scanned variable is not of SaveType.Input and does not
+      have an advanced scan defined
     '''
 
-    var_to_scan = mmm_vars.options.var_to_scan
+    adjustment_name = mmm_vars.options.adjustment_name
 
-    if var_to_scan == 'nuei':
-        adjusted_vars = _adjust_nuei(mmm_vars, scan_factor)
+    # adjustment names that don't correspond to variable names need to be
+    # specified in _adjustment_name_to_var_dict within the options module
+    if adjustment_name == 'nuei_alphaconst':
+        adjusted_vars = _adjust_nuei_alphaconst(mmm_vars, scan_factor)
 
-    elif var_to_scan == 'ne':
+    elif adjustment_name == 'nuei_lareunitconst':
+        adjusted_vars = _adjust_nuei_lareunitconst(mmm_vars, scan_factor)
+
+    elif adjustment_name == 'ne':
         adjusted_vars = _adjust_ne(mmm_vars, scan_factor)
 
-    elif var_to_scan == 'zeff':
+    elif adjustment_name == 'zeff':
         adjusted_vars = _adjust_zeff(mmm_vars, scan_factor)
 
-    elif var_to_scan == 'tau':
+    elif adjustment_name == 'tau':
         adjusted_vars = _adjust_tau(mmm_vars, scan_factor)
 
-    elif var_to_scan == 'etae':
+    elif adjustment_name == 'etae':
         adjusted_vars = _adjust_etae(mmm_vars, scan_factor)
 
-    elif var_to_scan == 'shear' or var_to_scan == 'gq':
+    elif adjustment_name == 'shear' or adjustment_name == 'gq' or adjustment_name == 'shat_gxi':
         adjusted_vars = _adjust_shear(mmm_vars, scan_factor)
 
-    elif var_to_scan == 'btor' or var_to_scan == 'bzxr':
+    elif adjustment_name == 'btor' or adjustment_name == 'bzxr':
         adjusted_vars = _adjust_btor(mmm_vars, scan_factor)
 
-    elif var_to_scan == 'bunit' or var_to_scan == 'bftor':
+    elif adjustment_name == 'bunit' or adjustment_name == 'bftor':
         adjusted_vars = _adjust_bunit(mmm_vars, scan_factor)
 
-    elif var_to_scan == 'betae':
+    elif adjustment_name == 'betae':
         adjusted_vars = _adjust_betae(mmm_vars, scan_factor)
 
-    elif var_to_scan == 'betaeunit':
+    elif adjustment_name == 'betaeunit':
         adjusted_vars = _adjust_betaeunit(mmm_vars, scan_factor)
 
-    elif var_to_scan == 'etgm_shear_mult':
-        adjusted_vars = _adjust_etgm_shear_mult(mmm_vars, scan_factor)
+    elif adjustment_name == 'betaeunit_alphaconst':
+        adjusted_vars = _adjust_betaeunit_alphaconst(mmm_vars, scan_factor)
+
+    elif adjustment_name == 'gne_alphaconst':
+        adjusted_vars = _adjust_gne_alphaconst(mmm_vars, scan_factor)
 
     else:
+
         # Simple Scan (no advanced logic needed)
+        var_to_scan = mmm_vars.options.var_to_scan
         adjusted_vars = datahelper.deepcopy_data(mmm_vars)
         base_var = getattr(mmm_vars, var_to_scan)
         scanned_var = getattr(adjusted_vars, var_to_scan)
@@ -608,7 +759,6 @@ def adjust_scanned_variable(mmm_vars, scan_factor):
 
 
 if __name__ == '__main__':  # For Testing Purposes
-    import modules.datahelper as datahelper
     from modules.options import Options
 
     options = Options()
@@ -630,9 +780,15 @@ if __name__ == '__main__':  # For Testing Purposes
          np.arange(20, 105, 5)),
     )
 
-    advanced_scans = ['ne', 'nuei', 'zeff', 'tau', 'etae', 'shear', 'btor', 'bunit', 'betae', 'betaeunit']
+    advanced_scans = [
+        'gne_alphaconst',
+        'ne', 'nuei_alphaconst', 'nuei_lareunitconst', 'zeff',
+        'tau', 'etae', 'shear', 'btor',
+        'bunit', 'betae', 'betaeunit', 'betaeunit_alphaconst'
+    ]
+
     for var_name in advanced_scans:
-        mmm_vars.options.set(var_to_scan=var_name, use_bunit=True)
-        print(f'\n{var_name} scan factors:')
+        mmm_vars.options.set(adjustment_name=var_name)
+        print(f'\n{var_name} scan, {mmm_vars.options.var_to_scan} factors:')
         for scan_factor in scan_range:
             adjust_scanned_variable(mmm_vars, scan_factor)

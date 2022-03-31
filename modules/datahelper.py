@@ -147,7 +147,7 @@ def get_scan_type(var_to_scan):
     scan_type = ScanType.NONE
     if var_to_scan is not None:
         if hasattr(variables.InputVariables(), var_to_scan):
-            scan_type = ScanType.VARIABLE
+            scan_type = ScanType.VARIABLE if var_to_scan != 'time' else ScanType.TIME
         elif hasattr(controls.InputControls(), var_to_scan):
             scan_type = ScanType.CONTROL
         else:

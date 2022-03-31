@@ -302,7 +302,6 @@ def plot_profiles(profile_type, vars, cdf_vars=None, scan_factor=None):
             PlotData('Magnetic Shear', vars.rho, [vars.shear, vars.shat, vars.shat_gxi]),
             PlotData(vars.alphamhd.name, vars.rho, [vars.alphamhd]),
             PlotData(vars.alphamhdunit.name, vars.rho, [vars.alphamhdunit]),
-            PlotData(vars.gave.name, vars.rho, [vars.gave, vars.gave_shat, vars.gave_shat_gxi]),
             PlotData(vars.gmax.name, vars.rho, [vars.gmax]),
             PlotData(vars.gyrfe.name, vars.rho, [vars.gyrfe]),
             PlotData(vars.gyrfeunit.name, vars.rho, [vars.gyrfeunit]),

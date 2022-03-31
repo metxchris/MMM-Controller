@@ -46,7 +46,9 @@ import numpy as np
 # Local Packages
 import settings
 import modules.controls
+import modules.constants
 import modules.options
+import modules.calculations as calculations
 import modules.adjustments as adjustments
 import modules.datahelper as datahelper
 import modules.mmm as mmm
@@ -80,14 +82,17 @@ def _execute_variable_scan(mmm_vars, input_controls):
     * controls (InputControls): Specifies input control values in the MMM input file
     '''
 
+    runid = mmm_vars.options.runid
+    scan_num = mmm_vars.options.scan_num
     scan_range = mmm_vars.options.scan_range
     var_to_scan = mmm_vars.options.var_to_scan
 
     for i, scan_factor in enumerate(scan_range):
-        print(f'Executing {var_to_scan} scan: {i + 1} / {len(scan_range)}')
+        print(f'{runid}.{scan_num} {var_to_scan} scan: {i + 1} / {len(scan_range)}')
         adjusted_vars = adjustments.adjust_scanned_variable(mmm_vars, scan_factor)
         adjusted_vars.save(scan_factor)
         output_vars = mmm.run_wrapper(adjusted_vars, controls)
+        calculations.calculate_output_variables(mmm_vars, output_vars)
         output_vars.save(scan_factor)
 
 
@@ -109,6 +114,8 @@ def _execute_control_scan(mmm_vars, controls):
     # scanned_control values will modify its corresponding values in
     # adjusted_controls
 
+    runid = mmm_vars.options.runid
+    scan_num = mmm_vars.options.scan_num
     scan_range = mmm_vars.options.scan_range
     var_to_scan = mmm_vars.options.var_to_scan
 
@@ -117,12 +124,45 @@ def _execute_control_scan(mmm_vars, controls):
     base_control = controls.get_scanned_control()
 
     for i, scan_factor in enumerate(scan_range):
-        print(f'Executing {var_to_scan} scan: {i + 1} / {len(scan_range)}')
+        print(f'{runid}.{scan_num} {var_to_scan} scan: {i + 1} / {len(scan_range)}')
         scanned_control.values = scan_factor * base_control.values
         mmm_vars.save(scan_factor)
         adjusted_controls.save(scan_factor)
         output_vars = mmm.run_wrapper(mmm_vars, adjusted_controls)
+        calculations.calculate_output_variables(mmm_vars, output_vars)
         output_vars.save(scan_factor)
+
+
+def _execute_time_scan(mmm_vars, controls):
+    '''
+    Executes an input time scan
+
+    Parameter scan PDFs are not produced here, and the output data is intended
+    to be plotted by a separate process after the scan is complete.
+
+    Parameters:
+    * mmm_vars (InputVariables): Contains all variables needed to write MMM input file
+    * controls (InputControls): Specifies input control values in the MMM input file
+    '''
+
+    # Set the time scan range
+    mmm_vars.options.set_time_ranges(mmm_vars.time.values)
+
+    # Save options again to save the computed time ranges
+    mmm_vars.options.save()
+
+    scan_range_idxs = mmm_vars.options.scan_range_idxs
+    var_to_scan = mmm_vars.options.var_to_scan
+
+    for i, time_idx in enumerate(scan_range_idxs):
+        print(f'{options.runid}.{options.scan_num} {var_to_scan} scan: {i + 1} / {len(scan_range_idxs)}')
+        options.time_idx = time_idx
+        options.time_str = options.scan_range[i]
+        time_scan_str = f'{float(options.time_str):{modules.constants.SCAN_FACTOR_FMT}}'
+        mmm_vars.save(time_scan_str)
+        output_vars = mmm.run_wrapper(mmm_vars, controls)
+        calculations.calculate_output_variables(mmm_vars, output_vars)
+        output_vars.save(time_scan_str)
 
 
 def main(scanned_vars, controls):
@@ -145,9 +185,9 @@ def main(scanned_vars, controls):
     options = controls.options  # Creates a reference
 
     # TODO: Add validation for all items in scanned_vars
-    for var_to_scan, scan_range in scanned_vars.items():
+    for adjustment_name, scan_range in scanned_vars.items():
         options.scan_num = utils.get_scan_num(options.runid)
-        options.set(var_to_scan=var_to_scan, scan_range=scan_range)
+        options.set(adjustment_name=adjustment_name, scan_range=scan_range)
 
         print(f'\nRunning MMM Controller for {options.runid}, scan {options.scan_num}...')
 
@@ -155,6 +195,7 @@ def main(scanned_vars, controls):
 
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
         output_vars = mmm.run_wrapper(mmm_vars, controls)
+        calculations.calculate_output_variables(mmm_vars, output_vars)
 
         options.save()
         controls.save()
@@ -173,6 +214,8 @@ def main(scanned_vars, controls):
                 _execute_variable_scan(mmm_vars, controls)
             elif options.scan_type is ScanType.CONTROL:
                 _execute_control_scan(mmm_vars, controls)
+            elif options.scan_type is ScanType.TIME:
+                _execute_time_scan(mmm_vars, controls)
 
             reshaper.create_rho_files(options)
             print(f'\nScan complete: {options.runid}, scan {options.scan_num}, {options.var_to_scan}\n')
@@ -186,13 +229,24 @@ if __name__ == '__main__':
     TRANSP Data:
     * Uncomment the line you wish to use
     '''
-    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.56
+    # runid, shot_type, input_time = '121123K55', ShotType.NSTX_U, 11.8
+    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.6
-    # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.6
-    runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.630
+    # runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '129017A04', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '129018A02', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '129019A02', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '129020A02', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
+    runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.629
+    # runid, shot_type, input_time = '141007A10', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '141031A01', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '141032A01', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '141040A01', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '141716A80', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
     # runid, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
+
     # runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
 
     '''
@@ -200,63 +254,81 @@ if __name__ == '__main__':
     * Uncomment the lines you wish to include in scanned_vars
     * Using None as the scanned variable will just run MMM once
     '''
-    # scanned_vars[None] = None
-    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.5, stop=5 + 1e-6, step=0.5)
+    scanned_vars[None] = None
 
-    # scanned_vars['etgm_kyrhoe'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.025)
-    # scanned_vars['etgm_kyrhos'] = np.arange(start=0.025, stop=6 + 1e-6, step=0.025)
+    # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1e-6, stop=1.01 + 1e-6, step=0.005)
 
-    # scanned_vars['betaeunit'] = np.arange(start=0.2, stop=2 + 1e-6, step=0.01)
-    scanned_vars['bunit'] = np.arange(start=0.2, stop=3 + 1e-6, step=0.01)
-    # scanned_vars['gne'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.025)
-    # scanned_vars['gte'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.025)
-    # scanned_vars['ne'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.02)
-    # scanned_vars['nuei'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.02)
-    # scanned_vars['q'] = np.arange(start=0.5, stop=2 + 1e-6, step=0.005)
-    # scanned_vars['shear'] = np.arange(start=-4, stop=4 + 1e-6, step=0.05)
-    # scanned_vars['te'] = np.arange(start=0.2, stop=5 + 1e-6, step=0.02)
+    # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1, stop=40 + 1e-6, step=0.2)
+    # scanned_vars['etgm_alpha_mult'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['etgm_betae_mult'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['etgm_nuei_mult'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.025)
+    # scanned_vars['etgm_vthe_mult'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.025)
+    # scanned_vars['etgm_betaep_mult'] = np.arange(start=0, stop=3 + 1e-6, step=0.025)
+
+    # scanned_vars['betaeunit'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
+    # scanned_vars['bunit'] = np.arange(start=0.2, stop=3 + 1e-6, step=0.02)
+    # scanned_vars['gne'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['gte'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['ne'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.025)
+    # scanned_vars['q'] = np.arange(start=0.5, stop=2 + 1e-6, step=0.01)
+    # scanned_vars['shear'] = np.arange(start=-3, stop=3 + 1e-6, step=0.05)
+    # scanned_vars['te'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.025)
+
+    # scanned_vars['betaeunit_alphaconst'] = np.arange(start=0.05, stop=3 + 1e-6, step=0.01)
+    # scanned_vars['betaeunit'] = np.arange(start=0.05, stop=3 + 1e-6, step=0.05)
+    # scanned_vars['nuei_alphaconst'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.02)
+    # scanned_vars['nuei_lareunitconst'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.02)
     # scanned_vars['ti'] = np.arange(start=0.2, stop=5 + 1e-6, step=0.02)
+
     # scanned_vars['zeff'] = np.arange(start=0.1, stop=4 + 1e-6, step=0.02)**2
 
     # gte = 0
-    # scanned_vars['gne'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.025)
+    # scanned_vars['gne'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
 
     # gne = 0
-    # scanned_vars['gte'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.025)
-    # scanned_vars['q'] = np.arange(start=0.5, stop=2 + 1e-6, step=0.005)
+    # scanned_vars['gte'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
+    # scanned_vars['q'] = np.arange(start=0.5, stop=2 + 1e-6, step=0.01)
 
     # gneabs
-    # scanned_vars['gne'] = np.arange(start=-2.0, stop=6 + 1e-6, step=0.025)
+    # scanned_vars['gne'] = np.arange(start=-4.0, stop=8 + 1e-6, step=0.05)
+    # scanned_vars['gne_alphaconst'] = np.arange(start=-4.0, stop=8 + 1e-6, step=0.1)
 
     # gne threshold
-    # scanned_vars['gne'] = np.arange(start=0.00, stop=20 + 1e-6, step=0.05)
+    # scanned_vars['gne'] = np.arange(start=0.00, stop=201 + 1e-6, step=0.5)
 
     # gte threshold
-    # scanned_vars['gte'] = np.arange(start=0.00, stop=24 + 1e-6, step=0.05)
+    # scanned_vars['gte'] = np.arange(start=0.00, stop=201 + 1e-6, step=0.5)
 
     # scanned_vars['mtm_kyrhos'] = np.arange(start=0.02, stop=32 + 1e-6, step=0.02)
 
     # scanned_vars['etgm_kxoky_mult'] = np.arange(start=0, stop=1 + 1e-6, step=0.02)
+    # scanned_vars['etgm_extra_mult'] = np.arange(start=0.1, stop=6 + 1e-6, step=0.05)
+
+    # time scan (options.normalize_time_range = 0)
+    # scanned_vars['time'] = np.arange(start=0.3, stop=0.6 + 1e-6, step=0.001)
+
+    # normalized time scan (options.normalize_time_range = 1)
+    # scanned_vars['time'] = np.linspace(start=0, stop=1, num=200)
 
     '''
     Options:
     * input_points is the number of points to use when making the MMM input file
     * Set input_points = None to match the number of points used in the CDF
-    * Set uniform_rho = True to interpolate to a grid of evenly spaced rho values (takes longer)
     * apply_smoothing enables smoothing of all variables that have a smooth value set in the Variables class
     '''
     options = modules.options.Options(
         runid=runid,
         shot_type=shot_type,
         input_time=input_time,
-        input_points=201,
+        input_points=101,
         apply_smoothing=1,
-        use_bunit=1,
         use_gtezero=0,
         use_gnezero=0,
         use_gneabs=0,
         use_gnethreshold=0,
         use_gtethreshold=0,
+        use_etgm_btor=0,
+        normalize_time_range=1,
     )
 
     '''
@@ -268,22 +340,35 @@ if __name__ == '__main__':
         # CMODEL
         cmodel_weiland=0,
         cmodel_dribm=0,
-        cmodel_etg=0,
+        cmodel_etg=1,
         cmodel_etgm=1,
         cmodel_mtm=0,
         # ETGM
-        etgm_kyrhoe=0.25,
-        etgm_kyrhos=0.33,
+        etgm_sum_modes=1,
+        etgm_kyrhos_scan=1000,
+        etgm_kyrhos_min=0.1,
+        etgm_kyrhos_max=50,
+        etgm_kxoky=0.5,
         etgm_cl=1,
-        etgm_exbs=0,
-        etgm_kyrhoe_scan=30,
-        etgm_kyrhos_scan=240,
-        etgm_kyrhoe_max=1,
-        etgm_kyrhos_max=0.8,
-        etgm_use_gne_in=1,
-        etgm_kxoky_mult=1,
+        etgm_sat_expo=2,
+        etgm_exbs=1,
+        etgm_gmax_mult=1e10,
+        etgm_kyrhos_type=1,
+        etgm_xte_max_cal=0.05,
+        etgm_xte_sum_cal=0.05 * 0.05,
+        etgm_xte2_max_cal=1,
+        etgm_xte2_sum_cal=1 * 0.05,
+        etgm_alpha_mult=1,  # Extra
+        etgm_betae_mult=1,  # Extra
+        etgm_nuei_mult=1,  # Extra
+        etgm_vthe_mult=1,  # Extra
+        etgm_betaep_mult=1,  # Extra
+        etgm_disable_geometry=0,  # Extra
+        etgm_electrostatic=0,  # Extra
         # MTM
-        mtm_kyrhos_loops=4000,
+        mtm_kyrhos_loops=2000,
+        mtm_kyrhos_min=0.005,
+        mtm_kyrhos_max=10,
         mtm_linert=1,
     )
 
@@ -291,7 +376,6 @@ if __name__ == '__main__':
     Output Profile Comparisons:
     '''
     # Base
-    # options.use_bunit = 0
     # controls.etgm_kyrhoe_scan.values = 0
     # controls.etgm_kyrhos_scan.values = 0
     # controls.etgm_exbs.values = 1

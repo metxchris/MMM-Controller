@@ -61,6 +61,8 @@ class PlotData:
     * xvar (Variable): The Variable object of the x-variable to plot
     * yval_base (list[float]): The base y-variable value when plotting at a rho point
     * xval_base (list[float]): The base x-variable value when plotting at a rho point
+    * xmult (float): Multiplier to apply to the xvar values
+    * ymult (float): Multiplier to apply to the yvar values
     * transp_calcs (bool): If the data source is using variables calculated in TRANSP (Optional)
     * is_cdf (bool): If the data source is loaded from a CDF (Optional)
     * is_csv (bool): If the data source is loaded from a CSV (Optional)
@@ -76,10 +78,12 @@ class PlotData:
 
     def __init__(self, options, runid, yname, xname, yvar, xvar, yval_base=None, xval_base=None,
                  transp_calcs=False, is_cdf=False, is_csv=False, factor_symbol=None, scan_factor=None,
-                 rho_value=None, runname='', legend=''):
+                  ymult=1, xmult=1, rho_value=None, runname='', legend=''):
         self.options = options
-        self.xvals: np.ndarray = self._get_values(xvar.values, options.time_idx)
-        self.yvals: np.ndarray = self._get_values(yvar.values, options.time_idx)
+        self.xmult: float = xmult
+        self.ymult: float = ymult
+        self.xvals: np.ndarray = self._get_values(xvar, options.time_idx) * xmult
+        self.yvals: np.ndarray = self._get_values(yvar, options.time_idx) * ymult
         self.xval_base: list[float] = xval_base or []  # plotting an empty list advances the cycler
         self.yval_base: list[float] = yval_base or []
         self.xsymbol: str = xvar.label
@@ -111,9 +115,12 @@ class PlotData:
             raise ValueError(f'Unable to load values for variable {yvar.name}')
 
     @staticmethod
-    def _get_values(values, time_idx):
+    def _get_values(var, time_idx):
         """Returns (np.ndarray): Variable values to be plotted"""
-        return values[:, time_idx] if isinstance(values, np.ndarray) and values.ndim == 2 else values
+        values = var.values[:, time_idx] if isinstance(var.values, np.ndarray) and var.values.ndim == 2 else var.values
+        if values is None:
+            raise ValueError(f'Null values detected for variable name {var.name}')
+        return values
 
     def get_ysymbol_label_str(self):
         """Returns (str): The ysymbol string used in the legend label"""
@@ -165,6 +172,8 @@ class PlotDataCdf(PlotData):
     * time (float): The time value to plot
     * yname (str): The name of the y-variable to plot
     * xname (str): The name of the x-variable to plot (Optional)
+    * xmult (float): Multiplier to apply to the xvar values (Optional)
+    * ymult (float): Multiplier to apply to the yvar values (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
     * legend (str): A string to replace the auto generated legend label of a y-variable (Optional)
     * transp_calcs (bool): Uses uncalculated TRANSP variables instead of calculated MMM variables (Optional)
@@ -174,7 +183,7 @@ class PlotDataCdf(PlotData):
     """
 
     def __init__(self, runid, time, yname, xname='rho', runname='', legend='', transp_calcs=False,
-                 input_points=None, apply_smoothing=False, uniform_rho=False):
+                 input_points=None, apply_smoothing=False, uniform_rho=False, ymult=1, xmult=1):
         options = modules.options.Options(runid=runid, input_time=time, input_points=input_points,
                                           apply_smoothing=apply_smoothing, uniform_rho=uniform_rho)
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
@@ -184,7 +193,7 @@ class PlotDataCdf(PlotData):
         xvar = getattr(plot_vars, xname)
 
         super().__init__(options, runid, yname, xname, yvar, xvar, transp_calcs=transp_calcs, is_cdf=True,
-                         runname=runname, legend=legend)
+                         runname=runname, legend=legend, ymult=ymult, xmult=xmult)
 
 
 class PlotDataCsv(PlotData):
@@ -204,13 +213,15 @@ class PlotDataCsv(PlotData):
     * scan_num (int): The scan number of the CSV
     * yname (str): The name of the y-variable to plot
     * xname (str): The name of the x-variable to plot (Optional)
+    * xmult (float): Multiplier to apply to the xvar values (Optional)
+    * ymult (float): Multiplier to apply to the yvar values (Optional)
     * scan_factor (float): The scan factor of the CSV to load (Optional)
     * rho_value (float): The rho value of the CSV to load (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
     * legend (str): A string to replace the auto generated legend label of a y-variable (Optional)
     """
 
-    def __init__(self, runid, scan_num, yname, xname='rho',
+    def __init__(self, runid, scan_num, yname, xname='rho', ymult=1, xmult=1,
                  scan_factor=None, rho_value=None, runname='', legend=''):
 
         options = modules.options.Options().load(runid, scan_num)
@@ -231,7 +242,7 @@ class PlotDataCsv(PlotData):
 
         super().__init__(options, runid, yname, xname, yvar, xvar, factor_symbol=factor_symbol,
                          is_csv=True, yval_base=yval_base, xval_base=xval_base, rho_value=rho_value,
-                         scan_factor=scan_factor_str, runname=runname, legend=legend)
+                         scan_factor=scan_factor_str, runname=runname, legend=legend, ymult=ymult, xmult=xmult)
 
     @staticmethod
     def _get_vars_from_data(options, scan_factor, rho_value, yname, xname):
@@ -256,8 +267,9 @@ class PlotDataCsv(PlotData):
         """
 
         yvar = xvar = factor_symbol = None
-        adjusted_var = options.get_adjusted_var()
-        data_objects = list(datahelper.get_data_objects(options, scan_factor, rho_value))
+        adjusted_var = options.var_to_scan
+        ivars, ovars, ctrls = datahelper.get_data_objects(options, scan_factor, rho_value)
+        data_objects = [ovars, ivars, ctrls]
 
         for o in data_objects:
             if not yvar and hasattr(o, yname):
@@ -334,6 +346,8 @@ class AllPlotData:
     * invert_x_axis (bool): If the x-axis should be inverted
     * nomralize_y_axis (bool): If the y-axis should be normalized
     * normalize_x_axis (bool): If the x-axis should be normalized
+    * savename_append (str): Name to append to the saved file when autosaving
+    * summed_modes (bool): If the modes were summed (generally applies to diffusivity)
     * title_override (str): Overrides auto generated title if non-empty
     * ylabel_override (str): Overrides auto generated ylabel if non-empty
     * xlabel_override (str): Overrides auto generated xlabel if non-empty
@@ -352,6 +366,8 @@ class AllPlotData:
         self.invert_x_axis: bool = False
         self.nomralize_y_axis: bool = False
         self.nomralize_x_axis: bool = False
+        self.savename_append: str = ''
+        self.summed_modes: bool = False
         self.title_override: str = ''
         self.ylabel_override: str = ''
         self.xlabel_override: str = ''
@@ -396,6 +412,11 @@ class AllPlotData:
                 else:
                     d.xval_base = 0
                     d.xvals[:] = 0
+
+        if self.summed_modes:
+            for d in self.data:
+                stripped_label = d.ysymbol.strip('$')
+                d.ysymbol = f'$\sum{stripped_label}$'
 
         self._init_legend_dict()
         self._update_rho_str()
@@ -580,6 +601,8 @@ class AllPlotData:
                 maxval += 1
             return (minval, maxval) if not invert_axis else (maxval, minval)
 
+        # all_xvals = np.hstack([d.xvals for d in self.data[1:]])
+        # all_yvals = np.hstack([d.yvals for d in self.data[1:]])
         all_xvals = np.hstack([d.xvals for d in self.data])
         all_yvals = np.hstack([d.yvals for d in self.data])
         xmin, xmax = all_xvals[~np.isnan(all_xvals)].min(), all_xvals[~np.isnan(all_xvals)].max()
@@ -870,11 +893,17 @@ def main(all_data, autosave=False):
         if event.key == 'alt+s':  # save plot lines to csv
             all_data.save_to_csv()
 
+
+
     fig, ax = plt.gcf(), plt.gca()
     # ax.set(yscale='log')
     fig.canvas.mpl_connect('key_press_event', on_press)
 
+    # all_data.data[1].yvals /= 25
+    # all_data.data[1].yvals *= 1.5e5
     for d in all_data.data:
+        # if 'sum' in all_data.savename_append:
+        #     d.yvals /= 20
         ax.plot(d.xvals, d.yvals, label=all_data.get_legend_label(d))
         ax.plot(d.xval_base, d.yval_base, zorder=3)  # Advance the cycler when base values are empty lists
 
@@ -899,13 +928,23 @@ def main(all_data, autosave=False):
         ax.legend().set_draggable(state=True)
 
     if autosave:
-        ynames = ''.join([d.yname for d in all_data.data])
+        ynames_list = list(set([d.yname for d in all_data.data]))
+        ynames_list.sort()
+        ynames = ''.join(ynames_list)
+
+        # These flags are based on the first variable being plotted
         if all_data.data[0].options.use_gnezero:
             ynames = f'{ynames}_gne0'
+        if all_data.data[0].options.use_gtezero:
+            ynames = f'{ynames}_gte0'
         if all_data.data[0].options.use_gneabs:
             ynames = f'{ynames}_gneabs'
-        savename = f'{utils.get_plotting_singles_path()}\\{ynames}'
-        fig.savefig(savename)
+        if all_data.savename_append:
+            ynames = f'{ynames}_{all_data.savename_append}'
+
+        savedir = f'{utils.get_plotting_singles_path()}\\{all_data.data[0].options.runid}'
+        utils.create_directory(savedir)
+        fig.savefig(f'{savedir}\\{ynames}')
         fig.clear()
 
     else:

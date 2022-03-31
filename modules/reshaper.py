@@ -104,12 +104,12 @@ def _save_reshaped_csv(reshaped_data, var_names, save_dir, save_type):
     * save_type (str): The name of the data type to be saved
     '''
 
-    rmin_max_value = reshaped_data[-1][0, 0]
+    rho_values = np.linspace(0, 1, len(reshaped_data))
     base_file_name = f'{save_dir}\\{save_type} rho{constants.RHO_VALUE_SEPARATOR}'
     header_str = ','.join(var_names)
 
-    for data in reshaped_data:
-        rho_value = f'{data[0, 0] / rmin_max_value:{constants.RHO_VALUE_FMT}}'
+    for rho, data in zip(rho_values, reshaped_data):
+        rho_value = f'{rho:{constants.RHO_VALUE_FMT}}'
         file_name = f'{base_file_name}{rho_value}.csv'
         np.savetxt(file_name, data, fmt='%.4e', delimiter=',', header=header_str)
 
@@ -184,9 +184,6 @@ For testing purposes
 '''
 if __name__ == '__main__':
     from modules.options import Options
-    runid = 'TEST'
-    scan_num = 397
-    var_to_scan = 'betae'
-    options = Options(runid=runid, scan_num=scan_num, var_to_scan=var_to_scan)
-    utils.clear_folder(utils.get_rho_path(runid, scan_num, var_to_scan), '*.csv')
-    create_rho_files(options)
+    o = Options().load(runid='121123K55', scan_num=1)
+    utils.clear_folder(utils.get_rho_path(o.runid, o.scan_num, o.var_to_scan), '*.csv')
+    create_rho_files(o)

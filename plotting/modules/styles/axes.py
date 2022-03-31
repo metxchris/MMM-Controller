@@ -20,6 +20,20 @@ def init(style):
             'ytick.major.width': 0.5,
         })
 
+    elif style is Axes.WHITEGRID:
+        rcParams.update({
+            'axes.grid': True,
+            'axes.facecolor': '#fff',
+            'grid.alpha': 1.0,
+            'grid.color': '#f8f8f8',
+            'ytick.direction': 'in',
+            'xtick.direction': 'in',
+            'xtick.major.size': 0.0,
+            'ytick.major.size': 0.0,
+            'xtick.major.width': 0.5,
+            'ytick.major.width': 0.5,
+        })
+
     elif style is Axes.GRAY:
         rcParams.update({
             'axes.grid': True,

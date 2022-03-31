@@ -39,7 +39,8 @@ class StyleType:
 
         NONE = 0
         WHITE = 1
-        GRAY = 2
+        WHITEGRID = 2
+        GRAY = 3
 
     class Lines(Enum):
         '''
