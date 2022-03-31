@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 """Creates single plots of data stored in CDFs or CSVs
 
 This module aims to quickly produce publication quality plots using data
@@ -23,12 +25,14 @@ full list of parameters that can be specified when creating plots.
 
 # Standard Packages
 import sys; sys.path.insert(0, '../')
-from dataclasses import dataclass
 import logging
+import io
 
 # 3rd Party Packages
 import matplotlib.pyplot as plt
 import numpy as np
+from PyQt5.QtGui import QImage
+from PyQt5.QtWidgets import QApplication
 
 # Local Packages
 import modules.options
@@ -40,44 +44,6 @@ from plotting.modules.plotstyles import PlotStyles, StyleType
 
 
 _log = logging.getLogger(__name__)
-
-
-@dataclass
-class PlotSettings:
-    """
-    Settings to control various behaviors of the plot
-
-    Parameters (all Optional):
-    * save_data_to_csv (bool): If plotted data should be saved to a CSV in the CSV subfolder
-    * replace_offset_text (bool): If the offset axes text should be put in the axes labels
-    * allow_title_runid (bool): If the runid is allowed to appear in the title
-    * allow_title_time (bool): If the time is allowed to appear in the title
-    * allow_title_rho (bool): If the rho value is allowed to appear in the title
-    * allow_title_factor (bool): If the scan factor is allowed to appear in the title
-    * invert_y_axis (bool): If the y-axis should be inverted
-    * invert_x_axis (bool): If the x-axis should be inverted
-    * title_override (str): Overrides auto generated title if non-empty
-    * ylabel_override (str): Overrides auto generated ylabel if non-empty
-    * xlabel_override (str): Overrides auto generated xlabel if non-empty
-    * yaxis_padding (float): The amount to pad the yaxis limits
-    * xaxis_padding (float): The amount to pad the xaxis limits
-    * xaxis_trim_padding (float): The amount to pad the trimmed xaxis limits when using rho values
-    """
-
-    save_data_to_csv: bool = True
-    replace_offset_text: bool = True
-    allow_title_runid: bool = True
-    allow_title_time: bool = True
-    allow_title_rho: bool = True
-    allow_title_factor: bool = True
-    invert_y_axis: bool = False
-    invert_x_axis: bool = False
-    title_override: str = ''
-    ylabel_override: str = ''
-    xlabel_override: str = ''
-    yaxis_padding: float = 0.005
-    xaxis_padding: float = 0
-    xaxis_trim_padding: float = 0.015
 
 
 class PlotData:
@@ -95,6 +61,8 @@ class PlotData:
     * xvar (Variable): The Variable object of the x-variable to plot
     * yval_base (list[float]): The base y-variable value when plotting at a rho point
     * xval_base (list[float]): The base x-variable value when plotting at a rho point
+    * xmult (float): Multiplier to apply to the xvar values
+    * ymult (float): Multiplier to apply to the yvar values
     * transp_calcs (bool): If the data source is using variables calculated in TRANSP (Optional)
     * is_cdf (bool): If the data source is loaded from a CDF (Optional)
     * is_csv (bool): If the data source is loaded from a CSV (Optional)
@@ -102,7 +70,7 @@ class PlotData:
     * scan_factor (str | None): The scan factor value to plot (Optional)
     * rho_value (str | None): The rho value to plot (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
-    * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
+    * legend (str): A string to replace the auto generated legend label of a y-variable (Optional)
 
     Raises:
     * ValueError: If values for the x-variable or y-variable are None
@@ -110,9 +78,12 @@ class PlotData:
 
     def __init__(self, options, runid, yname, xname, yvar, xvar, yval_base=None, xval_base=None,
                  transp_calcs=False, is_cdf=False, is_csv=False, factor_symbol=None, scan_factor=None,
-                 rho_value=None, runname='', legend_override=''):
-        self.xvals: np.ndarray = self._get_values(xvar.values, options.time_idx)
-        self.yvals: np.ndarray = self._get_values(yvar.values, options.time_idx)
+                  ymult=1, xmult=1, rho_value=None, runname='', legend=''):
+        self.options = options
+        self.xmult: float = xmult
+        self.ymult: float = ymult
+        self.xvals: np.ndarray = self._get_values(xvar, options.time_idx) * xmult
+        self.yvals: np.ndarray = self._get_values(yvar, options.time_idx) * ymult
         self.xval_base: list[float] = xval_base or []  # plotting an empty list advances the cycler
         self.yval_base: list[float] = yval_base or []
         self.xsymbol: str = xvar.label
@@ -129,10 +100,14 @@ class PlotData:
         self.rho: str | None = rho_value
         self.factor: str | None = scan_factor
         self.factor_symbol: str | None = factor_symbol
-        self.legend_override: str = legend_override
+        self.legend: str = legend
         self.transp_calcs: bool = transp_calcs
         self.is_cdf: bool = is_cdf
         self.is_csv: bool = is_csv
+        self.scan_range = options.scan_range
+
+        # self.xvals = np.absolute(self.xvals)
+        # self.xval_base = [abs(b) for b in self.xval_base]
 
         if self.xvals is None:
             raise ValueError(f'Unable to load values for variable {xvar.name}')
@@ -140,9 +115,12 @@ class PlotData:
             raise ValueError(f'Unable to load values for variable {yvar.name}')
 
     @staticmethod
-    def _get_values(values, time_idx):
+    def _get_values(var, time_idx):
         """Returns (np.ndarray): Variable values to be plotted"""
-        return values[:, time_idx] if isinstance(values, np.ndarray) and values.ndim == 2 else values
+        values = var.values[:, time_idx] if isinstance(var.values, np.ndarray) and var.values.ndim == 2 else var.values
+        if values is None:
+            raise ValueError(f'Null values detected for variable name {var.name}')
+        return values
 
     def get_ysymbol_label_str(self):
         """Returns (str): The ysymbol string used in the legend label"""
@@ -194,13 +172,20 @@ class PlotDataCdf(PlotData):
     * time (float): The time value to plot
     * yname (str): The name of the y-variable to plot
     * xname (str): The name of the x-variable to plot (Optional)
+    * xmult (float): Multiplier to apply to the xvar values (Optional)
+    * ymult (float): Multiplier to apply to the yvar values (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
-    * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
-    * use_cdf_vars (bool): Uses uncalculated CDF variables instead of calculated MMM variables (Optional)
+    * legend (str): A string to replace the auto generated legend label of a y-variable (Optional)
+    * transp_calcs (bool): Uses uncalculated TRANSP variables instead of calculated MMM variables (Optional)
+    * input_points (int): the amount of radial points each variable is interpolated to when sent to MMM (Optional)
+    * apply_smoothing (bool): kill-switch to disable smoothing of all variables (Optional)
+    * uniform_rho (bool): interpolate input variables onto a rho of uniform spacing (Optional)
     """
 
-    def __init__(self, runid, time, yname, xname='rho', runname='', legend_override='', transp_calcs=False):
-        options = modules.options.Options(runid=runid, input_time=time)
+    def __init__(self, runid, time, yname, xname='rho', runname='', legend='', transp_calcs=False,
+                 input_points=None, apply_smoothing=False, uniform_rho=False, ymult=1, xmult=1):
+        options = modules.options.Options(runid=runid, input_time=time, input_points=input_points,
+                                          apply_smoothing=apply_smoothing, uniform_rho=uniform_rho)
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
         plot_vars = mmm_vars if not transp_calcs else cdf_vars
 
@@ -208,7 +193,7 @@ class PlotDataCdf(PlotData):
         xvar = getattr(plot_vars, xname)
 
         super().__init__(options, runid, yname, xname, yvar, xvar, transp_calcs=transp_calcs, is_cdf=True,
-                         runname=runname, legend_override=legend_override)
+                         runname=runname, legend=legend, ymult=ymult, xmult=xmult)
 
 
 class PlotDataCsv(PlotData):
@@ -228,17 +213,22 @@ class PlotDataCsv(PlotData):
     * scan_num (int): The scan number of the CSV
     * yname (str): The name of the y-variable to plot
     * xname (str): The name of the x-variable to plot (Optional)
+    * xmult (float): Multiplier to apply to the xvar values (Optional)
+    * ymult (float): Multiplier to apply to the yvar values (Optional)
     * scan_factor (float): The scan factor of the CSV to load (Optional)
     * rho_value (float): The rho value of the CSV to load (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
-    * legend_override (str): A string to completely replace the legend label of a y-variable (Optional)
+    * legend (str): A string to replace the auto generated legend label of a y-variable (Optional)
     """
 
-    def __init__(self, runid, scan_num, yname, xname='rho',
-                 scan_factor=None, rho_value=None, runname='', legend_override=''):
+    def __init__(self, runid, scan_num, yname, xname='rho', ymult=1, xmult=1,
+                 scan_factor=None, rho_value=None, runname='', legend=''):
 
         options = modules.options.Options().load(runid, scan_num)
         scan_factor_str = None
+
+        if xname == 'var_to_scan':
+            xname = options.var_to_scan
 
         if rho_value:
             rho_value = utils.get_closest_rho(options, SaveType.OUTPUT, rho_value)
@@ -252,7 +242,7 @@ class PlotDataCsv(PlotData):
 
         super().__init__(options, runid, yname, xname, yvar, xvar, factor_symbol=factor_symbol,
                          is_csv=True, yval_base=yval_base, xval_base=xval_base, rho_value=rho_value,
-                         scan_factor=scan_factor_str, runname=runname, legend_override=legend_override)
+                         scan_factor=scan_factor_str, runname=runname, legend=legend, ymult=ymult, xmult=xmult)
 
     @staticmethod
     def _get_vars_from_data(options, scan_factor, rho_value, yname, xname):
@@ -277,8 +267,9 @@ class PlotDataCsv(PlotData):
         """
 
         yvar = xvar = factor_symbol = None
-        adjusted_var = options.get_adjusted_var()
-        data_objects = list(datahelper.get_data_objects(options, scan_factor, rho_value))
+        adjusted_var = options.var_to_scan
+        ivars, ovars, ctrls = datahelper.get_data_objects(options, scan_factor, rho_value)
+        data_objects = [ovars, ivars, ctrls]
 
         for o in data_objects:
             if not yvar and hasattr(o, yname):
@@ -331,7 +322,8 @@ class PlotDataCsv(PlotData):
                 if not yval_base and hasattr(o, yname):
                     yval_base = [getattr(o, yname).values[base_value_idx]]
                 if not xval_base and hasattr(o, xname):
-                    xval_base = [getattr(o, xname).values[base_value_idx]]
+                    values = getattr(o, xname).values
+                    xval_base = [values[base_value_idx] if isinstance(values, np.ndarray) else values]
 
         return yval_base, xval_base
 
@@ -340,30 +332,94 @@ class AllPlotData:
     """
     Store all individual PlotData objects
 
-    Parameters:
-    * args (tuple[PlotData]): Contains PlotData objects to store
+    Initialization parameters determine plot settings and must be specified as
+    keyword arguments.  Plot data is set in a separate call using the set()
+    method.
+
+    Parameters (all optional keyword arguments):
+    * replace_offset_text (bool): If the offset axes text should be put in the axes labels
+    * allow_title_runid (bool): If the runid is allowed to appear in the title
+    * allow_title_time (bool): If the time is allowed to appear in the title
+    * allow_title_rho (bool): If the rho value is allowed to appear in the title
+    * allow_title_factor (bool): If the scan factor is allowed to appear in the title
+    * invert_y_axis (bool): If the y-axis should be inverted
+    * invert_x_axis (bool): If the x-axis should be inverted
+    * nomralize_y_axis (bool): If the y-axis should be normalized
+    * normalize_x_axis (bool): If the x-axis should be normalized
+    * savename_append (str): Name to append to the saved file when autosaving
+    * summed_modes (bool): If the modes were summed (generally applies to diffusivity)
+    * title_override (str): Overrides auto generated title if non-empty
+    * ylabel_override (str): Overrides auto generated ylabel if non-empty
+    * xlabel_override (str): Overrides auto generated xlabel if non-empty
+    * yaxis_padding (float): The amount to pad the yaxis limits
+    * xaxis_padding (float): The amount to pad the xaxis limits
+    * xaxis_trim_padding (float): The amount to pad the trimmed xaxis limits when using rho values
     """
 
-    def __init__(self, *args):
+    def __init__(self, **kwargs):
+        self.replace_offset_text: bool = True
+        self.allow_title_runid: bool = True
+        self.allow_title_time: bool = True
+        self.allow_title_rho: bool = True
+        self.allow_title_factor: bool = True
+        self.invert_y_axis: bool = False
+        self.invert_x_axis: bool = False
+        self.nomralize_y_axis: bool = False
+        self.nomralize_x_axis: bool = False
+        self.savename_append: str = ''
+        self.summed_modes: bool = False
+        self.title_override: str = ''
+        self.ylabel_override: str = ''
+        self.xlabel_override: str = ''
+        self.yaxis_padding: float = 0.01
+        self.xaxis_padding: float = 0.005
+        self.xaxis_trim_padding: float = 0.03
+
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                _log.warning(f'\n\t"{key}" is not a valid parameter when initializing AllPlotData')
+
+        self.data = None
+        self.legend_attrs = None
+        self.show_legend = None
+
+    def set(self, *args):
+        """
+        Set data for the plot
+
+        Parameters:
+        * args (tuple[PlotData]): Data to be plotted
+        """
+
         self.data: list[PlotData] = [a for a in args if isinstance(a, PlotData)]
 
-        # Store whether each attribute should be included in the legend
-        self.legend_attrs: dict[str, bool] = {
-            'show_ysymbol': self.get_legend_include('ysymbol'),
-            'show_xsymbol': self.get_legend_include('xsymbol'),
-            'show_runid': self.get_legend_include('runid'),
-            'show_runname': self.get_legend_include('runname'),
-            'show_time': self.get_legend_include('time'),
-            'show_rho': self.get_legend_include('rho'),
-            'show_factor': self.get_legend_include('factor'),
-            'show_factor_symbol': self.get_legend_include('factor_symbol'),
-            'show_is_cdf': self.get_legend_include('is_cdf'),
-            'show_is_csv': self.get_legend_include('is_csv'),
-            'show_calc_source': self.get_legend_include('transp_calcs'),
-            'show_override': self.get_legend_include('legend_override'),
-        }
+        if self.nomralize_y_axis:
+            for d in self.data:
+                if min(d.yvals) != max(d.yvals):
+                    d.yval_base = (d.yval_base - min(d.yvals)) / (max(d.yvals) - min(d.yvals))
+                    d.yvals = (d.yvals - min(d.yvals)) / (max(d.yvals) - min(d.yvals))
+                else:
+                    d.yval_base = 0
+                    d.yvals[:] = 0
 
-        self.show_legend: bool = np.array([v for v in self.legend_attrs.values()]).any()
+        if self.nomralize_x_axis:
+            for d in self.data:
+                if min(d.xvals) != max(d.xvals):
+                    d.xval_base = (d.xval_base - min(d.xvals)) / (max(d.xvals) - min(d.xvals))
+                    d.xvals = (d.xvals - min(d.xvals)) / (max(d.xvals) - min(d.xvals))
+                else:
+                    d.xval_base = 0
+                    d.xvals[:] = 0
+
+        if self.summed_modes:
+            for d in self.data:
+                stripped_label = d.ysymbol.strip('$')
+                d.ysymbol = f'$\sum{stripped_label}$'
+
+        self._init_legend_dict()
+        self._update_rho_str()
 
     @staticmethod
     def _format_offset_text(offset_text):
@@ -395,6 +451,61 @@ class AllPlotData:
 
         return f' {offset_text}'
 
+    def _init_legend_dict(self):
+        """Store whether each attribute should be shown in the legend"""
+        self.legend_attrs: dict[str, bool] = {
+            'show_ysymbol': self.get_legend_include('ysymbol'),
+            'show_xsymbol': self.get_legend_include('xsymbol'),
+            'show_runid': self.get_legend_include('runid'),
+            'show_runname': self.get_legend_include('runname'),
+            'show_time': self.get_legend_include('time'),
+            'show_rho': self.get_legend_include('rho'),
+            'show_factor': self.get_legend_include('factor'),
+            'show_factor_symbol': self.get_legend_include('factor_symbol'),
+            'show_is_cdf': self.get_legend_include('is_cdf'),
+            'show_is_csv': self.get_legend_include('is_csv'),
+            'show_calc_source': self.get_legend_include('transp_calcs'),
+            'show_override': self.get_legend_include('legend'),
+        }
+
+        self.show_legend: bool = np.array([v for v in self.legend_attrs.values()]).any()
+
+    def _update_rho_str(self):
+        """
+        Update rho strings so that trailing zeros are removed while the same
+        number of decimal points are kept for each rho value.
+
+        Example:
+
+            rho1, rho2 = 0.900, 0.720
+
+            >>> rho1, rho2 = 0.90, 0.72
+        """
+
+        # Get the max number of decimal points used for all rho
+        rho_lengths = [0]  # Fill with 0 so that the list isn't empty when calling max()
+        for d in self.data:
+            if d.rho:
+                split_decimal = f'{float(d.rho):.12g}'.split('.')
+                if len(split_decimal) > 1:
+                    rho_lengths.append(len(split_decimal[1]))  # num decimal points with trailing 0's removed
+
+        rho_length = max(rho_lengths)
+
+        # Update rho strings by removing trailing 0's while keeping the same amount of decimals on each rho
+        if rho_length:
+            for i, d in enumerate(self.data):
+                if d.rho:
+                    d.rho = f'{float(d.rho):.{rho_length}f}'
+
+    @staticmethod
+    def _get_units_str(units):
+        """Returns (str) The formatted units of the variable"""
+        # Note: The units parameter may already contain '$' symbols, which
+        # breaks the \left and \right commands we are using, so those symbols
+        # are removed and placed back in at the ends of the return string
+        return "".join([r"$", fr'\left(\mathrm{{{units}}}\right)'.replace('$', ''), r"$"]) if units else ''
+
     def get_legend_label(self, plotdata):
         """
         Get the individual label for the plot legend
@@ -417,8 +528,8 @@ class AllPlotData:
         * (str): The legend label for the variable
         """
 
-        if plotdata.legend_override:
-            return plotdata.legend_override
+        if plotdata.legend:
+            return plotdata.legend
 
         legend_items = []
         if self.legend_attrs['show_ysymbol'] and not self.legend_attrs['show_xsymbol']:
@@ -463,7 +574,7 @@ class AllPlotData:
 
         return len(attrs) > 1
 
-    def get_plot_limits(self, plot_settings):
+    def get_plot_limits(self):
         """
         Get the limits of the plot, adjusted by padding parameters set in plot settings
 
@@ -474,9 +585,6 @@ class AllPlotData:
         something like 5% on each axis, so setting padding values smaller
         than this value will produce tighter plots than what would be created
         if the padding wasn't adjusted.
-
-        Parameters:
-        * plot_settings (PlotSettings): Plot settings object
 
         Returns:
         * xlims (tuple[float]): The x-axis limits of the plot
@@ -489,29 +597,32 @@ class AllPlotData:
                 offset = (maxval - minval) * padding
                 minval, maxval = minval - offset, maxval + offset
             else:
-                minval, maxval = 0, 1  # default values
+                minval -= 1  # default values
+                maxval += 1
             return (minval, maxval) if not invert_axis else (maxval, minval)
 
+        # all_xvals = np.hstack([d.xvals for d in self.data[1:]])
+        # all_yvals = np.hstack([d.yvals for d in self.data[1:]])
         all_xvals = np.hstack([d.xvals for d in self.data])
         all_yvals = np.hstack([d.yvals for d in self.data])
-        xmin, xmax = all_xvals.min(), all_xvals.max()
-        ymin, ymax = all_yvals.min(), all_yvals.max()
+        xmin, xmax = all_xvals[~np.isnan(all_xvals)].min(), all_xvals[~np.isnan(all_xvals)].max()
+        ymin, ymax = all_yvals[~np.isnan(all_yvals)].min(), all_yvals[~np.isnan(all_yvals)].max()
 
         using_rho = (np.array([d.rho for d in self.data]) != None).any()  # '!= None' syntax is needed with numpy
 
-        if using_rho:
-            xvals_trim = all_xvals[all_yvals != 0]  # Trim the x-limits of zeros
-            xmin_trim, xmax_trim = xvals_trim.min(), xvals_trim.max()
-            xoffset_trim = (xmax_trim - xmin_trim) * plot_settings.xaxis_trim_padding
-            xmin = max(xmin, xmin_trim - xoffset_trim)  # Keep trimmed xmin >= actual xmin
-            xmax = min(xmax, xmax_trim + xoffset_trim)  # Keep trimmed xmax <= actual xmax
+        # if using_rho:
+        #     xvals_trim = all_xvals[np.absolute(all_yvals) / max(abs(ymin), abs(ymax)) > 1e-3]  # Trim the x-limits of zeros
+        #     xmin_trim, xmax_trim = xvals_trim.min(), xvals_trim.max()
+        #     xoffset_trim = (xmax_trim - xmin_trim) * plot_settings.xaxis_trim_padding
+        #     xmin = max(xmin, xmin_trim - xoffset_trim)  # Keep trimmed xmin >= actual xmin
+        #     xmax = min(xmax, xmax_trim + xoffset_trim)  # Keep trimmed xmax <= actual xmax
 
-        xlims = get_lims(xmin, xmax, plot_settings.xaxis_padding, plot_settings.invert_x_axis)
-        ylims = get_lims(ymin, ymax, plot_settings.yaxis_padding, plot_settings.invert_y_axis)
+        xlims = get_lims(xmin, xmax, self.xaxis_padding, self.invert_x_axis)
+        ylims = get_lims(ymin, ymax, self.yaxis_padding, self.invert_y_axis)
 
         return xlims, ylims
 
-    def get_plot_title(self, plot_settings):
+    def get_plot_title(self):
         """
         Get the title for the plot
 
@@ -526,15 +637,15 @@ class AllPlotData:
         corresponding attribute.  Possible details are: runid, time, scan
         factor, rho value.
 
-        Parameters:
-        * plot_settings (PlotSettings): Plot settings object
-
         Returns:
         * (str): The title for the plot
         """
 
-        base_title = plot_settings.title_override or self._generate_unique_title()
-        title_details = self._get_title_details(plot_settings)
+        base_title = (self.title_override or self._generate_unique_title()).strip()
+        title_details = self._get_title_details()
+
+        if base_title and title_details:
+            title_details = f' ({title_details})'
 
         return f'{base_title}{title_details}'
 
@@ -581,7 +692,7 @@ class AllPlotData:
 
         return ' '.join(title_words)
 
-    def _get_title_details(self, plot_settings):
+    def _get_title_details(self):
         """
         Get the title details
 
@@ -592,18 +703,15 @@ class AllPlotData:
         variables share the same runid, then the runid is added to the
         title.
 
-        Parameters:
-        * plot_settings (PlotSettings): Plot settings object
-
         Returns:
         * (str): The details to add to the title
         """
 
         title_details_list = []
-        allow_runid = plot_settings.allow_title_runid
-        allow_time = plot_settings.allow_title_time
-        allow_rho = plot_settings.allow_title_rho
-        allow_factor = plot_settings.allow_title_factor
+        allow_runid = self.allow_title_runid
+        allow_time = self.allow_title_time
+        allow_rho = self.allow_title_rho
+        allow_factor = self.allow_title_factor
 
         if allow_runid or allow_time or allow_rho:
             var = self.data[0]  # use first variable values for title details (same for all variables)
@@ -621,9 +729,9 @@ class AllPlotData:
                     and not self.legend_attrs['show_factor_symbol'] and var.factor is not None):
                 title_details_list.append(var.get_factor_label_str())
 
-        return f' ({", ".join(title_details_list)})' if title_details_list else ''
+        return f'{", ".join(title_details_list)}' if title_details_list else ''
 
-    def get_plot_ylabel(self, plot_settings, offset_text):
+    def get_plot_ylabel(self, offset_text):
         """
         Get the yaxis label for the plot
 
@@ -634,7 +742,6 @@ class AllPlotData:
         added to the ylabel.
 
         Parameters:
-        * plot_settings (PlotSettings): Plot settings object
         * offset_text (str): The offset text from the y-axis of the plot
 
         Returns:
@@ -643,23 +750,28 @@ class AllPlotData:
 
         offset_text = self._format_offset_text(offset_text)
 
-        if plot_settings.ylabel_override:
-            return f'{plot_settings.ylabel_override}{offset_text}'
+        if self.ylabel_override:
+            return f'{self.ylabel_override}{offset_text}'
 
         ylabels = []  # Not using a set to preserve order
         for d in self.data:
+            units_str = self._get_units_str(d.yunits)
             if not self.legend_attrs['show_ysymbol'] and not self.legend_attrs['show_xsymbol']:
-                # ysymbol is not in the legend
-                ystr = f'{d.ysymbol} {d.yunits}'
+                # ysymbol not in legend
+                ystr = fr'{d.ysymbol} {units_str}'
                 if ystr not in ylabels:
                     ylabels.append(ystr)
-            elif d.yunits not in ylabels:  # ysymbol is in the legend (showing xsymbol also shows ysymbol)
-                ylabels.append(d.yunits)
+            elif units_str not in ylabels:  # ysymbol is in the legend (showing xsymbol also shows ysymbol)
+                ylabels.append(units_str)
 
         joined_labels = r'$\!$,  '.join(ylabels)  # small negative space before each comma
+
+        if self.nomralize_y_axis:
+            joined_labels = f'{joined_labels} (normalized)'
+
         return f'{joined_labels}{offset_text}'
 
-    def get_plot_xlabel(self, plot_settings, offset_text):
+    def get_plot_xlabel(self, offset_text):
         """
         Get the xaxis label for the plot
 
@@ -668,7 +780,6 @@ class AllPlotData:
         added to the ylabel (the same units aren't repeated).
 
         Parameters:
-        * plot_settings (PlotSettings): Plot settings object
         * offset_text (str): The offset text from the x-axis of the plot
 
         Returns:
@@ -677,16 +788,20 @@ class AllPlotData:
 
         offset_text = self._format_offset_text(offset_text)
 
-        if plot_settings.xlabel_override:
-            return f'{plot_settings.xlabel_override}{offset_text}'
+        if self.xlabel_override:
+            return f'{self.xlabel_override}{offset_text}'
 
         xlabels = []  # Not using a set to preserve order
         for d in self.data:
-            xstr = f'{d.xsymbol} {d.xunits}'
+            xstr = f'{d.xsymbol} {self._get_units_str(d.xunits)}'
             if xstr not in xlabels:
                 xlabels.append(xstr)
 
         joined_labels = r'$\!$,  '.join(xlabels)  # small negative space before each comma
+
+        if self.nomralize_x_axis:
+            joined_labels = f'{joined_labels} (normalized)'
+
         return f'{joined_labels}{offset_text}'
 
     def save_to_csv(self):
@@ -740,7 +855,7 @@ class AllPlotData:
         print(f'Plot Data Saved:\n\t{file_name}\n')  # Intentionally not using logging
 
 
-def main(plot_settings, all_data):
+def main(all_data, autosave=False):
     """
     Create a plot using data loaded from CDF files
 
@@ -754,71 +869,118 @@ def main(plot_settings, all_data):
     directly increment the cycler.
 
     Parameters:
-    * plot_settings (PlotSettings): Object containing plot settings
     * all_data (AllPlotData): Object containing all PlotData objects
+    * autosave (bool): Automatically save the plot without showing it if True
     """
 
-    ax = plt.gca()
+    def on_press(event):
+        if event.key == 'x':  # flip x-axis limits
+            plt.xlim(plt.xlim()[::-1])
+            fig.canvas.draw()
 
+        if event.key == 'y':  # flip y-axis limits
+            plt.ylim(plt.ylim()[::-1])
+            fig.canvas.draw()
+
+        if event.key == "ctrl+c":  # copy figure to clipboard
+            save_format = plt.rcParams['savefig.format']
+            plt.rcParams.update({'savefig.format': 'png'})
+            with io.BytesIO() as buffer:
+                fig.savefig(buffer)
+                QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
+                plt.rcParams.update({'savefig.format': save_format})
+
+        if event.key == 'alt+s':  # save plot lines to csv
+            all_data.save_to_csv()
+
+
+
+    fig, ax = plt.gcf(), plt.gca()
+    # ax.set(yscale='log')
+    fig.canvas.mpl_connect('key_press_event', on_press)
+
+    # all_data.data[1].yvals /= 25
+    # all_data.data[1].yvals *= 1.5e5
     for d in all_data.data:
+        # if 'sum' in all_data.savename_append:
+        #     d.yvals /= 20
         ax.plot(d.xvals, d.yvals, label=all_data.get_legend_label(d))
-        ax.plot(d.xval_base, d.yval_base)  # Advance the cycler when base values are empty lists
+        ax.plot(d.xval_base, d.yval_base, zorder=3)  # Advance the cycler when base values are empty lists
 
-    xlims, ylims = all_data.get_plot_limits(plot_settings)
-
+    xlims, ylims = all_data.get_plot_limits()
     ax.set(xlim=xlims, ylim=ylims)  # lims need to be set before getting offsetText
 
     offset_text_x = offset_text_y = ''
-    if plot_settings.replace_offset_text:
-        plt.gcf().canvas.draw()  # needed to populate the offsetText string
+    if all_data.replace_offset_text:
+        fig.canvas.draw()  # needed to populate the offsetText string
         ax.xaxis.offsetText.set_visible(False)
         ax.yaxis.offsetText.set_visible(False)
         offset_text_x = ax.xaxis.offsetText.get_text()
         offset_text_y = ax.yaxis.offsetText.get_text()
 
     ax.set(
-        title=all_data.get_plot_title(plot_settings),
-        xlabel=all_data.get_plot_xlabel(plot_settings, offset_text_x),
-        ylabel=all_data.get_plot_ylabel(plot_settings, offset_text_y),
+        title=all_data.get_plot_title(),
+        xlabel=all_data.get_plot_xlabel(offset_text_x),
+        ylabel=all_data.get_plot_ylabel(offset_text_y),
     )
 
     if all_data.show_legend:
         ax.legend().set_draggable(state=True)
 
-    if plot_settings.save_data_to_csv:
-        all_data.save_to_csv()
+    if autosave:
+        ynames_list = list(set([d.yname for d in all_data.data]))
+        ynames_list.sort()
+        ynames = ''.join(ynames_list)
 
-    plt.show()
+        # These flags are based on the first variable being plotted
+        if all_data.data[0].options.use_gnezero:
+            ynames = f'{ynames}_gne0'
+        if all_data.data[0].options.use_gtezero:
+            ynames = f'{ynames}_gte0'
+        if all_data.data[0].options.use_gneabs:
+            ynames = f'{ynames}_gneabs'
+        if all_data.savename_append:
+            ynames = f'{ynames}_{all_data.savename_append}'
+
+        savedir = f'{utils.get_plotting_singles_path()}\\{all_data.data[0].options.runid}'
+        utils.create_directory(savedir)
+        fig.savefig(f'{savedir}\\{ynames}')
+        fig.clear()
+
+    else:
+        plt.show()
 
 
 if __name__ == '__main__':
-    """Run this module directly to plot variable data stored in CDF files"""
+    """Run this module directly to plot variable data stored in CDF or CSV files"""
 
     utils.init_logging()
 
     # Initialize visual styles for the plot
     PlotStyles(
-        axes=StyleType.Axes.GRAY,
+        axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE,
+        layout=StyleType.Layout.SINGLE1B,
     )
 
     # Define settings for the plot
-    plot_settings = PlotSettings(
-        save_data_to_csv=True,
-        allow_title_factor=True,
+    all_data = AllPlotData(
+        replace_offset_text=False,
         allow_title_runid=True,
         allow_title_time=True,
+        allow_title_factor=True,
         allow_title_rho=True,
         invert_y_axis=False,
         invert_x_axis=False,
-        title_override='',
+        nomralize_y_axis=False,
+        nomralize_x_axis=False,
+        title_override=' ',
         ylabel_override='',
         xlabel_override='',
     )
 
     # Define data for the plot
-    all_data = AllPlotData(
+    all_data.set(
         # CDF: Same y-variable, different x-variables
         # PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
         # PlotDataCdf(runid='138536A01', yname='te', xname='xb', time=0.50),
@@ -827,12 +989,12 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='138536A01', yname='ti', xname='rho', time=0.50),
         # PlotDataCdf(runid='138536A01', yname='btor', xname='rho', time=0.50),
         # CDF: Different runid, y-variables, and times
-        PlotDataCdf(runid='120982A09', yname='ne', xname='rho', time=0.60),
-        PlotDataCdf(runid='120968A02', yname='ni', xname='rho', time=0.50),
-        PlotDataCdf(runid='129041A10', yname='nd', xname='rho', time=0.40),
+        # PlotDataCdf(runid='120982A09', yname='ne', xname='rho', time=0.60),
+        # PlotDataCdf(runid='120968A02', yname='ni', xname='rho', time=0.50),
+        # PlotDataCdf(runid='129041A10', yname='nd', xname='rho', time=0.40),
         # CDF: Compare TRANSP and MMM calculations (must be defined in calculations.py)
-        # PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629, transp_calcs=True),
-        # PlotDataCdf(runid='138536A01', yname='etae', xname='rho', time=0.629),
+        # PlotDataCdf(runid='141552A01', yname='loge', xname='rho', time=0.629, transp_calcs=True),
+        # PlotDataCdf(runid='141552A01', yname='loge', xname='rho', time=0.629),
         # CDF and CSV: Compare same variable from different data sources
         # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.629),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2),
@@ -841,16 +1003,30 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2, scan_factor=2.5),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=5, scan_factor=2.5),
         # CSV: Comparing output results
-        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='rho', scan_num=19, runname='Without Scan'),
-        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='rho', scan_num=20, runname='With Scan'),
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=17, legend_override='exbs = 0'),
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=54, legend_override='exbs = 1'),
         # # CSV: Growth rate vs Effective Charge
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.15),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.31),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='zeff', scan_num=4, rho_value=0.63),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etae', scan_num=35, rho_value=0.10),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=39, rho_value=0.8, legend_override='gte  3, gne  1'),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=36, rho_value=0.8, legend_override='gte  2, gne  0'),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=38, rho_value=0.8, legend_override='gte  1, gne -1'),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=37, rho_value=0.8, legend_override='gte  0, gne -2'),
+        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=40, rho_value=0.8, legend_override='gte -1, gne -3'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etae', scan_num=35, rho_value=0.10),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=47, rho_value=0.1, legend_override=r'$\mathtt{tau\_scan}$'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=48, rho_value=0.1, legend_override=r'$\mathtt{te\_scan}$'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=49, rho_value=0.1, legend_override=r'$\mathtt{ti\_scan}$'),
         # CSV: Growth rate vs Average Magnetic Surface Curvature
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.15),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.31),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='gave', scan_num=4, rho_value=0.63),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.20, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.60, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.39, runname=r'OLD'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=55, rho_value=0.39, runname=r'NEW'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.61, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.62, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.7, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=21, rho_value=0.94, runname=''),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.3),
+        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='var_to_scan', scan_num=3, rho_value=0.3),
     )
 
-    main(plot_settings, all_data)
+    main(all_data)

@@ -23,10 +23,11 @@ import numpy as np
 # Local Packages
 import pdftk
 import output
-import temp
 import cdfs
 import settings
 import plotting.csv
+import plotting.singles
+import plotting.contours
 import modules.constants as constants
 from modules.enums import MergeType
 
@@ -47,11 +48,6 @@ def get_cdf_path(file_name):
     return f'{os.path.dirname(cdfs.__file__)}\\{file_name}.CDF'
 
 
-def get_temp_path(file_name=''):
-    '''Returns (str): the path to the temp folder'''
-    return f'{os.path.dirname(temp.__file__)}\\{file_name}'
-
-
 def get_pdftk_path():
     '''Returns (str): the path to the pdftk executable'''
     return f'{os.path.dirname(pdftk.__file__)}\\pdftk.exe'
@@ -67,6 +63,16 @@ def get_plotting_csv_path():
     return f'{os.path.dirname(plotting.csv.__file__)}'
 
 
+def get_plotting_singles_path():
+    '''Returns (str): the path to the output folder'''
+    return f'{os.path.dirname(plotting.singles.__file__)}'
+
+
+def get_plotting_contours_path():
+    '''Returns (str): the path to the output folder'''
+    return f'{os.path.dirname(plotting.contours.__file__)}'
+
+
 def get_runid_path(runid):
     '''Returns (str): the path to the runid folder'''
     return f'{get_output_path()}\\{runid}'
@@ -75,6 +81,11 @@ def get_runid_path(runid):
 def get_scan_num_path(runid, scan_num):
     '''Returns (str): the path to the scan number folder'''
     return f'{get_runid_path(runid)}\\scan {scan_num}'
+
+
+def get_temp_path(runid, scan_num, file_name=''):
+    '''Returns (str): the path to the temp folder'''
+    return f'{get_scan_num_path(runid, scan_num)}\\temp\\{file_name}'
 
 
 def get_options_path(runid, scan_num):
@@ -103,7 +114,14 @@ def get_rho_path(runid, scan_num, var_to_scan):
 
 
 def get_rho_files(options, save_type):
-    '''Returns (list): all rho files of save_type in the rho folder'''
+    '''
+    Returns (list): all rho files of save_type in the rho folder
+
+    Raises:
+    * ValueError: When there is no scanned variable specified in options
+    '''
+    if not options.var_to_scan:
+        raise ValueError('Rho files do not exist when the scanned variable is None')
     return get_files_in_dir(
         get_rho_path(options.runid, options.scan_num, options.var_to_scan),
         f'{save_type.name.capitalize()}*'
@@ -140,9 +158,9 @@ def init_output_dirs(options):
     scan_num = options.scan_num
     var_to_scan = options.var_to_scan
 
-    clear_temp_folder()
     create_directory(get_runid_path(runid))
     create_directory(get_scan_num_path(runid, scan_num))
+    create_directory(get_temp_path(runid, scan_num))
 
     if var_to_scan:
         create_directory(get_var_to_scan_path(runid, scan_num, var_to_scan))
@@ -287,9 +305,9 @@ def clear_folder(dir_path, file_type):
     _log.info(f'\n\tCleared all files of type {file_type} from {dir_path}\n')
 
 
-def clear_temp_folder():
+def clear_temp_folder(options):
     '''Clears temporary files from the temp folder.'''
-    temp_files = get_temp_path('*.pdf')
+    temp_files = get_temp_path(options.runid, options.scan_num, '*.pdf')
     for file in glob.glob(temp_files):
         os.remove(file)
 
@@ -362,7 +380,7 @@ def merge_profile_sheets(options, profile_name, merge_type, scan_factor=None):
 
     create_directory(output_path)
     output_file = check_filename(output_file, '.pdf')
-    temp_path = get_temp_path()
+    temp_path = get_temp_path(runid, scan_num)
     pdftk_path = get_pdftk_path()
 
     # Shell command to use pdftk.exe

@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 # Standard Packages
 import sys; sys.path.insert(0, '../')
 import logging
@@ -55,20 +57,25 @@ def run_plotting_loop(vars_to_plot, options):
         for i, rho_str in enumerate(rho_strs):
             sheet_num = f'{i:{constants.SHEET_NUM_FMT}}'
 
-            # Plot scanned values
+            xbase_values = xbase.values[i] if type(xbase.values) is np.ndarray else xbase.values
             xvar_data = input_vars_dict[rho_str] if scan_type == ScanType.VARIABLE else input_controls
             xvar = getattr(xvar_data, var_to_scan)
             yvar = getattr(output_vars_dict[rho_str], var_to_plot)
-            plt.plot(xvar.values, yvar.values)
 
-            # Plot base value
-            xbase_values = xbase.values[i] if type(xbase.values) is np.ndarray else xbase.values
+            if xbase_values < 0:
+                plt.plot([], [])  # Advance the cycler twice
+                plt.plot([], [])
+
+            plt.plot(xvar.values, yvar.values, dashes=[1, 0])
             plt.plot(xbase_values, ybase.values[i])
+
+            if xbase_values < 0:
+                plt.xlim(plt.xlim()[::-1])
 
             plt.xlabel(f'{xvar.label}  {xvar.units_label}')
             plt.ylabel(f'{yvar.label}  {yvar.units_label}')
             plt.title(f'{yvar.name}'r' ($\rho = {0}$)'.format(rho_str))
-            fig.savefig(utils.get_temp_path(f'{profile_type} {sheet_num}.pdf'))
+            fig.savefig(utils.get_temp_path(options.runid, options.scan_num, f'{profile_type} {sheet_num}.pdf'))
             fig.clear()
 
         merged_pdf = utils.merge_profile_sheets(options, profile_type, MergeType.RHOVALUES)
@@ -114,10 +121,11 @@ def main(vars_to_plot, scan_data):
     for runid, scan_nums in scan_data.items():
         for scan_num in scan_nums:
             print(f'Initializing data for {runid}, scan {scan_num}...')
-            utils.clear_temp_folder()
             options.load(runid, scan_num)
+            utils.clear_temp_folder(options)
             if options.var_to_scan:
                 run_plotting_loop(vars_to_plot, options)
+                utils.clear_temp_folder(options)
             else:
                 _log.error(f'\n\tNo variable scan detected for {runid}, scan {scan_num}\n')
 
@@ -129,7 +137,7 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.GRAY,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE,
+        layout=StyleType.Layout.SINGLE3,
     )
 
     '''

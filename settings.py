@@ -1,5 +1,5 @@
 # MMM Driver path (USE FORWARDSLASHES)
-MMM_DRIVER_PATH = 'C:/cygwin64/home/metxc/mmm/mmm8_2/wrapper/mmm.exe'
+MMM_DRIVER_PATH = 'C:/cygwin64/home/metxc/mmmdev/wrapper/mmm.exe'
 
 # Make Profile PDFS when running scans
 MAKE_PROFILE_PDFS = True

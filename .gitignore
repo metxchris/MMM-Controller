@@ -135,6 +135,8 @@ output/*
 temp/*
 mmm/*
 plotting/csv/*
+plotting/singles/*
+plotting/contours/*
 *.sublime*
 .idea/*
 

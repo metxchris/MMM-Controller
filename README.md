@@ -26,6 +26,7 @@ MMM Explorer was written using Python v3.9, and may not work with older versions
 #### Required 3rd Party Python Packages
 * [MatPlotLib](https://https://matplotlib.org/.org/) (Comes with Anaconda)
 * [Numpy](https://numpy.org/) (Comes with Anaconda)
+* [PyQt5](https://pypi.org/project/PyQt5/) (Comes with Anaconda)
 * [Scipy](https://scipy.org/) (Comes with Anaconda)
 * [netCDF4](https://unidata.github.io/netcdf4-python/)
 

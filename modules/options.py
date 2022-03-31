@@ -52,48 +52,86 @@ from modules.enums import ShotType, ScanType
 
 _log = logging.getLogger(__name__)
 
+_adjustment_name_to_var_dict = {
+    'zeff': 'nz',
+    'nuei_alphaconst': 'nuei',
+    'nuei_lareunitconst': 'nuei',
+    'betaeunit_alphaconst': 'betaeunit',
+    'gne_alphaconst': 'gne',
+}
+
 
 class Options:
     '''
     Stores options for MMM Controller
 
     Properties and Members:
+    * adjustment_name (string): the name of the adjustment to make
     * apply_smoothing (bool): kill-switch to disable smoothing of all variables
     * input_points (int): the amount of radial points each variable is interpolated to when sent to MMM
     * input_time (float): the time to check the CDF for values
+    * input_time_range (np.ndarray[float]): the input range of time values to use in a time scan
+    * normalize_time_range (bool): treat input time range as a range of normalized time values
     * runid (str): the Runid in the CDF, usually also the name of the CDF
     * scan_factor_str (str): the string of the scan factor, rounded for better visual presentation
     * scan_num (int): the number identifying where data is stored within the ./output/runid/ directory
-    * scan_range (np.ndarray): the range of factors to multiply the var_to_scan by
+    * scan_range_idxs (list[int]): indices corresponding to scan range values (used for time scans)
+    * scan_range (np.ndarray[float]): the range of factors to multiply the var_to_scan by
     * scan_type (ScanType): the type of the scan
     * shot_type (ShotType): the shot type of the CDF
     * temperature_profiles (bool): replace temperature variables with experimental profiles
     * time_str (str): the string of the measurement time, rounded for better visual presentation
     * time_idx (int): the index of the CDF time value that is closest to input_time
-    * uniform_rho (bool): interpolate input variables onto a rho of uniform spacing
+    * use_gnezero (bool): set gne equal to zero (sets gne to a small number to avoid division by 0)
+    * use_gtezero (bool): set gte equal to zero (sets gte to a small number to avoid division by 0)
+    * use_gneabs (bool): take absolute value of gne
+    * use_gnethreshold (bool): used when calculating the threshold for gne
+    * use_gtethreshold (bool): used when calculating the threshold for gte
+    * use_etgm_btor (bool): replaces bunit, gbunit values with btor, gbtor values in the input file
     * var_to_scan (str): the variable to scan; syntax must match a member of InputVariables
     '''
 
     def __init__(self, **kwargs):
         # Private members (each has a property)
+        self._adjustment_name = None
         self._input_points = None
         self._runid = None
         self._scan_range = None
+        self._time_str = None
         self._var_to_scan = None
         # Public members
         self.apply_smoothing = False
         self.input_time = None
+        self.input_time_range = None
+        self.normalize_time_range = False
         self.scan_num = None
+        self.scan_range_idxs = None
         self.scan_type = ScanType.NONE
         self.shot_type = ShotType.NONE
         self.temperature_profiles = False
-        self.time_str = None
+        # self.time_str = None
         self.time_idx = None
-        self.uniform_rho = False
+        self.use_gnezero = False
+        self.use_gtezero = False
+        self.use_gneabs = False
+        self.use_etgm_btor = False
 
         self.set(**kwargs)
 
     # Properties
+    @property
+    def adjustment_name(self):
+        return self._adjustment_name
+
+    @adjustment_name.setter
+    def adjustment_name(self, adjustment_name):
+        self._adjustment_name = adjustment_name
+
+        if adjustment_name in _adjustment_name_to_var_dict:
+            self.var_to_scan = _adjustment_name_to_var_dict[adjustment_name]
+        else:
+            self.var_to_scan = adjustment_name
+
     @property
     def input_points(self):
         return self._input_points
@@ -128,6 +166,17 @@ class Options:
                 value_signs[value_signs == 0] = 1  # np.sign(0) = 0, so set these to +1
                 scan_range[too_small] = constants.ABSMIN_SCAN_FACTOR_VALUE * value_signs
         self._scan_range = scan_range
+
+    @property
+    def time_str(self):
+        return self._time_str
+
+    @time_str.setter
+    def time_str(self, time_value):
+        if isinstance(time_value, str):
+            self._time_str = time_value
+        else:
+            self._time_str = f'{time_value:{constants.TIME_VALUE_FMT}}'
 
     @property
     def var_to_scan(self):
@@ -202,8 +251,43 @@ class Options:
 
     def set_measurement_time(self, time_values):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''
-        self.time_idx = np.argmin(np.abs(time_values - self.input_time))
-        self.time_str = f'{time_values[self.time_idx]:{constants.TIME_VALUE_FMT}}'
+        if self.input_time is not None:
+            self.time_idx = np.argmin(np.abs(time_values - self.input_time))
+            self.time_str = time_values[self.time_idx]
+
+    def set_time_ranges(self, time_values):
+        '''
+        Set the time range and time range indices using time values from the CDF
+
+        This is only needed when conducting a time scan
+
+        Parameters:
+        * time (np.ndarray(float)): Time values from the CDF
+        '''
+
+        if self.scan_range is not None:
+
+            times = time_values
+            if self.normalize_time_range:
+                # Compare normalized input time range against normalized time values
+                times = (time_values - time_values.min()) / (time_values.max() - time_values.min())
+
+            rounded_range = np.round(self.scan_range, constants.TIME_VALUE_SIGFIGS)
+            times_tile = np.tile(np.round(times, constants.TIME_VALUE_SIGFIGS), (rounded_range.shape[0], 1))
+            rounded_range_tile = np.tile(rounded_range, (1, 1)).T
+            unique_idxs = np.unique(np.argmin(np.abs(times_tile - rounded_range_tile), axis=1))
+
+            scan_range_idxs = []
+            scan_range_time_strs = []
+            for i in unique_idxs:
+                time_idx = np.argmin(np.abs(time_values - time_values[i]))
+                time_str = f'{time_values[time_idx]:{constants.TIME_VALUE_FMT}}'
+                if time_str not in scan_range_time_strs:
+                    scan_range_time_strs.append(time_str)
+                    scan_range_idxs.append(i)
+
+            self._scan_range = np.array(scan_range_time_strs).astype(float)
+            self.scan_range_idxs = scan_range_idxs
 
     def find_scan_factor(self, scan_factor):
         '''
@@ -225,20 +309,3 @@ class Options:
         elif self.scan_range is None:
             raise ValueError('Cannot find scan_factor value when scan_range is None')
         return self.scan_range[np.argmin(np.abs(self.scan_range - scan_factor))]
-
-    def get_adjusted_var(self):
-        '''
-        Get the adjusted variable
-
-        This method defines special rules when the adjustment during a scan is
-        done in a non-linear fashion.
-
-        Returns:
-        * adjusted_var (str): The adjusted variable
-        '''
-
-        adjusted_var = self.var_to_scan
-        if self.var_to_scan == 'zeff':
-            adjusted_var = 'nz'
-
-        return adjusted_var

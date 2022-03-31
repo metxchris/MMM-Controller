@@ -71,11 +71,14 @@ _log = logging.getLogger(__name__)
 
 # Used to create units labels to display on plots from units strings
 _UNITS_TO_UNITS_LABEL = {
-    'T*m': r'T\,m',
+    'T*m': r'T$\,$m',
+    'T*m^2': r'T$\,$m$^2$',
     'm^-3': r'm$^{-3}$',
     'm/s^2': r'm/s$^2$',
     'm^2/s': r'm$^2$/s',
-    's^-1': r's$^{-1}$',
+    's^{-1}': r's$^{-1}$',
+    'm^-1': r'm$^{-1}$',
+    'keVm/s': r'keV$\,$m/s',
 }
 
 
@@ -107,16 +110,19 @@ class Variables:
                   f'{getattr(self, v).values.shape}, '
                   f'{getattr(self, v).dimensions}')
 
-    def set_rho_values(self):
+    def set_radius_values(self):
         '''Sets rho from rmin'''
         if self.rmin.values.ndim == 2:
-            self.rho.values = self.rmin.values / self.rmin.values[-1, :]
+            self.rmina.values = self.rmin.values / self.rmin.values[-1, :]
+            self.rho.values = np.tile(np.linspace(0, 1, self.rmin.values.shape[0]), (self.rmin.values.shape[1], 1)).T
         elif self.rmin.values.ndim == 1:
             # This is expected when loading data from rho files with rho = 0
             if self.rmin.values[-1] == 0:
+                self.rmina.values = np.zeros_like(self.rmin.values)
                 self.rho.values = np.zeros_like(self.rmin.values)
             else:
-                self.rho.values = self.rmin.values / self.rmin.values[-1]
+                self.rmina.values = self.rmin.values / self.rmin.values[-1]
+                self.rho.values = np.linspace(0, 1, self.rmin.values.shape[0])
 
     def _get_data_as_array(self, var_list):
         '''
@@ -141,7 +147,9 @@ class Variables:
             if self.options.time_idx is None:
                 raise ValueError('The time index has not been initialized')
             for i, var_name in enumerate(var_list):
-                data[:, i] = getattr(self, var_name).values[:, self.options.time_idx]
+                var_values = getattr(self, var_name).values
+                if var_values is not None:
+                    data[:, i] = var_values[:, self.options.time_idx]
 
         elif isinstance(self, OutputVariables):
             for i, var_name in enumerate(var_list):
@@ -199,10 +207,11 @@ class Variables:
             raise ValueError(f'No variable names were loaded from {file_path}')
 
         for var_name in var_names:
-            getattr(self, var_name).values = data_array[var_name]
+            if hasattr(self, var_name):
+                getattr(self, var_name).values = data_array[var_name]
 
         if self.rmin.values is not None:
-            self.set_rho_values()
+            self.set_radius_values()
 
     def _get_csv_save_path(self, save_type, scan_factor=None, rho_value=None):
         '''
@@ -263,9 +272,9 @@ class InputVariables(Variables):
     '''
 
     def __init__(self, options=None):
-        self.rho = Variable('Normalized Radius', label=r'$\rho$')
+
         # CDF Independent Variables
-        self.time = Variable('Time', cdfvar='TIME')
+        self.time = Variable('Time', cdfvar='TIME', label=r'time', units='s')
         self.x = Variable('X', cdfvar='X', label=r'$x$')
         self.xb = Variable('XB', cdfvar='XB', label=r'$x_\mathrm{B}$')
 
@@ -274,6 +283,7 @@ class InputVariables(Variables):
                              save_type=SaveType.INPUT, minvalue=1, smooth=1)
         self.arat = Variable('Aspect Ratio', cdfvar='ARAT')
         self.bz = Variable('BZ', cdfvar='BZ')
+        self.bzxr = Variable('BZXR', cdfvar='BZXR')
         self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=1,
                               save_type=SaveType.INPUT)
         self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', minvalue=1e-6, smooth=1,
@@ -284,28 +294,64 @@ class InputVariables(Variables):
                            save_type=SaveType.ADDITIONAL, units='m^-3')
         self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=1,
                            save_type=SaveType.INPUT, units='m^-3')
+        self.omega = Variable('Toroidal Frequency', cdfvar='OMEGDATA', label=r'$\omega$', minvalue=1e-6,
+                              save_type=SaveType.ADDITIONAL, units='1/s')
         self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=1,
                           save_type=SaveType.INPUT)
+        self.rho = Variable('Normalized Radius', label=r'$\rho$')
+        self.rhochi = Variable('Radius', label=r'$\rho_\chi$')
         self.rmaj = Variable('Major Radius', cdfvar='RMJMP', label=r'$R$',
                              save_type=SaveType.INPUT, units='m', minvalue=0)
         self.rmin = Variable('Minor Radius', cdfvar='RMNMP', label=r'$r$',
-                             save_type=SaveType.INPUT, units='m', minvalue=0)
+                             save_type=SaveType.INPUT, units=r'm', minvalue=0)
+        self.rmina = Variable('Minor Radius (normalized)', label=r'$r/a$', units=r'', minvalue=0)
         self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=1,
                            save_type=SaveType.INPUT, units='keV')
         self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=1,
                            save_type=SaveType.INPUT, units='keV')
-        self.vpol = Variable('Poloidal Velocity', cdfvar='VPOL_AVG', label=r'$v_\theta$', absminvalue=1e-6, smooth=3,
+        self.vpol = Variable('Poloidal Velocity', cdfvar='VPOLX_NC', label=r'$v_\theta$', absminvalue=1e-6, smooth=3,
                              save_type=SaveType.INPUT, units='m/s')
         self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
                              save_type=SaveType.INPUT, units='m/s')
-        self.wexbs = Variable(r'ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$', smooth=1,
-                              save_type=SaveType.INPUT, units='s^-1')
-        self.zimp = Variable('Mean Charge of Impurities', cdfvar='XZIMP', label=r'$\overline{Z}_\mathrm{imp}$', smooth=1,
-                             save_type=SaveType.INPUT)
+        # self.vtor = Variable('Toroidal Velocity', cdfvar='VTORX_NC', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
+        #                      save_type=SaveType.INPUT, units='m/s')
+        self.wexbs = Variable(r'ExB Shear Rate', label=r'$\omega_{E \times B}$', smooth=3,
+                              save_type=SaveType.INPUT, units='s^{-1}', minvalue=1e-6)
+        self.wexbs_unit1 = Variable(r'ExB Shear Rate', label=r'$\omega_{E \times B, u1}$', smooth=1,
+                                    units='s^{-1}', minvalue=1e-6)
+        self.wexbs_unit2 = Variable(r'ExB Shear Rate', label=r'$\omega_{E \times B, u2}$', smooth=1,
+                                    units='s^{-1}', minvalue=1e-6)
+        self.wexbs_unit1_ratio = Variable(r'ExB Shear Rate Ratio', label=r'$\omega_{E \times B, u1} / \omega_{E \times B}$', smooth=1,
+                                          minvalue=1e-6)
+        self.wexbs_unit2_ratio = Variable(r'ExB Shear Rate Ratio', label=r'$\omega_{E \times B, u2} / \omega_{E \times B}$', smooth=1,
+                                          minvalue=1e-6)
+        self.zimp = Variable('Mean Charge of Impurities', cdfvar='XZIMP', label=r'$\overline{Z}_\mathrm{imp}$',
+                             smooth=1, save_type=SaveType.INPUT)
+
+        self.wexbsa = Variable(r'ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$',
+                               smooth=1, units='s^{-1}', minvalue=1e-6)
+        self.wexbsmod = Variable(r'ExB Shear Rate', cdfvar='SREXBMOD', label=r'$\omega_{E \times B}$',
+                                 smooth=1, units='s^{-1}', minvalue=1e-6)
+        self.wexbsv2 = Variable(r'ExB Shear Rate', cdfvar='SREXBV2', label=r'$\omega_{E \times B}$',
+                                smooth=1, units='s^{-1}', minvalue=1e-6)
+        self.wexbsgrp = Variable(r'ExB Shear Rate', cdfvar='SREXBGRP', label=r'$\omega_{E \times B, gp}$',
+                                smooth=1, units='s^{-1}', minvalue=1e-6)
+        self.wexbsphi = Variable(r'ExB Shear Rate', cdfvar='SREXBPHI', label=r'$\omega_{E \times B, \phi}$',
+                                smooth=1, units='s^{-1}', minvalue=1e-6)
+        self.wexbstht = Variable(r'ExB Shear Rate', cdfvar='SREXBTHT', label=r'$\omega_{E \times B, \theta}$',
+                                smooth=1, units='s^{-1}', minvalue=1e-6)
+
+        self.vtorx = Variable('Toroidal Velocity (Imp)', cdfvar='VTORX_NC', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
+                              units='m/s')
+        self.vtord = Variable('Toroidal Velocity (D+)', cdfvar='VTORD_NC', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
+                              units='m/s')
+        self.vtorh = Variable('Toroidal Velocity (H+)', cdfvar='VTORH_NC', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
+                              units='m/s')
+        self.vtoravg = Variable('Toroidal Velocity (avg)', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
+                                units='m/s')
 
         # Additional CDF variables
         self.betat = Variable('BETAT', cdfvar='BETAT')
-        self.bzxr = Variable('BZXR', cdfvar='BZXR')
         self.tepro = Variable('Electron Temperature', cdfvar='TEPRO')
         self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO')
 
@@ -316,34 +362,83 @@ class InputVariables(Variables):
                              save_type=SaveType.INPUT, minvalue=1)
         self.alphamhd = Variable('Alpha MHD', label=r'$\alpha_\mathrm{MHD}$',
                                  save_type=SaveType.ADDITIONAL)
+        self.alphamhdunit = Variable('Alpha MHD', label=r'$\alpha_\mathrm{MHD,u}$',
+                                     save_type=SaveType.ADDITIONAL)
         self.beta = Variable('Pressure Ratio', cdfvar='BTPL', label=r'$\beta$',
                              save_type=SaveType.ADDITIONAL, minvalue=0)
         self.betae = Variable('Electron Pressure Ratio', cdfvar='BTE', label=r'$\beta_\mathrm{\,e}$',
-                              save_type=SaveType.ADDITIONAL, minvalue=0)  # cdfvar='BETAE' is a scalar
+                              save_type=SaveType.ADDITIONAL, minvalue=0)
+        self.betaeunit = Variable('Electron Pressure Ratio', label=r'$\beta_\mathrm{\,e,u}$',
+                                  save_type=SaveType.ADDITIONAL, minvalue=0)
+        self.betaepunit = Variable('Electron Beta Prime', label=r'$\beta^\prime_\mathrm{\,e,u}$',
+                                   save_type=SaveType.ADDITIONAL)
+        self.bftor = Variable('Toroidal Magnetic Flux', cdfvar='TRFLX', label=r'$\Psi_\mathrm{T}$',
+                              save_type=SaveType.ADDITIONAL, minvalue=0)
         self.bpol = Variable('Poloidal Magnetic Field', cdfvar='BPOL', label=r'$B_\theta$',
-                             save_type=SaveType.ADDITIONAL, units='T')
+                             save_type=SaveType.ADDITIONAL, units='T', minvalue=1e-6)
         self.btor = Variable('Toroidal Magnetic Field', cdfvar='', label=r'$B_\phi$',
                              save_type=SaveType.INPUT, units='T', absminvalue=1e-6)
+        self.bunit = Variable('Magnetic Field', label=r'$B_\mathrm{u}$',
+                              save_type=SaveType.INPUT,
+                              units='T', absminvalue=1e-6)
+        self.bunit_btor = Variable('Magnetic Field Ratio', label=r'$B_\mathrm{u} / B_\mathrm{\phi}$',
+                                   save_type=SaveType.ADDITIONAL, units='', absminvalue=1e-6)
+        self.csound = Variable('Sound Speed', label=r'$c_s$',
+                               save_type=SaveType.ADDITIONAL, units='m/s')
+        self.csound_a = Variable('Sound Frequency', label=r'$c_s / a$',
+                                 save_type=SaveType.ADDITIONAL, units=r'$s^{-1}$')
+        self.e_r_grp = Variable('Radial Electric Field (p)', cdfvar='ERPRESS', label=r'$E_\mathrm{r,p}$',
+                                smooth=0)
+        self.e_r_phi = Variable('Radial Electric Field (tor)', cdfvar='ERVTOR', label=r'$E_\mathrm{r,\phi}$',
+                                smooth=0)
+        self.e_r_tht = Variable('Radial Electric Field (pol)', cdfvar='ERVPOL', label=r'$E_\mathrm{r,\theta}$',
+                                smooth=0)
         self.eps = Variable('Inverse Aspect Ratio', label=r'$\epsilon$',
+                            save_type=SaveType.ADDITIONAL)
+        self.epsilonne = Variable('2 gBu / gne', label=r'$\epsilon_\mathrm{ne,u}$',
                             save_type=SaveType.ADDITIONAL)
         self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$',
                              save_type=SaveType.ADDITIONAL)
         self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$',
                              save_type=SaveType.ADDITIONAL)  # cdfvar='ETAI' in CDF is not gTI/gNI
-        self.gave = Variable('Avg Curvature of Magnetic Field', label=r'$G_\mathrm{ave}$',
-                             save_type=SaveType.ADDITIONAL)
         self.gmax = Variable('Max Gradient', label=r'$g_\mathrm{max}$',
                              save_type=SaveType.ADDITIONAL)
+        self.gmaxunit = Variable('Max Gradient', label=r'$g_\mathrm{max,u}$',
+                                 save_type=SaveType.ADDITIONAL)
+        self.gmaxunit_gte = Variable('Max Gradient', label=r'$g_\mathrm{max,u}/|g_\mathrm{Te}|$',
+                                    )
+        self.gmaxunit_gne = Variable('Max Gradient', label=r'$g_\mathrm{max,u}/|g_\mathrm{ne}|$',
+                                     )
+        self.gmaxunit_gnh = Variable('Max Gradient', label=r'$g_\mathrm{max,u}/|g_\mathrm{nh}|$',
+                                     )
+        self.gne_threshold = Variable(r'Growth Rate Threshold', label=r'$g_\mathrm{ne}$',
+                                      )
+        self.gte_threshold = Variable(r'Growth Rate Threshold', label=r'$g_\mathrm{Te}$',
+                                      )
+        self.gxi = Variable('Flux Surface Vol. Avg.', cdfvar='GXI', units='m^-1', label=r'$\nabla \hat{\rho}$',
+                            save_type=SaveType.INPUT,
+                            )
+        self.gyrfe = Variable('Electron Gyrofrequency', label=r'$\omega_\mathrm{ce}$',
+                              save_type=SaveType.ADDITIONAL, units='s^{-1}')
+        self.gyrfeunit = Variable('Electron Gyrofrequency', label=r'$\omega_\mathrm{ce,u}$',
+                                  save_type=SaveType.ADDITIONAL, units='s^{-1}')
         self.gyrfi = Variable('Ion Gyrofrequency', label=r'$\omega_\mathrm{ci}$',
-                              save_type=SaveType.ADDITIONAL, units='s^-1')
+                              save_type=SaveType.ADDITIONAL, units='s^{-1}')
+        self.gyrfiunit = Variable('Ion Gyrofrequency', label=r'$\omega_\mathrm{ci,u}$',
+                                  save_type=SaveType.ADDITIONAL, units='s^{-1}')
+        self.lare = Variable('Electron Larmor Radius', label=r'$\rho_\mathrm{e}$',
+                             save_type=SaveType.ADDITIONAL, units='m')
+        self.lareunit = Variable('Electron Larmor Radius', label=r'$\rho_\mathrm{e,u}$',
+                                 save_type=SaveType.ADDITIONAL, units='m')
         self.loge = Variable('Electron Coulomb Logarithm', cdfvar='CLOGE', label=r'$\lambda_\mathrm{e}$',
                              save_type=SaveType.ADDITIONAL)
         self.logi = Variable('Ion Coulomb Logarithm', cdfvar='CLOGI', label=r'$\lambda_\mathrm{i}$')
         self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', units='m^-3',
                            save_type=SaveType.ADDITIONAL, minvalue=1e-6)
-        self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h}$', units='m^-3',
+        self.ni2 = Variable('Thermal Ion Density', label=r'$n_\mathrm{i}$', units='m^-3', minvalue=1e-6)
+        self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h0}$', units='m^-3',
                             save_type=SaveType.ADDITIONAL)
-        self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h,T}$',
+        self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h}$',
                            save_type=SaveType.INPUT, units='m^-3', minvalue=1e-6)
         self.nuei = Variable('Electron Collision Frequency', label=r'$\nu_\mathrm{ei}$',
                              save_type=SaveType.ADDITIONAL)
@@ -352,43 +447,60 @@ class InputVariables(Variables):
                               save_type=SaveType.ADDITIONAL)
         self.nusti = Variable('Ion Collisionality', cdfvar='NUSTI', label=r'$\nu^{*}_\mathrm{i}$',
                               save_type=SaveType.ADDITIONAL)
+        self.omgse_etgm = Variable('', label=r'$\omega_\mathrm{* e}$',
+                                   )  # depends on etgm output variable kyrhosETGM
         self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$',
                           save_type=SaveType.ADDITIONAL, minvalue=1e-6)
-        self.shat = Variable('Effective Magnetic Shear', cdfvar='SHAT', label=r'$\hat{s}$',
-                             save_type=SaveType.ADDITIONAL)  # MMM definition differs from cdfvar='SHAT'
-        self.shear = Variable('Magnetic Shear', label=r'$s$',
+        self.rhosunit = Variable('Ion Larmor Radius', units='m', label=r'$\rho_\mathrm{s,u}$',
+                                 save_type=SaveType.ADDITIONAL, minvalue=1e-6)
+        self.shat = Variable('Effective Magnetic Shear', label=r'$\hat{s}_{\kappa}$',
+                             save_type=SaveType.ADDITIONAL)
+        self.shat_gxi = Variable('Effective Magnetic Shear', label=r'$\hat{s}_{\nabla \rho}}$',
+                                 save_type=SaveType.ADDITIONAL)
+        self.shear = Variable('Magnetic Shear', cdfvar='SHAT', label=r'$s$',
                               save_type=SaveType.ADDITIONAL)
         self.tau = Variable('Temperature Ratio', label=r'$\tau$',
                             save_type=SaveType.ADDITIONAL, minvalue=0)
         self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-6,
                              save_type=SaveType.INPUT, units='m/s')
-        self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{T_\mathrm{e}}$',
+        self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{\mathrm{Te}}$',
                              save_type=SaveType.ADDITIONAL, units='m/s')
-        self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{T_\mathrm{i}}$',
+        self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{\mathrm{Ti}}$',
                              save_type=SaveType.ADDITIONAL, units='m/s')
         self.zeff = Variable('Effective Charge', cdfvar='ZEFFP', label=r'$Z_\mathrm{eff}$',
                              save_type=SaveType.INPUT, minvalue=1)
+        self.wbounce = Variable('Bounce Frequency', label=r'$\omega_\mathrm{be}$', units=r'$s^{-1}$',
+                                save_type=SaveType.ADDITIONAL)
+        self.wtransit = Variable('Transit Frequency', label=r'$\omega_\mathrm{te}$',
+                                 save_type=SaveType.ADDITIONAL, units=r'$s^{-1}$')
+        self.xetgm_const = Variable('Diffusivity Constant',
+                                    label=r'${\rho_\mathrm{e,u}}^2 v_\mathrm{Te} / L_\mathrm{Te}$',
+                                    save_type=SaveType.ADDITIONAL)
 
         # Calculated Gradients
-        self.gne = Variable('Electron Density Gradient', label=r'$g_{n_\mathrm{e}}$',
+        self.gbtor = Variable('Btor Gradient', label=r'$g_{\mathrm{B\phi}}$')
+        self.gbunit = Variable('Bunit Gradient', label=r'$g_{\mathrm{Bu}}$',
+                               save_type=SaveType.INPUT)
+        self.gne = Variable('Electron Density Gradient', label=r'$g_{\mathrm{ne}}$',
                             save_type=SaveType.INPUT)
-        self.gnh = Variable('Hydrogenic Ion Density Gradient', label=r'$g_{n_\mathrm{h, T}}$',
+        self.gnh = Variable('Hydrogenic Ion Density Gradient', label=r'$g_{\mathrm{nh}}$',
                             save_type=SaveType.INPUT)
-        self.gni = Variable('Thermal Ion Density Gradient', label=r'$g_{n_\mathrm{i}}$',
+        self.gni = Variable('Thermal Ion Density Gradient', label=r'$g_{\mathrm{ni}}$',
                             save_type=SaveType.INPUT)
-        self.gnz = Variable('Impurity Density Gradient', label=r'$g_{n_\mathrm{z}}$',
+        self.gnz = Variable('Impurity Density Gradient', label=r'$g_{\mathrm{nz}}$',
                             save_type=SaveType.INPUT)
+        self.gp_i = Variable('Ion Pressure Gradient', label=r'$g_{\mathrm{pi}}$')
         self.gq = Variable('Safety Factor Gradient', label=r'$g_{q}$',
                            save_type=SaveType.INPUT)
-        self.gte = Variable('Electron Temperature Gradient', label=r'$g_{T_\mathrm{e}}$',
+        self.gte = Variable('Electron Temperature Gradient', label=r'$g_{\mathrm{Te}}$',
                             save_type=SaveType.INPUT)
-        self.gti = Variable('Thermal Ion Temperature Gradient', label=r'$g_{T_\mathrm{i}}$',
+        self.gti = Variable('Thermal Ion Temperature Gradient', label=r'$g_{\mathrm{Ti}}$',
                             save_type=SaveType.INPUT)
-        self.gvpar = Variable('Parallel Velocity Gradient', label=r'$g_{v_\parallel}$',
+        self.gvpar = Variable('Parallel Velocity Gradient', label=r'$g_{v\parallel}$',
                               save_type=SaveType.INPUT)
-        self.gvpol = Variable('Poloidal Velocity Gradient', label=r'$g_{v_\theta}$',
+        self.gvpol = Variable('Poloidal Velocity Gradient', label=r'$g_{v\theta}$',
                               save_type=SaveType.INPUT)
-        self.gvtor = Variable('Toroidal Velocity Gradient', label=r'$g_{v_\phi}$',
+        self.gvtor = Variable('Toroidal Velocity Gradient', label=r'$g_{v\phi}$',
                               save_type=SaveType.INPUT)
 
         super().__init__(options)  # Init parent class
@@ -403,7 +515,7 @@ class InputVariables(Variables):
 
     def get_vars_of_type(self, save_type):
         '''Returns (list of str): List of all variables with the specified save_type'''
-        nonzero_variables = self.get_nonzero_variables()
+        nonzero_variables = self.get_variables()
         return [v for v in nonzero_variables if getattr(self, v).save_type == save_type]
 
     def get_cdf_variables(self):
@@ -482,7 +594,13 @@ class OutputVariables(Variables):
     def __init__(self, options=None):
         # Independent Variables
         self.rho = Variable('rho', units='', label=r'$\rho$')
-        self.rmin = Variable('rmin', units='m', label=r'$r_\mathrm{min}$')
+        self.rmin = Variable('Minor Radius', units='m', label=r'$r$', minvalue=0)
+        self.rmina = Variable('rmina', label=r'$r/a$', units=r'', minvalue=0)
+        # Total Fluxes
+        self.fti = Variable('fti', units='keVm/s', label=r'$\Gamma_\mathrm{Ti}$')
+        self.fdi = Variable('fdi', units='m^{-2}s^{-1}^', label=r'$\Gamma_\mathrm{Di}$')
+        self.fte = Variable('fte', units='keVm/s', label=r'$\Gamma_\mathrm{Te}$')
+        self.fdz = Variable('fdz', units='m^{-2}s^{-1}', label=r'$\Gamma_\mathrm{Dz}$')
         # Total Diffusivities
         self.xti = Variable('xti', units='m^2/s', label='xti')
         self.xdi = Variable('xdi', units='m^2/s', label='xdi')
@@ -494,33 +612,52 @@ class OutputVariables(Variables):
         self.xtiW20 = Variable('xtiW20', units='m^2/s', label=r'$\chi_\mathrm{i, w}$')
         self.xdiW20 = Variable('xdiW20', units='m^2/s', label='xdiW20')
         self.xteW20 = Variable('xteW20', units='m^2/s', label='xteW20')
-        self.gmaW20ii = Variable('gmaW20ii', units='s^-1', label='gmaW20ii')
-        self.omgW20ii = Variable('omgW20ii', units='s^-1', label='omgW20ii')
-        self.gmaW20ie = Variable('gmaW20ie', units='s^-1', label='gmaW20ie')
-        self.omgW20ie = Variable('omgW20ie', units='s^-1', label='omgW20ie')
-        self.gmaW20ei = Variable('gmaW20ei', units='s^-1', label='gmaW20ei')
-        self.omgW20ei = Variable('omgW20ei', units='s^-1', label='omgW20ei')
-        self.gmaW20ee = Variable('gmaW20ee', units='s^-1', label='gmaW20ee')
-        self.omgW20ee = Variable('omgW20ee', units='s^-1', label='omgW20ee')
+        self.gmaW20ii = Variable('gmaW20ii', units='s^{-1}', label='gmaW20ii')
+        self.omgW20ii = Variable('omgW20ii', units='s^{-1}', label='omgW20ii')
+        self.gmaW20ie = Variable('gmaW20ie', units='s^{-1}', label='gmaW20ie')
+        self.omgW20ie = Variable('omgW20ie', units='s^{-1}', label='omgW20ie')
+        self.gmaW20ei = Variable('gmaW20ei', units='s^{-1}', label='gmaW20ei')
+        self.omgW20ei = Variable('omgW20ei', units='s^{-1}', label='omgW20ei')
+        self.gmaW20ee = Variable('gmaW20ee', units='s^{-1}', label='gmaW20ee')
+        self.omgW20ee = Variable('omgW20ee', units='s^{-1}', label='omgW20ee')
         # DBM Components
         self.xtiDBM = Variable('xtiDBM', units='m^2/s', label='xtiDBM')
         self.xdiDBM = Variable('xdiDBM', units='m^2/s', label='xdiDBM')
         self.xteDBM = Variable('xteDBM', units='m^2/s', label='xteDBM')
-        self.gmaDBM = Variable('gmaDBM', units='s^-1', label='gmaDBM')
-        self.omgDBM = Variable('omgDBM', units='s^-1', label='omgDBM')
+        self.gmaDBM = Variable('gmaDBM', units='s^{-1}', label='gmaDBM')
+        self.omgDBM = Variable('omgDBM', units='s^{-1}', label='omgDBM')
         # ETG Component
-        self.xteETG = Variable('xteETG', units='m^2/s', label='xteETG')
+        self.xteETG = Variable('xteETG', units='m^2/s', label=r'$\chi_\mathrm{e, etg}$')
+        self.gtecritETG = Variable(r'Critical $g_\mathrm{Te}$ (Jenko ETG)', units='',
+                                   label=r'$g_\mathrm{Te, etg}^\mathrm{crit}$')
         # MTM Components
-        self.xteMTM = Variable('xteMTM', units='m^2/s', label='xteMTM')
-        self.gmaMTM = Variable('gmaMTM', units='s^-1', label='gmaMTM')
-        self.omgMTM = Variable('omgMTM', units='s^-1', label='omgMTM')
-        # ETGM Components
-        self.xteETGM = Variable('xteETGM', units='m^2/s', label=r'$\chi_\mathrm{e, etgm}$')
-        self.xdiETGM = Variable('xdiETGM', units='m^2/s', label=r'$D_\mathrm{n, etgm}$')
-        self.gmaETGM = Variable('gmaETGM', units='s^-1', label=r'$\gamma_\mathrm{etgm}$')
-        self.omgETGM = Variable('omgETGM', units='s^-1', label=r'$\omega_\mathrm{etgm}$')
-
+        self.xteMTM = Variable('xteMTM', units='m^2/s', label=r'$\chi_\mathrm{e, mtm}$')
+        self.gmaMTM = Variable('gmaMTM', units='s^{-1}', label=r'$\gamma_\mathrm{mtm}$')
+        self.omgMTM = Variable('omgMTM', units='s^{-1}', label=r'$\omega_\mathrm{mtm}$')
+        self.kyrhosMTM = Variable('kyrhosMTM', units='', label=r'$k_y\rho_\mathrm{s}$')
         self.dbsqprf = Variable('dbsqprf', units='', label=r'$|\delta B/B|^2$')
+        # ETGM Components
+        self.xteETGM = Variable('Thermal Diffusivity', units='m^2/s', label=r'$\chi_\mathrm{e}$')
+        self.xte2ETGM = Variable('Thermal Diffusivity', units='m^2/s', label=r'$\chi^{\ast}_\mathrm{e}$')
+        self.gmaETGM = Variable('Growth Rate', units='s^{-1}', label=r'$\gamma_\mathrm{}$')
+        self.omgETGM = Variable('Frequency', units='s^{-1}', label=r'$\omega_\mathrm{}$')
+        self.kyrhoeETGM = Variable('Wave Number', units='', label=r'$k_y\rho_\mathrm{e}$')
+        self.kyrhosETGM = Variable('Wave Number', units='', label=r'$k_y\rho_\mathrm{s}$')
+        self.gaveETGM = Variable('Magnetic Field Curvature', units='', label=r'$\overline{G}$')
+        self.alphaETGM = Variable('alphaMHD', units='', label=r'$\alpha_\mathrm{MHD}$')
+        self.kpara2ETGM = Variable('kpara2ETGM', units='', label=r'$\langle k^{2}_\parallel \rangle$')
+        self.fleETGM = Variable('fleETGM', units='', label=r'$\langle k^{2}_\perp \rho^{2}_\mathrm{e}\rangle$')
+        self.phi2ETGM = Variable('Electrostatic Potential', units='', label=r'$|\hat{\phi}|^2$')
+        self.Apara2ETGM = Variable('Electromagnetic Potential', units='', label=r'$|\hat{A}_{\!\parallel}\!|^2$')
+        self.omegadETGM = Variable('omegadETGM', units='s^{-1}', label=r'$\omega_\mathrm{De}$')
+        self.omegadiffETGM = Variable('omegadiffETGM', units='s^{-1}', label=r'$\omega - \omega_\mathrm{De}$')
+        self.gammadiffETGM = Variable('gammadiffETGM', units='s^{-1}', label=r'$\gamma - \omega_\mathrm{De}$')
+        self.omegasETGM = Variable('omegasETGM', units='s^{-1}', label=r'$\omega_{*\mathrm{e}}$')
+        self.omegateETGM = Variable('omegateETGM', units='s^{-1}', label=r'$\omega_{\mathrm{Te}}$')
+        self.omegasetaETGM = Variable('omegasetaETGM', units='s^{-1}',
+                                      label=r'$\omega_{*\mathrm{e}} (1 + \eta_\mathrm{e})$')
+        self.walfvenunit = Variable('Alfven Frequency', units='s^{-1}', label=r'$\omega_\mathrm{A}$')
+        self.satETGM = Variable('Saturation Ratio', units='', label=r'$2\hat{\gamma}/|\hat{\phi}| R k_\mathrm{x}$')
 
         super().__init__(options)  # Init parent class
 
@@ -529,6 +666,7 @@ class OutputVariables(Variables):
         all_vars = self.get_variables()
         all_vars.remove('rho')
         all_vars.remove('rmin')
+        all_vars.remove('rmina')
         return all_vars
 
     def get_etgm_vars(self):
@@ -662,7 +800,10 @@ class Variable:
 
         if self.smooth is not None:
             sigma = int(self.values.shape[0] * self.smooth / 100)
-            self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(sigma, 0))
+            if self.values.ndim == 2:
+                self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(sigma, 0))
+            else:
+                self.values = scipy.ndimage.gaussian_filter(self.values, sigma=sigma)
 
     def set_minvalue(self, raise_exception=True):
         '''
@@ -708,15 +849,33 @@ class Variable:
                 value_signs[value_signs == 0] = 1  # np.sign(0) = 0, so set these to +1
                 self.values[too_small] = self.absminvalue * value_signs
 
-    def clamp_gradient(self, max_val):
-        '''
-        Clamps values between -max_val and max_val, and sets origin value to
-        approximately 0
-        '''
+    def clamp_values(self, clamp_value):
+        '''Clamps values between -clamp_value and +clamp_value'''
+        self.values[self.values > clamp_value] = clamp_value
+        self.values[self.values < -clamp_value] = -clamp_value
 
-        self.values[0, :] = 1e-6
-        self.values[self.values > max_val] = max_val
-        self.values[self.values < -max_val] = -max_val
+    def set_origin_to_zero(self):
+        '''
+        Sets origin values to approximately zero
+
+        Original values (rmin = 0) are multiplied by 1e-6 times the lowest
+        absolute value (along the entire radius) at each time slice.  By
+        doing this, we avoid potential division by zero errors when
+        performing calculations.
+        '''
+        self.values[0, :] = 1e-6 * np.absolute(self.values).min(axis=0)
+
+    def update_label(self, before, after):
+        """
+        Updates the label of the variable
+
+        Parameters:
+        * before (str): Inserted at the front the label
+        * after (str): Appended to the end of the label
+        """
+
+        label_stripped = self.label.strip('$')
+        self.label = f'${before}{label_stripped}{after}$'
 
     def check_for_nan(self):
         '''Checks for nan values and raises a ValueError if any are found'''

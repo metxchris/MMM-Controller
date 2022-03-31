@@ -25,12 +25,6 @@ import modules.constants as constants
 from modules.enums import SaveType
 
 
-# Cache paths needed to run MMM
-_tmp_path = utils.get_temp_path()
-_input_file = utils.get_temp_path('input')  # input has no file type
-_output_file = utils.get_temp_path('output.csv')
-
-
 def run_wrapper(input_vars, controls):
     '''
     Controls operation of the MMM wrapper
@@ -56,9 +50,15 @@ def run_wrapper(input_vars, controls):
     '''
 
     time_idx = input_vars.options.time_idx
+    runid = input_vars.options.runid
+    scan_num = input_vars.options.scan_num
+
+    tmp_path = utils.get_temp_path(runid, scan_num)
+    input_file = utils.get_temp_path(runid, scan_num, 'input')  # input has no file type
+    output_file = utils.get_temp_path(runid, scan_num, 'output.csv')
 
     # Create input file in temp directory
-    with open(_input_file, 'w') as f:
+    with open(input_file, 'w') as f:
         f.write(controls.get_mmm_header())
 
         # Loop through MMM variables and write input variable labels and values
@@ -77,7 +77,7 @@ def run_wrapper(input_vars, controls):
         f.write('/\n')  # Needed for the MMM wrapper to know that the input file has ended
 
     # Issue terminal command to run MMM
-    result = subprocess.run(settings.MMM_DRIVER_PATH, cwd=_tmp_path,
+    result = subprocess.run(settings.MMM_DRIVER_PATH, cwd=tmp_path,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                             universal_newlines=True)
 
@@ -87,13 +87,13 @@ def run_wrapper(input_vars, controls):
     # Error checks
     if result.stderr:
         raise RuntimeError(result.stderr)
-    if not os.path.exists(_output_file):
+    if not os.path.exists(output_file):
         raise FileNotFoundError('MMM did not produce an output file')
-    if not os.stat(_output_file).st_size:
+    if not os.stat(output_file).st_size:
         raise ValueError('MMM produced an empty output file')
 
     output_vars = variables.OutputVariables(input_vars.options)
-    output_vars.load_from_file_path(_output_file)
-    os.remove(_output_file)  # ensure accurate error checks on next run
+    output_vars.load_from_file_path(output_file)
+    os.remove(output_file)  # ensure accurate error checks on next run
 
     return output_vars

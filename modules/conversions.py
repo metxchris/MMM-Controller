@@ -43,6 +43,30 @@ class _XValues:
         self.xbo = np.append([0], self.xb)
 
 
+def _choose_variables(input_vars):
+    '''
+    Chooses a CDF variable to use in cases where CDF variables don't always
+    contain data
+
+    Parameters:
+    * input_vars (InputVariables): Object containing variable data
+    '''
+
+    # Choose wexbs
+    if input_vars.wexbsv2.values is not None and not (input_vars.wexbsv2.values == 0).all():
+        input_vars.wexbs.values = input_vars.wexbsv2.values
+        # if input_vars.wexbsv2.units == 'rad/s':
+        #     input_vars.wexbs.values /= 2 * np.pi
+    elif input_vars.wexbsmod.values is not None and not (input_vars.wexbsmod.values == 0).all():
+        input_vars.wexbs.values = input_vars.wexbsmod.values
+        # if input_vars.wexbsmod.units == 'rad/s':
+        #     input_vars.wexbs.values /= 2 * np.pi
+    elif input_vars.wexbsa.values is not None and not (input_vars.wexbsa.values == 0).all():
+        input_vars.wexbs.values = input_vars.wexbsa.values
+        # if input_vars.wexbsa.units == 'rad/s':
+        #     input_vars.wexbs.values /= 2 * np.pi
+
+
 def _convert_units(input_var):
     '''
     Converts variable units from CDF format to MMM format
@@ -54,6 +78,8 @@ def _convert_units(input_var):
     units = input_var.units
     if units == 'CM':
         input_var.set(values=input_var.values / 100, units='m')
+    elif units == 'CM**-1':
+        input_var.set(values=input_var.values * 100, units='m^-1')
     elif units == 'CM/SEC':
         input_var.set(values=input_var.values / 100, units='m/s')
     elif units == 'N/CM**3':
@@ -66,6 +92,8 @@ def _convert_units(input_var):
         input_var.set(values=input_var.values / 10**6, units='MA')
     elif units == 'TESLA*CM':
         input_var.set(values=input_var.values / 100, units='T*m')
+    elif units == 'V/CM':
+        input_var.set(values=input_var.values * 100, units='V/m')
     elif units == 'SEC**-1':
         input_var.set(units='s^-1')
     elif units == 'RAD/SEC':
@@ -76,6 +104,8 @@ def _convert_units(input_var):
         input_var.set(units='s')
     elif units == 'TESLA':
         input_var.set(units='T')
+    elif units == 'WEBERS':
+        input_var.set(units='T*m^2')
 
 
 def _interp_to_boundarygrid(input_var, xvals):
@@ -116,7 +146,8 @@ def _interp_to_boundarygrid(input_var, xvals):
 
     # Interpolate/Extrapolate variable from X or XB to XBO
     elif xdim in ['X', 'XB']:
-        set_interp = interp1d(getattr(xvals, xdim.lower()), input_var.values, kind='cubic', fill_value="extrapolate", axis=0)
+        set_interp = interp1d(getattr(xvals, xdim.lower()), input_var.values,
+                              kind='cubic', fill_value="extrapolate", axis=0)
         input_var.set(values=set_interp(xvals.xbo))
         input_var.set_xdim('XBO')
 
@@ -165,55 +196,6 @@ def _interp_to_input_points(input_vars):
             if mmm_var.values.size > 1:
                 set_interp = interp1d(xb, mmm_var.values, kind='cubic', fill_value="extrapolate", axis=0)
                 mmm_var.set(values=set_interp(xb_new))
-
-    return mmm_vars
-
-
-def _interp_to_uniform_rho(input_vars):
-    '''
-    Interpolates each time slice onto uniformly spaced grid determined by
-    input points
-
-    Since the value of rmin varies over time, the interpolation onto a grid of
-    evenly spaced rho values requires that interpolation be carried out over
-    each individual time slice of variable data, which can increase the time
-    needed to interpolate the data by a factor of 10.
-
-    Parameters:
-    * input_vars (InputVariables): Object containing variable data
-
-    Returns:
-    * mmm_vars (InputVariables): Object containing interpolated variable data
-
-    Raises:
-    * ValueError: If variable to interpolate is None
-    '''
-
-    mmm_vars = datahelper.deepcopy_data(input_vars)
-    input_points = mmm_vars.options.input_points
-
-    # Single column arrays for interpolation
-    rho_old = mmm_vars.rho.values
-    rho_new = np.arange(input_points) / (input_points - 1)
-
-    full_var_list = mmm_vars.get_nonzero_variables()
-    for var in ['time', 'x']:  # Remove independent variables
-        full_var_list.remove(var)
-
-    # Interpolate variables onto uniform grid specified by input_points
-    for var in full_var_list:
-        mmm_var = getattr(mmm_vars, var)
-        interp_values = np.empty((len(rho_new), mmm_var.values.shape[1]))
-        if mmm_var.values is None:
-            raise ValueError(f'Trying to interpolate variable {var} with values equal to None')
-
-        if mmm_var.values.size > 1:
-            for time_idx in range(mmm_var.values.shape[1]):
-                set_interp = interp1d(rho_old[:, time_idx], mmm_var.values[:, time_idx],
-                                      kind='cubic', fill_value="extrapolate", axis=0)
-                interp_values[:, time_idx] = set_interp(rho_new)
-
-            mmm_var.set(values=interp_values)
 
     return mmm_vars
 
@@ -284,12 +266,9 @@ def convert_variables(cdf_vars):
     '''
 
     input_vars = _initial_conversion(cdf_vars)
-    input_vars.set_rho_values()
-
-    if input_vars.options.uniform_rho:
-        mmm_vars = _interp_to_uniform_rho(input_vars)
-    else:
-        mmm_vars = _interp_to_input_points(input_vars)
+    input_vars.set_radius_values()
+    mmm_vars = _interp_to_input_points(input_vars)
+    _choose_variables(mmm_vars)
 
     full_var_list = mmm_vars.get_nonzero_variables()
     # Apply smoothing, then verify minimum values (fixes errors due to interpolation)
@@ -303,6 +282,6 @@ def convert_variables(cdf_vars):
         mmm_var.set_minvalue(raise_exception=False)
 
     mmm_vars.set_x_values()
-    mmm_vars.set_rho_values()
+    mmm_vars.set_radius_values()
 
     return mmm_vars

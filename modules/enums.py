@@ -26,6 +26,7 @@ class ScanType(Enum):
     NONE = 0
     VARIABLE = 1
     CONTROL = 2
+    TIME = 3
 
 
 class ShotType(Enum):
@@ -33,6 +34,7 @@ class ShotType(Enum):
     NONE = 0
     NSTX = 1
     DIII_D = 2
+    NSTX_U = 3
 
 
 class MergeType(Enum):

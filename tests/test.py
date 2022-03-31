@@ -1,14 +1,19 @@
 # Standard Packages
 import sys
 sys.path.insert(0, '../')
+import io
 
 # 3rd Party Packages
 import numpy as np 
 import matplotlib.pyplot as plt
 import scipy.ndimage
+from PyQt5.QtGui import QImage
+from PyQt5.QtWidgets import QApplication
 
 # Local Packages
-from main.options import Options
+from modules.options import Options
+from plotting.modules.plotstyles import PlotStyles, StyleType
+import modules.datahelper as datahelper
 
 
 def movingaverage_test():
@@ -51,8 +56,90 @@ def plot_etai(vars):
     plt.show()
 
 
+def plot_bunit(vars):
+    t = vars.options.time_idx
+    bunit_cesar = [5.125e-01,5.081e-01,5.080e-01,5.128e-01,5.232e-01,5.382e-01,5.570e-01,5.781e-01,6.009e-01,6.283e-01,6.660e-01,7.212e-01,8.000e-01,9.054e-01,1.025e+00,1.138e+00,1.259e+00]
+    ra_cesar = [1.000e-01,1.500e-01,2.000e-01,2.500e-01,3.000e-01,3.500e-01,4.000e-01,4.500e-01,5.000e-01,5.500e-01,6.000e-01,6.500e-01,7.000e-01,7.500e-01,8.000e-01,8.500e-01,9.000e-01]
+    rho = vars.rho.values[:, t]
+
+    # plt.plot(rho, vars.gti.values[:,0], rho, gTI)
+    # plt.plot(rho, vars.gni.values[:,0], rho, gNI)
+    # btor0 * rho[1:, :] / rmin[1:, :] * dxrho[1:, :]
+    # rho = (bftor / btor0 / (3.1415926535))**(1 / 2)
+    plt.plot(rho, vars.bunit.values[:, t], label=r"$B_0\, \dfrac{\rho}{r}\, \dfrac{d\rho}{dr};\, \rho = \sqrt{\chi / (\pi B_0)}$")
+    plt.plot(rho, vars.bunit3.values[:, t], label=r"$\dfrac{\hat{\rho}}{\pi r} \chi_\mathrm{B} \nabla\rho$")
+    plt.plot(ra_cesar, bunit_cesar, label="Cesar")
+    plt.xlabel('r/a')
+    plt.ylabel(r'$B_\mathrm{unit}$ (T)')
+    plt.legend()
+    plt.show()
+
+def plot_betae(vars):
+    t = vars.options.time_idx
+    betae_cesar = [1.664e+01,1.647e+01,1.606e+01,1.541e+01,1.457e+01,1.359e+01,1.245e+01,1.131e+01,1.031e+01,9.475e+00,8.651e+00,7.813e+00,6.922e+00,5.951e+00,4.804e+00,3.506e+00,2.343e+00]
+    ra_cesar = [1.000e-01,1.500e-01,2.000e-01,2.500e-01,3.000e-01,3.500e-01,4.000e-01,4.500e-01,5.000e-01,5.500e-01,6.000e-01,6.500e-01,7.000e-01,7.500e-01,8.000e-01,8.500e-01,9.000e-01]
+    rho = vars.rho.values[:, t]
+
+    # plt.plot(rho, vars.gti.values[:,0], rho, gTI)
+    # plt.plot(rho, vars.gni.values[:,0], rho, gNI)
+    plt.plot(rho, vars.betae.values[:, t], label="MMM")
+    plt.plot(ra_cesar, np.array(betae_cesar) / 100, label="Cesar")
+    plt.xlabel('r/a')
+    plt.ylabel(r'$\beta_\mathrm{e}$')
+    plt.legend()
+    plt.show()
+
+def plot_FG(vars):
+    t = vars.options.time_idx
+    FG_actual = [-12.646254928512237, -3.1612593273410754,-0.61257874867743345,-0.95096129230353688,-0.65221787823937871,-0.50624219703336093,-0.44090161011232498,-0.31704988373604448,-0.29289021872863752,-0.28460386452153807,-0.22737888022443165,-0.15794689737685474, 0.27507263619215921, 0.54371346427366340, 0.83021833694778580,  1.1321567388900038,  1.4242918498653749, 0.72981138420252956,  1.0527626844835050, 0.96778896619167765, 0.23355285723585417, -1.3771144234171595, -1.0914255913560862, -1.4247556278524336, -1.7708210773912847, -2.1059349855760336, -2.6449377644776799, -3.0559579037326468, -3.1208348102087404, -3.1228435323628436, -3.0349207081554237, -2.3904612551526374, -1.6368781122273437,-0.84940379574502911,-0.20602363227835629, 0.30077248553298253, 0.49892026958558106, 0.12896489575317022, 0.35729482717170874, 0.32393131222820681,-0.11331424973876381,-0.30962923009264776,-0.35076562283105084,-0.50980252574720009,-0.80221895796464437,-0.87143645353288335,-0.70612500696235281,-0.75260837364423594, -1.0644938559181525, -1.5071063828180848, -2.0108361596084068]
+    FG_bad = [3.9735321266336411E-004, 5.6562359483617285E-003, 1.1303238896655354E-002, 1.6927445483054818E-002, 2.2509407975509363E-002, 2.8028170611134672E-002, 3.3458237392007026E-002, 3.8815814060855415E-002, 4.4087165697063592E-002, 4.9256947969891017E-002, 5.4333861460479610E-002, 5.9335997969321187E-002, 6.4435716988670635E-002, 6.9748683152563079E-002, 7.5402213639611873E-002, 8.1533296803630279E-002, 8.8277759534517580E-002, 9.5372501195373702E-002,0.10295025084601385,0.11098231697241712,0.11917565479869949,0.12687609040516373,0.13416639852377035,0.14088788700763058,0.14687630361064169,0.15197231839632677,0.15593684245229278,0.15858010896001792,0.15985019299841541,0.15972745828066384,0.15823487552994245,0.15561430222024833,0.15215734908320452,0.14817713089121676,0.14393363504205750,0.13963447307061949,0.13536800968644536,0.13099976610280509,0.12662703071118614,0.12224652141838807,0.11769678665721839,0.11290740036412565,0.10786754489627938,0.10252244160692407, 9.6763047218513767E-002, 9.0564480600354214E-002, 8.3995183366345802E-002, 7.7041711237534713E-002, 6.9587120138730585E-002, 6.1462266645613439E-002, 5.2470631370516163E-002]
+    rmina = vars.rmina.values[:, t]
+
+    # plt.plot(rho, vars.gti.values[:,0], rho, gTI)
+    # plt.plot(rho, vars.gni.values[:,0], rho, gNI)
+    plt.plot(rmina, FG_actual, label="All Radial Points")
+    plt.plot(rmina, FG_bad, label="One Radial Point")
+    plt.xlabel(r'$r/a$')
+    plt.ylabel(r'FG')
+    plt.legend()
+    plt.show()
+
+def on_press(event):
+    fig, ax = plt.gcf(), plt.gca()
+
+    if event.key == 'x':  # flip x-axis limits
+        plt.xlim(plt.xlim()[::-1])
+        fig.canvas.draw()
+
+    if event.key == 'y':  # flip y-axis limits
+        plt.ylim(plt.ylim()[::-1])
+        fig.canvas.draw()
+
+    if event.key == "ctrl+c":  # copy figure to clipboard
+        save_format = plt.rcParams['savefig.format']
+        plt.rcParams.update({'savefig.format': 'png'})
+        with io.BytesIO() as buffer:
+            fig.savefig(buffer)
+            QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
+            plt.rcParams.update({'savefig.format': save_format})
+
+
 if __name__ == '__main__':
-    ...
+
+    PlotStyles(
+        axes=StyleType.Axes.WHITE,
+        lines=StyleType.Lines.MMM,
+        layout=StyleType.Layout.SINGLE1B,
+    )
+
+    options = Options(runid='138536A01', input_time=0.629, input_points=51)
+    mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
+
+    plt.figure()
+    plt.gcf().canvas.mpl_connect('key_press_event', on_press)
+
+    plot_FG(mmm_vars)
+
 
 
     '''

@@ -51,7 +51,7 @@ def extract_data(options, print_warnings=False):
 
     # Runid from CDF should match input runid, else CDF file might be named incorrectly
     if options.runid != cdf.Runid.strip() and options.runid != 'TEST':
-        _log.warning(f'\n\tThe CDF Runid {cdf.Runid.strip()} does not match runid {runid}\n')
+        _log.warning(f'\n\tThe CDF Runid {cdf.Runid.strip()} does not match runid {options.runid}\n')
 
     cdf_vars = variables.InputVariables(options)
     cdf_vars_to_get = cdf_vars.get_cdf_variables()
@@ -116,7 +116,8 @@ def print_dimensions(runid):
 
 if __name__ == '__main__':
     # For testing purposes
-    runid = '132017T01'
-    cdf_cdf_vars = extract_data(runid, True)
-    print_dimensions(runid)
-    print_variables(runid)
+    import modules.options
+    options = modules.options.Options(runid='138536A01')
+    cdf_cdf_vars = extract_data(options, True)
+    print_dimensions(options.runid)
+    print_variables(options.runid)

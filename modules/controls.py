@@ -102,19 +102,46 @@ class InputControls:
         self.dribm_exbs = Control('dribm_exbs', 'ExB shear coefficient', values=1, vtype=float)
         self.dribm_kyrhos = Control('dribm_kyrhos', 'kyrhos', values=0.1, vtype=float, label=r'$k_y \rho_s$')
         # MTM options
-        self.mtm_kyrhos_loops = Control('mtm_kyrhos_loops', 'loop count for kyrhos scan', values=30000, vtype=int, label=r'$k_y/k_x$')
+        self.mtm_kyrhos_loops = Control('mtm_kyrhos_loops', 'loop count for kyrhos scan', values=3000, vtype=int)
+        self.mtm_capsw = Control('mtm_capsw', 'mtm_capsw', values=1, vtype=int)
+        self.mtm_linert = Control('mtm_linert', 'mtm_linert', values=1, vtype=int)
         self.mtm_ky_kx = Control('mtm_ky_kx', 'ky/kx for MTM', values=0.2, vtype=float, label=r'$k_y/k_x$')
         self.mtm_cf = Control('mtm_cf', 'calibration factor', values=1.0, vtype=float)
+        self.mtm_kyrhos_min = Control('mtm_kyrhos_min', 'lower limit of kyrhos scan', values=0.005, vtype=float)
+        self.mtm_kyrhos_max = Control('mtm_kyrhos_max', 'upper limit of kyrhos scan', values=10, vtype=float)
+        self.mtm_gmax_mult = Control('mtm_gmax_mult', 'gmax coefficient', values=1, vtype=float, label=r'$g_\mathrm{max, mtm}$')
         # ETG options
         self.etg_jenko_threshold = Control('etg_jenko_threshold', 'Jenko threshold', values=2, vtype=int)
         self.etg_cees_scale = Control('etg_cees_scale', 'CEES scale', values=0.06, vtype=float)
         self.etg_ceem_scale = Control('etg_ceem_scale', 'CEEM scale', values=0.06, vtype=float)
         # ETGM options
         self.etgm_cl = Control('etgm_cl', 'Collisionless limit', values=1, vtype=int)
-        self.etgm_exbs = Control('etgm_exbs', 'ExB shear coefficient', values=0.0, vtype=float)
-        self.etgm_kyrhoe = Control('etgm_kyrhoe', 'kyrhoe', values=0.25, vtype=float, label=r'$k_y \rho_e$')
-        self.etgm_kyrhos = Control('etgm_kyrhos', 'kyrhos', values=0.33, vtype=float, label=r'$k_y \rho_s$')
-        self.etgm_kyrhoe_scan = Control('etgm_kyrhoe_scan', 'Kyrhoe Scan Switch', values=1, vtype=int)
+        self.etgm_sat_expo = Control('etgm_sat_expo', 'Saturation Rule Exponent', values=2, vtype=int)
+        self.etgm_sum_modes = Control('etgm_sum_modes', 'Sum Modes', values=0, vtype=int)
+        self.etgm_exbs = Control('etgm_exbs', 'ExB shear coefficient', values=0, vtype=float)
+        self.etgm_kyrhos_type = Control('etgm_kyrhos_type', 'Exp vs Linear increments', values=1, vtype=int)
+        self.etgm_kyrhos_min = Control('etgm_kyrhos_min', 'kyrhos scan min', values=0.05, vtype=float,
+                                       label=r'$k_\mathrm{y}\rho_\mathrm{s}$')
+        self.etgm_kyrhos_max = Control('etgm_kyrhos_max', 'kyrhos scan max', values=0.80, vtype=float)
+        self.etgm_kyrhos_scan = Control('etgm_kyrhos_scan', 'Kyrhos Scan Switch', values=1, vtype=int)
+        self.etgm_diffusivity_type = Control('etgm_diffusivity_type', 'diffusivity definition', values=0, vtype=int)
+        self.etgm_kxoky = Control('etgm_kxoky', 'kx / ky', values=0.1, vtype=float)
+        self.etgm_gmax_mult = Control('etgm_gmax_mult', 'gmax multiplier', values=2, vtype=float)
+        self.etgm_xte_max_cal = Control('etgm_xte_max_cal', 'xte max multiplier', values=1, vtype=float)
+        self.etgm_xte_sum_cal = Control('etgm_xte_sum_cal', 'xte sum multiplier', values=1, vtype=float)
+        self.etgm_xte2_max_cal = Control('etgm_xte2_max_cal', 'xte2 max multiplier', values=1, vtype=float)
+        self.etgm_xte2_sum_cal = Control('etgm_xte2_sum_cal', 'xte2 sum multiplier', values=1, vtype=float)
+        self.etgm_disable_geometry = Control('etgm_disable_geometry', 'etgm_disable_geometry', values=0, vtype=int)
+        self.etgm_electrostatic = Control('etgm_electrostatic', 'etgm_electrostatic', values=0, vtype=int)
+        self.etgm_empty_int = Control('etgm_empty_int', 'etgm_empty_int', values=1, vtype=int)
+        self.etgm_empty_real = Control('etgm_empty_real', 'etgm_empty_real', values=1, vtype=float)
+        self.etgm_alpha_mult = Control('etgm_alpha_mult', 'etgm_alpha_mult', values=1, vtype=float, label=r'$\alpha_\mathrm{MHD,u}$')
+        self.etgm_betae_mult = Control('etgm_betae_mult', 'etgm_betae_mult', values=1, vtype=float, label=r'$\beta_\mathrm{e,u}$')
+        self.etgm_nuei_mult = Control('etgm_nuei_mult', 'etgm_nuei_mult', values=1, vtype=float, label=r'$\nu_\mathrm{ei}$')
+        self.etgm_vthe_mult = Control('etgm_vthe_mult', 'etgm_vthe_mult', values=1, vtype=float, label=r'$v_\mathrm{Te}$')
+        self.etgm_betaep_mult = Control('etgm_betaep_mult', 'etgm_betaep_mult', values=1, vtype=float, label=r'$\beta^\prime_\mathrm{e,u}$')
+        self.etgm_extra_mult = Control('etgm_vthe_mult', 'etgm_vthe_mult', values=1, vtype=float)
+
         # Verbose level
         self.lprint = Control('lprint', 'Verbose Level', values=0, vtype=int)
 
@@ -125,14 +152,15 @@ class InputControls:
     def set(self, **kwargs):
         '''Sets specified control values'''
         for key, value in kwargs.items():
+            if not hasattr(self, key):
+                raise ValueError(f'Invalid control specified: {key}')
             getattr(self, key).values = value
 
         self.verify_values()
 
     def verify_values(self):
         '''Verifies that certain control values are correct and fixes them if needed'''
-        self.etgm_kyrhos.values = max(1e-6, self.etgm_kyrhos.values)
-        self.etgm_kyrhoe.values = max(1e-6, self.etgm_kyrhoe.values)
+        ...
 
     def get_mmm_header(self):
         '''
@@ -143,23 +171,28 @@ class InputControls:
         * TypeError: If input_points.values is of type np.ndarray
         '''
 
-        if self.input_points.values is None:
+        if not self.input_points.values and self.options.input_points:
+            self.input_points.values = self.options.input_points
+
+        if not self.input_points.values:
             raise TypeError('input_points must be set to generate the MMM header')
         if isinstance(self.input_points.values, np.ndarray):
             raise TypeError('Unable to create MMM header for controls loaded with array values')
         return (
             '&testmmm_input_control\n'
-            f'npoints = {self.input_points.get_value_str()}  ! Number of radial points\n'
-            'input_kind = 1\n'
+            f'  npoints = {self.input_points.get_value_str()}  ! Number of radial points\n'
+            f'  input_kind = 1\n'
             '/\n'
-            '&testmmm_input_1stkind\n\n'
+            '&testmmm_input_1stkind\n'
+            '\n'
             '!.. Switches for component models (1D0 - ON, 0D0 - OFF)\n'
             'cmodel  =\n'
             f'  {self.cmodel_weiland.get_value_str()}  ! Weiland\n'
             f'  {self.cmodel_dribm.get_value_str()}  ! DRIBM\n'
             f'  {self.cmodel_etg.get_value_str()}  ! ETG\n'
             f'  {self.cmodel_mtm.get_value_str()}  ! MTM\n'
-            f'  {self.cmodel_etgm.get_value_str()}  ! ETGM\n\n'
+            f'  {self.cmodel_etgm.get_value_str()}  ! ETGM\n'
+            '\n'
             '!.. Weiland real options\n'
             'cW20 =\n'
             f'   {self.weiland_exbs.get_value_str()}  ! ExB shear coefficient\n'
@@ -167,35 +200,71 @@ class InputControls:
             f'   {self.weiland_lbetd.get_value_str()}  ! Lower bound of electron thermal diffusivity\n'
             f'   {self.weiland_ubetd.get_value_str()}  ! Upper bound of electron thermal diffusivity\n'
             f'   {self.weiland_lbitd.get_value_str()}  ! Lower bound of ion thermal diffusivity\n'
-            f'   {self.weiland_ubitd.get_value_str()}  ! Upper bound of ion thermal diffusivity\n\n'
+            f'   {self.weiland_ubitd.get_value_str()}  ! Upper bound of ion thermal diffusivity\n'
+            '\n'
             '!.. DRIBM real options\n'
             'cDBM =\n'
             f'   {self.dribm_exbs.get_value_str()}  ! ExB shear coefficient\n'
-            f'   {self.dribm_kyrhos.get_value_str()}  ! kyrhos\n\n'
+            f'   {self.dribm_kyrhos.get_value_str()}  ! kyrhos\n'
+            '\n'
             '!.. MTM integer options\n'
             'lMTM =\n'
-            f'   {self.mtm_kyrhos_loops.get_value_str()}   ! kyrhos scan iterations\n\n'
+            f'   {self.mtm_kyrhos_loops.get_value_str()}   ! kyrhos scan iterations\n'
+            f'   {self.mtm_capsw.get_value_str()}   ! capsw\n'
+            f'   {self.mtm_linert.get_value_str()}   ! inertia\n'
+            '\n'
             '!.. MTM real options\n'
             'cMTM =\n'
             f'   {self.mtm_ky_kx.get_value_str()}   ! ky/kx for MTM\n'
-            f'   {self.mtm_cf.get_value_str()}   ! calibration factor\n\n'
+            f'   {self.mtm_cf.get_value_str()}   ! calibration factor\n'
+            f'   {self.mtm_kyrhos_min.get_value_str()}   ! lower limit of kyrhos scan\n'
+            f'   {self.mtm_kyrhos_max.get_value_str()}   ! upper limit of kyrhos scan\n'
+            f'   {self.mtm_gmax_mult.get_value_str()}   ! gmax coefficient\n'
+            '\n'
             '!.. ETG integer options\n'
             'lETG =\n'
-            f'   {self.etg_jenko_threshold.get_value_str()}  ! Jenko threshold (electrostatic and electromagnetic)\n\n'
+            f'   {self.etg_jenko_threshold.get_value_str()}  ! Jenko threshold (electrostatic and electromagnetic)\n'
+            '\n'
             '!.. ETG real options\n'
             'cETG =\n'
             f'   {self.etg_cees_scale.get_value_str()}  ! CEES scale\n'
-            f'   {self.etg_ceem_scale.get_value_str()}  ! CEEM scale\n\n'
+            f'   {self.etg_ceem_scale.get_value_str()}  ! CEEM scale\n'
+            '\n'
             '!.. ETGM integer options\n'
             'lETGM =\n'
-            f'   {self.etgm_cl.get_value_str()}  ! Collisionless limit\n'
-            f'   {self.etgm_kyrhoe_scan.get_value_str()}  ! 1 kyrhoe scan and 0 without kyrhoe scan\n\n'
+            f'   {self.etgm_cl.get_value_str()}  ! 1: Collisional limit, 0: collisionless\n'
+            f'   {self.etgm_kyrhos_scan.get_value_str()}  ! Number of kyrhos scan loops (min 50), 0: disable kyrhos scan\n'
+            f'   {self.etgm_diffusivity_type.get_value_str()}  ! 0: Default diffusivity, 1: Alternate diffusivity\n'
+            f'   {self.etgm_sat_expo.get_value_str()}  ! Saturation ratio exponent (min 0)\n'
+            f'   {self.etgm_sum_modes.get_value_str()}  ! 1: Sum modes, 0: Use most unstable mode\n'
+            f'   {self.etgm_kyrhos_type.get_value_str()}  ! 1: Exponential kyrhos increments, 0: Linear kyrhos increments\n'
+            f'   {self.etgm_empty_int.get_value_str()}  ! empty\n'
+            f'   {self.etgm_empty_int.get_value_str()}  ! empty\n'
+            f'   {self.etgm_empty_int.get_value_str()}  ! empty\n'
+            f'   {self.etgm_empty_int.get_value_str()}  ! empty\n'
+            f'   {self.etgm_disable_geometry.get_value_str()}  ! 1: Disable Geometrical Effects, 0: Use Geometrical Effects\n'
+            f'   {self.etgm_electrostatic.get_value_str()}  ! 1: Electrostatic, 0: Electromagnetic\n'
+            '\n'
             '!.. ETGM real options\n'
             'cETGM =\n'
             f'   {self.etgm_exbs.get_value_str()}  ! ExB shear coefficient\n'
-            f'   {self.etgm_kyrhos.get_value_str()}  ! kyrhos\n'
-            f'   {self.etgm_kyrhoe.get_value_str()}  ! kyrhoe\n\n'
-            f'lprint = {self.lprint.get_value_str()}  ! Verbose level\n\n'
+            f'   {self.etgm_kyrhos_min.get_value_str()}  ! lower limit of kyrhos scan\n'
+            f'   {self.etgm_kyrhos_max.get_value_str()}  ! upper limit of kyrhos scan\n'
+            f'   {self.etgm_kxoky.get_value_str()}  ! kx / ky\n'
+            f'   {self.etgm_gmax_mult.get_value_str()}  ! gmax coefficient\n'
+            f'   {self.etgm_empty_real.get_value_str()}  ! empty\n'
+            f'   {self.etgm_xte_max_cal.get_value_str()}  ! calibration: Default diffusivity, most unstable mode\n'
+            f'   {self.etgm_xte_sum_cal.get_value_str()}  ! calibration: Default diffusivity, summed modes\n'
+            f'   {self.etgm_xte2_max_cal.get_value_str()}  ! calibration: Alternate diffusivity, most unstable mode\n'
+            f'   {self.etgm_xte2_sum_cal.get_value_str()}  ! calibration: Alternate diffusivity, summed modes\n'
+            f'   {self.etgm_alpha_mult.get_value_str()}  ! alphaMHD mult\n'
+            f'   {self.etgm_betae_mult.get_value_str()}  ! betae mult\n'
+            f'   {self.etgm_nuei_mult.get_value_str()}  ! nuei mult\n'
+            f'   {self.etgm_vthe_mult.get_value_str()}  ! vthe mult\n'
+            f'   {self.etgm_betaep_mult.get_value_str()}  ! betae_prime mult\n'
+            '\n'
+            f'lprint = {self.lprint.get_value_str()}  ! Verbose level\n'
+            '\n'
         )
 
     def get_scanned_control(self):
@@ -300,7 +369,8 @@ class InputControls:
         with open(file_name, 'r') as file:
             for line in file:
                 key, value = line.replace('\n', '').split(',')
-                getattr(self, key).values = float(value)
+                if hasattr(self, key):
+                    getattr(self, key).values = float(value)
 
     def _load_from_np_csv(self, file_name):
         '''
