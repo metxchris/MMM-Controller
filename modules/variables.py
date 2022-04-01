@@ -294,8 +294,8 @@ class InputVariables(Variables):
                            save_type=SaveType.ADDITIONAL, units='m^-3')
         self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=1,
                            save_type=SaveType.INPUT, units='m^-3')
-        self.omega = Variable('Toroidal Frequency', cdfvar='OMEGDATA', label=r'$\omega$', minvalue=1e-6,
-                              save_type=SaveType.ADDITIONAL, units='1/s')
+        self.omega = Variable('Toroidal Frequency', cdfvar='OMEGDATA', label=r'$\omega$',
+                              minvalue=1e-6, save_type=SaveType.ADDITIONAL, units='1/s')
         self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=1,
                           save_type=SaveType.INPUT)
         self.rho = Variable('Normalized Radius', label=r'$\rho$')
@@ -305,50 +305,35 @@ class InputVariables(Variables):
         self.rmin = Variable('Minor Radius', cdfvar='RMNMP', label=r'$r$',
                              save_type=SaveType.INPUT, units=r'm', minvalue=0)
         self.rmina = Variable('Minor Radius (normalized)', label=r'$r/a$', units=r'', minvalue=0)
-        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$', minvalue=1e-6, smooth=1,
-                           save_type=SaveType.INPUT, units='keV')
-        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$', minvalue=1e-6, smooth=1,
-                           save_type=SaveType.INPUT, units='keV')
-        self.vpol = Variable('Poloidal Velocity', cdfvar='VPOLX_NC', label=r'$v_\theta$', absminvalue=1e-6, smooth=3,
-                             save_type=SaveType.INPUT, units='m/s')
-        self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
-                             save_type=SaveType.INPUT, units='m/s')
-        # self.vtor = Variable('Toroidal Velocity', cdfvar='VTORX_NC', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
-        #                      save_type=SaveType.INPUT, units='m/s')
+        self.te = Variable('Electron Temperature', cdfvar='TE', label=r'$T_\mathrm{e}$',
+                           minvalue=1e-6, smooth=1, save_type=SaveType.INPUT, units='keV')
+        self.ti = Variable('Thermal Ion Temperature', cdfvar='TI', label=r'$T_\mathrm{i}$',
+                           minvalue=1e-6, smooth=1, save_type=SaveType.INPUT, units='keV')
+        self.vpol = Variable('Poloidal Velocity', cdfvar='VPOLX_NC', label=r'$v_\theta$',
+                             absminvalue=1e-6, smooth=3, save_type=SaveType.INPUT, units='m/s')
+        self.vtor = Variable('Toroidal Velocity', cdfvar='VTOR_AVG', label=r'$v_\phi$',
+                             absminvalue=1e-6, smooth=3, save_type=SaveType.INPUT, units='m/s')
         self.wexbs = Variable(r'ExB Shear Rate', label=r'$\omega_{E \times B}$', smooth=3,
                               save_type=SaveType.INPUT, units='s^{-1}', minvalue=1e-6)
-        self.wexbs_unit1 = Variable(r'ExB Shear Rate', label=r'$\omega_{E \times B, u1}$', smooth=1,
-                                    units='s^{-1}', minvalue=1e-6)
-        self.wexbs_unit2 = Variable(r'ExB Shear Rate', label=r'$\omega_{E \times B, u2}$', smooth=1,
-                                    units='s^{-1}', minvalue=1e-6)
-        self.wexbs_unit1_ratio = Variable(r'ExB Shear Rate Ratio', label=r'$\omega_{E \times B, u1} / \omega_{E \times B}$', smooth=1,
-                                          minvalue=1e-6)
-        self.wexbs_unit2_ratio = Variable(r'ExB Shear Rate Ratio', label=r'$\omega_{E \times B, u2} / \omega_{E \times B}$', smooth=1,
-                                          minvalue=1e-6)
         self.zimp = Variable('Mean Charge of Impurities', cdfvar='XZIMP', label=r'$\overline{Z}_\mathrm{imp}$',
                              smooth=1, save_type=SaveType.INPUT)
 
+        # wexbs variables may show units of rad/s in TRANSP, but they are all actually in 1/s
         self.wexbsa = Variable(r'ExB Shear Rate', cdfvar='SREXBA', label=r'$\omega_{E \times B}$',
                                smooth=1, units='s^{-1}', minvalue=1e-6)
         self.wexbsmod = Variable(r'ExB Shear Rate', cdfvar='SREXBMOD', label=r'$\omega_{E \times B}$',
                                  smooth=1, units='s^{-1}', minvalue=1e-6)
         self.wexbsv2 = Variable(r'ExB Shear Rate', cdfvar='SREXBV2', label=r'$\omega_{E \times B}$',
                                 smooth=1, units='s^{-1}', minvalue=1e-6)
-        self.wexbsgrp = Variable(r'ExB Shear Rate', cdfvar='SREXBGRP', label=r'$\omega_{E \times B, gp}$',
-                                smooth=1, units='s^{-1}', minvalue=1e-6)
-        self.wexbsphi = Variable(r'ExB Shear Rate', cdfvar='SREXBPHI', label=r'$\omega_{E \times B, \phi}$',
-                                smooth=1, units='s^{-1}', minvalue=1e-6)
-        self.wexbstht = Variable(r'ExB Shear Rate', cdfvar='SREXBTHT', label=r'$\omega_{E \times B, \theta}$',
-                                smooth=1, units='s^{-1}', minvalue=1e-6)
 
-        self.vtorx = Variable('Toroidal Velocity (Imp)', cdfvar='VTORX_NC', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
-                              units='m/s')
-        self.vtord = Variable('Toroidal Velocity (D+)', cdfvar='VTORD_NC', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
-                              units='m/s')
-        self.vtorh = Variable('Toroidal Velocity (H+)', cdfvar='VTORH_NC', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
-                              units='m/s')
-        self.vtoravg = Variable('Toroidal Velocity (avg)', cdfvar='VTOR_AVG', label=r'$v_\phi$', absminvalue=1e-6, smooth=3,
-                                units='m/s')
+        self.vtorx = Variable('Toroidal Velocity (Imp)', cdfvar='VTORX_NC', label=r'$v_\phi$',
+                              absminvalue=1e-6, smooth=3, units='m/s')
+        self.vtord = Variable('Toroidal Velocity (D+)', cdfvar='VTORD_NC', label=r'$v_\phi$',
+                              absminvalue=1e-6, smooth=3, units='m/s')
+        self.vtorh = Variable('Toroidal Velocity (H+)', cdfvar='VTORH_NC', label=r'$v_\phi$',
+                              absminvalue=1e-6, smooth=3, units='m/s')
+        self.vtoravg = Variable('Toroidal Velocity (avg)', cdfvar='VTOR_AVG', label=r'$v_\phi$',
+                                absminvalue=1e-6, smooth=3, units='m/s')
 
         # Additional CDF variables
         self.betat = Variable('BETAT', cdfvar='BETAT')
@@ -396,28 +381,18 @@ class InputVariables(Variables):
         self.eps = Variable('Inverse Aspect Ratio', label=r'$\epsilon$',
                             save_type=SaveType.ADDITIONAL)
         self.epsilonne = Variable('2 gBu / gne', label=r'$\epsilon_\mathrm{ne,u}$',
-                            save_type=SaveType.ADDITIONAL)
+                                  save_type=SaveType.ADDITIONAL)
         self.etae = Variable('Electron Gradient Ratio', cdfvar='ETAE', label=r'$\eta_\mathrm{\,e}$',
                              save_type=SaveType.ADDITIONAL)
-        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$',
-                             save_type=SaveType.ADDITIONAL)  # cdfvar='ETAI' in CDF is not gTI/gNI
+        self.etai = Variable('Ion Gradient Ratio', label=r'$\eta_\mathrm{\,i}$')  # cdfvar='ETAI' is not gti/gni
         self.gmax = Variable('Max Gradient', label=r'$g_\mathrm{max}$',
                              save_type=SaveType.ADDITIONAL)
         self.gmaxunit = Variable('Max Gradient', label=r'$g_\mathrm{max,u}$',
                                  save_type=SaveType.ADDITIONAL)
-        self.gmaxunit_gte = Variable('Max Gradient', label=r'$g_\mathrm{max,u}/|g_\mathrm{Te}|$',
-                                    )
-        self.gmaxunit_gne = Variable('Max Gradient', label=r'$g_\mathrm{max,u}/|g_\mathrm{ne}|$',
-                                     )
-        self.gmaxunit_gnh = Variable('Max Gradient', label=r'$g_\mathrm{max,u}/|g_\mathrm{nh}|$',
-                                     )
-        self.gne_threshold = Variable(r'Growth Rate Threshold', label=r'$g_\mathrm{ne}$',
-                                      )
-        self.gte_threshold = Variable(r'Growth Rate Threshold', label=r'$g_\mathrm{Te}$',
-                                      )
+        self.gne_threshold = Variable(r'Growth Rate Threshold', label=r'$g_\mathrm{ne}$')
+        self.gte_threshold = Variable(r'Growth Rate Threshold', label=r'$g_\mathrm{Te}$')
         self.gxi = Variable('Flux Surface Vol. Avg.', cdfvar='GXI', units='m^-1', label=r'$\nabla \hat{\rho}$',
-                            save_type=SaveType.INPUT,
-                            )
+                            save_type=SaveType.INPUT)
         self.gyrfe = Variable('Electron Gyrofrequency', label=r'$\omega_\mathrm{ce}$',
                               save_type=SaveType.ADDITIONAL, units='s^{-1}')
         self.gyrfeunit = Variable('Electron Gyrofrequency', label=r'$\omega_\mathrm{ce,u}$',
@@ -447,8 +422,6 @@ class InputVariables(Variables):
                               save_type=SaveType.ADDITIONAL)
         self.nusti = Variable('Ion Collisionality', cdfvar='NUSTI', label=r'$\nu^{*}_\mathrm{i}$',
                               save_type=SaveType.ADDITIONAL)
-        self.omgse_etgm = Variable('', label=r'$\omega_\mathrm{* e}$',
-                                   )  # depends on etgm output variable kyrhosETGM
         self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$',
                           save_type=SaveType.ADDITIONAL, minvalue=1e-6)
         self.rhosunit = Variable('Ion Larmor Radius', units='m', label=r'$\rho_\mathrm{s,u}$',
