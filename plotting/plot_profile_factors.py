@@ -1,5 +1,11 @@
 #!/usr/bin/python3
 
+"""Create profile plots using the profiles.py module
+
+These are the same profile plots that can be created when running
+mmm_controller, except a scan factor can also be specified.
+"""
+
 # Standard Packages
 import sys; sys.path.insert(0, '../')
 

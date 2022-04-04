@@ -804,7 +804,7 @@ class AllPlotData:
 
         return f'{joined_labels}{offset_text}'
 
-    def save_to_csv(self):
+    def save_to_csv(self, file_name=''):
         """
         Save plotted data to a CSV
 
@@ -817,21 +817,24 @@ class AllPlotData:
         * FileNotFoundError: If the file cannot be found after saving it
         """
 
-        file_name = ''
-        save_name_digits = 4
-        save_dir = utils.get_plotting_csv_path()
+        show_save_message = False
 
-        saved_files = utils.get_files_in_dir(save_dir, '*.csv')
-        for save_number in range(1, 10**save_name_digits):
-            file_name = f'{save_dir}\\{save_number:0>{save_name_digits}d}.csv'
-            if file_name not in saved_files:
-                break
+        if not file_name:  # Automatically generate the save name using a unique number
+            show_save_message = True
+            save_name_digits = 4
+            save_dir = f'{utils.get_plotting_csv_path()}\\general'
+            utils.create_directory(save_dir)
+            saved_files = utils.get_files_in_dir(save_dir, '*.csv')
+            for save_number in range(1, 10**save_name_digits):
+                file_name = f'{save_dir}\\{save_number:0>{save_name_digits}d}.csv'
+                if file_name not in saved_files:
+                    break
 
-        if not file_name:
-            raise NameError('The filename for the CSV could not be set\n'
-                            '\tMake sure Python has file reading permissions,'
-                            ' and try deleting old CSVs from the CSV folder\n'
-                            '\tNote: Be sure not to delete the __init__.py file when cleaning the CSV folder')
+            if not file_name:
+                raise NameError('The filename for the CSV could not be set\n'
+                                '\tMake sure Python has file reading permissions,'
+                                ' and try deleting old CSVs from the CSV folder\n'
+                                '\tNote: Be sure not to delete the __init__.py file when cleaning the CSV folder')
 
         max_var_length = max([len(d.xvals) for d in self.data])
         num_vars = 2 * len(self.data)
@@ -852,10 +855,11 @@ class AllPlotData:
             raise FileNotFoundError('Failed to save plot data to a CSV in the CSV folder\n'
                                     '\tMake sure Python has file writing permissions')
 
-        print(f'Plot Data Saved:\n\t{file_name}\n')  # Intentionally not using logging
+        if show_save_message:
+            print(f'Plot Data Saved:\n\t{file_name}\n')  # Intentionally not using logging
 
 
-def main(all_data, autosave=False):
+def main(all_data, savefig=False, savedata=False):
     """
     Create a plot using data loaded from CDF files
 
@@ -870,7 +874,8 @@ def main(all_data, autosave=False):
 
     Parameters:
     * all_data (AllPlotData): Object containing all PlotData objects
-    * autosave (bool): Automatically save the plot without showing it if True
+    * savefig (bool): Automatically save the plot without showing it if True
+    * savedata (bool): Automatically save the data as a CSV
     """
 
     def on_press(event):
@@ -893,17 +898,10 @@ def main(all_data, autosave=False):
         if event.key == 'alt+s':  # save plot lines to csv
             all_data.save_to_csv()
 
-
-
     fig, ax = plt.gcf(), plt.gca()
-    # ax.set(yscale='log')
     fig.canvas.mpl_connect('key_press_event', on_press)
 
-    # all_data.data[1].yvals /= 25
-    # all_data.data[1].yvals *= 1.5e5
     for d in all_data.data:
-        # if 'sum' in all_data.savename_append:
-        #     d.yvals /= 20
         ax.plot(d.xvals, d.yvals, label=all_data.get_legend_label(d))
         ax.plot(d.xval_base, d.yval_base, zorder=3)  # Advance the cycler when base values are empty lists
 
@@ -927,7 +925,7 @@ def main(all_data, autosave=False):
     if all_data.show_legend:
         ax.legend().set_draggable(state=True)
 
-    if autosave:
+    if savefig or savedata:
         ynames_list = list(set([d.yname for d in all_data.data]))
         ynames_list.sort()
         ynames = ''.join(ynames_list)
@@ -942,11 +940,16 @@ def main(all_data, autosave=False):
         if all_data.savename_append:
             ynames = f'{ynames}_{all_data.savename_append}'
 
+    if savedata:
+        savedir = f'{utils.get_plotting_csv_path()}\\{all_data.data[0].options.runid}'
+        utils.create_directory(savedir)
+        all_data.save_to_csv(f'{savedir}\\{ynames}.csv')
+
+    if savefig:
         savedir = f'{utils.get_plotting_singles_path()}\\{all_data.data[0].options.runid}'
         utils.create_directory(savedir)
         fig.savefig(f'{savedir}\\{ynames}')
         fig.clear()
-
     else:
         plt.show()
 
@@ -962,6 +965,10 @@ if __name__ == '__main__':
         lines=StyleType.Lines.RHO_MMM,
         layout=StyleType.Layout.SINGLE1B,
     )
+
+    plt.rcParams.update({
+        'savefig.format': 'pdf',  # Common save formats: png, pdf, eps
+    })
 
     # Define settings for the plot
     all_data = AllPlotData(
@@ -979,11 +986,11 @@ if __name__ == '__main__':
         xlabel_override='',
     )
 
-    # Define data for the plot
+    # Define data for the plot (Examples shown below)
     all_data.set(
         # CDF: Same y-variable, different x-variables
-        # PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
-        # PlotDataCdf(runid='138536A01', yname='te', xname='xb', time=0.50),
+        PlotDataCdf(runid='138536A01', yname='te', xname='rmina', time=0.50),
+        PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
         # CDF: Different y-variable units
         # PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
         # PlotDataCdf(runid='138536A01', yname='ti', xname='rho', time=0.50),
@@ -1005,28 +1012,11 @@ if __name__ == '__main__':
         # CSV: Comparing output results
         # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=17, legend_override='exbs = 0'),
         # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=54, legend_override='exbs = 1'),
-        # # CSV: Growth rate vs Effective Charge
+        # # CSV: Growth rate vs \eta_e
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etae', scan_num=35, rho_value=0.10),
-        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=39, rho_value=0.8, legend_override='gte  3, gne  1'),
-        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=36, rho_value=0.8, legend_override='gte  2, gne  0'),
-        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=38, rho_value=0.8, legend_override='gte  1, gne -1'),
-        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=37, rho_value=0.8, legend_override='gte  0, gne -2'),
-        # PlotDataCsv(runid='138536A01', yname='alphamhd', xname='etae', scan_num=40, rho_value=0.8, legend_override='gte -1, gne -3'),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etae', scan_num=35, rho_value=0.10),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=47, rho_value=0.1, legend_override=r'$\mathtt{tau\_scan}$'),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=48, rho_value=0.1, legend_override=r'$\mathtt{te\_scan}$'),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='alphamhd', scan_num=49, rho_value=0.1, legend_override=r'$\mathtt{ti\_scan}$'),
-        # CSV: Growth rate vs Average Magnetic Surface Curvature
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.20, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.60, runname=''),
+        # CSV: Growth rate as a function of different scanned variables
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.39, runname=r'OLD'),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=55, rho_value=0.39, runname=r'NEW'),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.61, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.62, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.7, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=21, rho_value=0.94, runname=''),
-        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=3, rho_value=0.3),
-        # PlotDataCsv(runid='138536A01', yname='omgETGM', xname='var_to_scan', scan_num=3, rho_value=0.3),
     )
 
     main(all_data)

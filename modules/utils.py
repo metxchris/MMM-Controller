@@ -9,6 +9,11 @@ operations are stored here as well.
 Utils was written to be independent of classes that hold MMM related data,
 other than the Options class.  See the datahelper module for utility type
 functions that interface between the different data classes.
+
+TODO:
+* There are several functionalities in here that are likely operating system
+  specific.  An operating system check needs to be performed and the
+  appropriate commands per OS should be used.
 """
 
 # Standard Packages
@@ -287,6 +292,7 @@ def open_file(file_path):
     * file_path (str): Path of file to open
     '''
 
+    # TODO: Add OS check with different commands needed for Mac and Linux
     os.startfile(file_path)
 
 

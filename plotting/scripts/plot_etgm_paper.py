@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 
+"""General non-automated plotting for the ETGM paper"""
+
+
 # Standard Packages
-import sys; sys.path.insert(0, '../')
+import sys; sys.path.insert(0, '../'), sys.path.insert(0, '../../')
 import logging
 import io
 
@@ -86,8 +89,9 @@ if __name__ == '__main__':
     n2 = n1 + 1
     all_data.set(
 
-        # PlotDataCsv(r, 1664, 'gmaETGM', xname='rho'),
-        # PlotDataCsv(r, 1805, 'gmaETGM', xname='rho'),
+        # PlotDataCsv(r, 1664, 'kyrhosETGM', xname='rho'),
+        PlotDataCsv(r, 1840, 'kyrhosETGM', xname='rho'),
+        PlotDataCsv(r, 1841, 'kyrhosETGM', xname='rho'),
         # PlotDataCsv(r, 1807, 'gmaETGM', xname='rho'),
 
         # PlotDataCsv(r, 1664, 'xteETGM', xname='rho'),  # Max, Calibration

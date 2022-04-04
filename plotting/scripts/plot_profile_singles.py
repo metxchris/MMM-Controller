@@ -1,8 +1,17 @@
 #!/usr/bin/python3
 
+"""Automated plotting using the plot_variables module
+
+This script automatically creates and save plots of the specified file type,
+with the option to save CSV corresponding to the data of each plot as well.
+"""
+
 # Standard Packages
-import sys; sys.path.insert(0, '../')
+import sys; sys.path.insert(0, '../'); sys.path.insert(0, '../../')
 import logging
+
+# Third Party Packages
+import matplotlib.pyplot as plt
 
 # Local Packages
 import modules.utils as utils
@@ -13,11 +22,11 @@ from plotting.plot_variables import AllPlotData, PlotDataCsv, main
 _log = logging.getLogger(__name__)
 
 
-def plot_profiles(profile_list, all_data_list, autosave=True):
+def plot_profiles(profile_list, all_data_list, savefig=True, savedata=True):
     for profiles, all_data in zip(profile_list, all_data_list):
         for p in profiles:
             all_data.set(*p)
-            main(all_data, autosave=autosave)
+            main(all_data, savefig=savefig, savedata=savedata)
 
 
 if __name__ == '__main__':
@@ -48,6 +57,10 @@ if __name__ == '__main__':
         ylabel_override='',
         xlabel_override='',
     )
+
+    plt.rcParams.update({
+        'savefig.format': 'pdf',  # Common save formats: png, pdf, eps
+    })
 
     n = 1784  # Scan numbers
     r = '138536A01'  # Discharge
@@ -129,4 +142,4 @@ if __name__ == '__main__':
     ]
 
     # MAIN PROFILES
-    plot_profiles([profiles], [all_data], autosave=1)
+    plot_profiles([profiles], [all_data], savefig=1, savedata=1)
