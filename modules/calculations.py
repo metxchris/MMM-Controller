@@ -197,11 +197,10 @@ def alphamhd(calc_vars):
 def alphamhdunit(calc_vars):
     '''Alpha MHD (Weiland Definition)'''
     betaeunit = calc_vars.betaeunit.values
-    gmaxunit = calc_vars.gmaxunit.values * 1e6  # TODO: Temp multiplier
-    gne = np.maximum(np.minimum(calc_vars.gne.values, gmaxunit), -gmaxunit)
-    gni = np.maximum(np.minimum(calc_vars.gni.values, gmaxunit), -gmaxunit)
-    gte = np.maximum(np.minimum(calc_vars.gte.values, gmaxunit), -gmaxunit)
-    gti = np.maximum(np.minimum(calc_vars.gti.values, gmaxunit), -gmaxunit)
+    gne = calc_vars.gne.values
+    gni = calc_vars.gni.values
+    gte = calc_vars.gte.values
+    gti = calc_vars.gti.values
     q = calc_vars.q.values
     te = calc_vars.te.values
     ti = calc_vars.ti.values
@@ -259,25 +258,17 @@ def bpol(calc_vars):
     q = calc_vars.q.values
     rmaj = calc_vars.rmaj.values[-1, :]
     rmin = calc_vars.rmin.values
-    rhochi = calc_vars.rhochi.values
 
     return rmin / rmaj * btor / q
-    # return rhochi / rmaj * btor / q
 
 
 @calculation
 def btor(calc_vars):
     '''Toroidal Magnetic Field'''
     bzxr = calc_vars.bzxr.values
-    raxis = calc_vars.rmaj.values[0, :]
-    rbound = calc_vars.rmaj.values[-1, :]
     rmaj = calc_vars.rmaj.values
 
-    bz = bzxr / rbound
-    # bz = calc_vars.bz.values
-
-    return raxis / rmaj * bz
-    # return bzxr / rmaj
+    return bzxr / rmaj
 
 
 @calculation
@@ -351,6 +342,7 @@ def e_r_grp(calc_vars):
     set_interp = interp1d(x, dpdr_x, kind='cubic', fill_value="extrapolate", axis=0)
     dpdr = set_interp(xb)
 
+    # From pt_vflows_mod.f90:
     # zE_r_grp(lcentr:lep1) =  1.0 / ( xzeffp(lcentr:lep1,1) * ze * rhoth(lcentr:lep1,2) * 1.0E6 ) * zgrp(lcentr:lep1)
 
     return dpdr / (zeff * zce * ni)
@@ -362,41 +354,21 @@ def e_r_phi(calc_vars):
     bpol = calc_vars.bpol.values
     omega = calc_vars.omega.values
     rmaj = calc_vars.rmaj.values
-    vtor = calc_vars.vtor.values
-    vtorx = calc_vars.vtorx.values
-    vtord = calc_vars.vtord.values
-    vtorh = calc_vars.vtorh.values
 
-    nh0 = calc_vars.nh0.values
-    nd = calc_vars.nd.values
-    nz = calc_vars.nz.values
-    zimp = calc_vars.zimp.values
-
-    pwr = 4
-    n = nh0 + nd + zimp**pwr * nz
-
-    vtor = (zimp**pwr * nz) / n * vtorx + nh0 / n * vtorh + nd / n * vtord
-    vtor = vtorx
-    # vtor = np.maximum(1 * vtorx, nd / n * vtord)
-
-    # vtor = 1.25 * vtorx
-    # vtor = calc_vars.vtor.values
-
+    # From pt_vflows_mod.f90:
     # zE_r_phi(lcentr:lep1) = omega(lcentr:lep1,1) * rmjrmp(lcentr:lep1,1) * zcm_to_m * bpol(lcentr:lep1)
 
     return omega * rmaj * bpol
-    # return vtor * bpol
 
 
 @calculation
 def e_r_tht(calc_vars):
     '''Radial Electric Field (vpol Term)'''
-    btor = calc_vars.btor.values
     vpol = calc_vars.vpol.values
     bzxr = calc_vars.bzxr.values
     rmaj = calc_vars.rmaj.values
-    bz = calc_vars.bz.values
 
+    # From pt_vflows_mod.f90:
     # zE_r_tht(lcentr:lep1) = -1.0 * zvpol(lcentr:lep1) * zcm_to_m * bzxr / rmjrmp(lcentr:lep1,1)
 
     return -vpol * bzxr / rmaj
@@ -412,7 +384,7 @@ def eps(calc_vars):
 
 @calculation
 def epsilonne(calc_vars):
-    '''epsilonne = 2 * gbunit / gne = 2 * Lne / Lbunit'''
+    '''Pinch Term'''
     gbunit = calc_vars.gbunit.values
     gne = calc_vars.gne.values
 
@@ -466,43 +438,6 @@ def gmaxunit(calc_vars):
     vthi = calc_vars.vthi.values
 
     return 2 * rmaj / (vthi / gyrfiunit * q / eps)
-
-
-@calculation
-def gmaxunit_gte(calc_vars):
-    '''Upper bound for ne, nh, te, and ti gradients in ETGM model (modmmm.f90)'''
-    gmaxunit = calc_vars.gmaxunit.values
-    gte = calc_vars.gte.values
-
-    gmaxunit_gte = np.minimum(gmaxunit / np.absolute(gte), 10)
-    gmaxunit_gte[0, :] = gmaxunit_gte[1, :]
-
-    return gmaxunit_gte
-
-
-@calculation
-def gmaxunit_gne(calc_vars):
-    '''Upper bound for ne, nh, te, and ti gradients in ETGM model (modmmm.f90)'''
-    gmaxunit = calc_vars.gmaxunit.values
-    gne = calc_vars.gne.values
-
-    gmaxunit_gne = np.minimum(gmaxunit / np.absolute(gne), 10)
-    gmaxunit_gne[0, :] = gmaxunit_gne[1, :]
-
-    return gmaxunit_gne
-
-
-@calculation
-def gmaxunit_gnh(calc_vars):
-    '''Upper bound for ne, nh, te, and ti gradients in ETGM model (modmmm.f90)'''
-    gmaxunit = calc_vars.gmaxunit.values
-    gnh = calc_vars.gnh.values
-
-    gmaxunit_gnh = np.minimum(gmaxunit / np.absolute(gnh), 10)
-    gmaxunit_gnh[0, :] = gmaxunit_gnh[1, :]
-
-    return gmaxunit_gnh
-
 
 
 @calculation
@@ -830,22 +765,6 @@ def vpar(calc_vars):
 
 
 @calculation
-def vtoravg(calc_vars):
-    '''avg Toroidal Velocity'''
-    nh0 = calc_vars.nh0.values
-    nd = calc_vars.nd.values
-    nz = calc_vars.nz.values
-    zimp = calc_vars.zimp.values
-    vtorx = calc_vars.vtorx.values
-    vtord = calc_vars.vtord.values
-    vtorh = calc_vars.vtorh.values
-
-    n = nh0 + nd + zimp * nz
-
-    return (zimp * nz) / n * vtorx + nh0 / n * vtorh + nd / n * vtord
-
-
-@calculation
 def wbounce(calc_vars):
     '''Bounce Frequency'''
     rmaj = calc_vars.rmaj.values
@@ -867,7 +786,7 @@ def wtransit(calc_vars):
 
 @calculation
 def wexbs(calc_vars):
-    '''ExB Shear Rate'''
+    '''ExB Shear Rate (adapted from pt_vflows_mod.f90)'''
 
     def dfdr(E_r):
         # zE_r(lcp1:lep1)/ ( bpol(lcp1:lep1) * rmjrmp(lcp1:lep1,1) * zcm_to_m )
@@ -900,159 +819,6 @@ def wexbs(calc_vars):
     wexbs_grp = np.minimum(bratio * dfdr(E_r_grp), 1e6)
 
     return np.absolute(wexbs_phi + wexbs_tht + wexbs_grp)
-
-
-    # zE_r_phi(lcentr:lep1) = omega(lcentr:lep1,1) * rmjrmp(lcentr:lep1,1) * zcm_to_m * bpol(lcentr:lep1)
-    # zE_r_tht(lcentr:lep1) = -1.0 * zvpol(lcentr:lep1) * zcm_to_m * bzxr / rmjrmp(lcentr:lep1,1)
-    # zE_r_grp(lcentr:lep1) =  1.0 / ( xzeffp(lcentr:lep1,1) * ze * rhoth(lcentr:lep1,2) * 1.0E6 ) * zgrp(lcentr:lep1)
-
-
-
-@calculation
-def wexbs_unit1(calc_vars):
-    '''ExB Shear Rate'''
-
-    def dfdr(E_r):
-        # zE_r(lcp1:lep1)/ ( bpol(lcp1:lep1) * rmjrmp(lcp1:lep1,1) * zcm_to_m )
-
-        f = E_r / (bpol * rmaj)
-
-        drmin = np.diff(rmin, axis=0)
-        dfdr_x = np.diff(f, axis=0) / drmin
-
-        # interpolate from x grid to xb grid
-        set_interp = interp1d(x, dfdr_x, kind='cubic', fill_value="extrapolate", axis=0)
-        return set_interp(xb)
-
-    x = calc_vars.x.values[:, 0]  # same for all time values
-    xb = calc_vars.xb.values[:, 0]  # same for all time values
-    omega = calc_vars.omega.values
-    bpol = calc_vars.bpol.values
-    bunit = calc_vars.bunit.values
-    rmaj = calc_vars.rmaj.values
-    rmin = calc_vars.rmin.values
-    vpol = calc_vars.vpol.values
-    vtor = calc_vars.vtor.values
-    btor = calc_vars.btor.values
-    bzxr = calc_vars.bzxr.values
-    # vtorx = calc_vars.vtorx.values
-    # vtord = calc_vars.vtord.values
-    # vtorh = calc_vars.vtorh.values
-
-    # nh0 = calc_vars.nh0.values
-    # nd = calc_vars.nd.values
-    # nz = calc_vars.nz.values
-    # zimp = calc_vars.zimp.values
-
-    # pwr = 4
-    # n = nh0 + nd + zimp**pwr * nz
-
-    # vtor = (zimp**pwr * nz) / n * vtorx * 1.25 + nh0 / n * vtorh + nd / n * vtord
-
-    # # Electric Field Components
-    # E_r_phi = vtor * bpol
-    # E_r_tht = -vpol * bunit
-    # E_r_grp = calc_vars.e_r_grp.values
-
-    # Electric Field Components
-    E_r_phi = omega * rmaj * bpol
-    E_r_tht = -vpol * bunit
-    E_r_grp = calc_vars.e_r_grp.values
-
-    bratio = rmaj * bpol / bunit[0, :]
-
-    wexbs_phi = np.minimum(bratio * dfdr(E_r_phi), 1e6)
-    wexbs_tht = np.minimum(bratio * dfdr(E_r_tht), 1e6) * 1e-2
-    # wexbs_tht = np.minimum(bratio * dfdr(E_r_tht), 1e6) * 0
-    wexbs_grp = np.minimum(bratio * dfdr(E_r_grp), 1e6)
-
-    return np.absolute(wexbs_phi + wexbs_tht + wexbs_grp)
-
-
-    # zE_r_phi(lcentr:lep1) = omega(lcentr:lep1,1) * rmjrmp(lcentr:lep1,1) * zcm_to_m * bpol(lcentr:lep1)
-    # zE_r_tht(lcentr:lep1) = -1.0 * zvpol(lcentr:lep1) * zcm_to_m * bzxr / rmjrmp(lcentr:lep1,1)
-    # zE_r_grp(lcentr:lep1) =  1.0 / ( xzeffp(lcentr:lep1,1) * ze * rhoth(lcentr:lep1,2) * 1.0E6 ) * zgrp(lcentr:lep1)
-
-
-@calculation
-def wexbs_unit2(calc_vars):
-    '''ExB Shear Rate'''
-
-    def dfdr(E_r, bpol, rmaj, x, xb):
-        # zE_r(lcp1:lep1)/ ( bpol(lcp1:lep1) * rmjrmp(lcp1:lep1,1) * zcm_to_m )
-
-        f = E_r / (bpol * rmaj)
-
-        drmin = np.diff(rmin, axis=0)
-        dfdr_x = np.diff(f, axis=0) / drmin
-
-        # interpolate from x grid to xb grid
-        set_interp = interp1d(x, dfdr_x, kind='cubic', fill_value="extrapolate", axis=0)
-        return set_interp(xb)
-
-    x = calc_vars.x.values[:, 0]  # same for all time values
-    xb = calc_vars.xb.values[:, 0]  # same for all time values
-
-    btor = calc_vars.btor.values
-    bunit = calc_vars.bunit.values
-    rmaj = calc_vars.rmaj.values
-    rmin = calc_vars.rmin.values
-    vpol = calc_vars.vpol.values
-    vtor = calc_vars.vtor.values
-    # vtorx = calc_vars.vtorx.values
-    # vtord = calc_vars.vtord.values
-    # vtorh = calc_vars.vtorh.values
-    bpol = calc_vars.bpol.values * bunit / btor
-
-    # nh0 = calc_vars.nh0.values
-    # nd = calc_vars.nd.values
-    # nz = calc_vars.nz.values
-    # zimp = calc_vars.zimp.values
-
-    # pwr = 4
-    # n = nh0 + nd + zimp**pwr * nz
-
-    # vtor = (zimp**pwr * nz) / n * vtorx * 1.25 + nh0 / n * vtorh + nd / n * vtord
-
-    # # Electric Field Components
-    # E_r_phi = vtor * bpol
-    # E_r_tht = -vpol * bunit
-    # E_r_grp = calc_vars.e_r_grp.values
-
-    E_r_phi = vtor * bpol
-    E_r_tht = -vpol * bunit
-    E_r_grp = calc_vars.e_r_grp.values
-
-    bratio = rmaj * bpol / bunit[0, :]
-
-    wexbs_phi = bratio * dfdr(E_r_phi, bpol, rmaj, x, xb)
-    wexbs_tht = bratio * dfdr(E_r_tht, bpol, rmaj, x, xb)
-    wexbs_grp = bratio * dfdr(E_r_grp, bpol, rmaj, x, xb)
-
-    return np.absolute(wexbs_phi + wexbs_tht + wexbs_grp)
-
-
-    # zE_r_phi(lcentr:lep1) = omega(lcentr:lep1,1) * rmjrmp(lcentr:lep1,1) * zcm_to_m * bpol(lcentr:lep1)
-    # zE_r_tht(lcentr:lep1) = -1.0 * zvpol(lcentr:lep1) * zcm_to_m * bzxr / rmjrmp(lcentr:lep1,1)
-    # zE_r_grp(lcentr:lep1) =  1.0 / ( xzeffp(lcentr:lep1,1) * ze * rhoth(lcentr:lep1,2) * 1.0E6 ) * zgrp(lcentr:lep1)
-
-
-@calculation
-def wexbs_unit1_ratio(calc_vars):
-
-    wexbs = calc_vars.wexbs.values
-    wexbs_unit1 = calc_vars.wexbs_unit1.values
-
-    return wexbs_unit1 / wexbs
-
-
-@calculation
-def wexbs_unit2_ratio(calc_vars):
-
-    wexbs = calc_vars.wexbs.values
-    wexbs_unit2 = calc_vars.wexbs_unit2.values
-
-    return wexbs_unit2 / wexbs
 
 
 @calculation
@@ -1190,26 +956,19 @@ def calculate_base_variables(calc_vars):
     ni(calc_vars)
     ni2(calc_vars)
     ahyd(calc_vars)
-    # calc_vars.ahyd.values[:, :] = 3
     aimass(calc_vars)
     zeff(calc_vars)
     btor(calc_vars)
     rhochi(calc_vars)
     bunit(calc_vars)
-    # bpol(calc_vars)
     vpar(calc_vars)
-    # vtoravg(calc_vars)
+
+    # Calculations for testing
+    # bpol(calc_vars)
     # e_r_grp(calc_vars)
     # e_r_phi(calc_vars)
     # e_r_tht(calc_vars)
-
     # wexbs(calc_vars)
-
-    # wexbs_unit1(calc_vars)
-    # wexbs_unit2(calc_vars)
-    # wexbs_unit1_ratio(calc_vars)
-    # wexbs_unit2_ratio(calc_vars)
-
     # gxi(calc_vars)
 
     if hasattr(calc_vars.options, 'use_etgm_btor') and calc_vars.options.use_etgm_btor:
@@ -1268,14 +1027,11 @@ def calculate_gradient_variables(calc_vars):
         calc_vars.gne.values = np.absolute(calc_vars.gne.values)
         calc_vars.gne.values[:, :] = 1e-12
         calc_vars.gte.values[:, :] = 1
-        # calc_vars.gti.values[:, :] = 1e-12
-        # calc_vars.gni.values[:, :] = 1e-12
+        calc_vars.gti.values[:, :] = 1e-12
+        calc_vars.gni.values[:, :] = 1e-12
 
     if hasattr(calc_vars.options, 'use_etgm_btor') and calc_vars.options.use_etgm_btor:
         calc_vars.gbunit.values = calc_vars.gbtor.values
-
-    # calc_vars.gti.values[:, :] = 1e-12
-    # calc_vars.gni.values[:, :] = 1e-12
 
 
 def calculate_additional_variables(calc_vars):
@@ -1322,10 +1078,6 @@ def calculate_additional_variables(calc_vars):
     lareunit(calc_vars)
     rhosunit(calc_vars)
     gmax(calc_vars)
-    gmaxunit(calc_vars)
-    gmaxunit_gte(calc_vars)
-    gmaxunit_gne(calc_vars)
-    gmaxunit_gnh(calc_vars)
     gmaxunit(calc_vars)
     shear(calc_vars)
     shat(calc_vars)
