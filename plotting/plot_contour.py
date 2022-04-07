@@ -365,11 +365,19 @@ def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, save
         plt.ylabel(get_ylabel())
         plt.title(get_title())
 
+        if savedata or savefig:
+            savedir_base = f'{utils.get_plotting_contours_path()}\\{options.runid}'
+            utils.create_directory(savedir_base)
+
         if savedata:
-            _save_to_csv(X, Y, Z, f'{_get_csv_directory(options.runid)}\\{get_savename()}')
+            savedir = f'{savedir_base}\\data'
+            utils.create_directory(savedir)
+            _save_to_csv(X, Y, Z, f'{savedir}\\{get_savename()}')
 
         if savefig:
-            fig.savefig(f'{_get_figure_directory(options.runid)}\\{get_savename()}')
+            savedir = f'{savedir_base}\\figures'
+            utils.create_directory(savedir)
+            fig.savefig(f'{savedir}\\{get_savename()}')
         else:
             plt.show()
 
@@ -391,11 +399,18 @@ def _save_to_csv(X, Y, Z, savename):
     * FileNotFoundError: If the file cannot be found after saving it
     """
 
-    prec, col_pad = 6, 8
+    prec, col_pad = 4, 6
     col_len = prec + col_pad
     fmt_str = f'%{col_len}.{prec}e'
 
     vars_to_save = ['X', 'Y', 'Z']
+
+    # Crop X, Y data if values are uniform per row or column, respectively
+    if (X.max(0) == X.min(0)).all():
+        X = X[0, :]
+    if (Y.max(1) == Y.min(1)).all():
+        Y = Y[:, 0]
+
     for var in vars_to_save:
         var_savename = f'{savename}_{var}.csv'
         var_data = eval(var)
@@ -403,16 +418,6 @@ def _save_to_csv(X, Y, Z, savename):
         if not utils.check_exists(var_savename):
             raise FileNotFoundError(f'Failed to save {var_savename}\n'
                                     '\tMake sure Python has file writing permissions')
-
-
-def _get_figure_directory(runid):
-    """Gets the directory to save figures in"""
-    return f'{utils.get_plotting_contours_path()}\\{runid}'
-
-
-def _get_csv_directory(runid):
-    """Gets the directory to save CSVs in"""
-    return f'{utils.get_plotting_csv_path()}\\{runid}'
 
 
 def _verify_vars_to_plot(vars_to_plot):
@@ -458,15 +463,10 @@ def main(vars_to_plot, scan_data, savenameend='', savefig=False, savedata=False)
 
     for runid, scan_nums in scan_data.items():
         for scan_num in scan_nums:
-            print(f'\nInitializing data for {runid}, scan {scan_num}...')
             options.load(runid, scan_num)
-            # Directory maintenance
-            utils.create_directory(_get_figure_directory(runid))
-            utils.create_directory(_get_csv_directory(runid))
-            utils.clear_temp_folder(options)
             if options.var_to_scan:
+                print(f'\nInitializing data for {runid}, scan {scan_num}, {options.var_to_scan}...')
                 run_plotting_loop(vars_to_plot, options, savenameend, savefig, savedata)
-                utils.clear_temp_folder(options)
             else:
                 _log.error(f'\n\tNo variable scan detected for {runid}, scan {scan_num}\n')
 

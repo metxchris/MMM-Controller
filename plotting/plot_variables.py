@@ -136,7 +136,7 @@ class PlotData:
 
     def get_time_label_str(self):
         """Returns (str): The time string used in the legend label and title details"""
-        return f'{self.time}s'
+        return f'{self.time}s' if self.time else ''
 
     def get_rho_label_str(self):
         """Returns (str): The rho string used in the legend label and title details"""
@@ -822,19 +822,20 @@ class AllPlotData:
         if not file_name:  # Automatically generate the save name using a unique number
             show_save_message = True
             save_name_digits = 4
-            save_dir = f'{utils.get_plotting_csv_path()}\\general'
+            save_dir = f'{utils.get_plotting_singles_path()}\\misc'
             utils.create_directory(save_dir)
             saved_files = utils.get_files_in_dir(save_dir, '*.csv')
             for save_number in range(1, 10**save_name_digits):
-                file_name = f'{save_dir}\\{save_number:0>{save_name_digits}d}.csv'
-                if file_name not in saved_files:
+                file_name = f'{save_dir}\\{save_number:0>{save_name_digits}d}'
+                if f'{file_name}.csv' not in saved_files:
                     break
 
             if not file_name:
                 raise NameError('The filename for the CSV could not be set\n'
                                 '\tMake sure Python has file reading permissions,'
-                                ' and try deleting old CSVs from the CSV folder\n'
-                                '\tNote: Be sure not to delete the __init__.py file when cleaning the CSV folder')
+                                ' and try deleting old CSVs from the CSV folder\n')
+
+        file_name = f'{file_name}.csv'
 
         max_var_length = max([len(d.xvals) for d in self.data])
         num_vars = 2 * len(self.data)
@@ -844,7 +845,7 @@ class AllPlotData:
             output[:len(d.xvals), 2 * i] = d.xvals
             output[:len(d.yvals), 2 * i + 1] = d.yvals
 
-        prec, col_pad = 8, 8
+        prec, col_pad = 4, 7
         col_len = prec + col_pad
         fmt_str = f'%{col_len}.{prec}e'
         header = ',  '.join([f'{d.xname:>{col_len - 2}},  {d.yname:>{col_len - 2}}' for d in self.data])
@@ -940,13 +941,17 @@ def main(all_data, savefig=False, savedata=False):
         if all_data.savename_append:
             ynames = f'{ynames}_{all_data.savename_append}'
 
+        savedir_base = f'{utils.get_plotting_singles_path()}\\{all_data.data[0].options.runid}'
+        utils.create_directory(savedir_base)
+
     if savedata:
-        savedir = f'{utils.get_plotting_csv_path()}\\{all_data.data[0].options.runid}'
+
+        savedir = f'{savedir_base}\\data'
         utils.create_directory(savedir)
-        all_data.save_to_csv(f'{savedir}\\{ynames}.csv')
+        all_data.save_to_csv(f'{savedir}\\{ynames}')
 
     if savefig:
-        savedir = f'{utils.get_plotting_singles_path()}\\{all_data.data[0].options.runid}'
+        savedir = f'{savedir_base}\\figures'
         utils.create_directory(savedir)
         fig.savefig(f'{savedir}\\{ynames}')
         fig.clear()
@@ -1019,4 +1024,4 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=55, rho_value=0.39, runname=r'NEW'),
     )
 
-    main(all_data)
+    main(all_data, savefig=False, savedata=False)
