@@ -355,7 +355,7 @@ class InputVariables(Variables):
                               save_type=SaveType.ADDITIONAL, minvalue=0)
         self.betaeunit = Variable('Electron Pressure Ratio', label=r'$\beta_\mathrm{\,e,u}$',
                                   save_type=SaveType.ADDITIONAL, minvalue=0)
-        self.betaepunit = Variable('Electron Beta Prime', label=r'$\beta^\prime_\mathrm{\,e,u}$',
+        self.betaepunit = Variable('Beta Prime', label=r'$\beta^\prime$',
                                    save_type=SaveType.ADDITIONAL)
         self.bftor = Variable('Toroidal Magnetic Flux', cdfvar='TRFLX', label=r'$\Psi_\mathrm{T}$',
                               save_type=SaveType.ADDITIONAL, minvalue=0)
@@ -447,7 +447,7 @@ class InputVariables(Variables):
         self.wtransit = Variable('Transit Frequency', label=r'$\omega_\mathrm{te}$',
                                  save_type=SaveType.ADDITIONAL, units=r'$s^{-1}$')
         self.xetgm_const = Variable('Diffusivity Constant',
-                                    label=r'${\rho_\mathrm{e,u}}^2 v_\mathrm{Te} / L_\mathrm{Te}$',
+                                    label=r'${\rho^2_\mathrm{e,u}} v_\mathrm{Te} / L_\mathrm{Te}$',
                                     save_type=SaveType.ADDITIONAL)
 
         # Calculated Gradients

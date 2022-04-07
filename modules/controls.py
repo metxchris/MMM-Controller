@@ -138,7 +138,7 @@ class InputControls:
         self.etgm_betae_mult = Control('betae mult', float, 1, label=r'$\beta_\mathrm{e,u}$')
         self.etgm_nuei_mult = Control('nuei mult', float, 1, label=r'$\nu_\mathrm{ei}$')
         self.etgm_vthe_mult = Control('vthe mult', float, 1, label=r'$v_\mathrm{Te}$')
-        self.etgm_betaep_mult = Control('beta_prime mult', float, 1, label=r'$\beta^\prime_\mathrm{e,u}$')
+        self.etgm_betaep_mult = Control('beta_prime mult', float, 1, label=r'$\beta^\prime$')
         self.etgm_extra_mult = Control('extra', float, 1)
 
         # Verbose level
