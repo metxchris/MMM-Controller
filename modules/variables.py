@@ -428,8 +428,10 @@ class InputVariables(Variables):
                                  save_type=SaveType.ADDITIONAL, minvalue=1e-6)
         self.shat = Variable('Effective Magnetic Shear', label=r'$\hat{s}_{\kappa}$',
                              save_type=SaveType.ADDITIONAL)
-        self.shat_gxi = Variable('Effective Magnetic Shear', label=r'$\hat{s}_{\nabla \rho}}$',
+        self.shat_gxi = Variable('Effective Magnetic Shear', label=r'$\hat{s}$',
                                  save_type=SaveType.ADDITIONAL)
+        self.shat_gxi_q = Variable('', label=r'$\hat{s}/q}$',
+                                   save_type=SaveType.ADDITIONAL)
         self.shear = Variable('Magnetic Shear', cdfvar='SHAT', label=r'$s$',
                               save_type=SaveType.ADDITIONAL)
         self.tau = Variable('Temperature Ratio', label=r'$\tau$',
@@ -602,7 +604,7 @@ class OutputVariables(Variables):
         # ETG Component
         self.xteETG = Variable('xteETG', units='m^2/s', label=r'$\chi_\mathrm{e, etg}$')
         self.gtecritETG = Variable(r'Critical $g_\mathrm{Te}$ (Jenko ETG)', units='',
-                                   label=r'$g_\mathrm{Te, etg}^\mathrm{crit}$')
+                                   label=r'$(g_\mathrm{Te})_\mathrm{crit}$')
         # MTM Components
         self.xteMTM = Variable('xteMTM', units='m^2/s', label=r'$\chi_\mathrm{e, mtm}$')
         self.gmaMTM = Variable('gmaMTM', units='s^{-1}', label=r'$\gamma_\mathrm{mtm}$')
