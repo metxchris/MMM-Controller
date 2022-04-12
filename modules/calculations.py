@@ -714,6 +714,16 @@ def shat_gxi(calc_vars):
 
 
 @calculation
+def shat_gxi_q(calc_vars):
+    '''Effective Magnetic Shear'''
+
+    q = calc_vars.q.values
+    shat_gxi = calc_vars.shat_gxi.values
+
+    return shat_gxi / q
+
+
+@calculation
 def shear(calc_vars):
     '''Magnetic Shear'''
     gq = calc_vars.gq.values
@@ -1082,6 +1092,7 @@ def calculate_additional_variables(calc_vars):
     shear(calc_vars)
     shat(calc_vars)
     shat_gxi(calc_vars)
+    shat_gxi_q(calc_vars)
     alphamhd(calc_vars)
     alphamhdunit(calc_vars)
     betaepunit(calc_vars)

@@ -23,6 +23,7 @@ _log = logging.getLogger(__name__)
 
 
 def plot_profiles(profile_list, all_data_list, savefig=True, savedata=True):
+    print('plotting profiles...')
     for profiles, all_data in zip(profile_list, all_data_list):
         for p in profiles:
             all_data.set(*p)
@@ -53,7 +54,7 @@ if __name__ == '__main__':
         nomralize_y_axis=False,
         nomralize_x_axis=False,
         savename_append='',
-        title_override='',
+        title_override=' ',
         ylabel_override='',
         xlabel_override='',
     )
@@ -62,7 +63,7 @@ if __name__ == '__main__':
         'savefig.format': 'pdf',  # Common save formats: png, pdf, eps
     })
 
-    n = 1784  # Scan numbers
+    n = 1862  # Scan numbers
     r = '138536A01'  # Discharge
 
     profiles = [
@@ -74,6 +75,7 @@ if __name__ == '__main__':
         (PlotDataCsv(r, n, 'gq'), ),
         (PlotDataCsv(r, n, 'bunit'), ),
         (PlotDataCsv(r, n, 'btor'), ),
+        (PlotDataCsv(r, n, 'bunit'), PlotDataCsv(r, n, 'btor'), ),
         (PlotDataCsv(r, n, 'ne'), PlotDataCsv(r, n, 'nh'), ),
         (PlotDataCsv(r, n, 'nf'), PlotDataCsv(r, n, 'nz'), ),
         (PlotDataCsv(r, n, 'gne'), PlotDataCsv(r, n, 'gnh'), PlotDataCsv(r, n, 'gni'), ),
@@ -123,6 +125,7 @@ if __name__ == '__main__':
         # Individual parameter scan profiles
         (PlotDataCsv(r, n, 'betae'), ),
         (PlotDataCsv(r, n, 'shat_gxi'), ),
+        (PlotDataCsv(r, n, 'shat_gxi_q'), ),
         (PlotDataCsv(r, n, 'gne'), ),
         (PlotDataCsv(r, n, 'gte'), ),
         (PlotDataCsv(r, n, 'ne'), ),
@@ -139,6 +142,7 @@ if __name__ == '__main__':
         # (PlotDataCsv(r, n, 'phiETGM'), ),
         # (PlotDataCsv(r, n, 'AparaETGM'), ),
         (PlotDataCsv(r, n, 'walfvenunit'), ),
+        (PlotDataCsv(r, n, 'omegasETGM'), ),
     ]
 
     # MAIN PROFILES

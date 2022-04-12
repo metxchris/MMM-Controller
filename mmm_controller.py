@@ -257,6 +257,7 @@ if __name__ == '__main__':
     scanned_vars[None] = None
 
     # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1e-6, stop=1.01 + 1e-6, step=0.005)
+    # scanned_vars['dribm_kyrhos'] = np.arange(start=0.1, stop=3.01 + 1e-6, step=0.05)
 
     # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1, stop=40 + 1e-6, step=0.2)
     # scanned_vars['etgm_alpha_mult'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
@@ -343,6 +344,8 @@ if __name__ == '__main__':
         cmodel_etg=1,
         cmodel_etgm=1,
         cmodel_mtm=0,
+        # DRBM
+        dribm_kyrhos=1,
         # ETGM
         etgm_sum_modes=1,
         etgm_kyrhos_scan=1000,

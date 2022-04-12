@@ -67,7 +67,7 @@ if __name__ == '__main__':
         # title_override=r'Max vs Summed Modes',
         # title_override=r'Horton ETG',
         # title_override=r'Saturation Exponent = 2',
-        title_override=r'Electrostatic Case',
+        # title_override=r'Electrostatic Case',
         # title_override=r'Max Mode',
         # title_override=r'Summed Modes',
         # title_override=r'Summed Modes ($m$=2)',
@@ -75,7 +75,7 @@ if __name__ == '__main__':
         # title_override=r'Single $k_y\rho_\mathrm{s}$ vs Sum ($m$=1)',
         # title_override=r'Convergence Speed ($m=1$)',
         # title_override=r'zami(4,4) = 0',
-        # title_override=r' ',
+        title_override=r' ',
         # ylabel_override=r'$|g_\mathrm{ne}|$',
         ylabel_override=r'',
         xlabel_override=r'',
@@ -90,9 +90,19 @@ if __name__ == '__main__':
     all_data.set(
 
         # PlotDataCsv(r, 1664, 'kyrhosETGM', xname='rho'),
-        PlotDataCsv(r, 1840, 'kyrhosETGM', xname='rho'),
-        PlotDataCsv(r, 1841, 'kyrhosETGM', xname='rho'),
+        # PlotDataCsv(r, 1840, 'kyrhosETGM', xname='rho'),
+        # PlotDataCsv(r, 1841, 'kyrhosETGM', xname='rho'),
         # PlotDataCsv(r, 1807, 'gmaETGM', xname='rho'),
+
+        # PlotDataCsv(r, 1863, 'gmaDBM', xname='rho'),
+
+        # PlotDataCsv(r, 1867, 'gtecritETG', xname='rho', legend='with $Z_\mathrm{eff}$'),
+        # PlotDataCsv(r, 1869, 'gtecritETG', xname='rho', legend='without $Z_\mathrm{eff}$'),
+        PlotDataCsv(r, 1869, 'gte', xname='rho'),
+        PlotDataCsv(r, 1869, 'gtecritETG', xname='rho'),
+
+        # PlotDataCsv('TEST', 17, 'gmaDBM', xname='rho'),
+        # PlotDataCsv('TEST', 17, 'xteDBM', xname='rho'),
 
         # PlotDataCsv(r, 1664, 'xteETGM', xname='rho'),  # Max, Calibration
         # PlotDataCsv(r, 1664, 'xte2ETGM', xname='rho'),
