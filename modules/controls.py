@@ -104,11 +104,10 @@ class InputControls:
         # MTM options
         self.mtm_kyrhos_loops = Control('kyrhos scan iterations', int, 2000)
         self.mtm_capsw = Control('capsw', int, 1)
-        self.mtm_linert = Control('inertia', int, 1)
         self.mtm_ky_kx = Control('ky/kx', float, 0.2, label=r'$k_y/k_x$')
         self.mtm_cf = Control('calibration factor', float, 1)
-        self.mtm_kyrhos_min = Control('lower limit of kyrhos scan', float, 0.005)
-        self.mtm_kyrhos_max = Control('upper limit of kyrhos scan', float, 10)
+        self.mtm_kyrhos_min = Control('lower limit of kyrhos scan', float, 0.005, label=r'$k_\mathrm{y}\rho_\mathrm{s}$')
+        self.mtm_kyrhos_max = Control('upper limit of kyrhos scan', float, 10, label=r'$(k_\mathrm{y}\rho_\mathrm{s})_\mathrm{max}$')
         self.mtm_gmax_mult = Control('gmax coefficient', float, 1, label=r'$g_\mathrm{max, mtm}$')
         # ETG options
         self.etg_jenko_threshold = Control('Jenko threshold', int, 2)
@@ -210,7 +209,6 @@ class InputControls:
             'lMTM =\n'
             f'   {self.mtm_kyrhos_loops.get_input_line()}'
             f'   {self.mtm_capsw.get_input_line()}'
-            f'   {self.mtm_linert.get_input_line()}'
             '\n'
             '!.. MTM real options\n'
             'cMTM =\n'
@@ -382,12 +380,13 @@ class InputControls:
         data_array = np.genfromtxt(file_name, delimiter=',', dtype=float, names=True)
         control_names = data_array.dtype.names
         for name in control_names:
-            getattr(self, name).values = data_array[name]
+            if hasattr(self, name):
+                getattr(self, name).values = data_array[name]
 
 
 class Control:
-    def __init__(self, comment, vtype, values, label='', units_label=''):
-        self.comment = comment
+    def __init__(self, name, vtype, values, label='', units_label=''):
+        self.name = name
         self.vtype = vtype
         self.values = values
         self.label = label
@@ -397,7 +396,7 @@ class Control:
         return int(self.values) if self.vtype is int else f'{self.values:{constants.INPUT_CONTROL_VALUE_FMT}}D0'
 
     def get_input_line(self):
-        return f'{self.get_value_str()}  ! {self.comment}\n'
+        return f'{self.get_value_str()}  ! {self.name}\n'
 
 
 '''

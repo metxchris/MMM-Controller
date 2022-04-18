@@ -76,6 +76,7 @@ class StyleType:
         SINGLE1B = 3
         SINGLE2 = 4
         SINGLE3 = 5
+        AIP = 6
 
 
 class PlotStyles:

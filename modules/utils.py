@@ -20,6 +20,7 @@ TODO:
 import os
 import glob
 import logging
+import shutil
 from math import floor, log10
 
 # 3rd Party Packages
@@ -332,6 +333,10 @@ def get_files_in_dir(dir_path, file_type='', show_warning=True):
         _log.warning(f'No files found for {files}')
 
     return file_names
+
+
+def copy_file(source_path, destination_path):
+    shutil.copyfile(source_path, destination_path)
 
 
 def merge_profile_sheets(options, profile_name, merge_type, scan_factor=None):

@@ -25,11 +25,12 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE1B,
+        layout=StyleType.Layout.AIP,
     )
 
     plt.rcParams.update({
         'savefig.format': 'pdf',  # Common save formats: png, pdf, eps
+        # 'text.usetex': True,
     })
 
     # Text to append to the end of the generated save name
@@ -123,15 +124,34 @@ if __name__ == '__main__':
     # scan_data['132017T01'] = [2]
     # scan_data['141552A01'] = [2]
 
-    vars_to_plot = ['gmaDBM', 'omgDBM', 'xteDBM', 'xtiDBM']
-    scan_data['138536A01'] = [1866]
+    # vars_to_plot = ['gmaETGM', 'omgETGM', 'xteETGM', 'xte2ETGM']
+    # vars_to_plot = ['xteETGM', 'xte2ETGM']
+    # vars_to_plot = ['gmaDBM', 'omgDBM', 'xteDBM', 'xtiDBM']
+    # vars_to_plot = ['gmaMTM', 'omgMTM', 'xteMTM', 'kyrhosMTM']
+    # scan_data['138536A01'] = [1866]
+    # scan_data['138536A01'] = [1925]
+    # scan_data['121123K55'] = [7]
+    # scan_data['120968A02'] = [6]
+    # scan_data['129020A02'] = [6]
+    # scan_data['141007A10'] = [6]
+    # scan_data['101381T31'] = [1]
+    # scan_data['129016A04'] = [6]
+    # scan_data['129041A10'] = [6]
+    # scan_data['132017T01'] = [6]
     # scan_data['138536A01'] = [1779, 1780]
     # scan_data['138536A01'] = [i for i in range(1716, 1738 + 1)]
     # scan_data['138536A01'] = [i for i in range(1749, 1750 + 1)]
     # scan_data['138536A01'] = [i for i in range(1756, 1763 + 1)]
     # scan_data['138536A01'] = [i for i in range(1779, 1780 + 1)]
-    # scan_data['138536A01'] = [
-    #     i for i in [*range(1716, 1738 + 1), *range(1749, 1750 + 1), *range(1756, 1763 + 1), *range(1779, 1780 + 1), *range(1860, 1861 + 1)]
-    # ]
+    # scan_data['138536A01'] = [i for i in range(1924, 1925 + 1)]
+    scan_data['138536A01'] = [
+        i for i in [
+            *range(1716, 1738 + 1),
+            *range(1749, 1750 + 1),
+            *range(1756, 1763 + 1),
+            *range(1779, 1780 + 1),
+            *range(1924, 1925 + 1),
+        ]
+    ]
 
-    main(vars_to_plot, scan_data, savenameend=savenameend, savefig=0, savedata=0)
+    main(vars_to_plot, scan_data, savenameend=savenameend, savefig=1, savedata=0)

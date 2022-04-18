@@ -918,7 +918,7 @@ def walfvenunit(calc_vars, output_vars):
     return kpara2**(1 / 2) * bunit / (zcmu0 * zcmp * ni)**(1 / 2)
 
 
-def calculate_output_variables(calc_vars, output_vars):
+def calculate_output_variables(calc_vars, output_vars, controls):
     '''
     Calculations using output variables
 
@@ -929,6 +929,7 @@ def calculate_output_variables(calc_vars, output_vars):
     Parameters:
     * calc_vars (InputVariables): Object containing variable data
     * output_vars (OutputVariables): Object containing variable data
+    * controls (InputControls): Object containing controls data
     '''
 
     # Each use of the following calculate_variable functions are passing in
@@ -936,12 +937,15 @@ def calculate_output_variables(calc_vars, output_vars):
     # same name as the variable it calculates. Note that calculation order
     # matters here.
 
-    omegasETGM(calc_vars, output_vars)
-    omegasetaETGM(calc_vars, output_vars)
-    omegateETGM(calc_vars, output_vars)
-    omegadiffETGM(calc_vars, output_vars)
-    gammadiffETGM(calc_vars, output_vars)
-    walfvenunit(calc_vars, output_vars)
+    if controls.cmodel_etgm.values:
+        omegasETGM(calc_vars, output_vars)
+        omegasetaETGM(calc_vars, output_vars)
+        omegateETGM(calc_vars, output_vars)
+        omegadiffETGM(calc_vars, output_vars)
+        gammadiffETGM(calc_vars, output_vars)
+        walfvenunit(calc_vars, output_vars)
+
+    ...
 
 
 def calculate_base_variables(calc_vars):

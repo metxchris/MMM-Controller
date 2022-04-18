@@ -415,8 +415,9 @@ class AllPlotData:
 
         if self.summed_modes:
             for d in self.data:
-                stripped_label = d.ysymbol.strip('$')
-                d.ysymbol = f'$\sum{stripped_label}$'
+                if '\chi' in d.ysymbol:
+                    stripped_label = d.ysymbol.strip('$')
+                    d.ysymbol = f'$_{{^\sum}}{stripped_label}$'
 
         self._init_legend_dict()
         self._update_rho_str()
