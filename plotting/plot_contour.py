@@ -122,7 +122,7 @@ def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, save
             if controls.etgm_sum_modes.values:
                 (Zmax, Zmin) = (1e8, -1e8) if var_to_scan != 'time' else (1e8, -1e8)
             else:
-                (Zmax, Zmin) = (1e8, -1e8) if var_to_scan != 'time' else (2e1, -2e1)
+                (Zmax, Zmin) = (1e8, -1e8) if var_to_scan != 'time' else (1e1, -1e1)
         elif 'xte' in var_to_plot:
             Zmax, Zmin = 5e2, -5e2
         elif 'xti' in var_to_plot:
@@ -135,6 +135,8 @@ def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, save
             Zmax, Zmin = 20, -20
         elif 'kyrhosETGM' == var_to_plot:
             Zmax, Zmin = 100, 0
+        elif 'kyrhosMTM' == var_to_plot:
+            Zmax, Zmin = 5, 0
         elif 'shat' in var_to_plot or 'shear' in var_to_plot:
             Zmax, Zmin = 20, -20
         elif 'omegadETGM' in var_to_plot:
@@ -157,7 +159,7 @@ def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, save
         if var_to_scan == 'gne' and options.use_gneabs:
             ylabel = f'$|${ylabel}$|$'
 
-        if var_to_scan not in ['time', 'etgm_kyrhos_min']:  # Most yvariables will be plotted as multipliers
+        if 'time' not in var_to_scan and 'kyrho' not in var_to_scan:  # Most yvariables will be plotted as multipliers
             ylabel = f'{ylabel} (multipliers)'
         elif xbase.units_label:
             ylabel = f'{ylabel} ({xbase.units_label})'
@@ -174,8 +176,8 @@ def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, save
             title = fr'{title} with $|g_\mathrm{{ne}}|$'
         if controls.etgm_exbs.values and var_to_plot != 'wexbs':
             title = fr'{title} $[\omega_{{E \times\! B}}\,\,\mathrm{{on}}]$'
-        if controls.etgm_sum_modes.values and 'xte' in var_to_plot:
-            title = fr'{title} [Sum]'
+        if controls.etgm_sum_modes.values and 'ETGM' in var_to_plot and '\chi' in ybase.label:
+            title = fr'$_{{^\sum}}${title}'
         return title
 
     def get_smoothing_sigma():
@@ -340,7 +342,7 @@ def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, save
         # Colorbar for filled contour colormap
         cb = plt.colorbar(spacing='proportional', pad=0.02, aspect=30, fraction=0.1, drawedges=True)
         cb.ax.ticklabel_format(axis="y", style="sci", scilimits=(-2, 2))
-        cb.ax.tick_params(size=0, labelsize=6.5)
+        cb.ax.tick_params(size=0, labelsize=plt.rcParams['ytick.labelsize'] - 0.5)
 
         # An upper colorbar extension moves the offset text down, so we raise it back up
         if 'extend' in args_both:
@@ -505,7 +507,7 @@ if __name__ == '__main__':
         - values (list of int): The scan_numbers to plot from
     """
 
-    scan_data['138536A01'] = [1815]
+    scan_data['138536A01'] = [1738]
     # scan_data['138536A01'] = [i for i in range(1716, 1738 + 1)]
     # scan_data['138536A01'] = [i for i in [*range(1716, 1738 + 1), *range(1756, 1763 + 1)]]
 

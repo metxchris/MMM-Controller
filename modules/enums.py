@@ -35,6 +35,7 @@ class ShotType(Enum):
     NSTX = 1
     DIII_D = 2
     NSTX_U = 3
+    MAST = 4
 
 
 class MergeType(Enum):

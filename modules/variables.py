@@ -604,7 +604,7 @@ class OutputVariables(Variables):
         # ETG Component
         self.xteETG = Variable('xteETG', units='m^2/s', label=r'$\chi_\mathrm{e, etg}$')
         self.gtecritETG = Variable(r'Critical $g_\mathrm{Te}$ (Jenko ETG)', units='',
-                                   label=r'$(g_\mathrm{Te})_\mathrm{crit}$')
+                                   label=r'$g_\mathrm{Te, crit}$')
         # MTM Components
         self.xteMTM = Variable('xteMTM', units='m^2/s', label=r'$\chi_\mathrm{e, mtm}$')
         self.gmaMTM = Variable('gmaMTM', units='s^{-1}', label=r'$\gamma_\mathrm{mtm}$')

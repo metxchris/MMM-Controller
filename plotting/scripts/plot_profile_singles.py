@@ -39,7 +39,7 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE1B,
+        layout=StyleType.Layout.AIP,
     )
 
     # Define settings for the plot
@@ -61,6 +61,7 @@ if __name__ == '__main__':
 
     plt.rcParams.update({
         'savefig.format': 'pdf',  # Common save formats: png, pdf, eps
+        # 'text.usetex': True,
     })
 
     n = 1862  # Scan numbers
@@ -128,6 +129,7 @@ if __name__ == '__main__':
         (PlotDataCsv(r, n, 'shat_gxi_q'), ),
         (PlotDataCsv(r, n, 'gne'), ),
         (PlotDataCsv(r, n, 'gte'), ),
+        (PlotDataCsv(r, n, 'gte'), PlotDataCsv(r, n, 'gtecritETG'), ),
         (PlotDataCsv(r, n, 'ne'), ),
         (PlotDataCsv(r, n, 'nuei'), ),
         (PlotDataCsv(r, n, 'te'), ),
@@ -146,4 +148,4 @@ if __name__ == '__main__':
     ]
 
     # MAIN PROFILES
-    plot_profiles([profiles], [all_data], savefig=1, savedata=1)
+    plot_profiles([profiles], [all_data], savefig=0, savedata=1)

@@ -35,8 +35,13 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE1B,
+        layout=StyleType.Layout.AIP,
     )
+
+    plt.rcParams.update({
+        'savefig.format': 'pdf',  # Common save formats: png, pdf, eps
+        # 'text.usetex': True,
+    })
 
     # Define settings for the plot
     all_data = AllPlotData(
@@ -79,6 +84,7 @@ if __name__ == '__main__':
         # ylabel_override=r'$|g_\mathrm{ne}|$',
         ylabel_override=r'',
         xlabel_override=r'',
+        summed_modes=1,
     )
 
     # Define data for the plot
@@ -94,12 +100,13 @@ if __name__ == '__main__':
         # PlotDataCsv(r, 1841, 'kyrhosETGM', xname='rho'),
         # PlotDataCsv(r, 1807, 'gmaETGM', xname='rho'),
 
-        # PlotDataCsv(r, 1863, 'gmaDBM', xname='rho'),
+        # PlotDataCsv(r, 1874, 'gmaMTM', xname='rho'),
+        PlotDataCsv(r, 1925, 'xteETGM', xname='rho'),
 
         # PlotDataCsv(r, 1867, 'gtecritETG', xname='rho', legend='with $Z_\mathrm{eff}$'),
         # PlotDataCsv(r, 1869, 'gtecritETG', xname='rho', legend='without $Z_\mathrm{eff}$'),
-        PlotDataCsv(r, 1869, 'gte', xname='rho'),
-        PlotDataCsv(r, 1869, 'gtecritETG', xname='rho'),
+        # PlotDataCsv(r, 1869, 'gte', xname='rho'),
+        # PlotDataCsv(r, 1869, 'gtecritETG', xname='rho'),
 
         # PlotDataCsv('TEST', 17, 'gmaDBM', xname='rho'),
         # PlotDataCsv('TEST', 17, 'xteDBM', xname='rho'),

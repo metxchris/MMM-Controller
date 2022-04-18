@@ -58,7 +58,7 @@ import plotting.modules.profiles as profiles
 from modules.enums import ShotType, ScanType, ProfileType
 
 
-def _execute_variable_scan(mmm_vars, input_controls):
+def _execute_variable_scan(mmm_vars, controls):
     '''
     Executes an input variable scan, where the values of an input variable are
     varied over a specified range and are then sent to the MMM driver for
@@ -92,7 +92,7 @@ def _execute_variable_scan(mmm_vars, input_controls):
         adjusted_vars = adjustments.adjust_scanned_variable(mmm_vars, scan_factor)
         adjusted_vars.save(scan_factor)
         output_vars = mmm.run_wrapper(adjusted_vars, controls)
-        calculations.calculate_output_variables(mmm_vars, output_vars)
+        calculations.calculate_output_variables(mmm_vars, output_vars, controls)
         output_vars.save(scan_factor)
 
 
@@ -126,10 +126,11 @@ def _execute_control_scan(mmm_vars, controls):
     for i, scan_factor in enumerate(scan_range):
         print(f'{runid}.{scan_num} {var_to_scan} scan: {i + 1} / {len(scan_range)}')
         scanned_control.values = scan_factor * base_control.values
+        adjusted_controls.mtm_kyrhos_loops.values = int(controls.mtm_kyrhos_loops.values * scan_factor/scan_range[0])
         mmm_vars.save(scan_factor)
         adjusted_controls.save(scan_factor)
         output_vars = mmm.run_wrapper(mmm_vars, adjusted_controls)
-        calculations.calculate_output_variables(mmm_vars, output_vars)
+        calculations.calculate_output_variables(mmm_vars, output_vars, controls)
         output_vars.save(scan_factor)
 
 
@@ -161,7 +162,7 @@ def _execute_time_scan(mmm_vars, controls):
         time_scan_str = f'{float(options.time_str):{modules.constants.SCAN_FACTOR_FMT}}'
         mmm_vars.save(time_scan_str)
         output_vars = mmm.run_wrapper(mmm_vars, controls)
-        calculations.calculate_output_variables(mmm_vars, output_vars)
+        calculations.calculate_output_variables(mmm_vars, output_vars, controls)
         output_vars.save(time_scan_str)
 
 
@@ -244,6 +245,7 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '141032A01', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '141040A01', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '141716A80', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '101381T31', ShotType.DIII_D, 2.1
     # runid, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
     # runid, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
 
@@ -254,10 +256,12 @@ if __name__ == '__main__':
     * Uncomment the lines you wish to include in scanned_vars
     * Using None as the scanned variable will just run MMM once
     '''
-    scanned_vars[None] = None
+    # scanned_vars[None] = None
 
     # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1e-6, stop=1.01 + 1e-6, step=0.005)
     # scanned_vars['dribm_kyrhos'] = np.arange(start=0.1, stop=3.01 + 1e-6, step=0.05)
+    # scanned_vars['mtm_kyrhos_min'] = np.arange(start=0.1, stop=10.0 + 1e-6, step=0.1)
+    # scanned_vars['mtm_kyrhos_max'] = np.arange(start=5, stop=10.0 + 1e-6, step=0.5)
 
     # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1, stop=40 + 1e-6, step=0.2)
     # scanned_vars['etgm_alpha_mult'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
@@ -309,7 +313,7 @@ if __name__ == '__main__':
     # scanned_vars['time'] = np.arange(start=0.3, stop=0.6 + 1e-6, step=0.001)
 
     # normalized time scan (options.normalize_time_range = 1)
-    # scanned_vars['time'] = np.linspace(start=0, stop=1, num=200)
+    scanned_vars['time'] = np.linspace(start=0, stop=1, num=200)
 
     '''
     Options:
@@ -341,20 +345,20 @@ if __name__ == '__main__':
         # CMODEL
         cmodel_weiland=0,
         cmodel_dribm=0,
-        cmodel_etg=1,
+        cmodel_etg=0,
         cmodel_etgm=1,
         cmodel_mtm=0,
         # DRBM
         dribm_kyrhos=1,
         # ETGM
         etgm_sum_modes=1,
-        etgm_kyrhos_scan=1000,
-        etgm_kyrhos_min=0.1,
+        etgm_kyrhos_scan=500,
+        etgm_kyrhos_min=1,
         etgm_kyrhos_max=50,
         etgm_kxoky=0.5,
         etgm_cl=1,
         etgm_sat_expo=2,
-        etgm_exbs=1,
+        etgm_exbs=0,
         etgm_gmax_mult=1e10,
         etgm_kyrhos_type=1,
         etgm_xte_max_cal=0.05,
@@ -371,8 +375,9 @@ if __name__ == '__main__':
         # MTM
         mtm_kyrhos_loops=2000,
         mtm_kyrhos_min=0.005,
-        mtm_kyrhos_max=10,
-        mtm_linert=1,
+        mtm_kyrhos_max=1,
+        mtm_cf=0.01,
+        mtm_gmax_mult=1e10,
     )
 
     '''
