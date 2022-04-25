@@ -41,6 +41,7 @@ class _XValues:
         self.x = xvar.values[:, 0]
         self.xb = xbvar.values[:, 0]  # implicitly used in the interpolation step
         self.xbo = np.append([0], self.xb)
+        self.time = xvar.values[0, :]
 
 
 def _choose_variables(input_vars):
@@ -130,9 +131,13 @@ def _interp_to_boundarygrid(input_var, xvals):
     '''
 
     xdim = input_var.get_xdim()
-    # 0-dimensional variables are not reshaped
-    if xdim is None or input_var.values.ndim == 0:
-        pass
+    # Check if variable was found
+    if xdim is None:
+        if input_var.default_values is not None:
+            input_var.set(values=np.tile(input_var.values, (xvals.xbo.size, xvals.time.size)))
+            input_var.dimensions = ['XBO', 'TIME']
+        else:
+            pass
 
     # Tile 1-dim time arrays into 2-dim arrays, in the format of (XBO, TIME)
     elif xdim in ['TIME', 'TIME3']:
@@ -193,7 +198,7 @@ def _interp_to_input_points(input_vars):
             if mmm_var.values is None:
                 raise ValueError(f'Trying to interpolate variable {var} with values equal to None')
 
-            if mmm_var.values.size > 1:
+            if isinstance(mmm_var.values, np.ndarray) and mmm_var.values.size > 1:
                 set_interp = interp1d(xb, mmm_var.values, kind='cubic', fill_value="extrapolate", axis=0)
                 mmm_var.set(values=set_interp(xb_new))
 

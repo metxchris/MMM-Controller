@@ -338,6 +338,7 @@ class AllPlotData:
 
     Parameters (all optional keyword arguments):
     * replace_offset_text (bool): If the offset axes text should be put in the axes labels
+    * allow_title_name (bool): If the variable name is allowed to appear in the title
     * allow_title_runid (bool): If the runid is allowed to appear in the title
     * allow_title_time (bool): If the time is allowed to appear in the title
     * allow_title_rho (bool): If the rho value is allowed to appear in the title
@@ -354,10 +355,15 @@ class AllPlotData:
     * yaxis_padding (float): The amount to pad the yaxis limits
     * xaxis_padding (float): The amount to pad the xaxis limits
     * xaxis_trim_padding (float): The amount to pad the trimmed xaxis limits when using rho values
+    * ymin (float | None): The minimum y-value to use
+    * ymax (float | None): The maximum y-value to use
+    * xmin (float | None): The minimum x-value to use
+    * xmax (float | None): The maximum x-value to use
     """
 
     def __init__(self, **kwargs):
         self.replace_offset_text: bool = True
+        self.allow_title_name: bool = True
         self.allow_title_runid: bool = True
         self.allow_title_time: bool = True
         self.allow_title_rho: bool = True
@@ -374,18 +380,19 @@ class AllPlotData:
         self.yaxis_padding: float = 0.01
         self.xaxis_padding: float = 0.005
         self.xaxis_trim_padding: float = 0.03
+        self.ymin: float | None = None
+        self.ymax: float | None = None
+        self.xmin: float | None = None
+        self.xmax: float | None = None
 
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-            else:
-                _log.warning(f'\n\t"{key}" is not a valid parameter when initializing AllPlotData')
+        self._set_kwargs(kwargs)
 
+        # Set these after kwargs are set
         self.data = None
         self.legend_attrs = None
         self.show_legend = None
 
-    def set(self, *args):
+    def set(self, *args, **kwargs):
         """
         Set data for the plot
 
@@ -393,6 +400,7 @@ class AllPlotData:
         * args (tuple[PlotData]): Data to be plotted
         """
 
+        self._set_kwargs(kwargs)
         self.data: list[PlotData] = [a for a in args if isinstance(a, PlotData)]
 
         if self.nomralize_y_axis:
@@ -413,7 +421,7 @@ class AllPlotData:
                     d.xval_base = 0
                     d.xvals[:] = 0
 
-        if self.summed_modes:
+        if self.summed_modes:  # TODO: replace with controls check
             for d in self.data:
                 if '\chi' in d.ysymbol:
                     stripped_label = d.ysymbol.strip('$')
@@ -498,6 +506,14 @@ class AllPlotData:
             for i, d in enumerate(self.data):
                 if d.rho:
                     d.rho = f'{float(d.rho):.{rho_length}f}'
+
+    def _set_kwargs(self, kwargs):
+        """Set member values using keyword arguments"""
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                _log.error(f'\n\t"{key}" is not a valid parameter for AllPlotData')
 
     @staticmethod
     def _get_units_str(units):
@@ -609,7 +625,16 @@ class AllPlotData:
         xmin, xmax = all_xvals[~np.isnan(all_xvals)].min(), all_xvals[~np.isnan(all_xvals)].max()
         ymin, ymax = all_yvals[~np.isnan(all_yvals)].min(), all_yvals[~np.isnan(all_yvals)].max()
 
-        using_rho = (np.array([d.rho for d in self.data]) != None).any()  # '!= None' syntax is needed with numpy
+        if self.xmin is not None:
+            xmin = max(xmin, self.xmin)
+        if self.xmax is not None:
+            xmax = min(xmax, self.xmax)
+        if self.ymin is not None:
+            ymin = max(ymin, self.ymin)
+        if self.ymax is not None:
+            ymax = min(ymax, self.ymax)
+
+        # using_rho = (np.array([d.rho for d in self.data]) != None).any()  # '!= None' syntax is needed with numpy
 
         # if using_rho:
         #     xvals_trim = all_xvals[np.absolute(all_yvals) / max(abs(ymin), abs(ymax)) > 1e-3]  # Trim the x-limits of zeros
@@ -642,7 +667,14 @@ class AllPlotData:
         * (str): The title for the plot
         """
 
-        base_title = (self.title_override or self._generate_unique_title()).strip()
+        if self.title_override:
+            base_title = self.title_override
+        elif self.allow_title_name:
+            base_title = self._generate_unique_title()
+        else:
+            base_title = ''
+
+        base_title = base_title.strip()
         title_details = self._get_title_details()
 
         if base_title and title_details:

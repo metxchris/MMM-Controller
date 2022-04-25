@@ -35,7 +35,7 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.AIP,
+        layout=StyleType.Layout.SINGLE1B,
     )
 
     plt.rcParams.update({
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         # ylabel_override=r'$|g_\mathrm{ne}|$',
         ylabel_override=r'',
         xlabel_override=r'',
-        summed_modes=1,
+        summed_modes=0,
     )
 
     # Define data for the plot
@@ -95,13 +95,46 @@ if __name__ == '__main__':
     n2 = n1 + 1
     all_data.set(
 
-        # PlotDataCsv(r, 1664, 'kyrhosETGM', xname='rho'),
+        # PlotDataCdf('18476T02',  yname='gte', time=2),
+        # PlotDataCdf('80208T04',  yname='gte', time=2),
+        # PlotDataCdf('101381T31', yname='gte', time=0.490),
+        # PlotDataCdf('120968A02', yname='gte', time=0.490),
+
+        # PlotDataCdf('18492P02', yname='xke', time=2.175),
+        # PlotDataCdf('18492P02', yname='xki', time=2.175),
+        # xmax=0.91,
+
+        PlotDataCdf('18399P01', yname='te', time=10),
+        PlotDataCdf('18399T05', yname='te', time=10),
+        xmax=0.91, ymax=3.5,
+
+        # PlotDataCdf('85126T02', yname='xke', time=2.175, legend=r'$\mathtt{CONDE:PR,WNC+XKEPALEO}$'),
+        # PlotDataCdf('85126T02', yname='xkemmm07', time=2.175, legend=r'$\mathtt{XKEMMM07}$'),
+        # PlotDataCdf('85126T02', yname='conde', time=2.175, legend=r'$\mathtt{CONDE}$'),
+        # PlotDataCdf('85126T02', yname='condepr', time=2.175, legend=r'$\mathtt{CONDEPR}$'),
+        # xmax=0.91, xmin=0, ymax=4, ymin=0,
+
+        # PlotDataCdf('85610T01', yname='xki', time=2.175, legend=r'$\mathtt{CONDI:PR,WNC}$'),
+        # PlotDataCdf('85610T01', yname='xkimmm07', time=2.175, legend=r'$\mathtt{XKIMMM07}$'),
+        # PlotDataCdf('85610T01', yname='condi', time=2.175, legend=r'$\mathtt{CONDI}$'),
+        # PlotDataCdf('85610T01', yname='condipr', time=2.175, legend=r'$\mathtt{CONDIPR}$'),
+        # PlotDataCdf('85610T01', yname='condiwnc', time=2.175, legend=r'$\mathtt{CONDIWNC}$'),
+        # xmax=0.91, ymax=4, ymin=0,
+
+        # PlotDataCsv(r, 1928,  'xte2ETGM', xname='rho', legend=r'min $g_\mathrm{Te} = 0.5$'),
+        # PlotDataCsv(r, 1929, 'xte2ETGM', xname='rho', legend=r'min $g_\mathrm{Te} = 1.0$'),
+        # PlotDataCsv(r, 1930, 'xte2ETGM', xname='rho', legend=r'min $g_\mathrm{Te} = 2.0$'),
+
+        # PlotDataCsv(r, 1931, 'xte2ETGM', xname='rho', legend=r'min $g_\mathrm{Te} = 0.5$'),
+        # PlotDataCsv(r, 1932, 'xte2ETGM', xname='rho', legend=r'min $g_\mathrm{Te} = 1.0$'),
+        # PlotDataCsv(r, 1933, 'xteETGM', xname='rho'),
+        # PlotDataCsv(r, 1933, 'xte2ETGM', xname='rho'),
+
         # PlotDataCsv(r, 1840, 'kyrhosETGM', xname='rho'),
         # PlotDataCsv(r, 1841, 'kyrhosETGM', xname='rho'),
         # PlotDataCsv(r, 1807, 'gmaETGM', xname='rho'),
 
-        # PlotDataCsv(r, 1874, 'gmaMTM', xname='rho'),
-        PlotDataCsv(r, 1925, 'xteETGM', xname='rho'),
+        # PlotDataCsv(r, 1863, 'gmaDBM', xname='rho'),
 
         # PlotDataCsv(r, 1867, 'gtecritETG', xname='rho', legend='with $Z_\mathrm{eff}$'),
         # PlotDataCsv(r, 1869, 'gtecritETG', xname='rho', legend='without $Z_\mathrm{eff}$'),

@@ -1,5 +1,5 @@
 # Standard Packages
-from enum import Enum
+from enum import Enum, auto
 
 
 class ProfileType(Enum):
@@ -30,12 +30,18 @@ class ScanType(Enum):
 
 
 class ShotType(Enum):
-    '''Specifies the type of the shot in the referenced CDF'''
+    '''Specifies the type of the shot in the referenced CDF
+
+    Enum names must match subfolder names in the cdf folder
+    '''
     NONE = 0
-    NSTX = 1
-    DIII_D = 2
-    NSTX_U = 3
-    MAST = 4
+    NSTX = auto()
+    D3D = auto()
+    NSTU = auto()
+    MAST = auto()
+    EAST = auto()
+    KSTR = auto()
+    JET = auto()
 
 
 class MergeType(Enum):

@@ -14,6 +14,7 @@ from PyQt5.QtWidgets import QApplication
 from modules.options import Options
 from plotting.modules.plotstyles import PlotStyles, StyleType
 import modules.datahelper as datahelper
+import modules.utils as utils
 
 
 def movingaverage_test():
@@ -104,6 +105,36 @@ def plot_FG(vars):
     plt.legend()
     plt.show()
 
+def plot_chi_validation(cdf_vars):
+    vars = np.genfromtxt("C:/Users/metxc/Documents/MMM-Package/plotting/output/singles/misc/85610xkexki.csv", delimiter=",")
+    rho_xke = vars[:, 0]
+    rho_xki = vars[:, 2]
+    rho_xkiold = vars[:, 4]
+    rho_xkeold = vars[:, 6]
+    xke = vars[:, 1]
+    xki = vars[:, 3]
+    xkiold = vars[:, 5]
+    xkeold = vars[:, 7]
+
+    t = cdf_vars.options.time_idx
+    cdf_rho = cdf_vars.rho.values[:, t]
+    cdf_xki = cdf_vars.xki.values[:, t]
+    cdf_xki2 = cdf_vars.condiwnc.values[:, t]
+
+    plt.plot(rho_xke, xke, label="CONDE:PR+WNC + XKEPALEO")
+    plt.plot(rho_xkeold, xkeold, label=r"$\chi_\mathrm{e}$")
+
+    # plt.plot(rho_xki, xki, label="CONDI:PR+WNC")
+    # plt.plot(rho_xkiold, xkiold, label=r"$\chi_\mathrm{i}$")
+
+    plt.title('85126T02, t=2.175s')
+    plt.xlabel(r'$\rho$')
+    plt.ylabel(r'(m$^2$/s)')
+    plt.legend().set_draggable(state=True)
+    plt.show()
+
+
+
 def on_press(event):
     fig, ax = plt.gcf(), plt.gca()
 
@@ -129,16 +160,20 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.MMM,
-        layout=StyleType.Layout.SINGLE1B,
+        layout=StyleType.Layout.SINGLE2,
     )
 
-    options = Options(runid='138536A01', input_time=0.629, input_points=51)
-    mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
+    # options = Options(runid='138536A01', input_time=0.629, input_points=51)
+    # mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
 
     plt.figure()
     plt.gcf().canvas.mpl_connect('key_press_event', on_press)
 
-    plot_FG(mmm_vars)
+    # plot_FG(mmm_vars)
+
+    options = Options(runid='85126T02', input_time=2.175)
+    mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
+    plot_chi_validation(mmm_vars)
 
 
 
