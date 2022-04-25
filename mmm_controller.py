@@ -196,7 +196,7 @@ def main(scanned_vars, controls):
 
         mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
         output_vars = mmm.run_wrapper(mmm_vars, controls)
-        calculations.calculate_output_variables(mmm_vars, output_vars)
+        calculations.calculate_output_variables(mmm_vars, output_vars, controls)
 
         options.save()
         controls.save()
@@ -230,7 +230,7 @@ if __name__ == '__main__':
     TRANSP Data:
     * Uncomment the line you wish to use
     '''
-    # runid, shot_type, input_time = '121123K55', ShotType.NSTX_U, 11.8
+    # runid, shot_type, input_time = '121123K55', ShotType.NSTU, 11.8
     # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.5
@@ -239,15 +239,17 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '129019A02', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '129020A02', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
-    runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.629
+    # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.629
     # runid, shot_type, input_time = '141007A10', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '141031A01', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '141032A01', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '141040A01', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '141716A80', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '101381T31', ShotType.DIII_D, 2.1
-    # runid, shot_type, input_time = '132017T01', ShotType.DIII_D, 2.1
-    # runid, shot_type, input_time = '141552A01', ShotType.DIII_D, 2.1
+    # runid, shot_type, input_time = '101381T31', ShotType.D3D, 2.1
+    # runid, shot_type, input_time = '132017T01', ShotType.D3D, 2.1
+    # runid, shot_type, input_time = '141552A01', ShotType.D3D, 2.1
+    runid, shot_type, input_time = '85126W05', ShotType.EAST, 2.175
+    runid, shot_type, input_time = '16296T10', ShotType.KSTR, 2.175
 
     # runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
 
@@ -256,7 +258,7 @@ if __name__ == '__main__':
     * Uncomment the lines you wish to include in scanned_vars
     * Using None as the scanned variable will just run MMM once
     '''
-    # scanned_vars[None] = None
+    scanned_vars[None] = None
 
     # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1e-6, stop=1.01 + 1e-6, step=0.005)
     # scanned_vars['dribm_kyrhos'] = np.arange(start=0.1, stop=3.01 + 1e-6, step=0.05)
@@ -313,7 +315,7 @@ if __name__ == '__main__':
     # scanned_vars['time'] = np.arange(start=0.3, stop=0.6 + 1e-6, step=0.001)
 
     # normalized time scan (options.normalize_time_range = 1)
-    scanned_vars['time'] = np.linspace(start=0, stop=1, num=200)
+    # scanned_vars['time'] = np.linspace(start=0, stop=1, num=200)
 
     '''
     Options:

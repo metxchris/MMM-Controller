@@ -844,6 +844,33 @@ def xetgm_const(calc_vars):
 
 
 @calculation
+def xke(calc_vars):
+    '''Total Electron Thermal Diffusivity from CDF'''
+    condepr = calc_vars.condepr.values
+    condewnc = calc_vars.condewnc.values
+    xkepaleo = calc_vars.xkepaleo.values
+    xkemmm07 = calc_vars.xkemmm07.values
+
+    xke = condepr + condewnc + xkepaleo
+    xke[0, :] = np.nan
+
+    return xke
+
+
+@calculation
+def xki(calc_vars):
+    '''Total Ion Thermal Diffusivity from CDF'''
+    condipr = calc_vars.condipr.values
+    condiwnc = calc_vars.condiwnc.values
+    xkimmm07 = calc_vars.xkimmm07.values
+
+    xki = condipr + condiwnc
+    xki[0, :] = np.nan
+
+    return xki
+
+
+@calculation
 def zeff(calc_vars):
     '''Effective Charge'''
     ne = calc_vars.ne.values
@@ -1104,6 +1131,8 @@ def calculate_additional_variables(calc_vars):
     etae(calc_vars)
     etai(calc_vars)
     epsilonne(calc_vars)
+    xke(calc_vars)
+    xki(calc_vars)
 
 
 def calculate_new_variables(cdf_vars):

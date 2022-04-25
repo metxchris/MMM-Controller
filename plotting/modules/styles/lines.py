@@ -111,7 +111,7 @@ def init(style):
             dashes=[
                 (1, 0),  # Solid line
                 (0, 100),  # Blank
-                (6.5, 1.1, 1.25, 1.1),  # Dash-dot
+                (5, 1.1, 1.25, 1.1),  # Dash-dot
                 (0, 100),  # Blank
                 (4.5, 1.5),  # Dashed line
                 (0, 100),  # Blank

@@ -132,7 +132,7 @@ class InputControls:
         self.etgm_disable_geometry = Control('1: Theta, alpha = 0, 0: Default G_ave', int, 0)
         self.etgm_electrostatic = Control('1: Electrostatic, 0: Electromagnetic', int, 0)
         self.etgm_empty_int = Control('empty', int, 1)
-        self.etgm_empty_real = Control('empty', float, 1)
+        self.etgm_xte_min_gte = Control('empty', float, 0.01)
         self.etgm_alpha_mult = Control('alphaMHD mult', float, 1, label=r'$\alpha_\mathrm{MHD,u}$')
         self.etgm_betae_mult = Control('betae mult', float, 1, label=r'$\beta_\mathrm{e,u}$')
         self.etgm_nuei_mult = Control('nuei mult', float, 1, label=r'$\nu_\mathrm{ei}$')
@@ -249,7 +249,7 @@ class InputControls:
             f'   {self.etgm_kyrhos_max.get_input_line()}'
             f'   {self.etgm_kxoky.get_input_line()}'
             f'   {self.etgm_gmax_mult.get_input_line()}'
-            f'   {self.etgm_empty_real.get_input_line()}'
+            f'   {self.etgm_xte_min_gte.get_input_line()}'
             f'   {self.etgm_xte_max_cal.get_input_line()}'
             f'   {self.etgm_xte_sum_cal.get_input_line()}'
             f'   {self.etgm_xte2_max_cal.get_input_line()}'

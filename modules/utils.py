@@ -48,9 +48,26 @@ def init_logging():
         logging.basicConfig(level="WARNING")
 
 
-def get_cdf_path(file_name):
-    '''Returns (str): the path to specified CDF within the CDF folder'''
-    return f'{os.path.dirname(cdfs.__file__)}\\{file_name}.CDF'
+def get_cdf_path(runid, shot_type=None):
+    '''Returns (str): the path to specified CDF within the CDF folder
+
+    Raises:
+    * FileNotFoundError: If the CDF cannot be found
+    '''
+    cdfpath = None
+    if shot_type is not None and shot_type.value > 0:
+        cdfpath = f'{os.path.dirname(cdfs.__file__)}\\{shot_type.name}\\{runid}.CDF'
+    else:
+        # Search for CDF when shot_type is not specified
+        subdirs = get_subdirs(os.path.dirname(cdfs.__file__))
+        for subdir in subdirs:
+            if check_exists(f'{subdir}\\{runid}.CDF'):
+                cdfpath = f'{subdir}\\{runid}.CDF'
+                break
+
+    if not cdfpath:
+        raise FileNotFoundError(f'CDF {runid} was not found in any sub-directory')
+    return cdfpath
 
 
 def get_pdftk_path():
@@ -277,6 +294,12 @@ def check_dirname(dir_path):
             raise ValueError(f'Too many duplicate directories exist to save directory {dir_path}')
 
     return dir_path
+
+
+def get_subdirs(dir_path):
+    '''Get sub-directories within specified directory'''
+    return [f'{dir_path}\\{name}' for name in os.listdir(dir_path)
+            if os.path.isdir(f'{dir_path}\\{name}') and '__' not in name]
 
 
 def open_file(file_path):

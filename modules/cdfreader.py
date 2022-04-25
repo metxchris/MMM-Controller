@@ -43,9 +43,12 @@ def extract_data(options, print_warnings=False):
     * FileNotFoundError: If the CDF file was not found
     '''
 
-    cdf_file = utils.get_cdf_path(options.runid)
+    cdf_file = utils.get_cdf_path(options.runid, options.shot_type)
     if not os.path.exists(cdf_file):
-        raise FileNotFoundError(f'CDF {options.runid} could not be found in the cdf folder')
+        raise FileNotFoundError(
+            f'CDF {options.runid} could not be found in the cdf folder'
+            f'\n\tPath: {cdf_file}'
+        )
 
     cdf = Dataset(cdf_file)
 
@@ -58,23 +61,23 @@ def extract_data(options, print_warnings=False):
 
     # Get values for all specified CDF variables
     for var_name in cdf_vars_to_get:
-        if getattr(cdf_vars, var_name).cdfvar in cdf.variables:
+        var = getattr(cdf_vars, var_name)
+        if var.cdfvar in cdf.variables:
             # Transpose to put the values in the format needed for calculations: (X, T)
-            values = np.array(cdf.variables[getattr(cdf_vars, var_name).cdfvar][:].T)
+            values = np.array(cdf.variables[var.cdfvar][:].T)
 
             # Not all variable values in the CDF are arrays
-            getattr(cdf_vars, var_name).values = values[:] if values.size > 1 else values
-            getattr(cdf_vars, var_name).units = (cdf.variables[getattr(cdf_vars, var_name).cdfvar].units).strip()
-            getattr(cdf_vars, var_name).desc = (cdf.variables[getattr(cdf_vars, var_name).cdfvar].long_name).strip()
+            var.values = values[:] if values.size > 1 else values
+            var.units = (cdf.variables[var.cdfvar].units).strip()
+            var.desc = (cdf.variables[var.cdfvar].long_name).strip()
 
             # Store variable dimensions in reverse order, since we transposed the values above
-            cdf_dimensions = cdf.variables[getattr(cdf_vars, var_name).cdfvar].get_dims()
-            getattr(cdf_vars, var_name).dimensions = [dim.name for dim in cdf_dimensions]
-            getattr(cdf_vars, var_name).dimensions.reverse()
+            cdf_dimensions = cdf.variables[var.cdfvar].get_dims()
+            var.dimensions = [dim.name for dim in cdf_dimensions]
+            var.dimensions.reverse()
 
-        elif print_warnings:
-            # Not all variables will be found in the CDF, which is expected
-            _log.warning(f'\n\t{getattr(cdf_vars, var_name).cdfvar} not found in CDF\n')
+        elif print_warnings and var.default_values is None:
+            _log.error(f'\n\t{var.cdfvar} not found in CDF and no default values were set\n')
 
     cdf_vars.options.set_measurement_time(cdf_vars.time.values)
 
@@ -117,7 +120,8 @@ def print_dimensions(runid):
 if __name__ == '__main__':
     # For testing purposes
     import modules.options
+    utils.init_logging()
     options = modules.options.Options(runid='138536A01')
-    cdf_cdf_vars = extract_data(options, True)
+    cdf_cdf_vars = extract_data(options, print_warnings=True)
     print_dimensions(options.runid)
     print_variables(options.runid)

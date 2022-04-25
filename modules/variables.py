@@ -287,13 +287,13 @@ class InputVariables(Variables):
         self.elong = Variable('Elongation', cdfvar='ELONG', label=r'$\kappa$', smooth=1,
                               save_type=SaveType.INPUT)
         self.ne = Variable('Electron Density', cdfvar='NE', label=r'$n_\mathrm{e}$', minvalue=1e-6, smooth=1,
-                           save_type=SaveType.INPUT, units='m^-3')
+                           save_type=SaveType.INPUT, units='m^-3', default_values=1e-6)
         self.nf = Variable('Fast Ion Density', cdfvar='BDENS', label=r'$n_\mathrm{f}$', minvalue=1e-6, smooth=1,
-                           save_type=SaveType.INPUT, units='m^-3')
+                           save_type=SaveType.INPUT, units='m^-3', default_values=1e-6)
         self.nd = Variable('Deuterium Ion Density', cdfvar='ND', label=r'$n_d$', minvalue=1e-6, smooth=1,
-                           save_type=SaveType.ADDITIONAL, units='m^-3')
+                           save_type=SaveType.ADDITIONAL, units='m^-3', default_values=1e-6)
         self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=1,
-                           save_type=SaveType.INPUT, units='m^-3')
+                           save_type=SaveType.INPUT, units='m^-3', default_values=1e-6)
         self.omega = Variable('Toroidal Frequency', cdfvar='OMEGDATA', label=r'$\omega$',
                               minvalue=1e-6, save_type=SaveType.ADDITIONAL, units='1/s')
         self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=1,
@@ -337,8 +337,8 @@ class InputVariables(Variables):
 
         # Additional CDF variables
         self.betat = Variable('BETAT', cdfvar='BETAT')
-        self.tepro = Variable('Electron Temperature', cdfvar='TEPRO')
-        self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO')
+        # self.tepro = Variable('Electron Temperature', cdfvar='TEPRO')
+        # self.tipro = Variable('Thermal Ion Temperature', cdfvar='TIPRO')
 
         # Calculated Variables (some are also in the CDF)
         self.aimass = Variable('Mean Mass of Thermal Ions', label=r'$\overline{M}_\mathrm{i}$',
@@ -361,7 +361,7 @@ class InputVariables(Variables):
                               save_type=SaveType.ADDITIONAL, minvalue=0)
         self.bpol = Variable('Poloidal Magnetic Field', cdfvar='BPOL', label=r'$B_\theta$',
                              save_type=SaveType.ADDITIONAL, units='T', minvalue=1e-6)
-        self.btor = Variable('Toroidal Magnetic Field', cdfvar='', label=r'$B_\phi$',
+        self.btor = Variable('Toroidal Magnetic Field', label=r'$B_\phi$',
                              save_type=SaveType.INPUT, units='T', absminvalue=1e-6)
         self.bunit = Variable('Magnetic Field', label=r'$B_\mathrm{u}$',
                               save_type=SaveType.INPUT,
@@ -409,12 +409,12 @@ class InputVariables(Variables):
                              save_type=SaveType.ADDITIONAL)
         self.logi = Variable('Ion Coulomb Logarithm', cdfvar='CLOGI', label=r'$\lambda_\mathrm{i}$')
         self.ni = Variable('Thermal Ion Density', cdfvar='NI', label=r'$n_\mathrm{i}$', units='m^-3',
-                           save_type=SaveType.ADDITIONAL, minvalue=1e-6)
+                           save_type=SaveType.ADDITIONAL, minvalue=1e-6, default_values=0)
         self.ni2 = Variable('Thermal Ion Density', label=r'$n_\mathrm{i}$', units='m^-3', minvalue=1e-6)
         self.nh0 = Variable('Hydrogen Ion Density', cdfvar='NH', label=r'$n_\mathrm{h0}$', units='m^-3',
-                            save_type=SaveType.ADDITIONAL)
+                            save_type=SaveType.ADDITIONAL, default_values=0)
         self.nh = Variable('Total Hydrogenic Ion Density', label=r'$n_\mathrm{h}$',
-                           save_type=SaveType.INPUT, units='m^-3', minvalue=1e-6)
+                           save_type=SaveType.INPUT, units='m^-3', minvalue=1e-6, default_values=0)
         self.nuei = Variable('Electron Collision Frequency', label=r'$\nu_\mathrm{ei}$',
                              save_type=SaveType.ADDITIONAL)
         self.nuei2 = Variable('NUEI2')
@@ -443,7 +443,7 @@ class InputVariables(Variables):
         self.vthi = Variable('Ion Thermal Velocity', label=r'$v_{\mathrm{Ti}}$',
                              save_type=SaveType.ADDITIONAL, units='m/s')
         self.zeff = Variable('Effective Charge', cdfvar='ZEFFP', label=r'$Z_\mathrm{eff}$',
-                             save_type=SaveType.INPUT, minvalue=1)
+                             save_type=SaveType.INPUT, minvalue=0.999)
         self.wbounce = Variable('Bounce Frequency', label=r'$\omega_\mathrm{be}$', units=r'$s^{-1}$',
                                 save_type=SaveType.ADDITIONAL)
         self.wtransit = Variable('Transit Frequency', label=r'$\omega_\mathrm{te}$',
@@ -477,6 +477,30 @@ class InputVariables(Variables):
                               save_type=SaveType.INPUT)
         self.gvtor = Variable('Toroidal Velocity Gradient', label=r'$g_{v\phi}$',
                               save_type=SaveType.INPUT)
+
+        # CDF MMM Variables
+        self.conde = Variable('CONDE', cdfvar='CONDE', units=r'$m^2/s$', label=r'$\chi_{\mathrm{e}}$',
+                              default_values=0, minvalue=0)
+        self.condi = Variable('CONDI', cdfvar='CONDI', units=r'$m^2/s$', label=r'$\chi_{\mathrm{i}}$',
+                              default_values=0, minvalue=0)
+        self.condepr = Variable('CONDEPR', cdfvar='CONDEPR', units=r'$m^2/s$', label=r'$\chi_{\mathrm{e}}$',
+                                default_values=0, minvalue=0)
+        self.condipr = Variable('CONDIPR', cdfvar='CONDIPR', units=r'$m^2/s$', label=r'$\chi_{\mathrm{i}}$',
+                                default_values=0, minvalue=0)
+        self.condewnc = Variable('CONDEWNC', cdfvar='CONDEWNC', units=r'$m^2/s$', label=r'$\chi_{\mathrm{e}}$',
+                                default_values=0, minvalue=0)
+        self.condiwnc = Variable('CONDIWNC', cdfvar='CONDIWNC', units=r'$m^2/s$', label=r'$\chi_{\mathrm{i}}$',
+                                default_values=0, minvalue=0)
+        self.xkemmm07 = Variable('XKEMMM07', cdfvar='XKEMMM07', units=r'$m^2/s$', label=r'$\chi_{\mathrm{e}}$',
+                            default_values=0, minvalue=0)
+        self.xkimmm07 = Variable('XKIMMM07', cdfvar='XKIMMM07', units=r'$m^2/s$', label=r'$\chi_{\mathrm{i}}$',
+                            default_values=0, minvalue=0)
+        self.xkepaleo = Variable('Electron Thermal Diffusivity', cdfvar='XKEPALEO', units=r'$m^2/s$', label=r'$\chi_{\mathrm{e}}$',
+                                 default_values=0, minvalue=0)
+        self.xke = Variable('Electron Thermal Diffusivity', units=r'$m^2/s$', label=r'$\chi_{\mathrm{e}}$',
+                            default_values=0, minvalue=0, ignore_nan=True)
+        self.xki = Variable('Ion Thermal Diffusivity', units=r'$m^2/s$', label=r'$\chi_{\mathrm{i}}$',
+                            default_values=0, minvalue=0, ignore_nan=True)
 
         super().__init__(options)  # Init parent class
 
@@ -682,8 +706,9 @@ class OutputVariables(Variables):
 
 
 class Variable:
-    def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None,
-                 absminvalue=None, save_type=None, mmm_label='', units='', dimensions=None, values=None):
+    def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None, absminvalue=None,
+                 save_type=None, default_values=None, mmm_label='', units='', dimensions=None, values=None,
+                 ignore_nan=False):
         # Public
         self.name = name
         self.cdfvar = cdfvar  # Name of variable as used in CDF's
@@ -693,10 +718,13 @@ class Variable:
         self.minvalue = minvalue  # minimum value variable is allowed to have
         self.absminvalue = absminvalue  # minimum value the absolute value of the variable is allowed to have
         self.save_type = save_type if save_type is not None else SaveType.NONE
+        self.default_values = default_values  # values to use if variable not in CDF
+        self.ignore_nan = ignore_nan  # won't raise exception if nan values are found (should be only used for plotting)
         # Private
         self._units_label = ''
         self._units = ''
-        self._dimensions = dimensions if dimensions is not None else ['', '']
+        # self._dimensions = dimensions if dimensions is not None else ['', '']
+        self._dimensions = dimensions
         self._values = values
 
         self.units = units  # Call units setter to also set units_label
@@ -740,12 +768,12 @@ class Variable:
 
     @property
     def values(self):
-        return self._values
+        return self._values if self._values is not None else self.default_values
 
     @values.setter
     def values(self, values):
         if not isinstance(values, np.ndarray):
-            raise ValueError(f'Variable values must be {np.ndarray} and not {type(values)}')
+            raise ValueError(f'Variable values must be type {np.ndarray} and not {type(values)}')
         self._values = values
 
     def set(self, **kwargs):
@@ -773,7 +801,7 @@ class Variable:
         rmin = 1.
         '''
 
-        if self.smooth is not None:
+        if self.smooth is not None and isinstance(self.values, np.ndarray):
             sigma = int(self.values.shape[0] * self.smooth / 100)
             if self.values.ndim == 2:
                 self.values = scipy.ndimage.gaussian_filter(self.values, sigma=(sigma, 0))
@@ -805,7 +833,7 @@ class Variable:
         * ValueError: If multiple nonphysical values are found
         '''
 
-        if self.minvalue is not None:
+        if self.minvalue is not None and isinstance(self.values, np.ndarray):
             multiple_errors_per_timeval = (np.count_nonzero(self.values < self.minvalue, axis=0) > 1)
             if raise_exception and multiple_errors_per_timeval.any():
                 idx_list = [i for i in np.where(multiple_errors_per_timeval)][0]
@@ -817,7 +845,7 @@ class Variable:
             # When an exception is not raised, fix the minimum value
             self.values[self.values < self.minvalue] = self.minvalue
 
-        if self.absminvalue is not None:
+        if self.absminvalue is not None and isinstance(self.values, np.ndarray):
             too_small = np.absolute(self.values) < self.absminvalue
             if too_small.any():
                 value_signs = np.sign(self.values[too_small])
@@ -854,7 +882,7 @@ class Variable:
 
     def check_for_nan(self):
         '''Checks for nan values and raises a ValueError if any are found'''
-        if np.isnan(self.values).any():
+        if np.isnan(self.values).any() and not self.ignore_nan:
             raise ValueError(f'nan values found in variable {self.name}')
 
 
