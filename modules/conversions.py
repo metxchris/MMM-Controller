@@ -53,19 +53,13 @@ def _choose_variables(input_vars):
     * input_vars (InputVariables): Object containing variable data
     '''
 
-    # Choose wexbs
+    # Choose wexbs (CDF values are in 1/s even if they say rad/s)
     if input_vars.wexbsv2.values is not None and not (input_vars.wexbsv2.values == 0).all():
         input_vars.wexbs.values = input_vars.wexbsv2.values
-        # if input_vars.wexbsv2.units == 'rad/s':
-        #     input_vars.wexbs.values /= 2 * np.pi
     elif input_vars.wexbsmod.values is not None and not (input_vars.wexbsmod.values == 0).all():
         input_vars.wexbs.values = input_vars.wexbsmod.values
-        # if input_vars.wexbsmod.units == 'rad/s':
-        #     input_vars.wexbs.values /= 2 * np.pi
     elif input_vars.wexbsa.values is not None and not (input_vars.wexbsa.values == 0).all():
         input_vars.wexbs.values = input_vars.wexbsa.values
-        # if input_vars.wexbsa.units == 'rad/s':
-        #     input_vars.wexbs.values /= 2 * np.pi
 
 
 def _convert_units(input_var):
@@ -81,20 +75,26 @@ def _convert_units(input_var):
         input_var.set(values=input_var.values / 100, units='m')
     elif units == 'CM**-1':
         input_var.set(values=input_var.values * 100, units='m^-1')
+    elif units == 'CM**-2':
+        input_var.set(values=input_var.values * 10**4, units='m^-2')
+    elif units == 'CM**2' or units == 'CM2':
+        input_var.set(values=input_var.values / 10**4, units='m^2')
     elif units == 'CM/SEC':
         input_var.set(values=input_var.values / 100, units='m/s')
-    elif units == 'N/CM**3':
+    elif units == 'N/CM**3' or units == '#/CM**3':
         input_var.set(values=input_var.values * 10**6, units='m^-3')
     elif units == 'EV':
         input_var.set(values=input_var.values / 1000, units='keV')
     elif units == 'CM**2/SEC':
         input_var.set(values=input_var.values / 10**4, units='m^2/s')
-    elif units == 'AMPS':
+    elif units == 'AMPS' or units == 'A':
         input_var.set(values=input_var.values / 10**6, units='MA')
     elif units == 'TESLA*CM':
         input_var.set(values=input_var.values / 100, units='T*m')
     elif units == 'V/CM':
         input_var.set(values=input_var.values * 100, units='V/m')
+    elif units == 'AMPS/CM2' or units == 'AMPS/CM**2':
+        input_var.set(values=input_var.values / 100, units='MA/m^2')
     elif units == 'SEC**-1':
         input_var.set(units='s^-1')
     elif units == 'RAD/SEC':
@@ -107,6 +107,8 @@ def _convert_units(input_var):
         input_var.set(units='T')
     elif units == 'WEBERS':
         input_var.set(units='T*m^2')
+    elif units == 'SECONDS':
+        input_var.set(units='s')
 
 
 def _interp_to_boundarygrid(input_var, xvals):
@@ -236,14 +238,10 @@ def _initial_conversion(cdf_vars):
     # Get list of CDF variables to convert to the format needed for MMM
     # Independent variables listed below don't need to be converted
     cdf_var_list = cdf_vars.get_cdf_variables()
-    for var_name in ['time', 'x', 'xb']:
-        cdf_var_list.remove(var_name)
-
-    # Convert remaining CDF variables into the format needed for MMM
     for var_name in cdf_var_list:
         input_var = getattr(input_vars, var_name)
-        if input_var.values is not None:
-            _convert_units(input_var)
+        _convert_units(input_var)
+        if input_var.values is not None and var_name not in ['time', 'x', 'xb']:
             _interp_to_boundarygrid(input_var, xvals)
 
     # Use TEPRO, TIPRO in place of TE, TI
@@ -284,7 +282,7 @@ def convert_variables(cdf_vars):
 
         # Since interpolation can create multiple expected nonphysical values,
         # no exceptions are raised for fixing these issues
-        mmm_var.set_minvalue(raise_exception=False)
+        mmm_var.set_minvalue(ignore_exceptions=True)
 
     mmm_vars.set_x_values()
     mmm_vars.set_radius_values()

@@ -84,8 +84,8 @@ def gradient(gvar_name, var_name, drmin, calc_vars):
 
     gvar.set_origin_to_zero()
     gvar.clamp_values(constants.MAX_GRADIENT)
-    gvar.set_minvalue()
-    gvar.check_for_nan()
+    gvar.set_minvalue(ignore_exceptions=calc_vars.options.ignore_exceptions)
+    gvar.check_for_nan(ignore_exceptions=calc_vars.options.ignore_exceptions)
 
 
 def calculation(func):
@@ -116,8 +116,8 @@ def calculation(func):
         if calc_vars.options.apply_smoothing:
             var.apply_smoothing()
 
-        var.set_minvalue()
-        var.check_for_nan()
+        var.set_minvalue(ignore_exceptions=calc_vars.options.ignore_exceptions)
+        var.check_for_nan(ignore_exceptions=calc_vars.options.ignore_exceptions)
 
         return func
 
@@ -149,8 +149,8 @@ def calculation_output(func):
         if output_vars.options.apply_smoothing:
             var.apply_smoothing()
 
-        var.set_minvalue()
-        var.check_for_nan()
+        var.set_minvalue(ignore_exceptions=calc_vars.options.ignore_exceptions)
+        var.check_for_nan(ignore_exceptions=calc_vars.options.ignore_exceptions)
 
         return func
 
@@ -228,6 +228,22 @@ def betae(calc_vars):
     te = calc_vars.te.values
 
     return 2 * zcmu0 * ne * te * zckb / btor**2
+
+
+@calculation
+def betanorm(calc_vars):
+    '''Normalized Beta ???'''
+    pcur = calc_vars.pcur.values
+    rmin = calc_vars.rmin.values
+    bz = calc_vars.bz.values
+
+
+    # bt0,"vacuum field at Rmajmp",Tesla = bzxr/Rmajmp
+    # pav,"vol avg total pressure",Pascals = %time_trace(I1.0,volavg(Ptowb))
+    # beta1,"Beta-total","" = 2*mu0*pav/(Bt0*Bt0)
+    # betan,"Beta-N-total","" = beta1/((pcur/1.0e6)/(aminmp*Bt0))
+
+    return pcur / rmin / bz / 1e6
 
 
 @calculation
@@ -320,6 +336,26 @@ def csound_a(calc_vars):
     amin = calc_vars.rmin.values[-1, :]
 
     return csound / amin
+
+
+@calculation
+def curlh(calc_vars):
+    '''LH Current'''
+    curdlh = calc_vars.curdlh.values
+    area = calc_vars.surf.values
+    rmin = calc_vars.rmin.values
+
+    # return curdlh * area
+    return curdlh * constants.PI * rmin**2
+
+
+@calculation
+def curoh(calc_vars):
+    '''OH Current'''
+    curdoh = calc_vars.curdoh.values
+    area = calc_vars.darea.values
+
+    return curdoh * area
 
 
 @calculation
@@ -849,10 +885,8 @@ def xke(calc_vars):
     condepr = calc_vars.condepr.values
     condewnc = calc_vars.condewnc.values
     xkepaleo = calc_vars.xkepaleo.values
-    xkemmm07 = calc_vars.xkemmm07.values
 
     xke = condepr + condewnc + xkepaleo
-    xke[0, :] = np.nan
 
     return xke
 
@@ -862,10 +896,8 @@ def xki(calc_vars):
     '''Total Ion Thermal Diffusivity from CDF'''
     condipr = calc_vars.condipr.values
     condiwnc = calc_vars.condiwnc.values
-    xkimmm07 = calc_vars.xkimmm07.values
 
     xki = condipr + condiwnc
-    xki[0, :] = np.nan
 
     return xki
 
@@ -992,7 +1024,7 @@ def calculate_base_variables(calc_vars):
     # same name as the variable it calculates. Note that calculation order
     # matters here.
 
-    nh0(calc_vars)
+    # nh0(calc_vars)
     nh(calc_vars)
     ni(calc_vars)
     ni2(calc_vars)
@@ -1131,8 +1163,11 @@ def calculate_additional_variables(calc_vars):
     etae(calc_vars)
     etai(calc_vars)
     epsilonne(calc_vars)
+    curlh(calc_vars)
+    curoh(calc_vars)
     xke(calc_vars)
     xki(calc_vars)
+    betanorm(calc_vars)
 
 
 def calculate_new_variables(cdf_vars):
