@@ -59,11 +59,13 @@ class PlotData:
     * xname (str): The name of the x-variable to plot
     * yvar (Variable): The Variable object of the y-variable to plot
     * xvar (Variable): The Variable object of the x-variable to plot
-    * yval_base (list[float]): The base y-variable value when plotting at a rho point
-    * xval_base (list[float]): The base x-variable value when plotting at a rho point
-    * xmult (float): Multiplier to apply to the xvar values
-    * ymult (float): Multiplier to apply to the yvar values
-    * transp_calcs (bool): If the data source is using variables calculated in TRANSP (Optional)
+    * zidx (int):
+    * timeplot (bool):
+    * yval_base (list[float]): The base y-variable value when plotting at a rho point (Optional)
+    * xval_base (list[float]): The base x-variable value when plotting at a rho point (Optional)
+    * xmult (float): Multiplier to apply to the xvar values (Optional)
+    * ymult (float): Multiplier to apply to the yvar values (Optional)
+    * source (str): The data source = 'mmm', 'cdf', 'raw' (Optional)
     * is_cdf (bool): If the data source is loaded from a CDF (Optional)
     * is_csv (bool): If the data source is loaded from a CSV (Optional)
     * factor_symbol (str | None): The symbol of the scanned variable (Optional)
@@ -76,14 +78,17 @@ class PlotData:
     * ValueError: If values for the x-variable or y-variable are None
     """
 
-    def __init__(self, options, runid, yname, xname, yvar, xvar, yval_base=None, xval_base=None,
-                 transp_calcs=False, is_cdf=False, is_csv=False, factor_symbol=None, scan_factor=None,
-                  ymult=1, xmult=1, rho_value=None, runname='', legend=''):
+    def __init__(self, options, runid, yname, xname, yvar, xvar, zidx, zval,
+                 timeplot=False, yval_base=None, xval_base=None, source='mmm',
+                 is_cdf=False, is_csv=False, factor_symbol=None, scan_factor=None,
+                 ymult=1, xmult=1, rho_value=None, runname='', legend=''):
+
         self.options = options
+        self.timeplot = timeplot
         self.xmult: float = xmult
         self.ymult: float = ymult
-        self.xvals: np.ndarray = self._get_values(xvar, options.time_idx) * xmult
-        self.yvals: np.ndarray = self._get_values(yvar, options.time_idx) * ymult
+        self.xvals: np.ndarray = self._get_values(xvar, zidx) * xmult
+        self.yvals: np.ndarray = self._get_values(yvar, zidx) * ymult
         self.xval_base: list[float] = xval_base or []  # plotting an empty list advances the cycler
         self.yval_base: list[float] = yval_base or []
         self.xsymbol: str = xvar.label
@@ -95,13 +100,14 @@ class PlotData:
         self.xname: str = xname
         self.yname: str = yname
         self.time: str = options.time_str
+        self.zval: float = zval
         self.runid: str = runid
         self.runname: str = runname
         self.rho: str | None = rho_value
         self.factor: str | None = scan_factor
         self.factor_symbol: str | None = factor_symbol
         self.legend: str = legend
-        self.transp_calcs: bool = transp_calcs
+        self.source: str = source
         self.is_cdf: bool = is_cdf
         self.is_csv: bool = is_csv
         self.scan_range = options.scan_range
@@ -114,10 +120,14 @@ class PlotData:
         if self.yvals is None:
             raise ValueError(f'Unable to load values for variable {yvar.name}')
 
-    @staticmethod
-    def _get_values(var, time_idx):
+    def _get_values(self, var, zidx):
         """Returns (np.ndarray): Variable values to be plotted"""
-        values = var.values[:, time_idx] if isinstance(var.values, np.ndarray) and var.values.ndim == 2 else var.values
+        if not self.timeplot:
+            values = var.values[:, zidx] if isinstance(var.values, np.ndarray) and var.values.ndim == 2 else var.values
+        else:
+            values = var.values[zidx, :] if isinstance(var.values, np.ndarray) and var.values.ndim == 2 else var.values
+        # values = var.values
+        # print(var.name, var.values.shape, values.shape)
         if values is None:
             raise ValueError(f'Null values detected for variable name {var.name}')
         return values
@@ -149,11 +159,15 @@ class PlotData:
 
     def get_calc_source_str(self):
         """Returns (str): The data source string used in the legend label"""
-        return r'$\mathtt{TRANSP}$' if self.transp_calcs else r'$\mathtt{MMM}$'
+        return r'$\mathtt{TRANSP}$' if self.source != 'mmm' else r'$\mathtt{MMM}$'
 
     def get_data_source_str(self):
         """Returns (str): The data source string used in the legend label"""
         return r'$\mathtt{CDF}$' if self.is_cdf else r'$\mathtt{CSV}$' if self.is_csv else ''
+
+    def get_zval_str(self):
+        """Returns (str): The zval string used in the legend label"""
+        return fr'{self.zval}s' if not self.timeplot else fr'$\rho = {self.zval}$'
 
 
 class PlotDataCdf(PlotData):
@@ -169,31 +183,56 @@ class PlotDataCdf(PlotData):
 
     Parameters:
     * runid (str): The runid of the CDF
-    * time (float): The time value to plot
+    * zval (float): The time or rho value to plot
     * yname (str): The name of the y-variable to plot
     * xname (str): The name of the x-variable to plot (Optional)
+    * timeplot (bool): True if plotting time on the x-axis (Optional)
     * xmult (float): Multiplier to apply to the xvar values (Optional)
     * ymult (float): Multiplier to apply to the yvar values (Optional)
     * runname (str): A string to replace the runid that shows in plot legends or titles (Optional)
     * legend (str): A string to replace the auto generated legend label of a y-variable (Optional)
-    * transp_calcs (bool): Uses uncalculated TRANSP variables instead of calculated MMM variables (Optional)
+    * source (str): The data source = 'mmm', 'cdf', 'raw' (Optional)
     * input_points (int): the amount of radial points each variable is interpolated to when sent to MMM (Optional)
     * apply_smoothing (bool): kill-switch to disable smoothing of all variables (Optional)
-    * uniform_rho (bool): interpolate input variables onto a rho of uniform spacing (Optional)
     """
 
-    def __init__(self, runid, time, yname, xname='rho', runname='', legend='', transp_calcs=False,
-                 input_points=None, apply_smoothing=False, uniform_rho=False, ymult=1, xmult=1):
-        options = modules.options.Options(runid=runid, input_time=time, input_points=input_points,
-                                          apply_smoothing=apply_smoothing, uniform_rho=uniform_rho)
-        mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
-        plot_vars = mmm_vars if not transp_calcs else cdf_vars
+    def __init__(self, runid, zval, yname, xname=None, timeplot=False, runname='', legend='', source='mmm',
+                 input_points=None, apply_smoothing=False, ymult=1, xmult=1):
+        input_time = zval if not timeplot else None
+        options = modules.options.Options(
+            runid=runid, input_time=input_time, input_points=input_points,
+            ignore_exceptions=True, apply_smoothing=apply_smoothing
+        )
+        mmm_vars, cdf_vars, raw_vars = datahelper.initialize_variables(options)
+
+        if xname is None:
+            xname = 'rho' if not timeplot else 'time'
+
+        if source == 'mmm':
+            plot_vars = mmm_vars
+        elif source == 'cdf':
+            plot_vars = cdf_vars
+        elif source == 'raw':
+            plot_vars = raw_vars
+        else:
+            raise ValueError(f'{source} is not a valid source value (use source = mmm, cdf, or raw)')
 
         yvar = getattr(plot_vars, yname)
         xvar = getattr(plot_vars, xname)
 
-        super().__init__(options, runid, yname, xname, yvar, xvar, transp_calcs=transp_calcs, is_cdf=True,
-                         runname=runname, legend=legend, ymult=ymult, xmult=xmult)
+        # Get the zidx (index of the time or rho value)
+        if timeplot:
+            zidx = np.argmin(np.abs(plot_vars.rho.values[:, 0] - zval))
+            zval = plot_vars.rho.values[zidx, 0]
+        else:
+            zidx = options.time_idx
+            zval = options.time_str
+
+        super().__init__(
+            options, runid, yname, xname, yvar, xvar, zidx, zval,
+            timeplot=timeplot, source=source, is_cdf=True,
+            runname=runname, legend=legend, ymult=ymult, xmult=xmult
+        )
 
 
 class PlotDataCsv(PlotData):
@@ -213,6 +252,7 @@ class PlotDataCsv(PlotData):
     * scan_num (int): The scan number of the CSV
     * yname (str): The name of the y-variable to plot
     * xname (str): The name of the x-variable to plot (Optional)
+    * timeplot (bool): True if plotting time on the x-axis (Optional)
     * xmult (float): Multiplier to apply to the xvar values (Optional)
     * ymult (float): Multiplier to apply to the yvar values (Optional)
     * scan_factor (float): The scan factor of the CSV to load (Optional)
@@ -227,22 +267,39 @@ class PlotDataCsv(PlotData):
         options = modules.options.Options().load(runid, scan_num)
         scan_factor_str = None
 
+        timeplot = True if options.var_to_scan == 'time' else False
+
         if xname == 'var_to_scan':
             xname = options.var_to_scan
 
-        if rho_value:
-            rho_value = utils.get_closest_rho(options, SaveType.OUTPUT, rho_value)
+        rho_str = None
+        if rho_value is not None:
+            rho_str = utils.get_closest_rho(options, SaveType.OUTPUT, rho_value) if rho_value is not None else ''
 
         elif scan_factor:
             scan_factor = options.find_scan_factor(scan_factor)
             scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_DISPLAY_FMT}}'
 
-        yvar, xvar, factor_symbol = self._get_vars_from_data(options, scan_factor, rho_value, yname, xname)
-        yval_base, xval_base = self._get_base_values_from_data(options, rho_value, yname, xname)
+        yvar, xvar, factor_symbol = self._get_vars_from_data(options, scan_factor, rho_str, yname, xname)
+        yval_base, xval_base = self._get_base_values_from_data(options, rho_str, yname, xname)
 
-        super().__init__(options, runid, yname, xname, yvar, xvar, factor_symbol=factor_symbol,
-                         is_csv=True, yval_base=yval_base, xval_base=xval_base, rho_value=rho_value,
-                         scan_factor=scan_factor_str, runname=runname, legend=legend, ymult=ymult, xmult=xmult)
+        # Get the zidx (index of the time or rho value)
+        if timeplot:
+            zidx = np.argmin(np.abs(options.scan_range - rho_value))
+            zval = rho_value
+        else:
+            zidx = options.time_idx
+            zval = options.time_str
+
+        print(timeplot, zidx, zval)
+
+        super().__init__(
+            options, runid, yname, xname, yvar, xvar, zidx, zval,
+            timeplot=timeplot, factor_symbol=factor_symbol, is_csv=True,
+            yval_base=yval_base, xval_base=xval_base, rho_value=rho_str,
+            scan_factor=scan_factor_str, runname=runname, legend=legend,
+            ymult=ymult, xmult=xmult
+        )
 
     @staticmethod
     def _get_vars_from_data(options, scan_factor, rho_value, yname, xname):
@@ -310,12 +367,16 @@ class PlotDataCsv(PlotData):
 
         if rho_value is not None:
             rho_strs = np.array(utils.get_rho_strings(options, SaveType.OUTPUT), dtype=str)
-            base_value_idx_list = np.where(rho_strs == rho_value)[0]
+            base_value_idx_list = np.where(rho_strs == rho_value)
 
-            if not base_value_idx_list:
-                raise ValueError(f'The rho value {rho_value} does not match any files saved in the rho folder')
+            if not len(base_value_idx_list):
+                raise ValueError(
+                    f'The rho value {rho_value} does not match any files saved in the rho folder'
+                    f'\n\tAvailable files:'
+                    f'\n\t{rho_strs}'
+                )
 
-            base_value_idx = base_value_idx_list[0]
+            base_value_idx = base_value_idx_list[0][0]
             data_objects = list(datahelper.get_data_objects(options))
 
             for o in data_objects:
@@ -359,6 +420,10 @@ class AllPlotData:
     * ymax (float | None): The maximum y-value to use
     * xmin (float | None): The minimum x-value to use
     * xmax (float | None): The maximum x-value to use
+    * ymin_cutoff (float | None): The minimum cutoff y-value to use
+    * ymax_cutoff (float | None): The maximum cutoff y-value to use
+    * xmin_cutoff (float | None): The minimum cutoff x-value to use
+    * xmax_cutoff (float | None): The maximum cutoff x-value to use
     """
 
     def __init__(self, **kwargs):
@@ -384,6 +449,10 @@ class AllPlotData:
         self.ymax: float | None = None
         self.xmin: float | None = None
         self.xmax: float | None = None
+        self.ymin_cutoff: float | None = None
+        self.ymax_cutoff: float | None = None
+        self.xmin_cutoff: float | None = None
+        self.xmax_cutoff: float | None = None
 
         self._set_kwargs(kwargs)
 
@@ -391,6 +460,7 @@ class AllPlotData:
         self.data = None
         self.legend_attrs = None
         self.show_legend = None
+        self.contains_timeplot = False
 
     def set(self, *args, **kwargs):
         """
@@ -473,11 +543,13 @@ class AllPlotData:
             'show_factor_symbol': self.get_legend_include('factor_symbol'),
             'show_is_cdf': self.get_legend_include('is_cdf'),
             'show_is_csv': self.get_legend_include('is_csv'),
-            'show_calc_source': self.get_legend_include('transp_calcs'),
+            'show_calc_source': self.get_legend_include('source'),
             'show_override': self.get_legend_include('legend'),
+            'show_zval': self.get_legend_include('zval'),
         }
 
         self.show_legend: bool = np.array([v for v in self.legend_attrs.values()]).any()
+        self.contains_timeplot: bool = np.array([d.timeplot for d in self.data]).any()
 
     def _update_rho_str(self):
         """
@@ -548,6 +620,8 @@ class AllPlotData:
         if plotdata.legend:
             return plotdata.legend
 
+        print(self.contains_timeplot, self.legend_attrs['show_zval'])
+
         legend_items = []
         if self.legend_attrs['show_ysymbol'] and not self.legend_attrs['show_xsymbol']:
             legend_items.append(plotdata.get_ysymbol_label_str())
@@ -563,6 +637,8 @@ class AllPlotData:
             legend_items.append(plotdata.get_factor_label_str())
         if self.legend_attrs['show_calc_source']:
             legend_items.append(plotdata.get_calc_source_str())
+        if self.contains_timeplot and self.legend_attrs['show_zval']:
+            legend_items.append(plotdata.get_zval_str())
         if self.legend_attrs['show_is_cdf'] and self.legend_attrs['show_is_csv'] and not legend_items:
             legend_items.append(plotdata.get_data_source_str())  # only show when legend is empty
 
@@ -625,14 +701,25 @@ class AllPlotData:
         xmin, xmax = all_xvals[~np.isnan(all_xvals)].min(), all_xvals[~np.isnan(all_xvals)].max()
         ymin, ymax = all_yvals[~np.isnan(all_yvals)].min(), all_yvals[~np.isnan(all_yvals)].max()
 
-        if self.xmin is not None:
+        # Set cutoff values for each axis
+        if self.xmin_cutoff is not None:
             xmin = max(xmin, self.xmin)
-        if self.xmax is not None:
+        if self.xmax_cutoff is not None:
             xmax = min(xmax, self.xmax)
-        if self.ymin is not None:
+        if self.ymin_cutoff is not None:
             ymin = max(ymin, self.ymin)
-        if self.ymax is not None:
+        if self.ymax_cutoff is not None:
             ymax = min(ymax, self.ymax)
+
+        # Set strict axes boundaries
+        if self.xmin is not None:
+            xmin = self.xmin
+        if self.xmax is not None:
+            xmax = self.xmax
+        if self.ymin is not None:
+            ymin = self.ymin
+        if self.ymax is not None:
+            ymax = self.ymax
 
         # using_rho = (np.array([d.rho for d in self.data]) != None).any()  # '!= None' syntax is needed with numpy
 
@@ -752,7 +839,7 @@ class AllPlotData:
             if allow_runid and not self.legend_attrs['show_runid'] and not self.legend_attrs['show_runname']:
                 # all lines have same runid or runname
                 title_details_list.append(var.get_run_label_str())
-            if allow_time and not self.legend_attrs['show_time']:
+            if allow_time and not self.legend_attrs['show_time'] and not self.contains_timeplot:
                 # all lines have same time
                 title_details_list.append(var.get_time_label_str())
             if allow_rho and not self.legend_attrs['show_rho'] and var.rho is not None:
@@ -978,7 +1065,6 @@ def main(all_data, savefig=False, savedata=False):
         utils.create_directory(savedir_base)
 
     if savedata:
-
         savedir = f'{savedir_base}\\data'
         utils.create_directory(savedir)
         all_data.save_to_csv(f'{savedir}\\{ynames}')
@@ -1027,29 +1113,33 @@ if __name__ == '__main__':
     # Define data for the plot (Examples shown below)
     all_data.set(
         # CDF: Same y-variable, different x-variables
-        PlotDataCdf(runid='138536A01', yname='te', xname='rmina', time=0.50),
-        PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
+        PlotDataCdf(runid='138536A01', yname='te', xname='rmina', zval=0.50),
+        PlotDataCdf(runid='138536A01', yname='te', xname='rho', zval=0.50),
         # CDF: Different y-variable units
-        # PlotDataCdf(runid='138536A01', yname='te', xname='rho', time=0.50),
-        # PlotDataCdf(runid='138536A01', yname='ti', xname='rho', time=0.50),
-        # PlotDataCdf(runid='138536A01', yname='btor', xname='rho', time=0.50),
-        # CDF: Different runid, y-variables, and times
-        # PlotDataCdf(runid='120982A09', yname='ne', xname='rho', time=0.60),
-        # PlotDataCdf(runid='120968A02', yname='ni', xname='rho', time=0.50),
-        # PlotDataCdf(runid='129041A10', yname='nd', xname='rho', time=0.40),
+        # PlotDataCdf(runid='138536A01', yname='te', xname='rho', zval=0.50),
+        # PlotDataCdf(runid='138536A01', yname='ti', xname='rho', zval=0.50),
+        # PlotDataCdf(runid='138536A01', yname='btor', xname='rho', zval=0.50),
+        # CDF: Different runid, y-variables, and zvals
+        # PlotDataCdf(runid='120982A09', yname='ne', xname='rho', zval=0.60),
+        # PlotDataCdf(runid='120968A02', yname='ni', xname='rho', zval=0.50),
+        # PlotDataCdf(runid='129041A10', yname='nd', xname='rho', zval=0.40),
+        # CDF: Compare as a function of time
+        # PlotDataCdf(runid='138536A01', yname='te', xname='time', zval=0.40, timeplot=True),
+        # PlotDataCdf(runid='138536A01', yname='te', xname='time', zval=0.50, timeplot=True),
+        # PlotDataCdf(runid='138536A01', yname='te', xname='time', zval=0.60, timeplot=True),
         # CDF: Compare TRANSP and MMM calculations (must be defined in calculations.py)
-        # PlotDataCdf(runid='141552A01', yname='loge', xname='rho', time=0.629, transp_calcs=True),
-        # PlotDataCdf(runid='141552A01', yname='loge', xname='rho', time=0.629),
+        # PlotDataCdf(runid='141552A01', yname='loge', xname='rho', zval=0.629, source='cdf'),
+        # PlotDataCdf(runid='141552A01', yname='loge', xname='rho', zval=0.629),
         # CDF and CSV: Compare same variable from different data sources
-        # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', time=0.629),
+        # PlotDataCdf(runid='138536A01', yname='ne', xname='rho', zval=0.629),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2),
         # CSV: Different scanned variables with same scan factor
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=1, scan_factor=2.5),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=2, scan_factor=2.5),
         # PlotDataCsv(runid='138536A01', yname='ne', xname='rho', scan_num=5, scan_factor=2.5),
         # CSV: Comparing output results
-        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=17, legend_override='exbs = 0'),
-        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=54, legend_override='exbs = 1'),
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=17, legend='exbs = 0'),
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho', scan_num=54, legend='exbs = 1'),
         # # CSV: Growth rate vs \eta_e
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='etae', scan_num=35, rho_value=0.10),
         # CSV: Growth rate as a function of different scanned variables

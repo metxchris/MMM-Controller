@@ -78,6 +78,8 @@ _UNITS_TO_UNITS_LABEL = {
     'm^2/s': r'm$^2$/s',
     's^{-1}': r's$^{-1}$',
     'm^-1': r'm$^{-1}$',
+    'm^2': r'm$^2$',
+    'MA/m^2': r'MA/m$^2$',
     'keVm/s': r'keV$\,$m/s',
 }
 
@@ -351,6 +353,7 @@ class InputVariables(Variables):
                                      save_type=SaveType.ADDITIONAL)
         self.beta = Variable('Pressure Ratio', cdfvar='BTPL', label=r'$\beta$',
                              save_type=SaveType.ADDITIONAL, minvalue=0)
+        self.betanorm = Variable('Pressure Ratio', label=r'$\beta_\mathrm{N}$', minvalue=0)
         self.betae = Variable('Electron Pressure Ratio', cdfvar='BTE', label=r'$\beta_\mathrm{\,e}$',
                               save_type=SaveType.ADDITIONAL, minvalue=0)
         self.betaeunit = Variable('Electron Pressure Ratio', label=r'$\beta_\mathrm{\,e,u}$',
@@ -372,6 +375,10 @@ class InputVariables(Variables):
                                save_type=SaveType.ADDITIONAL, units='m/s')
         self.csound_a = Variable('Sound Frequency', label=r'$c_s / a$',
                                  save_type=SaveType.ADDITIONAL, units=r'$s^{-1}$')
+        self.curoh = Variable('OH Current', label=r'$I_\mathrm{OH}$', units=r'$MA$')
+        self.curdoh = Variable('OH Current Density', cdfvar='CUROH', label=r'$J_\mathrm{OH}$', units=r'MA/m^2', default_values=0)
+        self.curlh = Variable('LH Current', label=r'$I_\mathrm{LH}$', units=r'$MA$')
+        self.curdlh = Variable('LH Current Density', cdfvar='LHCUR', label=r'$J_\mathrm{LH}$', units=r'MA/m^2', default_values=0)
         self.e_r_grp = Variable('Radial Electric Field (p)', cdfvar='ERPRESS', label=r'$E_\mathrm{r,p}$',
                                 smooth=0)
         self.e_r_phi = Variable('Radial Electric Field (tor)', cdfvar='ERVTOR', label=r'$E_\mathrm{r,\phi}$',
@@ -424,6 +431,8 @@ class InputVariables(Variables):
                               save_type=SaveType.ADDITIONAL)
         self.p = Variable('Plasma Pressure', cdfvar='PPLAS', label=r'$p$',
                           save_type=SaveType.ADDITIONAL, minvalue=1e-6)
+        self.pav = Variable('Plasma Vol Avg', cdfvar='PTOWB', label=r'$pav$')
+        self.pcur = Variable('Measured Plasma Current', cdfvar='PCUR', label=r'$I_\mathrm{measured}$')
         self.rhosunit = Variable('Ion Larmor Radius', units='m', label=r'$\rho_\mathrm{s,u}$',
                                  save_type=SaveType.ADDITIONAL, minvalue=1e-6)
         self.shat = Variable('Effective Magnetic Shear', label=r'$\hat{s}_{\kappa}$',
@@ -434,6 +443,7 @@ class InputVariables(Variables):
                                    save_type=SaveType.ADDITIONAL)
         self.shear = Variable('Magnetic Shear', cdfvar='SHAT', label=r'$s$',
                               save_type=SaveType.ADDITIONAL)
+
         self.tau = Variable('Temperature Ratio', label=r'$\tau$',
                             save_type=SaveType.ADDITIONAL, minvalue=0)
         self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-6,
@@ -498,9 +508,14 @@ class InputVariables(Variables):
         self.xkepaleo = Variable('Electron Thermal Diffusivity', cdfvar='XKEPALEO', units=r'$m^2/s$', label=r'$\chi_{\mathrm{e}}$',
                                  default_values=0, minvalue=0)
         self.xke = Variable('Electron Thermal Diffusivity', units=r'$m^2/s$', label=r'$\chi_{\mathrm{e}}$',
-                            default_values=0, minvalue=0, ignore_nan=True)
+                            default_values=0, minvalue=0)
         self.xki = Variable('Ion Thermal Diffusivity', units=r'$m^2/s$', label=r'$\chi_{\mathrm{i}}$',
-                            default_values=0, minvalue=0, ignore_nan=True)
+                            default_values=0, minvalue=0)
+
+        self.surf = Variable('Flux Surface Area', cdfvar='SURF', label=r'surf', units='m^2')
+        self.darea = Variable('Zone Cross Sectional Area', cdfvar='DAREA', label=r'$DAREA$', units='m^2')
+        self.gr2i = Variable('GR2I', cdfvar='GR2I', label=r'$GR2I$', units='m^-2')
+
 
         super().__init__(options)  # Init parent class
 
@@ -707,8 +722,7 @@ class OutputVariables(Variables):
 
 class Variable:
     def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None, absminvalue=None,
-                 save_type=None, default_values=None, mmm_label='', units='', dimensions=None, values=None,
-                 ignore_nan=False):
+                 save_type=None, default_values=1e-16, mmm_label='', units='', dimensions=None, values=None):
         # Public
         self.name = name
         self.cdfvar = cdfvar  # Name of variable as used in CDF's
@@ -719,7 +733,6 @@ class Variable:
         self.absminvalue = absminvalue  # minimum value the absolute value of the variable is allowed to have
         self.save_type = save_type if save_type is not None else SaveType.NONE
         self.default_values = default_values  # values to use if variable not in CDF
-        self.ignore_nan = ignore_nan  # won't raise exception if nan values are found (should be only used for plotting)
         # Private
         self._units_label = ''
         self._units = ''
@@ -808,7 +821,7 @@ class Variable:
             else:
                 self.values = scipy.ndimage.gaussian_filter(self.values, sigma=sigma)
 
-    def set_minvalue(self, raise_exception=True):
+    def set_minvalue(self, ignore_exceptions=False):
         '''
         Sets the minimum or absolute minimum value for a variable
 
@@ -827,7 +840,7 @@ class Variable:
         absolute minimum value, since these are not considered to be errors.
 
         Parameters:
-        * raise_exception (bool): Possible exceptions will not be raised when false
+        * ignore_exceptions (bool): Possible exceptions will be ignored when True
 
         Raises:
         * ValueError: If multiple nonphysical values are found
@@ -835,7 +848,7 @@ class Variable:
 
         if self.minvalue is not None and isinstance(self.values, np.ndarray):
             multiple_errors_per_timeval = (np.count_nonzero(self.values < self.minvalue, axis=0) > 1)
-            if raise_exception and multiple_errors_per_timeval.any():
+            if not ignore_exceptions and multiple_errors_per_timeval.any():
                 idx_list = [i for i in np.where(multiple_errors_per_timeval)][0]
                 raise ValueError(
                     f'Multiple Nonphysical values obtained for {self.name}\n'
@@ -880,9 +893,9 @@ class Variable:
         label_stripped = self.label.strip('$')
         self.label = f'${before}{label_stripped}{after}$'
 
-    def check_for_nan(self):
+    def check_for_nan(self, ignore_exceptions=False):
         '''Checks for nan values and raises a ValueError if any are found'''
-        if np.isnan(self.values).any() and not self.ignore_nan:
+        if np.isnan(self.values).any() and not ignore_exceptions:
             raise ValueError(f'nan values found in variable {self.name}')
 
 

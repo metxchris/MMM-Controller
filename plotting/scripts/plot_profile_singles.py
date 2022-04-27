@@ -148,4 +148,4 @@ if __name__ == '__main__':
     ]
 
     # MAIN PROFILES
-    plot_profiles([profiles], [all_data], savefig=0, savedata=1)
+    plot_profiles([profiles], [all_data], savefig=0, savedata=0)

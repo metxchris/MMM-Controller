@@ -68,6 +68,7 @@ class Options:
     Properties and Members:
     * adjustment_name (string): the name of the adjustment to make
     * apply_smoothing (bool): kill-switch to disable smoothing of all variables
+    * ignore_exceptions (bool): Exceptions for nonphysical values or NaN values are ignored when True
     * input_points (int): the amount of radial points each variable is interpolated to when sent to MMM
     * input_time (float): the time to check the CDF for values
     * input_time_range (np.ndarray[float]): the input range of time values to use in a time scan
@@ -101,6 +102,7 @@ class Options:
         self._var_to_scan = None
         # Public members
         self.apply_smoothing = False
+        self.ignore_exceptions = False
         self.input_time = None
         self.input_time_range = None
         self.normalize_time_range = False
@@ -201,7 +203,10 @@ class Options:
     def set(self, **kwargs):
         '''Sets specified options values'''
         for key, value in kwargs.items():
-            setattr(self, key, value)
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                _log.warning(f'\n\tOptions class does not contain member {key}')
 
     def load(self, runid, scan_num):
         '''
@@ -250,6 +255,12 @@ class Options:
         _log.info(f'\n\tSaved: {pickle_path}\n')
 
     def set_measurement_time(self, time_values):
+        '''Find the index of the measurement time closest to the input_time, then store that value and its index'''
+        if self.input_time is not None:
+            self.time_idx = np.argmin(np.abs(time_values - self.input_time))
+            self.time_str = time_values[self.time_idx]
+
+    def set_measurement_rho(self, rho_values):
         '''Find the index of the measurement time closest to the input_time, then store that value and its index'''
         if self.input_time is not None:
             self.time_idx = np.argmin(np.abs(time_values - self.input_time))
