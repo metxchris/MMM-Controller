@@ -129,6 +129,8 @@ def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, save
             Zmax, Zmin = 5e2, -5e2
         elif 'xdi' in var_to_plot:
             Zmax, Zmin = 5e2, -5e2
+        elif 'omegad_gaveETGM' in var_to_plot:
+            Zmax, Zmin = 1e7, -1e7
         elif 'gave' in var_to_plot:
             Zmax, Zmin = 5, 0
         elif 'etae' == var_to_plot:
@@ -140,7 +142,7 @@ def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, save
         elif 'shat' in var_to_plot or 'shear' in var_to_plot:
             Zmax, Zmin = 20, -20
         elif 'omegadETGM' in var_to_plot:
-            Zmax, Zmin = 1e7, -1e7
+            Zmax, Zmin = 3e6, -3e6
         elif 'omegateETGM' in var_to_plot:
             Zmax, Zmin = 1e7, -1e7
         elif 'omegasETGM' in var_to_plot:
@@ -496,9 +498,11 @@ if __name__ == '__main__':
     """
 
     # vars_to_plot = ['var_to_scan']
-    vars_to_plot = ['gmaETGM', 'omgETGM', 'xteETGM', 'xte2ETGM']
+    vars_to_plot = ['gmanormMTM', 'omgnormMTM', 'xteMTM']
+    # vars_to_plot = ['gmaETGM', 'omgETGM', 'xteETGM', 'xte2ETGM']
     # vars_to_plot = OutputVariables().get_all_output_vars()
     # vars_to_plot = OutputVariables().get_etgm_vars()
+    # vars_to_plot = OutputVariables().get_mtm_vars()
 
     """
     Scan Data:
@@ -507,7 +511,8 @@ if __name__ == '__main__':
         - values (list of int): The scan_numbers to plot from
     """
 
-    scan_data['138536A01'] = [1738]
+    # scan_data['120968A02'] = [12]
+    scan_data['129016A04'] = [16]
     # scan_data['138536A01'] = [i for i in range(1716, 1738 + 1)]
     # scan_data['138536A01'] = [i for i in [*range(1716, 1738 + 1), *range(1756, 1763 + 1)]]
 

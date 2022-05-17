@@ -116,6 +116,8 @@ class Options:
         self.use_gnezero = False
         self.use_gtezero = False
         self.use_gneabs = False
+        self.use_gnethreshold = False
+        self.use_gtethreshold = False
         self.use_etgm_btor = False
 
         self.set(**kwargs)
