@@ -62,7 +62,7 @@ def _choose_variables(input_vars):
         input_vars.wexbs.values = input_vars.wexbsa.values
 
 
-def _convert_units(input_var):
+def convert_units(input_var):
     '''
     Converts variable units from CDF format to MMM format
 
@@ -240,7 +240,7 @@ def _initial_conversion(cdf_vars):
     cdf_var_list = cdf_vars.get_cdf_variables()
     for var_name in cdf_var_list:
         input_var = getattr(input_vars, var_name)
-        _convert_units(input_var)
+        convert_units(input_var)
         if input_var.values is not None and var_name not in ['time', 'x', 'xb']:
             _interp_to_boundarygrid(input_var, xvals)
 

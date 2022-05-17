@@ -62,7 +62,7 @@ if __name__ == '__main__':
         'gmaETGM', 'omgETGM', 'xteETGM', 'xte2ETGM',
         'xteETG', 'walfvenunit', 'phi2ETGM', 'Apara2ETGM', 'satETGM',
         'gaveETGM', 'kyrhosETGM', 'kyrhoeETGM', 'kpara2ETGM', 'fleETGM', 'omegateETGM',
-        'omegadETGM', 'omegasETGM', 'omegasetaETGM', 'omegadiffETGM', 'gammadiffETGM',
+        'omegadETGM', 'omegad_gaveETGM', 'omegasETGM', 'omegasetaETGM', 'omegadiffETGM', 'gammadiffETGM',
         'gne', 'gte', 'shat_gxi', 'etae', 'betaeunit', 'wexbs', 'bunit', 'te', 'ne', 'q'
     ]
 
@@ -138,20 +138,20 @@ if __name__ == '__main__':
     # scan_data['129016A04'] = [6]
     # scan_data['129041A10'] = [6]
     # scan_data['132017T01'] = [6]
-    # scan_data['138536A01'] = [1779, 1780]
+    scan_data['138536A01'] = [1]
     # scan_data['138536A01'] = [i for i in range(1716, 1738 + 1)]
     # scan_data['138536A01'] = [i for i in range(1749, 1750 + 1)]
     # scan_data['138536A01'] = [i for i in range(1756, 1763 + 1)]
     # scan_data['138536A01'] = [i for i in range(1779, 1780 + 1)]
     # scan_data['138536A01'] = [i for i in range(1924, 1925 + 1)]
-    scan_data['138536A01'] = [
-        i for i in [
-            *range(1716, 1738 + 1),
-            *range(1749, 1750 + 1),
-            *range(1756, 1763 + 1),
-            *range(1779, 1780 + 1),
-            *range(1924, 1925 + 1),
-        ]
-    ]
+    # scan_data['138536A01'] = [
+    #     i for i in [
+    #         *range(1716, 1738 + 1),
+    #         *range(1749, 1750 + 1),
+    #         *range(1756, 1763 + 1),
+    #         *range(1779, 1780 + 1),
+    #         *range(1924, 1925 + 1),
+    #     ]
+    # ]
 
-    main(vars_to_plot, scan_data, savenameend=savenameend, savefig=1, savedata=0)
+    main(vars_to_plot, scan_data, savenameend=savenameend, savefig=1, savedata=1)

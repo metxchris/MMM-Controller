@@ -536,7 +536,7 @@ def gxi(calc_vars):
     dxvar2 = set_interp(xb)
 
     return dxvar2 * rmin[-1, :] * elong[-1, :]**0.5
-    return (1 + elong**2 / (2 * elong**2))**0.5
+    # return (1 + elong**2 / (2 * elong**2))**0.5
 
 
 
@@ -779,6 +779,14 @@ def tau(calc_vars):
 
 
 @calculation
+def tauh(calc_vars):
+    '''Temperature Ratio ti / te'''
+    tau = calc_vars.tau.values
+
+    return 1 / tau
+
+
+@calculation
 def vthe(calc_vars):
     '''Thermal Velocity of Electrons'''
     zckb = constants.ZCKB
@@ -915,6 +923,16 @@ def zeff(calc_vars):
 
 
 @calculation_output
+def gmanormMTM(calc_vars, output_vars):
+    '''MTM Growth Rate Normalized'''
+    t = calc_vars.options.time_idx
+    gmaMTM = output_vars.gmaMTM.values
+    csound_a = calc_vars.csound_a.values
+
+    return gmaMTM / csound_a[:, t]
+
+
+@calculation_output
 def gammadiffETGM(calc_vars, output_vars):
     '''ETGM Growth Rate resonance'''
     gmaETGM = output_vars.gmaETGM.values
@@ -930,6 +948,15 @@ def omegadiffETGM(calc_vars, output_vars):
     omegadETGM = output_vars.omegadETGM.values
 
     return omgETGM - omegadETGM
+
+
+@calculation_output
+def omegad_gaveETGM(calc_vars, output_vars):
+    '''ETGM Frequency resonance'''
+    omegadETGM = output_vars.omegadETGM.values
+    gaveETGM = output_vars.gaveETGM.values
+
+    return omegadETGM / gaveETGM
 
 
 @calculation_output
@@ -965,6 +992,16 @@ def omegateETGM(calc_vars, output_vars):
 
 
 @calculation_output
+def omgnormMTM(calc_vars, output_vars):
+    '''MTM Growth Rate Normalized'''
+    t = calc_vars.options.time_idx
+    omgMTM = output_vars.omgMTM.values
+    csound_a = calc_vars.csound_a.values
+
+    return omgMTM / csound_a[:, t]
+
+
+@calculation_output
 def walfvenunit(calc_vars, output_vars):
     '''Alfven Frequency (Unit)'''
     t = calc_vars.options.time_idx
@@ -997,6 +1034,7 @@ def calculate_output_variables(calc_vars, output_vars, controls):
     # matters here.
 
     if controls.cmodel_etgm.values:
+        omegad_gaveETGM(calc_vars, output_vars)
         omegasETGM(calc_vars, output_vars)
         omegasetaETGM(calc_vars, output_vars)
         omegateETGM(calc_vars, output_vars)
@@ -1004,7 +1042,9 @@ def calculate_output_variables(calc_vars, output_vars, controls):
         gammadiffETGM(calc_vars, output_vars)
         walfvenunit(calc_vars, output_vars)
 
-    ...
+    if controls.cmodel_mtm.values:
+        gmanormMTM(calc_vars, output_vars)
+        omgnormMTM(calc_vars, output_vars)
 
 
 def calculate_base_variables(calc_vars):
@@ -1127,6 +1167,7 @@ def calculate_additional_variables(calc_vars):
 
     bunit_btor(calc_vars)
     tau(calc_vars)
+    tauh(calc_vars)
     eps(calc_vars)
     p(calc_vars)
     beta(calc_vars)
@@ -1167,7 +1208,8 @@ def calculate_additional_variables(calc_vars):
     curoh(calc_vars)
     xke(calc_vars)
     xki(calc_vars)
-    betanorm(calc_vars)
+
+    # betanorm(calc_vars)
 
 
 def calculate_new_variables(cdf_vars):

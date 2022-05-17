@@ -291,8 +291,6 @@ class PlotDataCsv(PlotData):
             zidx = options.time_idx
             zval = options.time_str
 
-        print(timeplot, zidx, zval)
-
         super().__init__(
             options, runid, yname, xname, yvar, xvar, zidx, zval,
             timeplot=timeplot, factor_symbol=factor_symbol, is_csv=True,
@@ -619,8 +617,6 @@ class AllPlotData:
 
         if plotdata.legend:
             return plotdata.legend
-
-        print(self.contains_timeplot, self.legend_attrs['show_zval'])
 
         legend_items = []
         if self.legend_attrs['show_ysymbol'] and not self.legend_attrs['show_xsymbol']:
@@ -1060,6 +1056,8 @@ def main(all_data, savefig=False, savedata=False):
             ynames = f'{ynames}_gneabs'
         if all_data.savename_append:
             ynames = f'{ynames}_{all_data.savename_append}'
+        if all_data.data[0].timeplot:
+            ynames = f'{ynames}_time'
 
         savedir_base = f'{utils.get_plotting_singles_path()}\\{all_data.data[0].options.runid}'
         utils.create_directory(savedir_base)
@@ -1145,6 +1143,14 @@ if __name__ == '__main__':
         # CSV: Growth rate as a function of different scanned variables
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=15, rho_value=0.39, runname=r'OLD'),
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=55, rho_value=0.39, runname=r'NEW'),
+    )
+
+    all_data.set(
+        # PlotDataCsv(runid='120968A02', yname='gmanormMTM', xname='rho', scan_num=13),
+        PlotDataCsv(runid='129016A04', yname='xteMTM', xname='rho', scan_num=9),
+        PlotDataCsv(runid='129016A04', yname='xteMTM', xname='rho', scan_num=8),
+        # PlotDataCdf(runid='129016A04', yname='nuste', xname='rho', zval=0.31),
+        ymax=4,ymin=0,xmin=0.2,xmax=0.8,
     )
 
     main(all_data, savefig=False, savedata=False)

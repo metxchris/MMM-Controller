@@ -296,7 +296,7 @@ class InputVariables(Variables):
                            save_type=SaveType.ADDITIONAL, units='m^-3', default_values=1e-6)
         self.nz = Variable('Impurity Density', cdfvar='NIMP', label=r'$n_z$', minvalue=1e-6, smooth=1,
                            save_type=SaveType.INPUT, units='m^-3', default_values=1e-6)
-        self.omega = Variable('Toroidal Frequency', cdfvar='OMEGDATA', label=r'$\omega$',
+        self.omega = Variable('Toroidal Frequency', cdfvar='OMEGDATA', label=r'$\omega_\phi$',
                               minvalue=1e-6, save_type=SaveType.ADDITIONAL, units='1/s')
         self.q = Variable('Safety Factor', cdfvar='Q', label=r'$q$', minvalue=1e-6, smooth=1,
                           save_type=SaveType.INPUT)
@@ -353,7 +353,8 @@ class InputVariables(Variables):
                                      save_type=SaveType.ADDITIONAL)
         self.beta = Variable('Pressure Ratio', cdfvar='BTPL', label=r'$\beta$',
                              save_type=SaveType.ADDITIONAL, minvalue=0)
-        self.betanorm = Variable('Pressure Ratio', label=r'$\beta_\mathrm{N}$', minvalue=0)
+        self.betant = Variable('Pressure Ratio', label=r'$\beta_\mathrm{N, Total}$', minvalue=0)
+        self.betanh = Variable('Pressure Ratio', label=r'$\beta_\mathrm{N, Th}$', minvalue=0)
         self.betae = Variable('Electron Pressure Ratio', cdfvar='BTE', label=r'$\beta_\mathrm{\,e}$',
                               save_type=SaveType.ADDITIONAL, minvalue=0)
         self.betaeunit = Variable('Electron Pressure Ratio', label=r'$\beta_\mathrm{\,e,u}$',
@@ -446,6 +447,7 @@ class InputVariables(Variables):
 
         self.tau = Variable('Temperature Ratio', label=r'$\tau$',
                             save_type=SaveType.ADDITIONAL, minvalue=0)
+        self.tauh = Variable('Temperature Ratio', label=r'$\tau^{-1}$', minvalue=0)
         self.vpar = Variable('Parallel Velocity', label=r'$v_\parallel$', absminvalue=1e-6,
                              save_type=SaveType.INPUT, units='m/s')
         self.vthe = Variable('Electron Thermal Velocity', label=r'$v_{\mathrm{Te}}$',
@@ -647,7 +649,9 @@ class OutputVariables(Variables):
         # MTM Components
         self.xteMTM = Variable('xteMTM', units='m^2/s', label=r'$\chi_\mathrm{e, mtm}$')
         self.gmaMTM = Variable('gmaMTM', units='s^{-1}', label=r'$\gamma_\mathrm{mtm}$')
+        self.gmanormMTM = Variable('gmanormMTM', units='', label=r'$\gamma\, a / c_\mathrm{s}$')
         self.omgMTM = Variable('omgMTM', units='s^{-1}', label=r'$\omega_\mathrm{mtm}$')
+        self.omgnormMTM = Variable('omgnormMTM', units='', label=r'$\omega\, a / c_\mathrm{s}$')
         self.kyrhosMTM = Variable('kyrhosMTM', units='', label=r'$k_y\rho_\mathrm{s}$')
         self.dbsqprf = Variable('dbsqprf', units='', label=r'$|\delta B/B|^2$')
         # ETGM Components
@@ -664,6 +668,7 @@ class OutputVariables(Variables):
         self.phi2ETGM = Variable('Electrostatic Potential', units='', label=r'$|\hat{\phi}|^2$')
         self.Apara2ETGM = Variable('Electromagnetic Potential', units='', label=r'$|\hat{A}_{\!\parallel}\!|^2$')
         self.omegadETGM = Variable('omegadETGM', units='s^{-1}', label=r'$\omega_\mathrm{De}$')
+        self.omegad_gaveETGM = Variable('omegad_gaveETGM', units='s^{-1}', label=r'$\omega_\mathrm{De} / \overline{G}$')
         self.omegadiffETGM = Variable('omegadiffETGM', units='s^{-1}', label=r'$\omega - \omega_\mathrm{De}$')
         self.gammadiffETGM = Variable('gammadiffETGM', units='s^{-1}', label=r'$\gamma - \omega_\mathrm{De}$')
         self.omegasETGM = Variable('omegasETGM', units='s^{-1}', label=r'$\omega_{*\mathrm{e}}$')

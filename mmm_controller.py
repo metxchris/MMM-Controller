@@ -231,14 +231,14 @@ if __name__ == '__main__':
     * Uncomment the line you wish to use
     '''
     # runid, shot_type, input_time = '121123K55', ShotType.NSTU, 11.8
-    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.56 # High
+    runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.62 # Low
+    # runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.46
     # runid, shot_type, input_time = '129017A04', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '129018A02', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '129019A02', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '129020A02', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.5
+    # runid, shot_type, input_time = '129019A02', ShotType.NSTX, 0.62  
+    # runid, shot_type, input_time = '129020A02', ShotType.NSTX, 0.56  
+    # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.49  # Medium
     # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.629
     # runid, shot_type, input_time = '141007A10', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '141031A01', ShotType.NSTX, 0.5
@@ -248,8 +248,8 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '101381T31', ShotType.D3D, 2.1
     # runid, shot_type, input_time = '132017T01', ShotType.D3D, 2.1
     # runid, shot_type, input_time = '141552A01', ShotType.D3D, 2.1
-    runid, shot_type, input_time = '85126W05', ShotType.EAST, 2.175
-    runid, shot_type, input_time = '16296T10', ShotType.KSTR, 2.175
+    # runid, shot_type, input_time = '85126W05', ShotType.EAST, 2.175
+    # runid, shot_type, input_time = '16296T10', ShotType.KSTR, 2.175
 
     # runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
 
@@ -262,7 +262,7 @@ if __name__ == '__main__':
 
     # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1e-6, stop=1.01 + 1e-6, step=0.005)
     # scanned_vars['dribm_kyrhos'] = np.arange(start=0.1, stop=3.01 + 1e-6, step=0.05)
-    # scanned_vars['mtm_kyrhos_min'] = np.arange(start=0.1, stop=10.0 + 1e-6, step=0.1)
+    # scanned_vars['mtm_kyrhos_min'] = np.arange(start=0.1, stop=3 + 1e-6, step=0.1)
     # scanned_vars['mtm_kyrhos_max'] = np.arange(start=5, stop=10.0 + 1e-6, step=0.5)
 
     # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1, stop=40 + 1e-6, step=0.2)
@@ -315,7 +315,7 @@ if __name__ == '__main__':
     # scanned_vars['time'] = np.arange(start=0.3, stop=0.6 + 1e-6, step=0.001)
 
     # normalized time scan (options.normalize_time_range = 1)
-    # scanned_vars['time'] = np.linspace(start=0, stop=1, num=200)
+    # scanned_vars['time'] = np.linspace(start=0.1, stop=0.9, num=200)
 
     '''
     Options:
@@ -345,22 +345,22 @@ if __name__ == '__main__':
     controls = modules.controls.InputControls(
         options,
         # CMODEL
-        cmodel_weiland=0,
+        cmodel_weiland=1,
         cmodel_dribm=0,
         cmodel_etg=0,
         cmodel_etgm=1,
-        cmodel_mtm=0,
+        cmodel_mtm=1,
         # DRBM
         dribm_kyrhos=1,
         # ETGM
-        etgm_sum_modes=1,
+        etgm_sum_modes=0,
         etgm_kyrhos_scan=500,
         etgm_kyrhos_min=1,
         etgm_kyrhos_max=50,
         etgm_kxoky=0.5,
         etgm_cl=1,
         etgm_sat_expo=2,
-        etgm_exbs=0,
+        etgm_exbs=1,
         etgm_gmax_mult=1e10,
         etgm_kyrhos_type=1,
         etgm_xte_max_cal=0.05,
@@ -377,7 +377,7 @@ if __name__ == '__main__':
         # MTM
         mtm_kyrhos_loops=2000,
         mtm_kyrhos_min=0.005,
-        mtm_kyrhos_max=1,
+        mtm_kyrhos_max=10,
         mtm_cf=0.01,
         mtm_gmax_mult=1e10,
     )

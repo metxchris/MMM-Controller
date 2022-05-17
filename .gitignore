@@ -135,6 +135,7 @@ output/*
 temp/*
 mmm/*
 plotting/output/*/*
+plotting/scripts/data/*
 *.sublime*
 .idea/*
 

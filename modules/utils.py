@@ -31,6 +31,7 @@ import pdftk
 import output
 import cdfs
 import settings
+import ufiles
 import plotting.output.singles
 import plotting.output.contours
 import modules.constants as constants
@@ -78,6 +79,11 @@ def get_pdftk_path():
 def get_output_path():
     '''Returns (str): the path to the output folder'''
     return f'{os.path.dirname(output.__file__)}'
+
+
+def get_ufiles_path():
+    '''Returns (str): the path to the output folder'''
+    return f'{os.path.dirname(ufiles.__file__)}'
 
 
 def get_plotting_singles_path():
