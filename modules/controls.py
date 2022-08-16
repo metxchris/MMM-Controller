@@ -116,13 +116,11 @@ class InputControls:
         
         # EPM options
         self.epm_direction = Control('[Search Direction] 0: Any, 1: Electron, -1: Ion', int, 0)
-        self.epm_kyrhos_scan = Control('Number of scanned ky modes (min 50), 0: Disable ky scan', int, 20)
+        self.epm_n_start = Control('Toroidal wave number start value (min 1)', int, 1)
+        self.epm_n_end = Control('Toroidal wave number end value ', int, 10)
+        self.epm_n_step = Control('Toroidal wave number step value (min 1)', int, 1)
         self.epm_sum_modes = Control('[Mode Handling] 1: Sum modes, 0: Most unstable mode', int, 0)
-        self.epm_kyrhos_type = Control('kyrhos Increments] 1: Exponential, 0: Linear', int, 0)
 
-        self.epm_kyrhos_min = Control('lower limit of kyrhos scan', float, 0.2, label=r'$k_\mathrm{y}\rho_\mathrm{s}$')
-        self.epm_kyrhos_max = Control('upper limit of kyrhos scan', float, 0.5, label=r'$(k_\mathrm{y}\rho_\mathrm{s})_\mathrm{max}$')
-        self.epm_kxoky = Control('kx / ky', float, 1)
         self.epm_xti_min = Control('Lower bound of ion thermal diffusivity', float, -100)
         self.epm_xti_max = Control('Upper bound of ion thermal diffusivity', float, 100)
         self.epm_xde_min = Control('Lower bound of electron particle diffusivity', float, -100)
@@ -253,7 +251,7 @@ class InputControls:
             'cmodel  =\n'
             f'   {self.cmodel_weiland.get_input_line()}'
             f'   {self.cmodel_dribm.get_input_line()}'
-            # f'   {self.cmodel_epm.get_input_line()}'
+            f'   {self.cmodel_epm.get_input_line()}'
             f'   {self.cmodel_etgm.get_input_line()}'
             f'   {self.cmodel_mtm.get_input_line()}'
             f'   {self.cmodel_etg.get_input_line()}'
@@ -281,26 +279,24 @@ class InputControls:
             f'   {self.weiland_xvp_min.get_input_line()}'
             f'   {self.weiland_xvp_max.get_input_line()}'
             '\n'
-            # '!.. EPM integer options\n'
-            # 'iEPM =\n'
-            # f'   {self.epm_direction.get_input_line()}'
-            # f'   {self.epm_kyrhos_scan.get_input_line()}'
-            # f'   {self.epm_sum_modes.get_input_line()}'
-            # f'   {self.epm_kyrhos_type.get_input_line()}'
-            # '\n'
-            # '!.. EPM real options\n'
-            # 'rEPM =\n'
-            # f'   {self.epm_kyrhos_min.get_input_line()}'
-            # f'   {self.epm_kyrhos_max.get_input_line()}'
-            # f'   {self.epm_kxoky.get_input_line()}'
-            # f'   {self.epm_xti_min.get_input_line()}'
-            # f'   {self.epm_xti_max.get_input_line()}'
-            # f'   {self.epm_xde_min.get_input_line()}'
-            # f'   {self.epm_xde_max.get_input_line()}'
-            # f'   {self.epm_xte_min.get_input_line()}'
-            # f'   {self.epm_xte_max.get_input_line()}'
-            # f'   {self.epm_chi_cal.get_input_line()}'
-            # '\n'
+            '!.. EPM integer options\n'
+            'iEPM =\n'
+            f'   {self.epm_direction.get_input_line()}'
+            f'   {self.epm_n_start.get_input_line()}'
+            f'   {self.epm_n_end.get_input_line()}'
+            f'   {self.epm_n_step.get_input_line()}'
+            f'   {self.epm_sum_modes.get_input_line()}'
+            '\n'
+            '!.. EPM real options\n'
+            'rEPM =\n'
+            f'   {self.epm_xti_min.get_input_line()}'
+            f'   {self.epm_xti_max.get_input_line()}'
+            f'   {self.epm_xde_min.get_input_line()}'
+            f'   {self.epm_xde_max.get_input_line()}'
+            f'   {self.epm_xte_min.get_input_line()}'
+            f'   {self.epm_xte_max.get_input_line()}'
+            f'   {self.epm_chi_cal.get_input_line()}'
+            '\n'
             '!.. DRIBM integer options\n'
             'iDBM =\n'
             f'   {self.dribm_direction.get_input_line()}'

@@ -505,7 +505,7 @@ if __name__ == '__main__':
     vars_to_plot = OutputVariables().get_etgm_vars()
     # vars_to_plot = ['xtiW20', 'xteW20', 'xdeW20']
     vars_to_plot = ['gmaDBM',]
-    # vars_to_plot = ['nEPM', 'gmaEPM', 'omgEPM', 'kyrhosEPM']
+    vars_to_plot = ['nEPM', 'gmaEPM', 'omgEPM', 'kyrhosEPM']
 
     """
     Scan Data:
@@ -522,7 +522,7 @@ if __name__ == '__main__':
     # scan_data['85126T02'] = [11002]
     # scan_data['121123K55'] = [11000]
     # scan_data['120982A09'] = [11002]
-    scan_data['120968A02'] = [53]
+    scan_data['138536A01'] = [352]
     # scan_data['153283T50'] = [8]
     # scan_data['129041A10'] = [3001]; vars_to_plot = ['ah', 'ai']
     # scan_data['129041A10'] = [3002]; vars_to_plot = ['betae', 'te', 'ne', 'bu']

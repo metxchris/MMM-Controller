@@ -502,7 +502,7 @@ class InputVariables(Variables):
         self.gni = Variable('Thermal Ion Density Gradient', label=r'$g_{\mathrm{ni}}$',
                             save_type=SaveType.INPUT)
         self.gnf = Variable('Fast Ion Density Gradient', label=r'$g_{\mathrm{nf}}$',
-                            )
+                            save_type=SaveType.INPUT)
         self.gnz = Variable('Impurity Density Gradient', label=r'$g_{\mathrm{nz}}$',
                             save_type=SaveType.INPUT)
         self.gq = Variable('Safety Factor Gradient', label=r'$g_{q}$',

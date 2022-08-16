@@ -247,7 +247,7 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '129019A02', ShotType.NSTX, 0.62
     # runid, shot_type, input_time = '129020A02', ShotType.NSTX, 0.56
     # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.49  # Medium
-    # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.629
+    runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.629
     # runid, shot_type, input_time = '141007A10', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '141031A01', ShotType.NSTX, 0.5
     # runid, shot_type, input_time = '141032A01', ShotType.NSTX, 0.5
@@ -328,7 +328,7 @@ if __name__ == '__main__':
     '''
 
     # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1e-6, stop=1.01 + 1e-6, step=0.005)
-    scanned_vars['dribm_kyrhos_min'] = np.arange(start=0.225, stop=0.235 + 1e-6, step=0.001)
+    # scanned_vars['dribm_kyrhos_min'] = np.arange(start=0.225, stop=0.235 + 1e-6, step=0.001)
     # scanned_vars['mtm_kyrhos_min'] = np.arange(start=0.1, stop=3 + 1e-6, step=0.1)
     # scanned_vars['mtm_kyrhos_max'] = np.arange(start=5, stop=10.0 + 1e-6, step=0.5)
     # scanned_vars['weiland_kyrhos'] = np.arange(start=0.2, stop=0.4 + 1e-6, step=0.005)
@@ -385,6 +385,7 @@ if __name__ == '__main__':
 
     # normalized time scan (options.normalize_time_range = 1)
     # scanned_vars['time'] = np.linspace(start=0, stop=1, num=40)
+    scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
     # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=300)
 
 
@@ -431,8 +432,8 @@ if __name__ == '__main__':
         options,
         # CMODEL
         cmodel_weiland=0,
-        cmodel_dribm=1,
-        cmodel_epm=0,
+        cmodel_dribm=0,
+        cmodel_epm=1,
         cmodel_etgm=0,
         cmodel_mtm=0,
         cmodel_etg=0,
@@ -442,9 +443,9 @@ if __name__ == '__main__':
         weiland_exbs=wexb,
         weiland_kyrhos=0.316,
         # EPM
-        epm_kyrhos_scan=20,
-        epm_kyrhos_min=0.2,
-        epm_kyrhos_max=0.4,
+        epm_n_start=1,
+        epm_n_end=10,
+        epm_n_step=1,
         # DRBM
         dribm_exbs=wexb,
         dribm_direction=1,

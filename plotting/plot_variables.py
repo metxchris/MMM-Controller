@@ -1199,8 +1199,8 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='120982A09', yname='gmaW20i', xname='rho', scan_num=12006, legend='cubic'),
         # PlotDataCsv(runid='120982A09', yname='gmaW20i', xname='rho', scan_num=12011, legend='quadratic'),
 
-        PlotDataCsv(runid='120968A02', yname='kyrhosDBM', xname='rho', scan_num=48, legend='100 loops'),
-        PlotDataCsv(runid='120968A02', yname='kyrhosDBM', xname='rho', scan_num=51, legend='10,000 loops'),
+        # PlotDataCsv(runid='120968A02', yname='kyrhosDBM', xname='rho', scan_num=48, legend='100 loops'),
+        # PlotDataCsv(runid='120968A02', yname='kyrhosDBM', xname='rho', scan_num=51, legend='10,000 loops'),
         # PlotDataCsv(runid='120982A09', yname='xteETG', xname='rho', scan_num=12012, legend='quadratic'),
 
         # PlotDataCsv(runid='129041A10', yname='xteDBM', xname='rho', scan_num=115, legend='exp 10'),
@@ -1345,6 +1345,9 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='xde2DBM', xname='rho', scan_num=67),
         # PlotDataCsv(runid='118341T54', yname='xdeDBM',  xname='rho', scan_num=519),
         # PlotDataCsv(runid='118341T54', yname='xde2DBM', xname='rho', scan_num=519),
+
+        PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=338),
+        PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=341),
 
         # PlotDataCsv(runid='132411T02', yname='ti', xname='rho', scan_num=16),
         # PlotDataCsv(runid='132411T02', yname='ti', xname='rho', scan_num=17),
