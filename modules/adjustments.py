@@ -164,6 +164,60 @@ def _check_equality(base_var, adjusted_var, t):
         )
 
 
+def _adjust_ah(mmm_vars, scan_factor):
+    '''
+    Adjusts the hydrogenic atomic mass
+
+    The ion atomic mass is also updated.  Full base variables are not
+    recalculated because the ah adjustment would be overwritten.
+
+    Parameters:
+    * mmm_vars (InputVariables): Contains unmodified variables
+    * scan_factor (float): The factor to modify ah by
+
+    Returns:
+    * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
+    '''
+
+    t = mmm_vars.options.time_idx
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
+    print((adjusted_vars.ah.values[:, :].min()))
+    adjusted_vars.ah.values *= scan_factor
+
+    calculations.ai(adjusted_vars)
+    calculations.calculate_additional_variables(adjusted_vars)
+
+    # Check that ah increased by the scan_factor
+    _check_adjusted_factor(scan_factor, mmm_vars.ah, adjusted_vars.ah, t)
+
+    return adjusted_vars
+
+def _adjust_ai(mmm_vars, scan_factor):
+    '''
+    Adjusts the hydrogenic atomic mass
+
+    The ion atomic mass is also updated.  Full base variables are not
+    recalculated because the ah adjustment would be overwritten.
+
+    Parameters:
+    * mmm_vars (InputVariables): Contains unmodified variables
+    * scan_factor (float): The factor to modify ah by
+
+    Returns:
+    * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
+    '''
+
+    t = mmm_vars.options.time_idx
+    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
+    adjusted_vars.ai.values *= scan_factor
+
+    calculations.calculate_additional_variables(adjusted_vars)
+
+    # Check that ah increased by the scan_factor
+    _check_adjusted_factor(scan_factor, mmm_vars.ai, adjusted_vars.ai, t)
+
+    return adjusted_vars
+
 def _adjust_ne(mmm_vars, scan_factor):
     '''
     Adjusts the electron density
@@ -185,6 +239,7 @@ def _adjust_ne(mmm_vars, scan_factor):
     adjusted_vars.nz.values *= scan_factor
     adjusted_vars.nd.values *= scan_factor
     adjusted_vars.nf.values *= scan_factor
+    adjusted_vars.nh0.values *= scan_factor
 
     calculations.calculate_base_variables(adjusted_vars)
     calculations.calculate_additional_variables(adjusted_vars)
@@ -258,6 +313,7 @@ def _adjust_nuei_alphaconst(mmm_vars, scan_factor):
     adjusted_vars.nz.values /= adjustment_total
     adjusted_vars.nd.values /= adjustment_total
     adjusted_vars.nf.values /= adjustment_total
+    adjusted_vars.nh0.values /= adjustment_total
 
     calculations.calculate_base_variables(adjusted_vars)
     calculations.calculate_additional_variables(adjusted_vars)
@@ -275,7 +331,7 @@ def _adjust_nuei_lareunitconst(mmm_vars, scan_factor):
     nuei is adjusted indirectly by adjusting the value te. The final value of
     the adjustment total is obtained by running a loop until nuei is adjusted
     by the target scan factor. As part of this scan, the Electron Gyroradius
-    (unit) will be held constant by ensuring that te / bunit**2 is constant.
+    (unit) will be held constant by ensuring that te / bu**2 is constant.
 
     Parameters:
     * mmm_vars (InputVariables): Contains unmodified variables
@@ -332,8 +388,8 @@ def _adjust_nuei_lareunitconst(mmm_vars, scan_factor):
     calculations.calculate_additional_variables(adjusted_vars)
 
     _check_adjusted_factor(scan_factor, mmm_vars.nuei, adjusted_vars.nuei, t)
-    _check_equality(mmm_vars.alphamhdunit, adjusted_vars.alphamhdunit, t)
-    _check_equality(mmm_vars.lareunit, adjusted_vars.lareunit, t)
+    _check_equality(mmm_vars.alphamhdu, adjusted_vars.alphamhdu, t)
+    _check_equality(mmm_vars.lareu, adjusted_vars.lareu, t)
 
     return adjusted_vars
 
@@ -393,7 +449,7 @@ def _adjust_zeff(mmm_vars, scan_factor):
 
     adjusted_vars = datahelper.deepcopy_data(mmm_vars)
     adjusted_vars.nz.values *= scan_factor
-    adjusted_vars.ne.values += adjusted_vars.zimp.values * (adjusted_vars.nz.values - mmm_vars.nz.values)
+    adjusted_vars.ne.values += adjusted_vars.zz.values * (adjusted_vars.nz.values - mmm_vars.nz.values)
 
     calculations.calculate_base_variables(adjusted_vars)
     calculations.calculate_gradient_variables(adjusted_vars)  # needed as ne change was nonlinear
@@ -476,7 +532,7 @@ def _adjust_btor(mmm_vars, scan_factor):
     Adjust Toroidal Magnetic Field
 
     btor is adjusted indirectly by adjusting bftor.  This will not adjust
-    bunit, since the adjustment to btor cancels out in the bunit equation.
+    bu, since the adjustment to btor cancels out in the bu equation.
 
     Parameters:
     * mmm_vars (InputVariables): Contains unmodified variables
@@ -502,7 +558,7 @@ def _adjust_bunit(mmm_vars, scan_factor):
     '''
     Adjust Toroidal Magnetic Field (unit)
 
-    bunit is adjusted indirectly by adjusting bftor
+    bu is adjusted indirectly by adjusting bftor
 
     Parameters:
     * mmm_vars (InputVariables): Contains unmodified variables
@@ -519,7 +575,7 @@ def _adjust_bunit(mmm_vars, scan_factor):
     calculations.calculate_base_variables(adjusted_vars)
     calculations.calculate_additional_variables(adjusted_vars)
 
-    _check_adjusted_factor(scan_factor, mmm_vars.bunit, adjusted_vars.bunit, t)
+    _check_adjusted_factor(scan_factor, mmm_vars.bu, adjusted_vars.bu, t)
 
     return adjusted_vars
 
@@ -566,7 +622,7 @@ def _adjust_betae(mmm_vars, scan_factor):
     return adjusted_vars
 
 
-def _adjust_betaeunit(mmm_vars, scan_factor):
+def _adjust_betaeu(mmm_vars, scan_factor):
     '''
     Adjust Electron Pressure Ratio
 
@@ -595,80 +651,7 @@ def _adjust_betaeunit(mmm_vars, scan_factor):
     calculations.calculate_base_variables(adjusted_vars)
     calculations.calculate_additional_variables(adjusted_vars)
 
-    _check_adjusted_factor(scan_factor, mmm_vars.betaeunit, adjusted_vars.betaeunit, t)
-
-    return adjusted_vars
-
-
-def _adjust_betaeunit_alphaconst(mmm_vars, scan_factor):
-    '''
-    Adjust Electron Pressure Ratio
-
-    betae is adjusted indirectly by adjusting ne, te, and bzxr. The values of
-    nd, nz, and nf depend on changes in ne, so these variables are updated
-    accordingly.  In addition, alphamhd is held constant by updating ti and
-    the temperature and density gradients.
-
-    Parameters:
-    * mmm_vars (InputVariables): Contains unmodified variables
-    * scan_factor (float): The factor to modify betae by
-
-    Returns:
-    * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
-    '''
-
-    t = mmm_vars.options.time_idx
-    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
-    adjustment_total = scan_factor**(1 / 4)  # based on the formula for betae
-    adjusted_vars.ne.values *= adjustment_total
-    adjusted_vars.te.values *= adjustment_total
-    adjusted_vars.bftor.values /= adjustment_total
-    adjusted_vars.nd.values *= adjustment_total
-    adjusted_vars.nz.values *= adjustment_total
-    adjusted_vars.nf.values *= adjustment_total
-
-    # Keep alphamhd constant
-    adjusted_vars.ti.values *= adjustment_total
-    adjusted_vars.gte.values /= scan_factor
-    adjusted_vars.gti.values /= scan_factor
-    adjusted_vars.gne.values /= scan_factor
-    adjusted_vars.gni.values /= scan_factor
-
-    calculations.calculate_base_variables(adjusted_vars)
-    calculations.calculate_additional_variables(adjusted_vars)
-
-    _check_adjusted_factor(scan_factor, mmm_vars.betaeunit, adjusted_vars.betaeunit, t)
-    _check_equality(mmm_vars.alphamhdunit, adjusted_vars.alphamhdunit, t)
-
-    return adjusted_vars
-
-
-def _adjust_gne_alphaconst(mmm_vars, scan_factor):
-    '''
-    Adjust Electron density gradient while keeping alpha MHD constant (ETGM only)
-
-    Since the ion density gradient is only used in the alpha MHD calculation
-    within the ETGM model, we can keep alpha MHD constant by varying gni in a
-    manner that offsets the adjustment to gne.
-
-    Parameters:
-    * mmm_vars (InputVariables): Contains unmodified variables
-    * scan_factor (float): The factor to modify betae by
-
-    Returns:
-    * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
-    '''
-
-    t = mmm_vars.options.time_idx
-    adjusted_vars = datahelper.deepcopy_data(mmm_vars)
-
-    adjusted_vars.gne.values *= scan_factor
-    adjusted_vars.gni.values += (1 - scan_factor) * mmm_vars.tau.values * mmm_vars.gne.values
-
-    calculations.calculate_additional_variables(adjusted_vars)
-
-    _check_adjusted_factor(scan_factor, mmm_vars.gne, adjusted_vars.gne, t)
-    _check_equality(mmm_vars.alphamhdunit, adjusted_vars.alphamhdunit, t)
+    _check_adjusted_factor(scan_factor, mmm_vars.betaeu, adjusted_vars.betaeu, t)
 
     return adjusted_vars
 
@@ -706,6 +689,12 @@ def adjust_scanned_variable(mmm_vars, scan_factor):
     elif adjustment_name == 'nuei_lareunitconst':
         adjusted_vars = _adjust_nuei_lareunitconst(mmm_vars, scan_factor)
 
+    elif adjustment_name == 'ah':
+        adjusted_vars = _adjust_ah(mmm_vars, scan_factor)
+
+    elif adjustment_name == 'ai':
+        adjusted_vars = _adjust_ai(mmm_vars, scan_factor)
+
     elif adjustment_name == 'ne':
         adjusted_vars = _adjust_ne(mmm_vars, scan_factor)
 
@@ -724,20 +713,14 @@ def adjust_scanned_variable(mmm_vars, scan_factor):
     elif adjustment_name == 'btor' or adjustment_name == 'bzxr':
         adjusted_vars = _adjust_btor(mmm_vars, scan_factor)
 
-    elif adjustment_name == 'bunit' or adjustment_name == 'bftor':
+    elif adjustment_name == 'bu' or adjustment_name == 'bftor':
         adjusted_vars = _adjust_bunit(mmm_vars, scan_factor)
 
     elif adjustment_name == 'betae':
         adjusted_vars = _adjust_betae(mmm_vars, scan_factor)
 
-    elif adjustment_name == 'betaeunit':
-        adjusted_vars = _adjust_betaeunit(mmm_vars, scan_factor)
-
-    elif adjustment_name == 'betaeunit_alphaconst':
-        adjusted_vars = _adjust_betaeunit_alphaconst(mmm_vars, scan_factor)
-
-    elif adjustment_name == 'gne_alphaconst':
-        adjusted_vars = _adjust_gne_alphaconst(mmm_vars, scan_factor)
+    elif adjustment_name == 'betaeu':
+        adjusted_vars = _adjust_betaeu(mmm_vars, scan_factor)
 
     else:
 
@@ -781,10 +764,9 @@ if __name__ == '__main__':  # For Testing Purposes
     )
 
     advanced_scans = [
-        'gne_alphaconst',
         'ne', 'nuei_alphaconst', 'nuei_lareunitconst', 'zeff',
         'tau', 'etae', 'shear', 'btor',
-        'bunit', 'betae', 'betaeunit', 'betaeunit_alphaconst'
+        'bu', 'betae', 'betaeu', 'betaeu_alphaconst'
     ]
 
     for var_name in advanced_scans:

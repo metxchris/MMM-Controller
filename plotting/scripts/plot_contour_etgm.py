@@ -48,7 +48,7 @@ if __name__ == '__main__':
     '''
     # vars_to_plot = ['gmaETGM', 'omgETGM', 'xteETGM', 'xte2ETGM', 'kyrhoeETGM', 'kyrhosETGM', 'gave', 'var_to_scan']
     # vars_to_plot = ['gmaETGM', 'omgETGM', 'xteETGM']
-    # vars_to_plot = ['var_to_scan', 'gmaETGM', 'lareunit', 'alphamhdunit', 'xteETGM', 'xte2ETGM', 'gaveETGM']
+    # vars_to_plot = ['var_to_scan', 'gmaETGM', 'lareu', 'alphamhdu', 'xteETGM', 'xte2ETGM', 'gaveETGM']
     # vars_to_plot = ['var_to_scan']
 
     '''
@@ -63,8 +63,9 @@ if __name__ == '__main__':
         'xteETG', 'walfvenunit', 'phi2ETGM', 'Apara2ETGM', 'satETGM',
         'gaveETGM', 'kyrhosETGM', 'kyrhoeETGM', 'kpara2ETGM', 'fleETGM', 'omegateETGM',
         'omegadETGM', 'omegad_gaveETGM', 'omegasETGM', 'omegasetaETGM', 'omegadiffETGM', 'gammadiffETGM',
-        'gne', 'gte', 'shat_gxi', 'etae', 'betaeunit', 'wexbs', 'bunit', 'te', 'ne', 'q'
+        'gne', 'gte', 'shat_gxi', 'etae', 'betaeu', 'wexb', 'bu', 'te', 'ne', 'q'
     ]
+    vars_to_plot = ['xteETGM', 'xte2ETGM', 'xdeDBM','xde2DBM',]
 
     """SUMMED MODES"""
     # scan_data['121123K55'] = [4]
@@ -124,21 +125,26 @@ if __name__ == '__main__':
     # scan_data['132017T01'] = [2]
     # scan_data['141552A01'] = [2]
 
-    # vars_to_plot = ['gmaETGM', 'omgETGM', 'xteETGM', 'xte2ETGM']
+    vars_to_plot = ['gmaW20e', 'gmaW20i', 'gmaDBM', 'gmaETGM', 'gmaMTM']
     # vars_to_plot = ['xteETGM', 'xte2ETGM']
-    # vars_to_plot = ['gmaDBM', 'omgDBM', 'xteDBM', 'xtiDBM']
+    # vars_to_plot = ['gmaDBM', 'omgDBM', 'xteDBM', 'xte2DBM', 'xtiDBM', 'xti2DBM']
     # vars_to_plot = ['gmaMTM', 'omgMTM', 'xteMTM', 'kyrhosMTM']
-    # scan_data['138536A01'] = [1866]
-    # scan_data['138536A01'] = [1925]
+    # scan_data['129041A10'] = [26]
+    # scan_data['120982A09'] = [33]
+    # scan_data['120968A02'] = [15]
+    # scan_data['138536A01'] = [65]
     # scan_data['121123K55'] = [7]
     # scan_data['120968A02'] = [6]
     # scan_data['129020A02'] = [6]
     # scan_data['141007A10'] = [6]
     # scan_data['101381T31'] = [1]
     # scan_data['129016A04'] = [6]
-    # scan_data['129041A10'] = [6]
+    # scan_data['132411T02'] = [5]
     # scan_data['132017T01'] = [6]
-    scan_data['138536A01'] = [1]
+    scan_data['121123K55'] = [30]
+    scan_data['120968A02'] = [47]
+    scan_data['120982A09'] = [41]
+    scan_data['129041A10'] = [28]
     # scan_data['138536A01'] = [i for i in range(1716, 1738 + 1)]
     # scan_data['138536A01'] = [i for i in range(1749, 1750 + 1)]
     # scan_data['138536A01'] = [i for i in range(1756, 1763 + 1)]
@@ -154,4 +160,4 @@ if __name__ == '__main__':
     #     ]
     # ]
 
-    main(vars_to_plot, scan_data, savenameend=savenameend, savefig=1, savedata=1)
+    main(vars_to_plot, scan_data, savenameend=savenameend, savefig=0, savedata=0)

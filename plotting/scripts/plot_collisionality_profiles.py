@@ -22,26 +22,26 @@ from plotting.plot_variables import AllPlotData, PlotDataCdf, PlotDataCsv, main
 _log = logging.getLogger(__name__)
 
 
-def plot_profiles(profile_list, all_data_list, savefig=True, savedata=True):
+def plot_profiles(profile_list, all_data_list, savename='', savefig=True, savedata=True):
     print('plotting profiles...')
     for profiles, all_data in zip(profile_list, all_data_list):
         for p in profiles:
-            all_data.set(*p)
+            all_data.set(*p, savename_append=savename)
             main(all_data, savefig=savefig, savedata=savedata)
 
 
 def get_plot_data(yname):
     return (
-        PlotDataCdf(r1, z1, yname, legend=l1),
-        PlotDataCdf(r2, z2, yname, legend=l2),
-        PlotDataCdf(r3, z3, yname, legend=l3),
+        PlotDataCdf(r1, z1, yname, xname='rho', legend=l1),
+        PlotDataCdf(r2, z2, yname, xname='rho', legend=l2),
+        PlotDataCdf(r3, z3, yname, xname='rho', legend=l3),
     )
 
-def get_csv_plot_data(scannum, yname):
+def get_csv_plot_data(yname):
     return (
-        PlotDataCsv(r1, scannum, yname, legend=l1),
-        PlotDataCsv(r2, scannum, yname, legend=l2),
-        PlotDataCsv(r3, scannum, yname, legend=l3),
+        PlotDataCsv(r1, s1, yname, xname='rho', legend=l1),
+        PlotDataCsv(r2, s2, yname, xname='rho', legend=l2),
+        PlotDataCsv(r3, s3, yname, xname='rho', legend=l3),
     )
 
 
@@ -54,7 +54,7 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.AIP,
+        layout=StyleType.Layout.AIP2,
     )
 
     # Define settings for the plot
@@ -72,6 +72,7 @@ if __name__ == '__main__':
         title_override=' ',
         ylabel_override='',
         xlabel_override='',
+        xmax=1,
     )
 
     plt.rcParams.update({
@@ -79,87 +80,115 @@ if __name__ == '__main__':
         # 'text.usetex': True,
     })
 
-    # Discharges, time value
-    r1, z1, l1 = '120968A02', 0.56, 'High'
-    r2, z2, l2 = '129041A10', 0.49, 'Med'
-    r3, z3, l3 = '120982A09', 0.62, 'Low'
+    savename = ''
 
-    s = 1
+    # Discharges, time value
+    r1, s1, z1, l1 = '120968A02', 12050, 0.56, 'High'
+    r2, s2, z2, l2 = '129041A10', 12050, 0.49, 'Med'
+    r3, s3, z3, l3 = '120982A09', 12050, 0.62, 'Low'
+    savename = 'wexb' if s1 == 12051 else ''
 
     profiles = [
-        # Input profiles
-        # get_plot_data('te'),
-        # get_plot_data('ti'),
-        # get_plot_data('q'),
-        # get_plot_data('gte'),
-        # get_plot_data('gti'),
-        # get_plot_data('gq'),
-        # get_plot_data('bunit'),
-        # get_plot_data('gbunit'),
-        # get_plot_data('ne'),
-        # get_plot_data('nf'),
-        # get_plot_data('nz'),
-        # get_plot_data('nh'),
-        # get_plot_data('gne'),
-        # get_plot_data('gni'),
-        # get_plot_data('gnz'),
-        # get_plot_data('gnh'),
-        # get_plot_data('aimass'),
-        # get_plot_data('aimp'),
-        # get_plot_data('ahyd'),
-        # get_plot_data('zimp'),
-        # get_plot_data('zeff'),
-        # get_plot_data('elong'),
-        # get_plot_data('rmaj'),
-        # get_plot_data('rmin'),
-        # get_plot_data('gxi'),
-        # get_plot_data('wexbs'),
-        # get_plot_data('nuste'),
-        # get_plot_data('nusti'),
-        # get_plot_data('loge'),
-        # get_plot_data('nuei'),
-        # get_plot_data('tau'),
-        # get_plot_data('betaeunit'),
-        # get_plot_data('etae'),
-        # get_plot_data('shat_gxi'),
-        # get_plot_data('gyrfeunit'),
-        # get_plot_data('gyrfiunit'),
-        # get_plot_data('gyrfiunit'),
-        # get_plot_data('lareunit'),
-        # get_plot_data('rhosunit'),
-        # get_plot_data('vthe'),
-        # get_plot_data('vthi'),
-        # get_plot_data('csound'),
-        # get_plot_data('csound_a'),
-        # get_plot_data('wtransit'),
-        # get_plot_data('wbounce'),
-        # get_plot_data('eps'),
-        ## Output Profiles
-        get_csv_plot_data(s, 'xte'),
-        get_csv_plot_data(s, 'xti'),
-        get_csv_plot_data(s, 'xdi'),
-        get_csv_plot_data(s, 'xdz'),
-        get_csv_plot_data(s, 'xvt'),
-        get_csv_plot_data(s, 'xvp'),
-        get_csv_plot_data(s, 'xteW20'),
-        get_csv_plot_data(s, 'xteETGM'),
-        get_csv_plot_data(s, 'xte2ETGM'),
-        get_csv_plot_data(s, 'xteMTM'),
-        get_csv_plot_data(s, 'xtiW20'),
-        get_csv_plot_data(s, 'xdiW20'),
-        get_csv_plot_data(s, 'xdiW20'),
-        get_csv_plot_data(s, 'gmaW20ii'),
-        get_csv_plot_data(s, 'gmaW20ie'),
-        get_csv_plot_data(s, 'gmaW20ei'),
-        get_csv_plot_data(s, 'gmaW20ee'),
-        get_csv_plot_data(s, 'gmaMTM'),
-        get_csv_plot_data(s, 'gmaETGM'),
-        get_csv_plot_data(s, 'omgW20ii'),
-        get_csv_plot_data(s, 'omgW20ie'),
-        get_csv_plot_data(s, 'omgW20ei'),
-        get_csv_plot_data(s, 'omgW20ee'),
-        get_csv_plot_data(s, 'omgMTM'),
-        get_csv_plot_data(s, 'omgETGM'),
+        ### Input profiles
+        get_plot_data('te'),
+        get_plot_data('ti'),
+        get_plot_data('q'),
+        get_plot_data('gte'),
+        get_plot_data('gti'),
+        get_plot_data('gq'),
+        get_plot_data('btor'),
+        get_plot_data('bu'),
+        get_plot_data('gbu'),
+        get_plot_data('ne'),
+        get_plot_data('nf'),
+        get_plot_data('nz'),
+        get_plot_data('nh'),
+        get_plot_data('gne'),
+        get_plot_data('gni'),
+        get_plot_data('gnz'),
+        get_plot_data('gnh'),
+        get_plot_data('ai'),
+        get_plot_data('az'),
+        get_plot_data('ah'),
+        get_plot_data('zz'),
+        get_plot_data('zeff'),
+        get_plot_data('elong'),
+        get_plot_data('rmaj'),
+        get_plot_data('rmin'),
+        get_plot_data('gxi'),
+        get_plot_data('nuste'),
+        get_plot_data('loge'),
+        get_plot_data('nuei'),
+        get_plot_data('tauh'),
+        get_plot_data('betaeu'),
+        get_plot_data('etae'),
+        get_plot_data('shat'),
+        get_plot_data('shat_gxi'),
+        get_plot_data('gyrfi'),
+        get_plot_data('gyrfiu'),
+        get_plot_data('rhos'),
+        get_plot_data('rhosu'),
+        get_plot_data('vthe'),
+        get_plot_data('vthi'),
+        get_plot_data('csound'),
+        get_plot_data('csound_a'),
+        get_plot_data('wtransit'),
+        get_plot_data('wbounce'),
+        get_plot_data('eps'),
+        get_plot_data('wexb'),
+        get_plot_data('etanc'),
+        ### Output Profiles
+        get_csv_plot_data('xte'),
+        get_csv_plot_data('xti'),
+        get_csv_plot_data('xde'),
+        get_csv_plot_data('xdz'),
+        get_csv_plot_data('xvt'),
+        get_csv_plot_data('xvp'),
+        get_csv_plot_data('fte'),
+        get_csv_plot_data('fti'),
+        get_csv_plot_data('fde'),
+        get_csv_plot_data('fdz'),
+        get_csv_plot_data('fvt'),
+        get_csv_plot_data('fvp'),
+        get_csv_plot_data('xteW20'),
+        get_csv_plot_data('xdeW20'),
+        get_csv_plot_data('xtiW20'),
+        get_csv_plot_data('xteDBM'),
+        get_csv_plot_data('xte2DBM'),
+        get_csv_plot_data('xdeDBM'),
+        get_csv_plot_data('xde2DBM'),
+        get_csv_plot_data('xtiDBM'),
+        get_csv_plot_data('xti2DBM'),
+        get_csv_plot_data('xteETGM'),
+        get_csv_plot_data('xte2ETGM'),
+        get_csv_plot_data('xteMTM'),
+        get_csv_plot_data('xteETG'),
+        get_csv_plot_data('gmaW20i'),
+        get_csv_plot_data('gmaW20e'),
+        get_csv_plot_data('gmaDBM'),
+        get_csv_plot_data('gmaMTM'),
+        get_csv_plot_data('gmaETGM'),
+        get_csv_plot_data('omgW20i'),
+        get_csv_plot_data('omgW20e'),
+        get_csv_plot_data('omgDBM'),
+        get_csv_plot_data('omgMTM'),
+        get_csv_plot_data('omgETGM'),
+        # get_csv_plot_data('vcz'),
+        # get_csv_plot_data('vct'),
+        # get_csv_plot_data('vcp'),
+        ### Output Profiles
+        # get_csv_plot_data('gmaDBM'),
+        # get_csv_plot_data('omgDBM'),
+        # get_csv_plot_data('kyrhosDBM'),
+        # get_csv_plot_data('gaveDBM'),
+        # get_csv_plot_data('phi2DBM'),
+        # get_csv_plot_data('Apara2DBM'),
+        # get_csv_plot_data('xtiDBM'),
+        # get_csv_plot_data('xteDBM'),
+        # get_csv_plot_data('xdeDBM'),
+        # get_csv_plot_data('fti'),
+        # get_csv_plot_data('fte'),
+        # get_csv_plot_data('fde'),
     ]
 
 
@@ -170,4 +199,4 @@ if __name__ == '__main__':
     # ]
 
     # MAIN PROFILES
-    plot_profiles([profiles], [all_data], savefig=1, savedata=1)
+    plot_profiles([profiles], [all_data], savename=savename, savefig=1, savedata=0)

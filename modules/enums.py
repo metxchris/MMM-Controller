@@ -42,6 +42,8 @@ class ShotType(Enum):
     EAST = auto()
     KSTR = auto()
     JET = auto()
+    ITER = auto()
+    TFTR = auto()
 
 
 class MergeType(Enum):

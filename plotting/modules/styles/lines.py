@@ -162,6 +162,61 @@ def init(style):
             'lines.dotted_pattern': [3, 0.8, 1, 0.5, 1, 0.8],
         })
 
+    elif style is Lines.COMPARE_MMM:
+        '''
+        There's a bug in MatPlotLib when saving PDF and EPS when specifying
+        dashes as a blank line using (0, 1), where the legend label of a
+        marker contains line artifacts only when the file is saved (it looks
+        fine using plt.show()).  Furthermore, if we try and set the linewidth
+        to 0 to fix this, the PDF fails to save correctly.
+
+        Consequently, we are setting the lines to white here so that any
+        artifacts blend into the background (the artifacts should only be a
+        pixel per legend marker), and the corresponding line widths to 0.1.
+        '''
+        prop_cycle = cycler(
+            color=[
+                (0.094, 0.353, 0.663),  # Blue
+                (1, 1, 1),  # White
+                (0.933, 0.180, 0.184),  # Red
+                (1, 1, 1),  # White
+            ],
+            markeredgecolor=[
+                (1, 1, 1),  # White
+                (0.094, 0.353, 0.663),  # Blue
+                (1, 1, 1),  # White
+                (0.933, 0.180, 0.184),  # Red
+            ],
+            dashes=[
+                (1, 0),  # Solid line
+                (0, 100),  # Blank
+                (5, 2, 1.25, 2),  # Dash-dot
+                (0, 100),  # Blank
+            ],
+            marker=[
+                '',
+                'o',
+                '',
+                'o',
+            ],
+            linewidth=[
+                1.7,
+                0.1,
+                1.2,
+                0.1,
+            ],
+        )
+
+        rcParams.update({
+            'lines.markeredgecolor': 'auto',
+            'lines.markerfacecolor': '#fff',
+            'lines.markeredgewidth': 1.25,
+            'lines.markersize': 4,
+            'lines.dashdot_pattern': [6.5, 1.1, 1.25, 1.1],
+            'lines.dashed_pattern': [4.5, 1.5],
+            'lines.dotted_pattern': [3, 0.8, 1, 0.5, 1, 0.8],
+        })
+
     elif style is Lines.RHO_MAGMA:
         '''
         There's a bug in MatPlotLib when saving PDF and EPS when specifying

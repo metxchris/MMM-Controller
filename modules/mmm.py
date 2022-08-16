@@ -16,6 +16,7 @@ TODO:
 # Standard Packages
 import os
 import subprocess
+import logging
 
 # Local Packages
 import settings
@@ -23,6 +24,9 @@ import modules.utils as utils
 import modules.variables as variables
 import modules.constants as constants
 from modules.enums import SaveType
+
+
+_log = logging.getLogger(__name__)
 
 
 def run_wrapper(input_vars, controls):
@@ -54,8 +58,9 @@ def run_wrapper(input_vars, controls):
     scan_num = input_vars.options.scan_num
 
     tmp_path = utils.get_temp_path(runid, scan_num)
-    input_file = utils.get_temp_path(runid, scan_num, 'input')  # input has no file type
-    output_file = utils.get_temp_path(runid, scan_num, 'output.csv')
+    input_file = utils.get_temp_path(runid, scan_num, 'input.dat')  # input has no file type
+    output_file = utils.get_temp_path(runid, scan_num, 'output.dat')
+    error_file = utils.get_temp_path(runid, scan_num, 'fort.36')
 
     # Create input file in temp directory
     with open(input_file, 'w') as f:
@@ -91,6 +96,9 @@ def run_wrapper(input_vars, controls):
         raise FileNotFoundError('MMM did not produce an output file')
     if not os.stat(output_file).st_size:
         raise ValueError('MMM produced an empty output file')
+    # if os.path.exists(error_file):
+    #     _log.error(f'\n\tMMM Produced an error file!\n')
+
 
     output_vars = variables.OutputVariables(input_vars.options)
     output_vars.load_from_file_path(output_file)

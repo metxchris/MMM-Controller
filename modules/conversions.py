@@ -32,6 +32,7 @@ from scipy.interpolate import interp1d
 
 # Local Packages
 import modules.datahelper as datahelper
+import modules.constants as constants
 
 
 class _XValues:
@@ -53,13 +54,18 @@ def _choose_variables(input_vars):
     * input_vars (InputVariables): Object containing variable data
     '''
 
-    # Choose wexbs (CDF values are in 1/s even if they say rad/s)
-    if input_vars.wexbsv2.values is not None and not (input_vars.wexbsv2.values == 0).all():
-        input_vars.wexbs.values = input_vars.wexbsv2.values
-    elif input_vars.wexbsmod.values is not None and not (input_vars.wexbsmod.values == 0).all():
-        input_vars.wexbs.values = input_vars.wexbsmod.values
-    elif input_vars.wexbsa.values is not None and not (input_vars.wexbsa.values == 0).all():
-        input_vars.wexbs.values = input_vars.wexbsa.values
+    # Choose wexb (CDF values are actually 1/s even if they say rad/s)
+    wexbsv2 = input_vars.wexbsv2
+    wexbsmod = input_vars.wexbsmod
+    wexbsa = input_vars.wexbsa
+    tolerance = 1.001
+
+    if wexbsv2.values is not None and not (wexbsv2.values <= tolerance * wexbsv2.default_values).all():
+        input_vars.wexb.values = wexbsv2.values
+    elif wexbsmod.values is not None and not (wexbsmod.values <= tolerance * wexbsv2.default_values).all():
+        input_vars.wexb.values = wexbsmod.values
+    elif wexbsa.values is not None and not (wexbsa.values <= tolerance * wexbsv2.default_values).all():
+        input_vars.wexb.values = wexbsa.values
 
 
 def convert_units(input_var):
@@ -95,6 +101,8 @@ def convert_units(input_var):
         input_var.set(values=input_var.values * 100, units='V/m')
     elif units == 'AMPS/CM2' or units == 'AMPS/CM**2':
         input_var.set(values=input_var.values / 100, units='MA/m^2')
+    elif units == 'OHM*CM':
+        input_var.set(values=input_var.values / 100, units='ohm*m')
     elif units == 'SEC**-1':
         input_var.set(units='s^-1')
     elif units == 'RAD/SEC':
@@ -154,7 +162,7 @@ def _interp_to_boundarygrid(input_var, xvals):
     # Interpolate/Extrapolate variable from X or XB to XBO
     elif xdim in ['X', 'XB']:
         set_interp = interp1d(getattr(xvals, xdim.lower()), input_var.values,
-                              kind='cubic', fill_value="extrapolate", axis=0)
+                              kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
         input_var.set(values=set_interp(xvals.xbo))
         input_var.set_xdim('XBO')
 
@@ -201,7 +209,7 @@ def _interp_to_input_points(input_vars):
                 raise ValueError(f'Trying to interpolate variable {var} with values equal to None')
 
             if isinstance(mmm_var.values, np.ndarray) and mmm_var.values.size > 1:
-                set_interp = interp1d(xb, mmm_var.values, kind='cubic', fill_value="extrapolate", axis=0)
+                set_interp = interp1d(xb, mmm_var.values, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
                 mmm_var.set(values=set_interp(xb_new))
 
     return mmm_vars
@@ -245,8 +253,8 @@ def _initial_conversion(cdf_vars):
             _interp_to_boundarygrid(input_var, xvals)
 
     # Use TEPRO, TIPRO in place of TE, TI
-    if input_vars.options.temperature_profiles:
-        input_vars.use_temperature_profiles()
+    if input_vars.options.use_experimental_profiles:
+        input_vars.use_experimental_profiles()
 
     input_vars.rmin.values[0, :] = 0  # Set value of rmin at origin to 0
 

@@ -139,13 +139,39 @@ def init(style):
             'ytick.labelsize': 9,
         })
 
-    if style is Layout.AIP:
+    elif style is Layout.AIP:
         rcParams.update({
             'axes.formatter.limits': [-2, 2],  # Forces exponent notation below 1e-1 and above 1e2
             'axes.labelpad': 2,
             'axes.labelsize': 10,
             'axes.titlesize': 10,
             'axes.titlepad': 4,
+            'figure.figsize': [2.5, 2.08],
+            'figure.subplot.bottom': 0.16,
+            'figure.subplot.hspace': 0.38,
+            'figure.subplot.left': 0.2,
+            'figure.subplot.right': 0.94,
+            'figure.subplot.top': 0.9,
+            'figure.subplot.wspace': 0.22,
+            'legend.fontsize': 10,
+            'xtick.labelsize': 8,
+            'ytick.labelsize': 8,
+        })
+
+        Dimensions.text1_pos = (0.5, 0.905)
+        Dimensions.text2_pos = (0.5, 0.88)
+        Dimensions.text3_pos = (0.5, 0.861)
+        Dimensions.text4_pos = (0.5, 0.842)
+        Dimensions.rows = 2
+        Dimensions.cols = 3
+
+    elif style is Layout.AIP2:
+        rcParams.update({
+            'axes.formatter.limits': [-2, 2],  # Forces exponent notation below 1e-1 and above 1e2
+            'axes.labelpad': 2,
+            'axes.labelsize': 10,
+            'axes.titlesize': 8.5,
+            'axes.titlepad': 3.5,
             'figure.figsize': [2.5, 2.08],
             'figure.subplot.bottom': 0.16,
             'figure.subplot.hspace': 0.38,

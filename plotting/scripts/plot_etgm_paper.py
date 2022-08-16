@@ -102,7 +102,10 @@ if __name__ == '__main__':
         # PlotDataCdf('18476T02', yname='xkimmm07', zval=7, legend='MMM'),
         # xmin=0.01, xmax=0.8, ymax=6,
 
-        PlotDataCdf('16297T01', yname='betanorm', zval=0.5, timeplot=1),
+        PlotDataCsv('138536A01', 291, yname='xteETGM'),
+        PlotDataCsv('138536A01', 292, yname='xteETGM'),
+        PlotDataCsv('138536A01', 293, yname='xteETGM'),
+        PlotDataCsv('138536A01', 294, yname='xteETGM'),
         # PlotDataCdf('16297T01', yname='beta', zval=0.5, timeplot=1),
 
         # PlotDataCdf('85610T01', yname='curdlh', zval=4, legend='Low Density Discharge'),
@@ -191,9 +194,8 @@ if __name__ == '__main__':
         # PlotDataCdf('138536A01', yname='lb', xname='rho', zval=0.629),
         # PlotDataCdf('138536A01', yname='lbunit', xname='rho', zval=0.629),
         # PlotDataCdf('138536A01', yname='rmaj', xname='rho', zval=0.629),
-        # PlotDataCdf('138536A01', yname='gbunit', xname='rho', zval=0.629),
+        # PlotDataCdf('138536A01', yname='gbu', xname='rho', zval=0.629),
 
-        # PlotDataCdf('138536A01', yname='gbtor_gbunit', xname='rho', zval=0.629),
         # PlotDataCdf('129016A04', yname='rmin', xname='rho', zval=0.5),
         # PlotDataCdf('129016A04', yname='gbtor', xname='rho', zval=0.5),
 
@@ -219,22 +221,22 @@ if __name__ == '__main__':
         # PlotDataCdf(r, yname='e_r_tht', xname='rho', zval=0.629, transp_calcs=True),
         # PlotDataCdf(r, yname='e_r_tht', xname='rho', zval=0.629),
 
-        # PlotDataCdf(r, yname='wexbs', xname='rho', zval=0.629, transp_calcs=True),
-        # PlotDataCdf(r, yname='wexbs', xname='rho', zval=0.629, apply_smoothing=0),
+        # PlotDataCdf(r, yname='wexb', xname='rho', zval=0.629, transp_calcs=True),
+        # PlotDataCdf(r, yname='wexb', xname='rho', zval=0.629, apply_smoothing=0),
 
         # PlotDataCdf(r, yname='wexbsgrp', xname='rho', zval=0.629, transp_calcs=True),
-        # PlotDataCdf(r, yname='wexbs', xname='rho', zval=0.629, apply_smoothing=0),
+        # PlotDataCdf(r, yname='wexb', xname='rho', zval=0.629, apply_smoothing=0),
         # PlotDataCdf(r, yname='wexbstht', xname='rho', zval=0.629, transp_calcs=True),
-        # PlotDataCdf(r, yname='wexbs', xname='rho', zval=0.629, apply_smoothing=0),
+        # PlotDataCdf(r, yname='wexb', xname='rho', zval=0.629, apply_smoothing=0),
         # PlotDataCdf(r, yname='wexbsphi', xname='rho', zval=0.629, transp_calcs=True),
-        # PlotDataCdf(r, yname='wexbs', xname='rho', zval=0.629, apply_smoothing=0),
+        # PlotDataCdf(r, yname='wexb', xname='rho', zval=0.629, apply_smoothing=0),
 
 
         # PlotDataCdf(r, yname='wexbs_unit1', xname='rho', zval=0.629),
         # PlotDataCdf(r, yname='wexbs_unit2', xname='rho', zval=0.629),
         # PlotDataCdf(r, yname='wexbs_unit1_ratio', xname='rho', zval=0.629),
         # PlotDataCdf(r, yname='wexbs_unit2_ratio', xname='rho', zval=0.629),
-        # PlotDataCdf(r, yname='bunit_btor', xname='rho', zval=0.629),
+        # PlotDataCdf(r, yname='bu_btor', xname='rho', zval=0.629),
 
         # PlotDataCdf(r, yname='vtoravg', xname='rho', zval=0.629, transp_calcs=True),
         # PlotDataCdf(r, yname='vtoravg', xname='rho', zval=0.629),
@@ -508,7 +510,7 @@ if __name__ == '__main__':
         # PlotDataCsv(r, 657, 'xteETGM', xname='rho', legend=r'$\omega_\mathrm{E \zvals B}$ (Weiland)'),
         # PlotDataCsv(r, 659, 'xteETGM', xname='rho', legend=r'$\omega_\mathrm{E \zvals B}$ reduced'),
 
-        # PlotDataCsv(r, 653, 'wexbs', xname='rho'),
+        # PlotDataCsv(r, 653, 'wexb', xname='rho'),
 
         # PlotDataCsv(r, 625, 'gmaETGM', xname='rho', legend=r'$k_x/k_y = 0.01$'),
 
@@ -581,8 +583,8 @@ if __name__ == '__main__':
         # PlotDataCsv(r, 213, 'gmaETGM', xname='rmina', runname=r'Old'),
         # PlotDataCsv(r, 218, 'gte', xname='rho', runname=r'New'),
 
-        # PlotDataCsv(r, 196, 'bunit_btor', xname='rho', legend=r'$B_0 \kappa$'),
-        # PlotDataCsv(r, 196, 'bunit', xname='rho', legend=r'$B_0 \kappa$'),
+        # PlotDataCsv(r, 196, 'bu_btor', xname='rho', legend=r'$B_0 \kappa$'),
+        # PlotDataCsv(r, 196, 'bu', xname='rho', legend=r'$B_0 \kappa$'),
 
         # PlotDataCsv(r, 141, 'xdiETGM', xname='rho' runname='51 Points'),
         # PlotDataCsv(r, 142, 'xdiETGM', xname='rho' runname='201 Points'),
@@ -774,13 +776,13 @@ if __name__ == '__main__':
         # PlotDataCsv(r, 1469, 'xte2ETGM', xname='rho', legend=r'$k_\mathrm{y}\rho_\mathrm{s} \in [0.2, 30]$'),
         # PlotDataCsv(r, 1470, 'xte2ETGM', xname='rho', legend=r'$k_\mathrm{y}\rho_\mathrm{s} \in [0.2, 20]$'),
 
-        # WEXBS EFFECTS (SUM)
+        # wexb EFFECTS (SUM)
         # PlotDataCsv(r, 1441, 'xteETGM', xname='rho', legend=r'$\omega_{\mathrm{E}\zvals\mathrm{B}}$ Off'),  # m=2
         # PlotDataCsv(r, 1471, 'xteETGM', xname='rho', legend=r'$\omega_{\mathrm{E}\zvals\mathrm{B}}$ On'),   # m=2
         # PlotDataCsv(r, 1445, 'xteETGM', xname='rho', legend=r'$\omega_{\mathrm{E}\zvals\mathrm{B}}$ Off'),  # m=1
         # PlotDataCsv(r, 1472, 'xteETGM', xname='rho', legend=r'$\omega_{\mathrm{E}\zvals\mathrm{B}}$ On'),   # m=1
 
-        # WEXBS EFFECTS (MAX)
+        # wexb EFFECTS (MAX)
         # PlotDataCsv(r, 1457, 'xte2ETGM', xname='rho', legend=r'$\omega_{\mathrm{E}\zvals\mathrm{B}}$ Off'),  # m=2
         # PlotDataCsv(r, 1473, 'xte2ETGM', xname='rho', legend=r'$\omega_{\mathrm{E}\zvals\mathrm{B}}$ On'),   # m=2
         # PlotDataCsv(r, 1461, 'xte2ETGM', xname='rho', legend=r'$\omega_{\mathrm{E}\zvals\mathrm{B}}$ Off'),  # m=1
@@ -818,7 +820,7 @@ if __name__ == '__main__':
         # PlotDataCsv(r, 1282, 'satETGM', xname='rho'),
 
         # PlotDataCsv(r, 1363, 'xteETGM', xname='rho'),
-        # PlotDataCsv(r, 1363, 'xte2ETGM', xname='rho'),  # gbunit = 1
+        # PlotDataCsv(r, 1363, 'xte2ETGM', xname='rho'),  # gbu = 1
         # PlotDataCsv(r, 1364, 'xteETGM', xname='rho'),
         # PlotDataCsv(r, 1364, 'xte2ETGM', xname='rho'),
 

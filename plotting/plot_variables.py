@@ -150,7 +150,7 @@ class PlotData:
 
     def get_rho_label_str(self):
         """Returns (str): The rho string used in the legend label and title details"""
-        return fr'$\rho = ${self.rho}'
+        return fr'$\hat{{\rho}} = ${self.rho}'
 
     def get_factor_label_str(self):
         """Returns (str): The factor string used in the legend label and title details"""
@@ -267,7 +267,7 @@ class PlotDataCsv(PlotData):
         options = modules.options.Options().load(runid, scan_num)
         scan_factor_str = None
 
-        timeplot = True if options.var_to_scan == 'time' else False
+        timeplot = True if options.var_to_scan == 'time' and xname == 'time' else False
 
         if xname == 'var_to_scan':
             xname = options.var_to_scan
@@ -422,6 +422,8 @@ class AllPlotData:
     * ymax_cutoff (float | None): The maximum cutoff y-value to use
     * xmin_cutoff (float | None): The minimum cutoff x-value to use
     * xmax_cutoff (float | None): The maximum cutoff x-value to use
+    * xticks (list[float] | None): The tick marks on the x-axis
+    * yticks (list[float] | None): The tick marks on the y-axis
     """
 
     def __init__(self, **kwargs):
@@ -451,6 +453,8 @@ class AllPlotData:
         self.ymax_cutoff: float | None = None
         self.xmin_cutoff: float | None = None
         self.xmax_cutoff: float | None = None
+        self.xticks: list[float] | None = None
+        self.yticks: list[float] | None = None
 
         self._set_kwargs(kwargs)
 
@@ -690,14 +694,10 @@ class AllPlotData:
                 maxval += 1
             return (minval, maxval) if not invert_axis else (maxval, minval)
 
-        # all_xvals = np.hstack([d.xvals for d in self.data[1:]])
-        # all_yvals = np.hstack([d.yvals for d in self.data[1:]])
-        all_xvals = np.hstack([d.xvals for d in self.data])
-        all_yvals = np.hstack([d.yvals for d in self.data])
-        xmin, xmax = all_xvals[~np.isnan(all_xvals)].min(), all_xvals[~np.isnan(all_xvals)].max()
-        ymin, ymax = all_yvals[~np.isnan(all_yvals)].min(), all_yvals[~np.isnan(all_yvals)].max()
+        # Set default boundaries
+        xmin, xmax = -np.inf, np.inf
+        ymin, ymax = -np.inf, np.inf
 
-        # Set cutoff values for each axis
         if self.xmin_cutoff is not None:
             xmin = max(xmin, self.xmin)
         if self.xmax_cutoff is not None:
@@ -716,6 +716,27 @@ class AllPlotData:
             ymin = self.ymin
         if self.ymax is not None:
             ymax = self.ymax
+
+        # all_xvals = np.hstack([d.xvals for d in self.data[1:]])
+        # all_yvals = np.hstack([d.yvals for d in self.data[1:]])
+        # for d in self.data:
+
+        #     print()
+
+        all_xvals = np.hstack([d.xvals[np.logical_and(d.xvals <= xmax, d.xvals >= xmin)] for d in self.data])
+        all_yvals = np.hstack([d.yvals[np.logical_and(d.xvals <= xmax, d.xvals >= xmin)] for d in self.data])
+
+        if xmin == -np.inf:
+            xmin = all_xvals[~np.isnan(all_xvals)].min()
+        if xmax == np.inf:
+            xmax = all_xvals[~np.isnan(all_xvals)].max()
+        if ymin == -np.inf:
+            ymin = all_yvals[~np.isnan(all_yvals)].min()
+        if ymax == np.inf:
+            ymax = all_yvals[~np.isnan(all_yvals)].max()
+
+        # Set cutoff values for each axis
+
 
         # using_rho = (np.array([d.rho for d in self.data]) != None).any()  # '!= None' syntax is needed with numpy
 
@@ -1039,6 +1060,12 @@ def main(all_data, savefig=False, savedata=False):
         ylabel=all_data.get_plot_ylabel(offset_text_y),
     )
 
+    if all_data.xticks is not None:
+        plt.xticks(all_data.xticks)
+
+    if all_data.yticks is not None:
+        plt.yticks(all_data.yticks)
+
     if all_data.show_legend:
         ax.legend().set_draggable(state=True)
 
@@ -1085,7 +1112,7 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE1B,
+        layout=StyleType.Layout.AIP2,
     )
 
     plt.rcParams.update({
@@ -1094,10 +1121,10 @@ if __name__ == '__main__':
 
     # Define settings for the plot
     all_data = AllPlotData(
-        replace_offset_text=False,
-        allow_title_runid=True,
-        allow_title_time=True,
-        allow_title_factor=True,
+        replace_offset_text=1,
+        allow_title_runid=1,
+        allow_title_time=1,
+        allow_title_factor=0,
         allow_title_rho=True,
         invert_y_axis=False,
         invert_x_axis=False,
@@ -1146,11 +1173,244 @@ if __name__ == '__main__':
     )
 
     all_data.set(
-        # PlotDataCsv(runid='120968A02', yname='gmanormMTM', xname='rho', scan_num=13),
-        PlotDataCsv(runid='129016A04', yname='xteMTM', xname='rho', scan_num=9),
-        PlotDataCsv(runid='129016A04', yname='xteMTM', xname='rho', scan_num=8),
-        # PlotDataCdf(runid='129016A04', yname='nuste', xname='rho', zval=0.31),
-        ymax=4,ymin=0,xmin=0.2,xmax=0.8,
+
+        # PlotDataCdf(runid='138536A01', yname='vtorx', xname='xb', zval=0.629, legend=r'RMAJ$\cdot$OMEGA'),
+        # PlotDataCdf(runid='138536A01', yname='vtorxnc', xname='xb', zval=0.629, legend=r'VTORX$\_$NC'),
+
+        # PlotDataCdf(runid='120982A09', yname='ti', xname='xb', zval=0.629),
+        # PlotDataCdf(runid='120982A09', yname='nf', xname='xb', zval=0.629),
+        # PlotDataCdf(runid='120982A09', yname='pf', xname='xb', zval=0.629),
+
+        # PlotDataCdf(runid='138536A01', yname='gti', xname='xb', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='gnf', xname='xb', zval=0.629),
+        # PlotDataCdf(runid='120982A09', yname='gpf', xname='xb', zval=0.629),
+        # PlotDataCdf(runid='120982A09', yname='gpf2', xname='xb', zval=0.629),
+        
+
+        # PlotDataCdf(runid='138536A01', yname='q', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='120968A02', yname='q', xname='rho', zval=0.56),
+        # PlotDataCdf(runid='120982A09', yname='wexb', xname='rho', zval=0.62),
+        # PlotDataCdf(runid='129041A10', yname='q', xname='rho', zval=0.49),
+        # PlotDataCdf(runid='138536A01', yname='gnh', xname='rho', zval=0.629, apply_smoothing=1, input_points=101),
+        # PlotDataCsv(runid='138536A01', yname='q', xname='rho', scan_num=253),
+        # PlotDataCdf(runid='138536A01', yname='etanc', xname='rho', zval=0.629),
+
+        # PlotDataCsv(runid='120982A09', yname='gmaW20i', xname='rho', scan_num=12005, legend='quadratic'),
+        # PlotDataCsv(runid='120982A09', yname='gmaW20i', xname='rho', scan_num=12006, legend='cubic'),
+        # PlotDataCsv(runid='120982A09', yname='gmaW20i', xname='rho', scan_num=12011, legend='quadratic'),
+
+        PlotDataCsv(runid='120968A02', yname='kyrhosDBM', xname='rho', scan_num=48, legend='100 loops'),
+        PlotDataCsv(runid='120968A02', yname='kyrhosDBM', xname='rho', scan_num=51, legend='10,000 loops'),
+        # PlotDataCsv(runid='120982A09', yname='xteETG', xname='rho', scan_num=12012, legend='quadratic'),
+
+        # PlotDataCsv(runid='129041A10', yname='xteDBM', xname='rho', scan_num=115, legend='exp 10'),
+        # PlotDataCsv(runid='129041A10', yname='xteDBM', xname='rho', scan_num=116, legend='exp 20'),
+        # PlotDataCsv(runid='129041A10', yname='xteDBM', xname='rho', scan_num=117, legend='exp 50'),
+        # PlotDataCsv(runid='129041A10', yname='xteDBM', xname='rho', scan_num=118, legend='exp 100'),
+
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=513, legend='converged'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=500, legend='linear 250'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=501, legend='linear 500'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=502, legend='linear 1000'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=504, legend='linear 5000'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=513, legend='converged'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=503, legend=2000),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=505, legend='exp 250'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=506, legend='exp 500'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=507, legend='exp 1000'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=513, legend='converged'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=510, legend='exp 50'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=511, legend='exp 100'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=512, legend='exp 200'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=513, legend='linear 100k'),
+
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=513, legend='converged'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=509, legend='10000'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=502, legend='linear 1000'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=503, legend='linear 2000'),
+        # PlotDataCsv(runid='129041A10', yname='xteMTM', xname='rho', scan_num=511, legend='exp 100'),
+
+        # PlotDataCsv(runid='120982A09', yname='fvp', xname='rho', scan_num=38, legend=r'$\ \ \,$VPOL'),
+        # PlotDataCsv(runid='120982A09', yname='fvp', xname='rho', scan_num=39, legend=r'$-$VPOL'),
+
+ 
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=9,  legend=r'$n_{_\mathrm{L}} = 1000$'),
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=10, legend=r'$n_{_\mathrm{L}} = 2000$'),
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=11, legend=r'$n_{_\mathrm{L}} = 4000$'),
+        # title_override=r'Linear $k_y\rho_s$ Increments',
+        # allow_title_runid=0,
+        # allow_title_time=0,
+        # ymax=9,
+
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=12, legend=r'$n_{_\mathrm{E}} = 50$'),
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=13, legend=r'$n_{_\mathrm{E}} = 100$'),
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=14, legend=r'$n_{_\mathrm{E}} = 200$'),
+        # title_override=r'Exponential $k_y\rho_s$ Increments',
+        # allow_title_runid=0,
+        # allow_title_time=0,
+        # ymax=9,
+
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=8, legend=r'Converged'),
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=10, legend=r'$n_{_\mathrm{L}} = 2000$'),
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=13, legend=r'$n_{_\mathrm{E}} = 100\,$'),
+        # title_override=r'Linear vs. Exponential',
+        # allow_title_runid=0,
+        # allow_title_time=0,
+        # ymin=6.2, ymax=8.1, xmin=0.8, xmax=0.93,
+
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=10, legend=r'$n = 100\ \,$ (Exp.)'),
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=11, legend=r'$n = 200\ \,$ (Exp.)'),
+
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=10, legend=r'$\mathtt{Exp.}$ 200'),
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=11, legend=r'$\mathtt{Lin.}$ 4000'),
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=12, legend=r'$\mathtt{Converged}$'),
+        # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=13, legend=r'$\mathtt{Converged}$'),
+        
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho',  scan_num=49),
+        # PlotDataCsv(runid='138536A01', yname='xte2ETGM', xname='rho', scan_num=49),
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho',  scan_num=81),
+        # PlotDataCsv(runid='138536A01', yname='xte2ETGM', xname='rho', scan_num=81),
+        # PlotDataCsv(runid='138536A01', yname='xteETGM', xname='rho',  scan_num=84),
+        # PlotDataCsv(runid='138536A01', yname='xte2ETGM', xname='rho', scan_num=84),
+
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=49),
+        # # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='rho', scan_num=99),
+
+        # PlotDataCsv(runid='120968A02', yname='xteETGM', xname='rho',  scan_num=40),
+        # PlotDataCsv(runid='120968A02', yname='xteETGM', xname='rho', scan_num=43),
+
+
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='ai', scan_num=304, rho_value=0.3, legend=r'kyrhos scan'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='ai', scan_num=305, rho_value=0.3, legend=r'kyrhos = 8'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='ai', scan_num=306, rho_value=0.3, legend=r'kyrhos = 16'),
+        # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='ai', scan_num=307, rho_value=0.3),
+
+
+
+        # PlotDataCsv(runid='138536A01', yname='xtiDBM', xname='rho',  scan_num=5004),
+        # PlotDataCsv(runid='138536A01', yname='xti2DBM', xname='rho', scan_num=5004),
+        # PlotDataCsv(runid='138536A01', yname='xteDBM', xname='rho',  scan_num=5004),
+        # PlotDataCsv(runid='138536A01', yname='xte2DBM', xname='rho', scan_num=5004),
+        # PlotDataCsv(runid='138536A01', yname='xdeDBM', xname='rho',  scan_num=5009),
+        # PlotDataCsv(runid='138536A01', yname='xde2DBM', xname='rho', scan_num=5009),
+        # PlotDataCsv(runid='138536A01', yname='satDBM', xname='rho', scan_num=5006),
+        # PlotDataCsv(runid='138536A01', yname='satDBM', xname='rho', scan_num=5007),
+
+        # PlotDataCsv(runid='129041A10', yname='xteDBM', xname='rho',  scan_num=5003),
+        # PlotDataCsv(runid='129041A10', yname='xte2DBM', xname='rho', scan_num=5003),
+        # PlotDataCsv(runid='129041A10', yname='xtiDBM', xname='rho',  scan_num=5002),
+        # PlotDataCsv(runid='129041A10', yname='xti2DBM', xname='rho', scan_num=5002),
+        # PlotDataCsv(runid='129041A10', yname='xdeDBM', xname='rho',  scan_num=5008),
+        # PlotDataCsv(runid='129041A10', yname='xde2DBM', xname='rho', scan_num=5008),
+        # PlotDataCsv(runid='129041A10', yname='satDBM', xname='rho', scan_num=5006),
+        # PlotDataCsv(runid='129041A10', yname='satDBM', xname='rho', scan_num=5007),
+
+
+        # PlotDataCsv(runid='120982A09', yname='xtiDBM', xname='rho',  scan_num=5003),
+        # PlotDataCsv(runid='120982A09', yname='xti2DBM', xname='rho', scan_num=5003),
+        # PlotDataCsv(runid='120982A09', yname='xteDBM', xname='rho',  scan_num=5003),
+        # PlotDataCsv(runid='120982A09', yname='xte2DBM', xname='rho', scan_num=5003),
+        # PlotDataCsv(runid='120982A09', yname='xdeDBM', xname='rho',  scan_num=5009),
+        # PlotDataCsv(runid='120982A09', yname='xde2DBM', xname='rho', scan_num=5009),
+
+        # PlotDataCsv(runid='120968A02', yname='xteDBM', xname='rho',  scan_num=5002),
+        # PlotDataCsv(runid='120968A02', yname='xte2DBM', xname='rho', scan_num=5002),
+        # PlotDataCsv(runid='120968A02', yname='xtiDBM', xname='rho',  scan_num=5001),
+        # PlotDataCsv(runid='120968A02', yname='xti2DBM', xname='rho', scan_num=5001),
+        # PlotDataCsv(runid='120968A02', yname='xdeDBM', xname='rho',  scan_num=5009),
+        # PlotDataCsv(runid='120968A02', yname='xde2DBM', xname='rho', scan_num=5009),
+
+
+
+
+
+        # PlotDataCsv(runid='129041A10', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.6, scan_num=26),
+        # PlotDataCsv(runid='129041A10', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.7, scan_num=26),
+        # PlotDataCsv(runid='129041A10', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=26),
+        # PlotDataCsv(runid='129041A10', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.9, scan_num=26),
+
+        # PlotDataCsv(runid='120968A02', yname='xti2DBM', xname='rho', scan_num=24, legend='wexb off'),
+        # PlotDataCsv(runid='120968A02', yname='xti2DBM', xname='rho', scan_num=25, legend='wexb on'),
+        # PlotDataCsv(runid='120968A02', yname='xteDBM', xname='rho', scan_num=19),
+        # PlotDataCsv(runid='120968A02', yname='xteDBM', xname='rho', scan_num=17),
+        # PlotDataCsv(runid='120968A02', yname='xteDBM', xname='rho', scan_num=17),
+
+        # PlotDataCsv(runid='120968A02', yname='xdeDBM',  xname='rho', scan_num=31),
+        # PlotDataCsv(runid='120968A02', yname='xde2DBM', xname='rho', scan_num=31),
+        # PlotDataCsv(runid='120982A09', yname='xdeDBM',  xname='rho', scan_num=36),
+        # PlotDataCsv(runid='120982A09', yname='xde2DBM', xname='rho', scan_num=36),
+        # PlotDataCsv(runid='132411T02', yname='xdeDBM',  xname='rho', scan_num=50),
+        # PlotDataCsv(runid='132411T02', yname='xde2DBM', xname='rho', scan_num=50),
+        # PlotDataCsv(runid='138536A01', yname='xdeDBM',  xname='rho', scan_num=67),
+        # PlotDataCsv(runid='138536A01', yname='xde2DBM', xname='rho', scan_num=67),
+        # PlotDataCsv(runid='118341T54', yname='xdeDBM',  xname='rho', scan_num=519),
+        # PlotDataCsv(runid='118341T54', yname='xde2DBM', xname='rho', scan_num=519),
+
+        # PlotDataCsv(runid='132411T02', yname='ti', xname='rho', scan_num=16),
+        # PlotDataCsv(runid='132411T02', yname='ti', xname='rho', scan_num=17),
+
+        # PlotDataCsv(runid='132411T02', yname='xtiW20',  xname='rho', scan_num=23),
+        # PlotDataCsv(runid='132411T02', yname='xtiW20',  xname='rho', scan_num=24),
+        # PlotDataCsv(runid='132411T02', yname='xtiDBM',  xname='rho', scan_num=24),
+        # PlotDataCsv(runid='132411T02', yname='xti2DBM', xname='rho', scan_num=24),
+        # ymax=4,
+
+        # PlotDataCsv(runid='132411T02', yname='xtiDBM', xname='rho', scan_num=37),
+        # PlotDataCsv(runid='132411T02', yname='xtiDBM', xname='rho', scan_num=38),
+        # PlotDataCsv(runid='132411T02', yname='xtiDBM', xname='rho', scan_num=39),
+        # PlotDataCsv(runid='132411T02', yname='xtiDBM', xname='rho', scan_num=40),
+        # PlotDataCsv(runid='132411T02', yname='xtiDBM', xname='rho', scan_num=41),
+        # PlotDataCsv(runid='132411T02', yname='xtiDBM', xname='rho', scan_num=42),
+        # PlotDataCsv(runid='132411T02', yname='gmaDBM',  xname='rho', scan_num=43),
+
+        # PlotDataCsv(runid='132411T02', yname='xteW20',  xname='rho', scan_num=24),
+        # PlotDataCsv(runid='132411T02', yname='xteDBM',  xname='rho', scan_num=24),
+        # PlotDataCsv(runid='132411T02', yname='xte2DBM', xname='rho', scan_num=24),
+        # PlotDataCsv(runid='132411T02', yname='xteETG',  xname='rho', scan_num=24),
+        # PlotDataCsv(runid='132411T02', yname='xteETGM', xname='rho', scan_num=24),
+        # PlotDataCdf(runid='132411T02', yname='condewnc', xname='rho',zval=0.56),
+        # ymax=10,
+
+        # PlotDataCsv(runid='132411T02', yname='xteDBM', xname='rho', scan_num=9),
+        # PlotDataCsv(runid='132411T02', yname='xteW20', xname='rho', scan_num=9),
+        # PlotDataCsv(runid='132411T02', yname='xteETGM', xname='rho',scan_num=9),
+        # PlotDataCsv(runid='132411T02', yname='xtiDBM', xname='rho',  scan_num=6),
+        # PlotDataCsv(runid='132411T02', yname='xti2DBM', xname='rho', scan_num=6),
+
+        # PlotDataCsv(runid='101381T31', yname='gmaDBM', xname='kyrhosDBM', scan_num=9),
+        # PlotDataCsv(runid='101381T31', yname='gmaDBM', xname='kyrhosDBM', scan_num=9),
+        # PlotDataCsv(runid='101381T31', yname='gmaDBM', xname='kyrhosDBM', scan_num=9),
+        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=31, legend='Ti/Te = 1'),
+
+
+        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=21, legend='All terms'),
+        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=22, legend='without zamr(4,5)'),
+        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=16, legend='Original'),
+        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=18, legend='+ zami(2,6)'),
+        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=20, legend='+ New Vorticity Eq.'),
+        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=15, legend='Original'),
+        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=17, legend='+ zami(2,6)'),
+        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=19, legend='+ New Vorticity Eq.'),
+        # PlotDataCsv(runid='138536A01', yname='xdiDBM', xname='rho', scan_num=36),
+        # PlotDataCsv(runid='138536A01', yname='gmaDBM', xname='rho', scan_num=24),
+        # PlotDataCsv(runid='138536A01', yname='omgDBM', xname='rho', scan_num=24),
+        # PlotDataCsv(runid='138536A01', yname='xteDBM', xname='rho', scan_num=25),
+        # PlotDataCsv(runid='138536A01', yname='xteDBM', xname='rho', scan_num=26),
+        # PlotDataCsv(runid='138536A01', yname='xteDBM', xname='rho', scan_num=24),
+        # PlotDataCsv(runid='138536A01', yname='xtiDBM', xname='rho', scan_num=23),
+        # PlotDataCsv(runid='138536A01', yname='xdiDBM', xname='rho', scan_num=23),
+        # PlotDataCsv(runid='138536A01', yname='gaveDBM', xname='rho', scan_num=23),
+        # PlotDataCsv(runid='138536A01', yname='kyrhosDBM', xname='rho', scan_num=24),
+        # PlotDataCsv(runid='138536A01', yname='satDBM', xname='rho', scan_num=23),
+        # PlotDataCsv(runid='120968A02', yname='xdi', xname='rho', scan_num=11, scan_factor=0.51),
+        # PlotDataCsv(runid='120968A02', yname='xdi', xname='rho', scan_num=31),
+        # PlotDataCsv(runid='120968A02', yname='wexb', xname='rho', scan_num=7),
+        # PlotDataCsv(runid='16325T10', yname='vcz', xname='rho', scan_num=2, legend='Disabled MMM8.1'),
+        # PlotDataCsv(runid='16325T10', yname='vcz', xname='rho', scan_num=3, legend='Fixed MMM8.1'),
+        # PlotDataCsv(runid='118341T54', yname='xte', xname='rho', scan_num=197, scan_factor=6, legend='Original'),
+        # PlotDataCsv(runid='118341T54', yname='xte', xname='rho', scan_num=204, scan_factor=6, legend=r'60% Faster'),
+        # PlotDataCdf(runid='120968A02', yname='wexb', xname='rho', zval=0.629),
+        # ymax=4,ymin=0,xmin=0.2,xmax=0.8,
     )
 
     main(all_data, savefig=False, savedata=False)

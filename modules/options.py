@@ -56,7 +56,6 @@ _adjustment_name_to_var_dict = {
     'zeff': 'nz',
     'nuei_alphaconst': 'nuei',
     'nuei_lareunitconst': 'nuei',
-    'betaeunit_alphaconst': 'betaeunit',
     'gne_alphaconst': 'gne',
 }
 
@@ -88,7 +87,8 @@ class Options:
     * use_gneabs (bool): take absolute value of gne
     * use_gnethreshold (bool): used when calculating the threshold for gne
     * use_gtethreshold (bool): used when calculating the threshold for gte
-    * use_etgm_btor (bool): replaces bunit, gbunit values with btor, gbtor values in the input file
+    * use_etgm_btor (bool): replaces bu, gbu values with btor, gbtor values in the input file
+    * use_experimental_profiles (bool): replaces te, ti, q, with CDF variables TEPRO, TIPRO, QPRO (if available)
     * var_to_scan (str): the variable to scan; syntax must match a member of InputVariables
     '''
 
@@ -105,7 +105,7 @@ class Options:
         self.ignore_exceptions = False
         self.input_time = None
         self.input_time_range = None
-        self.normalize_time_range = False
+        self.normalize_time_range = True
         self.scan_num = None
         self.scan_range_idxs = None
         self.scan_type = ScanType.NONE
@@ -119,6 +119,7 @@ class Options:
         self.use_gnethreshold = False
         self.use_gtethreshold = False
         self.use_etgm_btor = False
+        self.use_experimental_profiles = False
 
         self.set(**kwargs)
 

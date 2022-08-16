@@ -67,7 +67,7 @@ def plot_bunit(vars):
     # plt.plot(rho, vars.gni.values[:,0], rho, gNI)
     # btor0 * rho[1:, :] / rmin[1:, :] * dxrho[1:, :]
     # rho = (bftor / btor0 / (3.1415926535))**(1 / 2)
-    plt.plot(rho, vars.bunit.values[:, t], label=r"$B_0\, \dfrac{\rho}{r}\, \dfrac{d\rho}{dr};\, \rho = \sqrt{\chi / (\pi B_0)}$")
+    plt.plot(rho, vars.bu.values[:, t], label=r"$B_0\, \dfrac{\rho}{r}\, \dfrac{d\rho}{dr};\, \rho = \sqrt{\chi / (\pi B_0)}$")
     plt.plot(rho, vars.bunit3.values[:, t], label=r"$\dfrac{\hat{\rho}}{\pi r} \chi_\mathrm{B} \nabla\rho$")
     plt.plot(ra_cesar, bunit_cesar, label="Cesar")
     plt.xlabel('r/a')

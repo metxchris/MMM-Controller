@@ -101,7 +101,7 @@ if __name__ == '__main__':
     nmax, nsum = 1787, 1788  # Scan numbers of default profiles
 
     # Plot legend labels
-    ahyd = r'$a_\mathrm{hyd}$'
+    ah = r'$a_\mathrm{hyd}$'
     kpara2 = r'$\langle k^2_\parallel\rangle\propto$'
     kxky = r'$k_\mathrm{x}/k_\mathrm{y}$'
     kyrhos = r'$k_y\rho_\mathrm{s}$'
@@ -209,14 +209,14 @@ if __name__ == '__main__':
     psum = get_compared_profiles('sum', r, [nsum, 1713, 1715], legend, 'kyrhosmin')
     plot_profiles([pmax, psum], [all_data_max, all_data_sum], saveall=1)
 
-    legend = [fr'{ahyd}$=1$', fr'{ahyd}$=2$', fr'{ahyd}$=3$']
-    pmax = get_compared_profiles('max', r, [1708, nmax, 1710], legend, 'ahyd')
-    psum = get_compared_profiles('sum', r, [1709, nsum, 1711], legend, 'ahyd')
+    legend = [fr'{ah}$=1$', fr'{ah}$=2$', fr'{ah}$=3$']
+    pmax = get_compared_profiles('max', r, [1708, nmax, 1710], legend, 'ah')
+    psum = get_compared_profiles('sum', r, [1709, nsum, 1711], legend, 'ah')
     plot_profiles([pmax, psum], [all_data_max, all_data_sum], saveall=1)
 
-    legend = [fr'{ahyd}$=1$', fr'{ahyd}$=2$', fr'{ahyd}$=3$']
-    pmax = get_compared_profiles('max', r, [1852, 1853, 1854], legend, 'ahyd2')
-    psum = get_compared_profiles('sum', r, [1856, 1855, 1857], legend, 'ahyd2')
+    legend = [fr'{ah}$=1$', fr'{ah}$=2$', fr'{ah}$=3$']
+    pmax = get_compared_profiles('max', r, [1852, 1853, 1854], legend, 'ah2')
+    psum = get_compared_profiles('sum', r, [1856, 1855, 1857], legend, 'ah2')
     plot_profiles([pmax, psum], [all_data_max, all_data_sum], saveall=1)
 
     legend = [fr'Default', fr'Geometry Disabled']
@@ -243,9 +243,9 @@ if __name__ == '__main__':
     """
     Testing isotropic mass change
     """
-    # pmax = get_compared_profiles('max', r, [1708, 1847], [fr'{ahyd}$=1 $ (old)', fr'{ahyd}$=1 $ (new)'], 'ahyd')
-    # psum = get_compared_profiles('sum', r, [1709, 1849], [fr'{ahyd}$=1 $ (old)', fr'{ahyd}$=1 $ (new)'], 'ahyd')
+    # pmax = get_compared_profiles('max', r, [1708, 1847], [fr'{ah}$=1 $ (old)', fr'{ah}$=1 $ (new)'], 'ah')
+    # psum = get_compared_profiles('sum', r, [1709, 1849], [fr'{ah}$=1 $ (old)', fr'{ah}$=1 $ (new)'], 'ah')
     # plot_profiles([pmax, psum], [all_data_max, all_data_sum], saveall=0)
-    # pmax = get_compared_profiles('max', r, [1710, 1850], [fr'{ahyd}$=3 $ (old)', fr'{ahyd}$=3 $ (new)'], 'ahyd')
-    # psum = get_compared_profiles('sum', r, [1711, 1851], [fr'{ahyd}$=3 $ (old)', fr'{ahyd}$=3 $ (new)'], 'ahyd')
+    # pmax = get_compared_profiles('max', r, [1710, 1850], [fr'{ah}$=3 $ (old)', fr'{ah}$=3 $ (new)'], 'ah')
+    # psum = get_compared_profiles('sum', r, [1711, 1851], [fr'{ah}$=3 $ (old)', fr'{ah}$=3 $ (new)'], 'ah')
     # plot_profiles([pmax, psum], [all_data_max, all_data_sum], saveall=0)

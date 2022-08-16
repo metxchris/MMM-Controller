@@ -204,15 +204,17 @@ def get_scan_num(runid):
     * ValueError: If there are too many scan number directories
     '''
 
-    num_range = range(1, 10000)
+    scan_num = 0
+    max_range = 100000
+    num_range = range(settings.STARTING_SCAN_NUMBER, max_range)
 
     for scan_num in num_range:
         scan_num_path = get_scan_num_path(runid, scan_num)
         if not os.path.exists(scan_num_path):
             break
 
-    if scan_num == max(num_range):
-        raise ValueError(f'Maximum scan number reached {max(num_range)}! Clear some directories to continue')
+    if not scan_num or scan_num == max(num_range):
+        raise ValueError(f'Maximum scan number reached {max_range}! Clear some directories to continue')
 
     return scan_num
 

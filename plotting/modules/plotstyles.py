@@ -58,6 +58,7 @@ class StyleType:
         MAGMA = 3
         RHO_MMM = 4
         RHO_MAGMA = 5
+        COMPARE_MMM = 6
 
     class Layout(Enum):
         '''
@@ -77,6 +78,7 @@ class StyleType:
         SINGLE2 = 4
         SINGLE3 = 5
         AIP = 6
+        AIP2 = 7
 
 
 class PlotStyles:
@@ -93,11 +95,14 @@ class PlotStyles:
     * lines (LineType): The style of the plot lines
     '''
 
-    def __init__(self, axes, lines, layout):
+    def __init__(self, axes=None, lines=None, layout=None):
         # Initialize styles
-        plotting.modules.styles.axes.init(axes)
-        plotting.modules.styles.lines.init(lines)
-        plotting.modules.styles.layout.init(layout)
+        if axes is not None:
+            plotting.modules.styles.axes.init(axes)
+        if lines is not None:
+            plotting.modules.styles.lines.init(lines)
+        if layout is not None:
+            plotting.modules.styles.layout.init(layout)
 
         # Members
         self.dimensions = plotting.modules.styles.layout.Dimensions

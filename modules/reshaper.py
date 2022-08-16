@@ -159,6 +159,8 @@ def create_rho_files(options):
         # Sort negative factors in reverse order (e.g., -6, -5, -4, etc.), then join with non negative factors
         saved_files = negative_factors[::-1] + non_negative_factors
         saved_data = _read_from_files(saved_files, float)
+        if not len(saved_data):
+            continue
         var_names = np.genfromtxt(saved_files[0], delimiter=',', names=True).dtype.names
         reshaped_data = _reshape_data(saved_data, var_names)
         _save_reshaped_csv(reshaped_data, var_names, save_dir, save_type.name.capitalize())
@@ -184,6 +186,6 @@ For testing purposes
 '''
 if __name__ == '__main__':
     from modules.options import Options
-    o = Options().load(runid='121123K55', scan_num=1)
+    o = Options().load(runid='121123K55', scan_num=3)
     utils.clear_folder(utils.get_rho_path(o.runid, o.scan_num, o.var_to_scan), '*.csv')
     create_rho_files(o)

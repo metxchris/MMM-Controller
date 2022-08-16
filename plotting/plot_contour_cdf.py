@@ -39,7 +39,6 @@ from PyQt5.QtWidgets import QApplication
 
 # Local Packages
 import modules.options
-import modules.constants as constants
 import modules.utils as utils
 import modules.datahelper as datahelper
 from modules.variables import InputVariables, OutputVariables
@@ -50,31 +49,7 @@ import plotting.modules.colormaps
 _log = logging.getLogger(__name__)
 
 
-class PlotOptions:
-    """ Store options for the contour plot
-
-    Initialization parameters determine plot settings and must be specified as
-    keyword arguments.
-    """
-
-    def __init__(self, **kwargs):
-        self.ymin: float | None = None
-        self.ymax: float | None = None
-        self.xmin: float | None = None
-        self.xmax: float | None = None
-
-        self._set_kwargs(kwargs)
-
-    def _set_kwargs(self, kwargs):
-        """Set member values using keyword arguments"""
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-            else:
-                _log.error(f'\n\t"{key}" is not a valid parameter for PlotOptions')
-
-
-def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', savefig=False, savedata=False):
+def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, savedata=False):
     """
     Creates PDF Plots of each variable in vars_to_plot
 
@@ -83,7 +58,6 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
     Parameters:
     * vars_to_plot (list): List of output variables to plot
     * options (Options): Object containing user options
-    * plot_options (PlotOptions): Object containing options for the contour plot (Optional)
     * savenameend (str): Name to end file save name with (Optional)
     * savefig (bool): Automatically save the plot if True (Optional)
     * savedata (bool): Automatically save the data if True (Optional)
@@ -108,71 +82,73 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
 
     def get_base_data(name):
         """Base data is unaltered by any scan factors (multipliers)"""
-        obj = None
-        if hasattr(output_vars, name):
-            obj = getattr(output_vars, name)
-        elif hasattr(input_vars, name):
-            obj = getattr(input_vars, name)
-        elif hasattr(controls, name):
-            obj = getattr(controls, name)
+        # obj = None
+        # if hasattr(output_vars, name):
+        #     obj = getattr(output_vars, name)
+        # elif hasattr(mmm_vars, name):
+        #     obj = getattr(mmm_vars, name)
+        # elif hasattr(controls, name):
+        #     obj = getattr(controls, name)
 
-        return obj
+        # return obj
+        ...
 
     def get_var_to_plot_data(name):
         """Get dictionaries of data corresponding to each rho point"""
         obj = None
         if hasattr(output_vars, name):
             obj = output_vars_rho
-        elif hasattr(input_vars, name):
-            obj = input_vars_rho
+        elif hasattr(mmm_vars, name):
+            obj = mmm_vars_rho
 
         return obj
 
     def get_ylabel():
         """Get the ylabel of the plot"""
-        ylabel = xbase.label
+        ylabel = f'{ybase.label} ({ybase.units_label})' if ybase.units_label else f'{ybase.label}'
         if var_to_scan == 'gne' and options.use_gneabs:
             ylabel = f'$|${ylabel}$|$'
 
         if 'time' not in var_to_scan and 'kyrho' not in var_to_scan:  # Most yvariables will be plotted as multipliers
-            ylabel = f'{ylabel} (multipliers)'
+            ylabel = f'{ylabel}'
         elif xbase.units_label:
             ylabel = f'{ylabel} ({xbase.units_label})'
         return ylabel
 
     def get_title():
         """Get the plot title"""
-        title = f'{ybase.label} ({ybase.units_label})' if ybase.units_label else f'{ybase.label}'
+        title = f'{zbase.label} ({zbase.units_label})' if zbase.units_label else f'{zbase.label}'
         if options.use_gnezero:
             title = fr'{title} [$g_\mathrm{{ne}} = 0$]'
         if options.use_gtezero:
             title = fr'{title} [$g_\mathrm{{Te}} = 0$]'
         if options.use_gneabs:
             title = fr'{title} with $|g_\mathrm{{ne}}|$'
-        if controls.etgm_exbs.values and var_to_plot != 'wexb':
-            title = fr'{title} $[\omega_{{E \times\! B}}\,\,\mathrm{{on}}]$'
-        if controls.etgm_sum_modes.values and 'ETGM' in var_to_plot and '\chi' in ybase.label:
-            title = fr'$_{{^\sum}}${title}'
+        # if controls.etgm_exbs.values and var_to_plot != 'wexb':
+        #     title = fr'{title} $[\omega_{{E \times\! B}}\,\,\mathrm{{on}}]$'
+        # if controls.etgm_sum_modes.values and 'ETGM' in var_to_plot and '\chi' in zbase.label:
+        #     title = fr'$_{{^\sum}}${title}'
         return title
 
     def get_smoothing_sigma():
         """Get the sigma used for Gaussian signal smoothing"""
-        medium_smoothing = ['xteETGM', 'xte2ETGM', 'xdiETGM']
-        light_smoothing = [
-            'omgETGM', 'kyrhoeETGM', 'kyrhosETGM',
-            'omegateETGM', 'walfvenunit', 'omegadETGM',
-            'omegasETGM', 'omegasetaETGM', 'omegadiffETGM',
-            'gammadiffETGM'
-        ]
+        # medium_smoothing = ['xteETGM', 'xte2ETGM', 'xdiETGM']
+        # light_smoothing = [
+        #     'omgETGM', 'kyrhoeETGM', 'kyrhosETGM',
+        #     'omegateETGM', 'walfvenunit', 'omegadETGM',
+        #     'omegasETGM', 'omegasetaETGM', 'omegadiffETGM',
+        #     'gammadiffETGM'
+        # ]
 
-        sigma = (0, 0)
-        if options.var_to_scan == 'time':
-            sigma = (0, 0)
-        elif var_to_plot in medium_smoothing:
-            sigma = (2, 2)
-        elif var_to_plot in light_smoothing:
-            sigma = (1, 1)
-        return sigma
+        # sigma = (0, 0)
+        # if options.var_to_scan == 'time':
+        #     sigma = (0, 0)
+        # elif var_to_plot in medium_smoothing:
+        #     sigma = (2, 2)
+        # elif var_to_plot in light_smoothing:
+        #     sigma = (1, 1)
+        # return sigma
+        ...
 
     def get_contour_levels():
         """Get the displayed contour levels"""
@@ -213,35 +189,26 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
 
     # Plotting loop initialization
     colormaps = plotting.modules.colormaps.get_colormaps()
-    var_to_scan = options.var_to_scan
+    
     adjustment_name = options.adjustment_name or options.var_to_scan
 
-    input_vars_rho, output_vars_rho, controls_rho = datahelper.get_all_rho_data(options)
-    input_vars, output_vars, controls = datahelper.get_data_objects(options)
+    # mmm_vars_rho, output_vars_rho, controls_rho = datahelper.get_all_rho_data(options)
+    mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
 
-    xbase = get_base_data(var_to_scan)
+    # rho_strs = mmm_vars_rho.keys()
+    
 
-    x = np.array(list(output_vars_rho.keys()), dtype=float)
-    y = options.scan_range
-
-    # Apply boundary limits to x, y variables
-    if plot_options is not None:
-        if plot_options.xmin is not None:
-            x = x[x >= plot_options.xmin]
-        if plot_options.xmax is not None:
-            x = x[x <= plot_options.xmax]
-        if plot_options.ymin is not None:
-            y = y[y >= plot_options.ymin]
-        if plot_options.ymax is not None:
-            y = y[y <= plot_options.ymax]
-
-    # Convert limited x-axis back to rho strings so that rho files can be read
-    rho_strs = [f'{val:{constants.RHO_VALUE_FMT}}' for val in x]
-
+    x = mmm_vars.rho.values[:, 0]
+    y = mmm_vars.time.values
     X, Y = np.meshgrid(x, y)
     Z = np.zeros_like(X)
 
     for var_to_plot in vars_to_plot:
+
+        var_to_scan = var_to_plot
+        xbase = mmm_vars.rho
+        ybase = mmm_vars.time
+        zbase = getattr(mmm_vars, var_to_plot)
 
         fig, ax = plt.gcf(), plt.gca()  # update figure variables for current plot
 
@@ -252,20 +219,20 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
             _log.warning(f'\n\tNothing to plot when {var_to_plot} is time, continuing to next variable...')
             continue  # nothing to plot (this can happen when using 'var_to_scan')
 
-        ybase = get_base_data(var_to_plot)
-        ydata = get_var_to_plot_data(var_to_plot)
+        # ybase = get_base_data(var_to_plot)
+        ydata = mmm_vars
 
-        if not isinstance(ybase.values, np.ndarray):
-            # Contours need to be np.ndarray. This can happen when using the
-            # same variable plotting list for many different scan types, so
-            # no exception is raised
-            _log.warning(f'\n\t{var_to_plot} is not an np.ndarray, continuing to next variable...')
-            continue
+        # if not isinstance(ybase.values, np.ndarray):
+        #     # Contours need to be np.ndarray. This can happen when using the
+        #     # same variable plotting list for many different scan types, so
+        #     # no exception is raised
+        #     _log.warning(f'\n\t{var_to_plot} is not an np.ndarray, continuing to next variable...')
+        #     continue
 
-        print(f'- {options.scan_num}, {var_to_plot}')
+        print(f'- {var_to_plot}')
 
-        for i, rho_str in enumerate(rho_strs):
-            Z[:, i] = getattr(ydata[rho_str], var_to_plot).values
+        # for i, rho_str in enumerate(rho_strs):
+        Z = getattr(ydata, var_to_plot).values.T
 
         if np.isnan(Z).any():
             # This can happen due to calculation errors or or when loading
@@ -281,10 +248,8 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
             s.set_zorder(10)  # Put axes frame on top of everything
 
         # Apply smoothing and restore original extrema
-        # Z[Z < 1E-6] = -1E-6
         Zmax, Zmin = Z.max(), Z.min()
-        # print(Z)
-        Z = scipy.ndimage.gaussian_filter(Z, sigma=get_smoothing_sigma())
+        # Z = scipy.ndimage.gaussian_filter(Z, sigma=get_smoothing_sigma())
         Z = np.minimum(np.maximum(Z, Zmin), Zmax)
 
         # Default arguments for filled contours, line contours, and both types
@@ -293,8 +258,8 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
         args_both = {}
 
         # Max and min values for Z
-        Zmax = ybase.contour_max
-        Zmin = ybase.contour_min
+        Zmax = zbase.contour_max
+        Zmin = zbase.contour_min
 
         # Clamp Z between Zmin and Zmax
         Z = np.minimum(np.maximum(Z, Zmin), Zmax)
@@ -324,6 +289,7 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
             args_both['extend'] = 'neither'
 
         # Plot contour fills
+        print(X.shape, Y.shape, Z.shape)
         cf = plt.contourf(X, Y, Z, levels=get_contour_levels(), **args_fill, **args_both)
 
         # Remove lowest level when it is also a boundary, so an extra contour line isn't drawn
@@ -355,7 +321,7 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
 
         ax.yaxis.set_minor_formatter(NullFormatter())
 
-        plt.xlabel(r'$\hat{\rho}$')
+        plt.xlabel(r'$\rho$')
         plt.ylabel(get_ylabel())
         plt.title(get_title())
 
@@ -434,15 +400,14 @@ def _verify_vars_to_plot(vars_to_plot):
             raise NameError(f'{var_to_plot} not found in Variables classes')
 
 
-def main(vars_to_plot, scan_data, plot_options=None, savenameend='', savefig=False, savedata=False):
+def main(vars_to_plot, scan_data, savenameend='', savefig=False, savedata=False):
     '''
     Verifies vars_to_plot, then runs the plotting loop for each var_to_plot, runid, and scan_num
 
     Parameters:
     * vars_to_plot (list): List of output variables to plot
     * scan_data (dict): Dictionary of runid to list of scan numbers
-    * plot_options (PlotOptions): Object containing options for the contour plot (Optional)
-    * savenameend (str): Name to end file save name with (Optional)
+    * savenameend (str): Name to end file save name with
     * savefig (bool): Automatically save the plot if True (Optional)
     * savedata (bool): Automatically save the data if True (Optional)
     '''
@@ -456,29 +421,21 @@ def main(vars_to_plot, scan_data, plot_options=None, savenameend='', savefig=Fal
 
     plt.figure()  # Instantiate the figure
 
-    for runid, scan_nums in scan_data.items():
-        for scan_num in scan_nums:
-            options.load(runid, scan_num)
-            if options.var_to_scan:
-                print(f'\nInitializing data for {runid}, scan {scan_num}, {options.var_to_scan}...')
-                run_plotting_loop(vars_to_plot, options, plot_options, savenameend, savefig, savedata)
-            else:
-                _log.error(f'\n\tNo variable scan detected for {runid}, scan {scan_num}\n')
+    for runid in scan_data:
+        options.set(runid=runid)
+        print(f'\nInitializing data for {runid}...')
+        run_plotting_loop(vars_to_plot, options, savenameend, savefig, savedata)
+
 
 
 # Run this file directly to plot scanned variable profiles from previously created scanned data
 if __name__ == '__main__':
-    scan_data = {}
+    scan_data = []
 
     PlotStyles(
         axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.AIP2,
-    )
-
-    plot_options = PlotOptions(
-        xmin=0,
-        xmax=1,
+        layout=StyleType.Layout.SINGLE1B,
     )
 
     plt.rcParams.update({
@@ -491,21 +448,14 @@ if __name__ == '__main__':
     """
 
     # vars_to_plot = ['var_to_scan']
-    vars_to_plot = ['xti', 'xte', 'xdi', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp', 'vct']
-    # vars_to_plot = ['xti', 'xte', 'xde']
-    # vars_to_plot = ['xteDBM', 'xtiDBM', 'xdiDBM', 'gmaDBM', 'omgDBM', 'kyrhosDBM', 'phi2DBM', 'Apara2DBM', 'gaveDBM', 'satDBM', 'fti', 'fte', 'fde']
+    vars_to_plot = ['gni']
     # vars_to_plot = ['gmaW20ii', 'gmaW20ee', 'gmaW20ie']
-    vars_to_plot = ['gaveDBM', 'gmaDBM', 'omgDBM', 'xtiDBM', 'xteDBM', 'kyrhosDBM', 'xdeDBM', 'phi2DBM', 'Apara2DBM', 'fti', 'fte', 'fde']
-    # vars_to_plot = ['fti', 'fte', 'fde']
-    # vars_to_plot = ['xteDBM', 'xtiDBM', 'xteETGM', 'xte2ETGM', 'xteETG', 'xteMTM', 'xteW20', 'xtiW20', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp']
-    # vars_to_plot = ['gmaDBM', 'omgDBM']
+    # vars_to_plot = ['gmaW20i', 'gmaW20e']
+    # vars_to_plot = ['vcz']
+    # vars_to_plot = ['gmaETGM', 'omgETGM', 'xteETGM', 'xte2ETGM']
     # vars_to_plot = OutputVariables().get_all_output_vars()
     # vars_to_plot = OutputVariables().get_etgm_vars()
-    # vars_to_plot = OutputVariables().get_weiland_vars()
-    vars_to_plot = OutputVariables().get_etgm_vars()
-    # vars_to_plot = ['xtiW20', 'xteW20', 'xdeW20']
-    vars_to_plot = ['gmaDBM',]
-    # vars_to_plot = ['nEPM', 'gmaEPM', 'omgEPM', 'kyrhosEPM']
+    # vars_to_plot = OutputVariables().get_mtm_vars()
 
     """
     Scan Data:
@@ -514,38 +464,11 @@ if __name__ == '__main__':
         - values (list of int): The scan_numbers to plot from
     """
 
-    # 472 = OLD
-    # 469 = NEW
-    # 475 = NEW with G_ave_i
-    # 476 = NEW with shat_gxi
-    # scan_data['118341T54'] = [11002]
-    # scan_data['85126T02'] = [11002]
-    # scan_data['121123K55'] = [11000]
-    # scan_data['120982A09'] = [11002]
-    scan_data['120968A02'] = [53]
-    # scan_data['153283T50'] = [8]
-    # scan_data['129041A10'] = [3001]; vars_to_plot = ['ah', 'ai']
-    # scan_data['129041A10'] = [3002]; vars_to_plot = ['betae', 'te', 'ne', 'bu']
-    # scan_data['129041A10'] = [3003]; vars_to_plot = ['gte']
-    # scan_data['129041A10'] = [3004]; vars_to_plot = ['gne']
-    # scan_data['129041A10'] = [3005]; vars_to_plot = ['q']
-    # scan_data['129041A10'] = [3006]; vars_to_plot = ['shat_gxi', 'shear', 'gq']
-    # scan_data['129041A10'] = [3010]; vars_to_plot = ['etae', 'gte', 'gne']
-    # scan_data['129041A10'] = [6003]; vars_to_plot = ['gmaDBM', 'xtiDBM', 'fti', 'fte', 'fde', 'xteDBM', 'xte2DBM']
-
-    nstart = 4000
-    sn = ''
-    if len(vars_to_plot) > 5:
-        sn = 'e' if nstart == 3000 else 'i'
-
-    # scan_data['129041A10'] = [i for i in range(nstart, nstart + 10 + 1)]  # 162 = kyrhos 0.2, 163 = scan, 164 = scan with sum 
-    # scan_data['129041A10'] = [nstart + 10]  # 162 = kyrhos 0.2, 163 = scan, 164 = scan with sum 
-    # scan_data['138536A01'] = [i for i in range(1716, 1738 + 1)]
-    # scan_data['138536A01'] = [i for i in [*range(1716, 1738 + 1), *range(1756, 1763 + 1)]]
+    scan_data.append('120982A09')
 
     """
     Plotting Options:
     * savefig: show figure when True, autosave figure without showing it when False
     * savedata: autosave data into CSVs when True
     """
-    main(vars_to_plot, scan_data, plot_options, savenameend=sn, savefig=0, savedata=False)
+    main(vars_to_plot, scan_data, savenameend='NEW', savefig=0, savedata=False)
