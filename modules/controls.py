@@ -116,11 +116,12 @@ class InputControls:
         
         # EPM options
         self.epm_direction = Control('[Search Direction] 0: Any, 1: Electron, -1: Ion', int, 0)
-        self.epm_n_start = Control('Toroidal wave number start value (min 1)', int, 1)
+        self.epm_n_start = Control('Toroidal wave number start value (min 1)', int, 1, label=r'$n$')
         self.epm_n_end = Control('Toroidal wave number end value ', int, 10)
         self.epm_n_step = Control('Toroidal wave number step value (min 1)', int, 1)
         self.epm_sum_modes = Control('[Mode Handling] 1: Sum modes, 0: Most unstable mode', int, 0)
 
+        self.epm_exbs = Control('ExB shear coefficient', float, 1)
         self.epm_xti_min = Control('Lower bound of ion thermal diffusivity', float, -100)
         self.epm_xti_max = Control('Upper bound of ion thermal diffusivity', float, 100)
         self.epm_xde_min = Control('Lower bound of electron particle diffusivity', float, -100)
@@ -289,6 +290,7 @@ class InputControls:
             '\n'
             '!.. EPM real options\n'
             'rEPM =\n'
+            f'   {self.epm_exbs.get_input_line()}'
             f'   {self.epm_xti_min.get_input_line()}'
             f'   {self.epm_xti_max.get_input_line()}'
             f'   {self.epm_xde_min.get_input_line()}'

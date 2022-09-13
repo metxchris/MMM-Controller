@@ -47,9 +47,9 @@ Adjustment Methodology:
   need to be adjusted in this manner, each variable is adjusted
   (either multiplied or divided) by the same base amount, which is the
   adjustment factor.  For example, if we wanted to double the value of the
-  temperature ratio (tau = te / ti), the scan factor for tau would be 2, and
+  temperature ratio (te_ti = te / ti), the scan factor for te_ti would be 2, and
   the adjustment factor for te and ti would be sqrt(2). By multiplying te and
-  dividing ti by this adjustment factor, we indirectly multiply tau by the
+  dividing ti by this adjustment factor, we indirectly multiply te_ti by the
   value of the scan factor.
 * If any variables have powers attached to them, then the adjustment factor is
   updated as needed, but all variables are still adjusted by the same
@@ -60,7 +60,7 @@ Adjustment Methodology:
   indirectly multiply betae by the value of the scan factor.
 
 Example Usage:
-* new_vars = adjust_scanned_variable(original_vars, 'tau', 2.5)
+* new_vars = adjust_scanned_variable(original_vars, 'te_ti', 2.5)
 """
 
 # Standard Packages
@@ -227,7 +227,7 @@ def _adjust_ne(mmm_vars, scan_factor):
 
     Parameters:
     * mmm_vars (InputVariables): Contains unmodified variables
-    * scan_factor (float): The factor to modify tau by
+    * scan_factor (float): The factor to modify te_ti by
 
     Returns:
     * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
@@ -398,11 +398,11 @@ def _adjust_tau(mmm_vars, scan_factor):
     '''
     Adjusts the temperature ratio
 
-    Tau is adjusted indirectly by adjusting te and ti
+    te_ti is adjusted indirectly by adjusting te and ti
 
     Parameters:
     * mmm_vars (InputVariables): Contains unmodified variables
-    * scan_factor (float): The factor to modify tau by
+    * scan_factor (float): The factor to modify te_ti by
 
     Returns:
     * adjusted_vars (InputVariables): Adjusted variables needed to write MMM input file
@@ -410,14 +410,14 @@ def _adjust_tau(mmm_vars, scan_factor):
 
     t = mmm_vars.options.time_idx
     adjusted_vars = datahelper.deepcopy_data(mmm_vars)
-    adjustment_total = scan_factor**(1 / 2)  # based on the formula for tau
+    adjustment_total = scan_factor**(1 / 2)  # based on the formula for te_ti
     adjusted_vars.te.values *= adjustment_total
     adjusted_vars.ti.values /= adjustment_total
 
     calculations.calculate_base_variables(adjusted_vars)
     calculations.calculate_additional_variables(adjusted_vars)
 
-    _check_adjusted_factor(scan_factor, mmm_vars.tau, adjusted_vars.tau, t)
+    _check_adjusted_factor(scan_factor, mmm_vars.te_ti, adjusted_vars.te_ti, t)
 
     return adjusted_vars
 
@@ -701,7 +701,7 @@ def adjust_scanned_variable(mmm_vars, scan_factor):
     elif adjustment_name == 'zeff':
         adjusted_vars = _adjust_zeff(mmm_vars, scan_factor)
 
-    elif adjustment_name == 'tau':
+    elif adjustment_name == 'te_ti':
         adjusted_vars = _adjust_tau(mmm_vars, scan_factor)
 
     elif adjustment_name == 'etae':
@@ -753,7 +753,7 @@ if __name__ == '__main__':  # For Testing Purposes
         input_time=.63,
     )
 
-    mmm_vars, __, __ = datahelper.initialize_variables(options)
+    mmm_vars = datahelper.initialize_variables(options, 1, 1)
 
     # Check that all scan_factors can be found in scan_range (failures will raise a ValueError)
     scan_range = np.hstack(
@@ -765,8 +765,8 @@ if __name__ == '__main__':  # For Testing Purposes
 
     advanced_scans = [
         'ne', 'nuei_alphaconst', 'nuei_lareunitconst', 'zeff',
-        'tau', 'etae', 'shear', 'btor',
-        'bu', 'betae', 'betaeu', 'betaeu_alphaconst'
+        'te_ti', 'etae', 'shear', 'btor',
+        'bu', 'betae', 'betaeu',
     ]
 
     for var_name in advanced_scans:

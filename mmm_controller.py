@@ -197,7 +197,7 @@ def main(scanned_vars, controls):
 
         utils.init_output_dirs(options)
 
-        mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
+        mmm_vars = datahelper.initialize_variables(options, num_objects=1, reduce_memory=True)
         output_vars = mmm.run_wrapper(mmm_vars, controls)
         calculations.calculate_output_variables(mmm_vars, output_vars, controls)
 
@@ -209,7 +209,6 @@ def main(scanned_vars, controls):
         if settings.MAKE_PROFILE_PDFS:
             profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
             profiles.plot_profiles(ProfileType.ADDITIONAL, mmm_vars)
-            profiles.plot_profiles(ProfileType.COMPARED, mmm_vars, cdf_vars)
             profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
 
         # Variable and control scans
@@ -236,75 +235,76 @@ if __name__ == '__main__':
     TRANSP Data:
     * Uncomment the line you wish to use
     # '''
-    runid, shot_type, input_time = '121123K55', ShotType.NSTU, 11.8
+    runid, shot_type, input_time = '121123K55', ShotType.NSTU, 11.8  #            300
 
-    runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.56  # High
-    runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.752  # High
-    # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.62  # Low
-    # runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.46
-    # runid, shot_type, input_time = '129017A04', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '129018A02', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '129019A02', ShotType.NSTX, 0.62
-    # runid, shot_type, input_time = '129020A02', ShotType.NSTX, 0.56
-    # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.49  # Medium
-    runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.629
-    # runid, shot_type, input_time = '141007A10', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '141031A01', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '141032A01', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '141040A01', ShotType.NSTX, 0.5
-    # runid, shot_type, input_time = '141716A80', ShotType.NSTX, 0.5
+    runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.56  # High       300
+    runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.62  # Low        290
+    runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.49  #            293
+    runid, shot_type, input_time = '129017A04', ShotType.NSTX, 0.5   #            294
+    runid, shot_type, input_time = '129018A02', ShotType.NSTX, 0.5   #            292
+    runid, shot_type, input_time = '129019A02', ShotType.NSTX, 0.62  #            288
+    runid, shot_type, input_time = '129020A02', ShotType.NSTX, 0.56  #            297
+    runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.49  # Medium     297
+    runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.63  #            300
+    # runid, shot_type, input_time = '141007A10', ShotType.NSTX, 0.5   #            288
+    # runid, shot_type, input_time = '141031A01', ShotType.NSTX, 0.5   #            162
+    # runid, shot_type, input_time = '141032A01', ShotType.NSTX, 0.5   #            278
+    # runid, shot_type, input_time = '141040A01', ShotType.NSTX, 0.5   #            279
+    # runid, shot_type, input_time = '141716A80', ShotType.NSTX, 0.5   #            281
 
-    # runid, shot_type, input_time = '98777V06', ShotType.D3D, 5.6
-    # runid, shot_type, input_time = '101381J05', ShotType.D3D, 5.6
-    # runid, shot_type, input_time = '101381T31', ShotType.D3D, 5.6
-    # runid, shot_type, input_time = '101391J08', ShotType.D3D, 5.6
-    # runid, shot_type, input_time = '118341T54', ShotType.D3D, 5.6
-    # runid, shot_type, input_time = '132017T01', ShotType.D3D, 2
-    # runid, shot_type, input_time = '132411T02', ShotType.D3D, 0.56
-    # runid, shot_type, input_time = '132498J05', ShotType.D3D, 0.56
-    # runid, shot_type, input_time = '141552A01', ShotType.D3D, 2
-    # runid, shot_type, input_time = '150840T02', ShotType.D3D, 2
-    # runid, shot_type, input_time = '153283T50', ShotType.D3D, 2
+    # runid, shot_type, input_time = '98777V06', ShotType.D3D, 5.6     #            239
+    # runid, shot_type, input_time = '101381T31', ShotType.D3D, 5.6    #            300
+    # runid, shot_type, input_time = '101391J08', ShotType.D3D, 5.6    #            151
+    # runid, shot_type, input_time = '118341T54', ShotType.D3D, 5.6    #            41
+    # runid, shot_type, input_time = '132017T01', ShotType.D3D, 2      #            21
+    # runid, shot_type, input_time = '132411T02', ShotType.D3D, 0.56   #            101
+    # runid, shot_type, input_time = '132498J05', ShotType.D3D, 0.56   #            300
+    # runid, shot_type, input_time = '141552A01', ShotType.D3D, 2      #            37
+    # runid, shot_type, input_time = '150840T02', ShotType.D3D, 2      #            101
+    # runid, shot_type, input_time = '153283T50', ShotType.D3D, 2      #            51
 
-    # runid, shot_type, input_time = '85126T02', ShotType.EAST, 2
-    # runid, shot_type, input_time = '85610T01', ShotType.EAST, 2
-    # runid, shot_type, input_time = '85122T04', ShotType.EAST, 2
-    # runid, shot_type, input_time = '80208T04', ShotType.EAST, 2
-    # runid, shot_type, input_time = '90328T01', ShotType.EAST, 2
+    # runid, shot_type, input_time = '85126T02', ShotType.EAST, 2      #            300
+    # runid, shot_type, input_time = '85610T01', ShotType.EAST, 2      #            300
+    # runid, shot_type, input_time = '85122T04', ShotType.EAST, 2      #            300
+    # runid, shot_type, input_time = '80208T04', ShotType.EAST, 2      #            300
+    # runid, shot_type, input_time = '90328T01', ShotType.EAST, 2      #            300
 
-    # runid, shot_type, input_time = '15334T03', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '16295T10', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '16297T01', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '16299T01', ShotType.KSTR, 2.25
-    # runid, shot_type, input_time = '16325T10', ShotType.KSTR, 4.023
-    # runid, shot_type, input_time = '16901T01', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '18399T05', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '18400T01', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '18402T01', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '18404T05', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '18476T02', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '18477T01', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '18492T01', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '18495T01', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '18499T01', ShotType.KSTR, 2
-    # runid, shot_type, input_time = '18602T01', ShotType.KSTR, 2
+    # runid, shot_type, input_time = '15334T03', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '16295T10', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '16297T01', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '16299T01', ShotType.KSTR, 2.25   #            300
+    runid, shot_type, input_time = '16325T10', ShotType.KSTR, 9.503   #            300
+    # runid, shot_type, input_time = '16901T01', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18399T05', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18400T01', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18402T01', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18404T05', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18476T02', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18477T01', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18492T01', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18495T01', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18499T01', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18602T01', ShotType.KSTR, 2      #            300
 
-    # runid, shot_type, input_time = '08505Z06', ShotType.MAST, 2
-    # runid, shot_type, input_time = '18696B01', ShotType.MAST, 2
-    # runid, shot_type, input_time = '22341P37', ShotType.MAST, 0.25
-    # runid, shot_type, input_time = '24899R05', ShotType.MAST, 2
-    # runid, shot_type, input_time = '27527M34', ShotType.MAST, 2
-    # runid, shot_type, input_time = '29271A01', ShotType.MAST, 2
-    # runid, shot_type, input_time = '29976U69', ShotType.MAST, 2
-    # runid, shot_type, input_time = '45424H01', ShotType.MAST, 2
+    # runid, shot_type, input_time = '08505Z06', ShotType.MAST, 2      #            31
+    # runid, shot_type, input_time = '18696B01', ShotType.MAST, 2      #            261
+    # runid, shot_type, input_time = '22341P37', ShotType.MAST, 0.25   #            66
+    # runid, shot_type, input_time = '24899R05', ShotType.MAST, 2      #            208
+    # runid, shot_type, input_time = '27527M34', ShotType.MAST, 2      #            174
+    # runid, shot_type, input_time = '29271A01', ShotType.MAST, 2      #            46
+    # runid, shot_type, input_time = '29976U69', ShotType.MAST, 2      #            150
+    # runid, shot_type, input_time = '45424H01', ShotType.MAST, 2      #            23
 
-    # runid, shot_type, input_time = '18696R06', ShotType.ITER, 2
-    # runid, shot_type, input_time = '38265R80', ShotType.ITER, 2
-    # runid, shot_type, input_time = '50000A10', ShotType.ITER, 2
-    # runid, shot_type, input_time = '80200A13', ShotType.ITER, 1.0
-    # runid, shot_type, input_time = '80300A02', ShotType.ITER, 2
+    # runid, shot_type, input_time = '18696R06', ShotType.ITER, 2      #            205
+    # runid, shot_type, input_time = '38265R80', ShotType.ITER, 2      #            300
+    # runid, shot_type, input_time = '50000A10', ShotType.ITER, 2      #            300
+    # runid, shot_type, input_time = '80200A13', ShotType.ITER, 1.0    #            300
+    # runid, shot_type, input_time = '80300A02', ShotType.ITER, 2      #            300
 
     # runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
+
+    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.752  # DRIBM Spike
+    # runid, shot_type, input_time = '129016A03', ShotType.NSTX, 0.46  # Cesar data
 
     # # !runid, shot_type, input_time = '144449T54', ShotType.D3D, 2
     # # !runid, shot_type, input_time = '85124T02', ShotType.EAST, 2
@@ -320,6 +320,8 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '33701K02', ShotType.ITER, 2
     # runid, shot_type, input_time = '35601B11', ShotType.ITER, 2
     # runid, shot_type, input_time = '59100A05', ShotType.ITER, 2
+    # runid, shot_type, input_time = '129016A03', ShotType.NSTX, 0.49
+    # runid, shot_type, input_time = '101381J05', ShotType.D3D, 5.6
 
     '''
     Scanned Variables:
@@ -332,8 +334,9 @@ if __name__ == '__main__':
     # scanned_vars['mtm_kyrhos_min'] = np.arange(start=0.1, stop=3 + 1e-6, step=0.1)
     # scanned_vars['mtm_kyrhos_max'] = np.arange(start=5, stop=10.0 + 1e-6, step=0.5)
     # scanned_vars['weiland_kyrhos'] = np.arange(start=0.2, stop=0.4 + 1e-6, step=0.005)
+    # scanned_vars['epm_n_start'] = np.arange(start=1, stop=50 + 1e-6, step=1)
 
-    # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1, stop=40 + 1e-6, step=0.2)
+    # scanned_vars['etgm_kyrhos_min'] = np.arange(start=0.1, stop=20 + 1e-6, step=0.1)
     # scanned_vars['etgm_alpha_mult'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_betae_mult'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_nuei_mult'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.025)
@@ -384,8 +387,8 @@ if __name__ == '__main__':
     # scanned_vars['time'] = np.arange(start=0.3, stop=0.6 + 1e-6, step=0.001)
 
     # normalized time scan (options.normalize_time_range = 1)
-    # scanned_vars['time'] = np.linspace(start=0, stop=1, num=40)
-    scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
+    scanned_vars['time'] = np.linspace(start=0, stop=1, num=40)
+    # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
     # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=300)
 
 
@@ -413,7 +416,7 @@ if __name__ == '__main__':
         shot_type=shot_type,
         input_time=input_time,
         input_points=101,
-        apply_smoothing=1,
+        apply_smoothing=0,
         use_gtezero=0,
         use_gnezero=0,
         use_gneabs=0,
@@ -427,14 +430,14 @@ if __name__ == '__main__':
     Input Controls:
     * cmodel enables (disables) the corresponding model if set to 1 (0)
     '''
-    wexb = 0
+    wexb = 0.0
     controls = modules.controls.InputControls(
         options,
         # CMODEL
         cmodel_weiland=0,
         cmodel_dribm=0,
-        cmodel_epm=1,
-        cmodel_etgm=0,
+        cmodel_epm=0,
+        cmodel_etgm=1,
         cmodel_mtm=0,
         cmodel_etg=0,
         # W20
@@ -443,6 +446,8 @@ if __name__ == '__main__':
         weiland_exbs=wexb,
         weiland_kyrhos=0.316,
         # EPM
+        epm_exbs=wexb,
+        epm_direction=0,
         epm_n_start=1,
         epm_n_end=10,
         epm_n_step=1,
@@ -450,8 +455,8 @@ if __name__ == '__main__':
         dribm_exbs=wexb,
         dribm_direction=1,
         dribm_sum_modes=0,
-        dribm_kyrhos_scan=0,
-        dribm_kyrhos_min=1,
+        dribm_kyrhos_scan=20,
+        dribm_kyrhos_min=0.05,
         dribm_kyrhos_max=0.3,
         dribm_kxoky=1,
         dribm_sat_expo=2,
@@ -468,7 +473,7 @@ if __name__ == '__main__':
         etgm_exbs=wexb,
         etgm_direction=0,
         etgm_sum_modes=0,
-        etgm_kyrhos_scan=200,
+        etgm_kyrhos_scan=50,
         etgm_kyrhos_min=1,
         etgm_kyrhos_max=50,
         etgm_kxoky=0.5,
@@ -511,7 +516,8 @@ if __name__ == '__main__':
     settings.AUTO_OPEN_PDFS = 0
     settings.MAKE_PROFILE_PDFS = 0
     settings.PRINT_MMM_RESPONSE = 0
-    settings.SAVE_ADDITIONAL_VARIABLES = 0
+    settings.SAVE_ADDITIONAL_VARIABLES = 1
+    # settings.STARTING_SCAN_NUMBER = 13260
     settings.STARTING_SCAN_NUMBER = 1
 
     main(scanned_vars, controls)

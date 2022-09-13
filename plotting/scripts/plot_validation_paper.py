@@ -151,11 +151,11 @@ if __name__ == '__main__':
         xlabel_override=r'',
     )
 
-    savefig = 0
+    savefig = 1
     savedata = 1
 
-    plot_east = 0
-    plot_kstr = 1
+    plot_east = 1
+    plot_kstr = 0
     plot_d3d = 0
     plot_jet = 0
 
@@ -182,10 +182,10 @@ if __name__ == '__main__':
         )
         make_plot(
             extradata=(
-                csv_to_plotdata('85126LHT.txt', '85126', 0.8, 'curlh', 'time', yunits='AMPS', timeplot=True, legend='High Density'),
-                csv_to_plotdata('85610LHT.txt', '85610', 0.8, 'curlh', 'time', yunits='AMPS', timeplot=True, legend='Low Density'),
+                csv_to_plotdata('85126LHT.txt', '85126', 1.0, 'curlh', 'time', yunits='AMPS', timeplot=True, legend='High Density'),
+                csv_to_plotdata('85610LHT.txt', '85610', 1.0, 'curlh', 'time', yunits='AMPS', timeplot=True, legend='Low Density'),
             ),
-            title='EAST 85126, 85610', time=0.8, ymax=0.5, xmax=6, xmin=1, timeplot=True, xticks=np.arange(1,7),
+            title='EAST 85126, 85610', time=1.0, ymax=0.5, xmax=6, xmin=1, timeplot=True, xticks=np.arange(1,7),
         )
         make_plot(
             extradata=(
@@ -203,10 +203,10 @@ if __name__ == '__main__':
         )
         make_plot(
             extradata=(
-                csv_to_plotdata('85126oHT.txt', '85126', 0.8, 'curoh', 'time', yunits='AMPS', timeplot=True, legend='High Density'),
-                csv_to_plotdata('85610oHT.txt', '85610', 0.8, 'curoh', 'time', yunits='AMPS', timeplot=True, legend='Low Density'),
+                csv_to_plotdata('85126oHT.txt', '85126', 1.0, 'curoh', 'time', yunits='AMPS', timeplot=True, legend='High Density'),
+                csv_to_plotdata('85610oHT.txt', '85610', 1.0, 'curoh', 'time', yunits='AMPS', timeplot=True, legend='Low Density'),
             ),
-            title='EAST 85126, 85610', time=0.8, ymax=0.6, xmax=6, xmin=1, timeplot=True, xticks=np.arange(1,7),
+            title='EAST 85126, 85610', time=1.0, ymax=0.6, xmax=6, xmin=1, timeplot=True, xticks=np.arange(1,7),
         )
 
         """85126"""

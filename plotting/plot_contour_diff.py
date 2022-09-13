@@ -58,11 +58,12 @@ class ContourPlotData:
 
 
 class PlotOptions:
-    def __init__(self, title='', savenameend='', savefig=False, savedata=False, difftype='diff'):
+    def __init__(self, title='', savenameend='', savefig=False, savedata=False, difftype='diff', plotempty=False):
         self.title: str = title
         self.savefig: bool = savefig
         self.savedata: bool = savedata
         self.savenameend: str = savenameend
+        self.plotempty: bool = plotempty
 
         difftypes = ['diff', 'absdiff', 'absratio', 'ratio']
         if difftype not in difftypes:
@@ -280,8 +281,9 @@ def plot_contour_difference(contour_list, plot_options):
         Z1[:, i] = getattr(ydata1[rho_str], var_to_plot1).values
         Z2[:, i] = getattr(ydata2[rho_str], var_to_plot2).values
 
-    if (Z1 == Z2).all():
-        print(f'Identical data sets found for {var_to_plot1}, {var_to_plot2}')
+    if not plot_options.plotempty and (Z1 == Z2).all():
+        print(f'*** Identical data sets found for {var_to_plot1}, {var_to_plot2}')
+        plt.close(fig)
         return
 
     # Take difference
@@ -297,6 +299,10 @@ def plot_contour_difference(contour_list, plot_options):
         Z = Zdiff / Zsum
     elif plot_options.difftype == 'absratio':
         Z = np.absolute(Zdiff / Zsum)
+
+    print(f'Max difference for {var_to_plot1}, {var_to_plot2}: {Z.max():.3e}')
+    plt.close(fig)
+    return
 
     if np.isnan(Z).any():
         # This can happen due to calculation errors or or when loading
@@ -330,7 +336,11 @@ def plot_contour_difference(contour_list, plot_options):
     # Z = np.minimum(np.maximum(Z, Zmin), Zmax)
 
     # Set colormaps
-    if Z.min() >= 0:
+    if (Z1 == Z2).all():
+        args_both['norm'] = None
+        args_fill['cmap'] = colormaps['white']
+        args_line['cmap'] = colormaps['white']
+    elif Z.min() >= 0:
         args_both['norm'] = None
         args_fill['cmap'] = colormaps['magma_positive']
         args_line['cmap'] = colormaps['magma_positive_lines']
@@ -477,6 +487,9 @@ def main(vars_to_plot, scan_data, plot_options):
     utils.init_logging()
     _verify_vars_to_plot(vars_to_plot)
 
+    print()
+    print(f'Differences for {scan_data.keys()}:')
+
     if plot_options.savefig:
         print(f'Files will be saved in:\n\t{utils.get_plotting_contours_path()}')
 
@@ -503,7 +516,7 @@ def main(vars_to_plot, scan_data, plot_options):
             if c.var_to_plot == 'time':
                 raise ValueError(f'Nothing to plot when {var_to_plot} is time...')
         if contour_list[0].options.var_to_scan != contour_list[1].options.var_to_scan:
-            raise ValueError(f'Variable scan is not the same for each data set')            
+            raise ValueError(f'Variable scan is not the same for each data set')
 
         plot_contour_difference(contour_list, plot_options)
 
@@ -524,10 +537,11 @@ if __name__ == '__main__':
 
     plot_options = PlotOptions(
         title='',
-        savenameend='',
-        savefig=False,
-        savedata=False,
-        difftype='absdiff'
+        savenameend='gi',
+        savefig=0,
+        savedata=0,
+        difftype='absdiff',
+        plotempty=0,
     )
 
     """
@@ -536,6 +550,7 @@ if __name__ == '__main__':
     """
 
     vars_to_plot = ['xte', 'xti', 'xdi', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp', 'vct']
+    vars_to_plot = ['xteW20', 'xtiW20', 'xdiW20']
     # vars_to_plot = ['vci', 'vch', 'vce', 'vcz', 'vct', 'vcp']
     """
     Scan Data:
@@ -578,11 +593,15 @@ if __name__ == '__main__':
     # scan_data['118341T54'] = [11000, 11002]  # Starting with no optimizations
     # scan_data['85126T02']  = [11000, 11002]  # Starting with no optimizations
 
-    scan_data['138536A01']  = [323, 326]  # Starting with no optimizations
+    # scan_data['121123K55']  = [13200, 13201]  # Starting with no optimizations
 
-    vars_to_plot = [ 'xteMTM', 'xteDBM', 'xtiDBM', 'xteETG', 'xteETGM', 'xte2ETGM', 'xteW20', 'xtiW20', 'xdeW20', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp']
-    vars_to_plot = [ 'xtiW20','xteW20', 'xdeW20', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp']
-    vars_to_plot = ['gmaEPM']
+    vars_to_plot = ['xteMTM', 'xteDBM', 'xtiDBM', 'xteETG', 'xteETGM', 'xte2ETGM', 'xteW20', 'xtiW20', 'xdeW20', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp']
+    vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp', 'vct']
+    vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
+    vars_to_plot = ['nEPM', 'gmaEPM', 'omgEPM', 'gaveEPM']
+    # vars_to_plot = ['gmaETGM', 'xteETGM', 'xte2ETGM',]
+    # vars_to_plot = ['xtiEPM', 'xteEPM', 'xdeEPM']
+    # vars_to_plot = ['gmaEPM']
     # vars_to_plot = ['gmaDBM', 'omgDBM', , 'xtiDBM', 'xdiDBM']
 
     # scan_data['138536A01'] = [100, 109]  # zcf definition simplification
@@ -602,6 +621,31 @@ if __name__ == '__main__':
     # scan_data['138536A01'] = [231, 255]  # zlf_factor added to DRIBM
     # scan_data['138536A01'] = [255, 263]  # testmmm update and prior to removing smoothing from q
     # scan_data['138536A01'] = [157, 158]  #
+
+    diff1, diff2 = 452, 453
+    scan_data['138536A01'] = [diff1, diff2]
+    # all_scans = [
+    #     # NSTU
+    #     '121123K55',
+    #     # NSTX
+    #     '120968A02','120982A09','129016A04','129017A04','129018A02','129019A02','129020A02','129041A10','138536A01','141007A10','141031A01','141032A01','141040A01','141716A80',
+    #     # D3D
+    #     '98777V06','101381T31','101391J08','118341T54','132017T01','132411T02','132498J05','141552A01','150840T02','153283T50',
+    #     # EAST
+    #     '85126T02','85610T01','85122T04','80208T04','90328T01',
+    #     # KSTR
+    #     '15334T03','16295T10','16297T01','16299T01','16325T10','16901T01','18399T05','18400T01','18402T01','18404T05','18476T02','18477T01','18492T01','18495T01','18499T01','18602T01',
+    #     # MAST
+    #     '08505Z06','18696B01','22341P37','24899R05','27527M34','29271A01','29976U69','45424H01',
+    #     # ITER
+    #     '18696R06','38265R80','50000A10','80200A13','80300A02',
+    # ]
+    
+    # for scan in all_scans:
+    #     scan_data.clear()
+    #     scan_data[scan] = [diff1, diff2]
+    #     main(vars_to_plot, scan_data, plot_options)
+    
 
     # vars_to_plot = ['gmaDBM','gmaETGM']
     # scan_data['118341T54'] = [536, 531]  #

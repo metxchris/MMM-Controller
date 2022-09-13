@@ -176,7 +176,7 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
 
     def get_contour_levels():
         """Get the displayed contour levels"""
-        contour_level_count = 20  # Average number of contours to show (actual number will vary)
+        contour_level_count = min(20, len(np.unique(np.round(Z, 3))))  # Average number of contours to show (actual number will vary)
         loc = ticker.MaxNLocator(contour_level_count + 1, min_n_ticks=contour_level_count - 4)
         lvls = loc.tick_values(Z.min(), Z.max())
 
@@ -469,6 +469,7 @@ def main(vars_to_plot, scan_data, plot_options=None, savenameend='', savefig=Fal
 # Run this file directly to plot scanned variable profiles from previously created scanned data
 if __name__ == '__main__':
     scan_data = {}
+    sn = ''
 
     PlotStyles(
         axes=StyleType.Axes.WHITE,
@@ -502,10 +503,14 @@ if __name__ == '__main__':
     # vars_to_plot = OutputVariables().get_all_output_vars()
     # vars_to_plot = OutputVariables().get_etgm_vars()
     # vars_to_plot = OutputVariables().get_weiland_vars()
-    vars_to_plot = OutputVariables().get_etgm_vars()
+    # vars_to_plot = OutputVariables().get_etgm_vars()
     # vars_to_plot = ['xtiW20', 'xteW20', 'xdeW20']
-    vars_to_plot = ['gmaDBM',]
-    vars_to_plot = ['nEPM', 'gmaEPM', 'omgEPM', 'kyrhosEPM']
+    # vars_to_plot = ['gmaDBM',]
+    # vars_to_plot = ['xtiEPM','nEPM', 'gmaEPM', 'omgEPM', 'gaveEPM']
+    # vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
+    vars_to_plot = ['gmaETGM']
+    # vars_to_plot = ['xtiEPM', 'xteEPM', 'xdeEPM']
+    # vars_to_plot = ['gmaW20i', 'gmaW20e', 'omgW20i', 'omgW20e']
 
     """
     Scan Data:
@@ -522,7 +527,26 @@ if __name__ == '__main__':
     # scan_data['85126T02'] = [11002]
     # scan_data['121123K55'] = [11000]
     # scan_data['120982A09'] = [11002]
-    scan_data['138536A01'] = [352]
+
+    # scan_data['120968A02'] = [13080]
+    # scan_data['120982A09'] = [13080]
+    # scan_data['129016A04'] = [13080]
+    # scan_data['129017A04'] = [13080]
+    # scan_data['129018A02'] = [13080]
+    # scan_data['129019A02'] = [13080]
+    # scan_data['129020A02'] = [13080]
+    # scan_data['129041A10'] = [13080]
+    # scan_data['138536A01'] = [421]
+    # scan_data['141007A10'] = [13080]
+    # scan_data['141031A01'] = [13080]
+    # scan_data['141032A01'] = [13080]
+    # scan_data['141040A01'] = [13080]
+    # scan_data['141716A80'] = [13080]
+
+    scan_data['129016A03'] = [31]
+    # scan_data['129016A04'] = [15]
+    # scan_data['138536A01'] = [456]
+
     # scan_data['153283T50'] = [8]
     # scan_data['129041A10'] = [3001]; vars_to_plot = ['ah', 'ai']
     # scan_data['129041A10'] = [3002]; vars_to_plot = ['betae', 'te', 'ne', 'bu']
@@ -534,9 +558,9 @@ if __name__ == '__main__':
     # scan_data['129041A10'] = [6003]; vars_to_plot = ['gmaDBM', 'xtiDBM', 'fti', 'fte', 'fde', 'xteDBM', 'xte2DBM']
 
     nstart = 4000
-    sn = ''
-    if len(vars_to_plot) > 5:
-        sn = 'e' if nstart == 3000 else 'i'
+    # sn = str(scan_data['138536A01'][0] - 13090)
+    # if len(vars_to_plot) > 5:
+    #     sn = 'e' if nstart == 3000 else 'i'
 
     # scan_data['129041A10'] = [i for i in range(nstart, nstart + 10 + 1)]  # 162 = kyrhos 0.2, 163 = scan, 164 = scan with sum 
     # scan_data['129041A10'] = [nstart + 10]  # 162 = kyrhos 0.2, 163 = scan, 164 = scan with sum 
@@ -548,4 +572,4 @@ if __name__ == '__main__':
     * savefig: show figure when True, autosave figure without showing it when False
     * savedata: autosave data into CSVs when True
     """
-    main(vars_to_plot, scan_data, plot_options, savenameend=sn, savefig=0, savedata=False)
+    main(vars_to_plot, scan_data, plot_options, savenameend=sn, savefig=0, savedata=0)

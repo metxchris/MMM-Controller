@@ -65,7 +65,7 @@ if __name__ == '__main__':
         # 'text.usetex': True,
     })
 
-    n = 30  # Scan numbers
+    n = 458  # Scan numbers
     r = '138536A01'  # Discharge
 
     profiles = [
@@ -108,7 +108,7 @@ if __name__ == '__main__':
         # (PlotDataCsv(r, n, 'etae'), ),
         # (PlotDataCsv(r, n, 'eps'), ),
         # (PlotDataCsv(r, n, 'nuste'), PlotDataCsv(r, n, 'nusti'), ),
-        # (PlotDataCsv(r, n, 'shear'), PlotDataCsv(r, n, 'shat_gxi'), ),
+        (PlotDataCsv(r, n, 'shear'), PlotDataCsv(r, n, 'shat_gxi'), ),
         # (PlotDataCsv(r, n, 'alphamhd'), ),
         # (PlotDataCsv(r, n, 'alphamhdu'), ),
         # (PlotDataCsv(r, n, 'gyrfi'), ),
@@ -123,14 +123,14 @@ if __name__ == '__main__':
         # (PlotDataCsv(r, n, 'vthi'), ),
         # (PlotDataCsv(r, n, 'csound'), ),
         # (PlotDataCsv(r, n, 'csound_a'), ),
-        # (PlotDataCsv(r, n, 'wtransit'), ),
-        # (PlotDataCsv(r, n, 'wbounce'), ),
+        # (PlotDataCsv(r, n, 'wte'), ),
+        # (PlotDataCsv(r, n, 'wbe'), ),
         # # Individual parameter scan profiles
         # (PlotDataCsv(r, n, 'betae'), ),
         # (PlotDataCsv(r, n, 'shat_gxi'), ),
         # (PlotDataCsv(r, n, 'gne'), ),
         # (PlotDataCsv(r, n, 'gte'), ),
-        (PlotDataCsv(r, n, 'gte'), PlotDataCsv(r, n, 'gtecritETG'), ),
+        (PlotDataCsv(r, n, 'gte'), PlotDataCsv(r, n, 'gtecETG'), ),
         (PlotDataCsv(r, n, 'ne'), ),
         (PlotDataCsv(r, n, 'nuei'), ),
         (PlotDataCsv(r, n, 'te'), ),
@@ -144,8 +144,8 @@ if __name__ == '__main__':
         (PlotDataCsv(r, n, 'gaveETGM'), ),
         # (PlotDataCsv(r, n, 'phiETGM'), ),
         # (PlotDataCsv(r, n, 'AparaETGM'), ),
-        (PlotDataCsv(r, n, 'walfvenunit'), ),
-        (PlotDataCsv(r, n, 'omegasETGM'), ),
+        (PlotDataCsv(r, n, 'waETGM'), ),
+        (PlotDataCsv(r, n, 'wseETGM'), ),
     ]
 
     # profiles = [
@@ -153,4 +153,4 @@ if __name__ == '__main__':
     # ]
 
     # MAIN PROFILES
-    plot_profiles([profiles], [all_data], savefig=1, savedata=1)
+    plot_profiles([profiles], [all_data], savefig=0, savedata=1)

@@ -63,6 +63,12 @@ def _init_colormaps():
     cmap = LinearSegmentedColormap.from_list(colormap_key, colors, N=256)
     colormaps[colormap_key] = cmap
 
+    colormap_key = 'white'
+    cmap = cm.get_cmap('magma_r', 256)
+    colors = np.array(cmap(np.arange(0, cmap.N))) * 0 + 1
+    cmap = LinearSegmentedColormap.from_list(colormap_key, colors, N=256)
+    colormaps[colormap_key] = cmap
+
 
 def get_colormaps():
     if not colormaps:

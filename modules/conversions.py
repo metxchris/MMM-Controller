@@ -76,6 +76,7 @@ def convert_units(input_var):
     * input_var (Variable): Object containing variable data
     '''
 
+    # TODO: Implement lowercase checks to remove redundancies
     units = input_var.units
     if units == 'CM':
         input_var.set(values=input_var.values / 100, units='m')
@@ -89,7 +90,7 @@ def convert_units(input_var):
         input_var.set(values=input_var.values / 100, units='m/s')
     elif units == 'N/CM**3' or units == '#/CM**3':
         input_var.set(values=input_var.values * 10**6, units='m^-3')
-    elif units == 'EV':
+    elif units == 'EV' or units =='eV':
         input_var.set(values=input_var.values / 1000, units='keV')
     elif units == 'CM**2/SEC':
         input_var.set(values=input_var.values / 10**4, units='m^2/s')
@@ -115,8 +116,6 @@ def convert_units(input_var):
         input_var.set(units='T')
     elif units == 'WEBERS':
         input_var.set(units='T*m^2')
-    elif units == 'SECONDS':
-        input_var.set(units='s')
 
 
 def _interp_to_boundarygrid(input_var, xvals):

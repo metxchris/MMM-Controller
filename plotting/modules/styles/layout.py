@@ -173,7 +173,7 @@ def init(style):
             'axes.titlesize': 8.5,
             'axes.titlepad': 3.5,
             'figure.figsize': [2.5, 2.08],
-            'figure.subplot.bottom': 0.16,
+            'figure.subplot.bottom': 0.17,
             'figure.subplot.hspace': 0.38,
             'figure.subplot.left': 0.2,
             'figure.subplot.right': 0.94,

@@ -294,15 +294,6 @@ def bu(calc_vars):
 
 
 @calculation
-def bu_btor(calc_vars):
-    '''Toroidal Magnetic Field'''
-    bu = calc_vars.bu.values
-    btor = calc_vars.btor.values
-
-    return bu / btor
-
-
-@calculation
 def csound(calc_vars):
     '''Sound Speed'''
     zckb = constants.ZCKB
@@ -326,20 +317,40 @@ def csound_a(calc_vars):
 def curlh(calc_vars):
     '''LH Current'''
     curdlh = calc_vars.curdlh.values
-    area = calc_vars.surf.values
+    darea = calc_vars.darea.values
     rmin = calc_vars.rmin.values
 
-    # return curdlh * area
-    return curdlh * constants.PI * rmin**2
+    return curdlh * darea
+    # return curdlh * constants.PI * rmin**2
 
 
 @calculation
 def curoh(calc_vars):
     '''OH Current'''
     curdoh = calc_vars.curdoh.values
-    area = calc_vars.darea.values
+    darea = calc_vars.darea.values
 
-    return curdoh * area
+    icur = np.zeros((darea.shape[1], 1))
+
+    for i in range(len(icur)):
+        icur[i] = np.vdot(curdoh[:, i], darea[:, i])
+
+    return icur.flatten()
+
+
+@calculation
+def curohrho(calc_vars):
+    '''OH Current'''
+    curdoh = calc_vars.curdoh.values
+    darea = calc_vars.darea.values
+    t = calc_vars.options.time_idx
+
+    icur = np.zeros((darea.shape[0], 1))
+
+    for i in range(len(icur)):
+        icur[i] = np.vdot(curdoh[:i, t], darea[:i, t])
+
+    return icur.flatten()
 
 
 @calculation
@@ -374,6 +385,41 @@ def d2bp(calc_vars):
     set_interp = interp1d(x, d2bpol_drho, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
 
     return set_interp(xb)
+
+
+@calculation
+def tmhdf(calc_vars):
+    '''d^2Bpol / drho^2'''
+    pmhdf = calc_vars.pmhdf.values
+    nf = calc_vars.nf.values
+
+    # partial derivative along radial dimension
+    return pmhdf / nf / 1.602176487E-16
+
+
+@calculation
+def tf(calc_vars):
+    '''Fast Ion Temperature'''
+    ebeam = calc_vars.ebeam.values
+
+    return ebeam / 1.5
+
+
+@calculation
+def ebeam2(calc_vars):
+    '''Radial Electric Field (Pressure Term)'''
+    ebeam = calc_vars.ebeam.values
+
+    return ebeam / 1.5
+
+
+@calculation
+def ebeamr(calc_vars):
+    '''Radial Electric Field (Pressure Term)'''
+    ebeam = calc_vars.ebeam.values
+    tf = calc_vars.tmhdf.values
+
+    return ebeam / 1.5 / tf
 
 
 @calculation
@@ -555,6 +601,19 @@ def gxi(calc_vars):
     # return (1 + elong**2 / (2 * elong**2))**0.5
 
 
+@calculation
+def icur(calc_vars):
+    '''delta darea'''
+    darea = calc_vars.darea.values
+    jcur = calc_vars.jcur.values
+
+    icur = np.zeros((darea.shape[1], 1))
+
+    for i in range(len(icur)):
+        icur[i] = np.vdot(jcur[:, i], darea[:, i])
+
+    return icur.flatten()
+
 
 @calculation
 def lare(calc_vars):
@@ -630,7 +689,8 @@ def ni2(calc_vars):
     zz = calc_vars.zz.values
 
     # TRANSP likely uses this for taking ion density gradients
-    return nh + zz**2 * nz + nf
+    return nh + zz * nz + nf
+    # return nh + zz**2 * nz + nf
 
 
 @calculation
@@ -643,18 +703,6 @@ def nuei(calc_vars):
     loge = calc_vars.loge.values
 
     return zcf * 2**(0.5) * ne * loge * zeff / te**(1.5)
-
-
-@calculation
-def nuei2(calc_vars):
-    '''OLD NOTE: Not sure what to call this, but it leads to the approx the correct NUSTI'''
-    zcf = constants.ZCF
-    ni = calc_vars.ni.values
-    ti = calc_vars.ti.values
-    zeff = calc_vars.zeff.values
-    loge = calc_vars.loge.values
-
-    return zcf * 2**(0.5) * ni * loge * zeff / ti**(1.5)
 
 
 @calculation
@@ -676,27 +724,6 @@ def nuste(calc_vars):
     vthe = calc_vars.vthe.values
 
     return nuei * eps**(-1.5) * q * rmaj / vthe
-
-
-@calculation
-def nusti(calc_vars):
-    '''
-    Ion Collisionality
-
-    OLD NOTE: This is approximately correct, but agreement is also somewhat
-    time-dependent.  We likely need to use the Coulomb logarithm for ions in
-    nuei instead of the Coulomb logarithm for electrons.
-    '''
-
-    zcme = constants.ZCME
-    zcmp = constants.ZCMP
-    eps = calc_vars.eps.values
-    q = calc_vars.q.values
-    nuei2 = calc_vars.nuei2.values
-    rmaj = calc_vars.rmaj.values
-    vthi = calc_vars.vthi.values
-
-    return nuei2 * eps**(-3 / 2) * q * rmaj / (2 * vthi) * (zcme / zcmp)**(0.5)
 
 
 @calculation
@@ -783,7 +810,7 @@ def shear(calc_vars):
 
 
 @calculation
-def tau(calc_vars):
+def te_ti(calc_vars):
     '''Temperature Ratio te / ti'''
     te = calc_vars.te.values
     ti = calc_vars.ti.values
@@ -792,11 +819,24 @@ def tau(calc_vars):
 
 
 @calculation
-def tauh(calc_vars):
+def ti_te(calc_vars):
     '''Temperature Ratio ti / te'''
-    tau = calc_vars.tau.values
+    te_ti = calc_vars.te_ti.values
 
-    return 1 / tau
+    return 1 / te_ti
+
+
+@calculation
+def tbtbe(calc_vars):
+    '''Temperature Ratio ti / te'''
+    btbe = calc_vars.btbe.values
+    btor = calc_vars.bzxr.values
+    nf = calc_vars.nf.values
+    rmaj = calc_vars.rmaj.values
+    zcmu0 = constants.ZCMU0
+    zckb = constants.ZCKB
+
+    return btbe * btor**2 / (2 * zcmu0 * zckb * nf) * 1.8
 
 
 @calculation
@@ -848,16 +888,7 @@ def vpar(calc_vars):
 
 
 @calculation
-def vpolx(calc_vars):
-    '''Parallel Velocity'''
-    rmaj = calc_vars.rmaj.values
-    theta = calc_vars.omega.values
-
-    return rmaj * theta
-
-
-@calculation
-def vtorx(calc_vars):
+def vtor(calc_vars):
     '''Parallel Velocity'''
     rmaj = calc_vars.rmaj.values
     omega = calc_vars.omega.values
@@ -866,17 +897,17 @@ def vtorx(calc_vars):
 
 
 @calculation
-def wbounce(calc_vars):
+def wbe(calc_vars):
     '''Bounce Frequency'''
     rmaj = calc_vars.rmaj.values
     rmin = calc_vars.rmin.values
-    wtransit = calc_vars.wtransit.values
+    wte = calc_vars.wte.values
 
-    return (rmin / (2 * rmaj))**(0.5) * wtransit
+    return (rmin / (2 * rmaj))**(0.5) * wte
 
 
 @calculation
-def wtransit(calc_vars):
+def wte(calc_vars):
     '''Transit Frequency'''
     vthe = calc_vars.vthe.values
     q = calc_vars.q.values
@@ -968,24 +999,6 @@ def zeff(calc_vars):
     return (nh + nf + zz**2 * nz) / np.maximum(ne, 1e-16)
 
 
-@calculation
-def pf(calc_vars):
-    '''Effective Charge'''
-    nf = calc_vars.nf.values
-    tf = calc_vars.ti.values
-
-    return nf * tf
-
-
-@calculation
-def gpf2(calc_vars):
-    '''Effective Charge'''
-    gnf = calc_vars.gnf.values
-    gtf = calc_vars.gti.values
-
-    return gnf + gtf
-
-
 @calculation_output
 def gmanMTM(calc_vars, output_vars):
     '''MTM Growth Rate Normalized'''
@@ -1005,16 +1018,26 @@ def gmadiffETGM(calc_vars, output_vars):
     return gmaETGM - wdeETGM
 
 
-@calculation_output
-def nEPM(calc_vars, output_vars):
-    '''EPM toroidal wave number'''
-    t = calc_vars.options.time_idx
-    kyrhosEPM = output_vars.kyrhosEPM.values
-    rhos = calc_vars.rhos.values[:, t]
-    rmin = calc_vars.rmin.values[:, t]
-    q = calc_vars.q.values[:, t]
 
-    return kyrhosEPM / rhos * rmin / q
+@calculation_output
+def gmanETGM(calc_vars, output_vars):
+    '''ETGM Growth Rate resonance'''
+    t = calc_vars.options.time_idx
+    gmaETGM = output_vars.gmaETGM.values
+    csound_a = calc_vars.csound_a.values[:, t]
+
+    return gmaETGM / csound_a
+
+
+
+@calculation_output
+def omgnETGM(calc_vars, output_vars):
+    '''ETGM Growth Rate resonance'''
+    t = calc_vars.options.time_idx
+    omgETGM = output_vars.omgETGM.values
+    csound_a = calc_vars.csound_a.values[:, t]
+
+    return -omgETGM / csound_a
 
 
 @calculation_output
@@ -1117,13 +1140,15 @@ def calculate_output_variables(calc_vars, output_vars, controls):
         omgdiffETGM(calc_vars, output_vars)
         gmadiffETGM(calc_vars, output_vars)
         waETGM(calc_vars, output_vars)
+        gmanETGM(calc_vars, output_vars)
+        omgnETGM(calc_vars, output_vars)
 
     if controls.cmodel_mtm.values:
         gmanMTM(calc_vars, output_vars)
         omgnMTM(calc_vars, output_vars)
 
     if controls.cmodel_epm.values:
-        nEPM(calc_vars, output_vars)
+        ...
 
 
 def calculate_base_variables(calc_vars):
@@ -1157,9 +1182,8 @@ def calculate_base_variables(calc_vars):
     dbp(calc_vars)
     d2bp(calc_vars)
     vpar(calc_vars)
-    vtorx(calc_vars)
-    vpolx(calc_vars)
-    pf(calc_vars)
+    vtor(calc_vars)
+    tf(calc_vars)
 
     # Calculations for testing
     # 
@@ -1199,10 +1223,10 @@ def calculate_gradient_variables(calc_vars):
     gradient('gne', 'ne', -drmin, calc_vars)
     gradient('gnh', 'nh', -drmin, calc_vars)
     gradient('gnf', 'nf', -drmin, calc_vars)
-    gradient('gpf', 'pf', -drmin, calc_vars)
     gradient('gni', 'ni', -drmin, calc_vars)
     gradient('gnz', 'nz', -drmin, calc_vars)
     gradient('gte', 'te', -drmin, calc_vars)
+    gradient('gtf', 'tf', -drmin, calc_vars)
     gradient('gti', 'ti', -drmin, calc_vars)
     gradient('gvpar', 'vpar', -drmin, calc_vars)
     gradient('gvpol', 'vpol', -drmin, calc_vars)
@@ -1210,7 +1234,8 @@ def calculate_gradient_variables(calc_vars):
     # gelong calculated differently than other normalized gradients
     gelong(calc_vars)
 
-    gpf2(calc_vars)
+    # calc_vars.tf.values = 10 * calc_vars.ti.values
+    # calc_vars.gtf.values = calc_vars.gti.values
 
     if hasattr(calc_vars.options, 'use_gnezero') and calc_vars.options.use_gnezero:
         calc_vars.gne.values[:, :] = 1e-12
@@ -1256,9 +1281,8 @@ def calculate_additional_variables(calc_vars):
     # same name as the variable it calculates. Note that calculation order
     # matters here.
 
-    bu_btor(calc_vars)
-    tau(calc_vars)
-    tauh(calc_vars)
+    te_ti(calc_vars)
+    ti_te(calc_vars)
     eps(calc_vars)
     p(calc_vars)
     beta(calc_vars)
@@ -1268,13 +1292,11 @@ def calculate_additional_variables(calc_vars):
     csound_a(calc_vars)
     loge(calc_vars)
     nuei(calc_vars)
-    nuei2(calc_vars)
     vthe(calc_vars)
     vthi(calc_vars)
-    wtransit(calc_vars)
-    wbounce(calc_vars)
+    wte(calc_vars)
+    wbe(calc_vars)
     nuste(calc_vars)
-    nusti(calc_vars)
     gyrfe(calc_vars)
     gyrfeu(calc_vars)
     gyrfi(calc_vars)
@@ -1294,10 +1316,21 @@ def calculate_additional_variables(calc_vars):
     etai(calc_vars)
     epsne(calc_vars)
     vei_nc(calc_vars)
+
     # curlh(calc_vars)
     # curoh(calc_vars)
-    xke(calc_vars)
-    xki(calc_vars)
+    # curohrho(calc_vars)
+
+    # Non essential calculations that may have been removed from memory
+    if calc_vars.xke is not None:
+        xke(calc_vars)
+    if calc_vars.xki is not None:
+        xki(calc_vars)
+
+    # icur(calc_vars)
+    # tmhdf(calc_vars)
+
+    # tbtbe(calc_vars)
 
 
 def calculate_new_variables(cdf_vars):

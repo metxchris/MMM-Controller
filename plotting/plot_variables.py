@@ -126,8 +126,7 @@ class PlotData:
             values = var.values[:, zidx] if isinstance(var.values, np.ndarray) and var.values.ndim == 2 else var.values
         else:
             values = var.values[zidx, :] if isinstance(var.values, np.ndarray) and var.values.ndim == 2 else var.values
-        # values = var.values
-        # print(var.name, var.values.shape, values.shape)
+
         if values is None:
             raise ValueError(f'Null values detected for variable name {var.name}')
         return values
@@ -721,8 +720,6 @@ class AllPlotData:
         # all_yvals = np.hstack([d.yvals for d in self.data[1:]])
         # for d in self.data:
 
-        #     print()
-
         all_xvals = np.hstack([d.xvals[np.logical_and(d.xvals <= xmax, d.xvals >= xmin)] for d in self.data])
         all_yvals = np.hstack([d.yvals[np.logical_and(d.xvals <= xmax, d.xvals >= xmin)] for d in self.data])
 
@@ -1040,6 +1037,11 @@ def main(all_data, savefig=False, savedata=False):
     fig.canvas.mpl_connect('key_press_event', on_press)
 
     for d in all_data.data:
+        # x = d.xvals[np.absolute(d.yvals) > 1e-1]
+        # y = d.yvals[np.absolute(d.yvals) > 1e-1]
+        # ax.semilogx(x, y, label=all_data.get_legend_label(d))
+        # ax.plot([],[])
+
         ax.plot(d.xvals, d.yvals, label=all_data.get_legend_label(d))
         ax.plot(d.xval_base, d.yval_base, zorder=3)  # Advance the cycler when base values are empty lists
 
@@ -1138,8 +1140,8 @@ if __name__ == '__main__':
     # Define data for the plot (Examples shown below)
     all_data.set(
         # CDF: Same y-variable, different x-variables
-        PlotDataCdf(runid='138536A01', yname='te', xname='rmina', zval=0.50),
-        PlotDataCdf(runid='138536A01', yname='te', xname='rho', zval=0.50),
+        # PlotDataCdf(runid='138536A01', yname='te', xname='rmina', zval=0.50),
+        # PlotDataCdf(runid='138536A01', yname='te', xname='rho', zval=0.50),
         # CDF: Different y-variable units
         # PlotDataCdf(runid='138536A01', yname='te', xname='rho', zval=0.50),
         # PlotDataCdf(runid='138536A01', yname='ti', xname='rho', zval=0.50),
@@ -1174,6 +1176,12 @@ if __name__ == '__main__':
 
     all_data.set(
 
+        # PlotDataCdf(runid='129016A03', yname='gte', xname='rmina', zval=0.46),
+        # PlotDataCdf(runid='129016A03', yname='gte', xname='rmina', zval=0.462),
+        # PlotDataCdf(runid='129016A03', yname='gte', xname='rmina', zval=0.465),
+        # PlotDataCdf(runid='129016A03', yname='gte', xname='rmina', zval=0.49),
+        # xmin=0.59,xmax=0.61,
+        
         # PlotDataCdf(runid='138536A01', yname='vtorx', xname='xb', zval=0.629, legend=r'RMAJ$\cdot$OMEGA'),
         # PlotDataCdf(runid='138536A01', yname='vtorxnc', xname='xb', zval=0.629, legend=r'VTORX$\_$NC'),
 
@@ -1187,13 +1195,98 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='120982A09', yname='gpf2', xname='xb', zval=0.629),
         
 
-        # PlotDataCdf(runid='138536A01', yname='q', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='nf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='nf2', xname='rho', zval=0.629),
+
+        # PlotDataCdf(runid='121123K55', yname='tmhdf', xname='rho', zval=0.629),
+
+        # PlotDataCdf(runid='138536A01', yname='pmhdf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='p', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='pmhd', xname='rho', zval=0.629),
+        # # PlotDataCdf(runid='138536A01', yname='pf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='pr', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='pmhdr', xname='rho', zval=0.629),
+
+        # PlotDataCdf(runid='18696R06', yname='pmhd', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='38265R80', yname='pmhd', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='50000A10', yname='pmhd', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='80200A13', yname='pmhd', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='80300A02', yname='pmhd', xname='rho', zval=0.629),
+
+
+        # PlotDataCdf(runid='138536A01', yname='ti', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='epapl', xname='rho', zval=0.629, source='cdf'),
+        # PlotDataCdf(runid='138536A01', yname='epapp', xname='rho', zval=0.629, source='cdf'),
+        # PlotDataCdf(runid='138536A01', yname='epa', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='tmhdf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='pmhdf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='nf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='ebeam', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='ebeamr', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='ebeamr', xname='rho', zval=0.6),
+        # PlotDataCdf(runid='138536A01', yname='ebeamr', xname='rho', zval=0.58),
+
+        # PlotDataCdf(runid='138536A01', yname='tmhdf', xname='rho', zval=0.58),
+        # PlotDataCdf(runid='138536A01', yname='ebeam', xname='rho', zval=0.0),
+        # PlotDataCdf(runid='138536A01', yname='tf', xname='rho', zval=0.8),
+        # PlotDataCdf(runid='138536A01', yname='gtf', xname='rho', zval=0.8),
+
+        # PlotDataCdf(runid='132017T01', yname='pmhd', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='132017T01', yname='pmhdf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='132017T01', yname='pmhdr', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='132017T01', yname='p', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='132017T01', yname='pf', xname='rho', zval=0.629),
+
+        # PlotDataCdf(runid='141031A01', yname='ebeam', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='141031A01', yname='epa', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='141031A01', yname='tmhdf', xname='rho', zval=0.629),
+
+
+        # PlotDataCdf(runid='141552A01', yname='ebeam2', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='141552A01', yname='tmhdf', xname='rho', zval=0.629),
+
+        # PlotDataCdf(runid='129017A04', yname='epapl', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='129017A04', yname='epapp', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='129017A04', yname='epa', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='129017A04', yname='ebeam', xname='rho', zval=0.629),
+        
+
+
+
+        PlotDataCdf(runid='129016A03', yname='ne', xname='rho', zval=0.46),
+        PlotDataCdf(runid='129016A03', yname='ni', xname='rho', zval=0.46),
+        PlotDataCdf(runid='129016A03', yname='ni2', xname='rho', zval=0.46),
+        
+        
+        # PlotDataCdf(runid='85126T02', yname='curdoh', zval=4),
+        # PlotDataCdf(runid='85610T01', yname='curdoh', zval=4),
+        # PlotDataCdf(runid='85126T02', yname='area', zval=4),
+        # PlotDataCdf(runid='85610T01', yname='area', zval=4),
+       
+        # PlotDataCdf(runid='85126T02', yname='curoh', xname='time', timeplot=True, zval=0),
+        # PlotDataCdf(runid='85610T01', yname='curoh', xname='time', timeplot=True, zval=0),
+        # PlotDataCdf(runid='85126T02', yname='curohrho', xname='rho', zval=4),
+        # PlotDataCdf(runid='85610T01', yname='curohrho', xname='rho', zval=4),
+        
+        # PlotDataCdf(runid='120968A02', yname='icur', xname='time', timeplot=True, zval=0),
+        # PlotDataCdf(runid='120968A02', yname='jcur', xname='rho', zval=0.559),
+        # PlotDataCdf(runid='120968A02', yname='area', xname='rho', zval=0.559),
+
         # PlotDataCdf(runid='120968A02', yname='q', xname='rho', zval=0.56),
         # PlotDataCdf(runid='120982A09', yname='wexb', xname='rho', zval=0.62),
         # PlotDataCdf(runid='129041A10', yname='q', xname='rho', zval=0.49),
         # PlotDataCdf(runid='138536A01', yname='gnh', xname='rho', zval=0.629, apply_smoothing=1, input_points=101),
         # PlotDataCsv(runid='138536A01', yname='q', xname='rho', scan_num=253),
         # PlotDataCdf(runid='138536A01', yname='etanc', xname='rho', zval=0.629),
+
+        # PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=443),
+        # PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=444),
+        # PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=449),
+
+        # PlotDataCsv(runid='129016A03', yname='omgnETGM', xname='kyrhosETGM', scan_num=37, rho_value=0.477, legend=r'$r/a = 0.6$'),
+        # PlotDataCsv(runid='129016A03', yname='omgnETGM', xname='kyrhosETGM', scan_num=37, rho_value=0.572, legend=r'$r/a = 0.7$'),
+        # xmin=np.log10(0.1),
+
 
         # PlotDataCsv(runid='120982A09', yname='gmaW20i', xname='rho', scan_num=12005, legend='quadratic'),
         # PlotDataCsv(runid='120982A09', yname='gmaW20i', xname='rho', scan_num=12006, legend='cubic'),
@@ -1232,6 +1325,21 @@ if __name__ == '__main__':
 
         # PlotDataCsv(runid='120982A09', yname='fvp', xname='rho', scan_num=38, legend=r'$\ \ \,$VPOL'),
         # PlotDataCsv(runid='120982A09', yname='fvp', xname='rho', scan_num=39, legend=r'$-$VPOL'),
+
+        # PlotDataCsv(runid='129016A03', yname='xte', xname='rmina', scan_num=6),
+        # PlotDataCsv(runid='129016A04', yname='xte', xname='rmina', scan_num=18),
+        # PlotDataCsv(runid='16325T10', yname='xtiW20', xname='rho', scan_num=13200, scan_factor=9.5),
+        # PlotDataCsv(runid='16325T10', yname='xtiW20', xname='rho', scan_num=13201, scan_factor=9.5),
+        
+        # PlotDataCsv(runid='16325T10', yname='xtiW20', xname='rho', scan_num=49,), #original, ifort, s
+        # PlotDataCsv(runid='16325T10', yname='xtiW20', xname='rho', scan_num=50,), #opt, ifort, s
+        # PlotDataCsv(runid='16325T10', yname='xtiW20', xname='rho', scan_num=51,), #original, ifort, nos
+        # PlotDataCsv(runid='16325T10', yname='xtiW20', xname='rho', scan_num=52,), #opt, ifort, nos
+        # PlotDataCsv(runid='16325T10', yname='xtiW20', xname='rho', scan_num=54,), #opt2, ifort, nos
+
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', xname='rho', scan_num=13216,),
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', xname='rho', scan_num=13214,),
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', xname='rho', scan_num=52,),
 
  
         # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=9,  legend=r'$n_{_\mathrm{L}} = 1000$'),
@@ -1346,8 +1454,8 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='118341T54', yname='xdeDBM',  xname='rho', scan_num=519),
         # PlotDataCsv(runid='118341T54', yname='xde2DBM', xname='rho', scan_num=519),
 
-        PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=338),
-        PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=341),
+        # PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=338),
+        # PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=341),
 
         # PlotDataCsv(runid='132411T02', yname='ti', xname='rho', scan_num=16),
         # PlotDataCsv(runid='132411T02', yname='ti', xname='rho', scan_num=17),

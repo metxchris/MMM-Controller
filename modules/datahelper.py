@@ -19,13 +19,16 @@ import modules.utils as utils
 from modules.enums import SaveType, ScanType
 
 
-def initialize_variables(options):
+def initialize_variables(options, num_objects=3, reduce_memory=False):
     '''
     Initializes all input variables needed to run the MMM Driver and plot
     variable profiles
 
     Parameters:
     * options (Options): Contains user specified options
+    * num_objects (Int): Number of variable objects to return (1, 2, or 3)
+    * reduce_memory (Bool): Deletes non-essential mmm variables from memory
+
 
     Returns:
     * mmm_vars (InputVariables): All calculated variables
@@ -33,9 +36,25 @@ def initialize_variables(options):
     * raw_cdf_vars (InputVariables): All unedited CDF variables
     '''
 
+    num_objects = int(max(num_objects, 1))
+
     raw_cdf_vars = cdfreader.extract_data(options)
     cdf_vars = conversions.convert_variables(raw_cdf_vars)
     mmm_vars = calculations.calculate_new_variables(cdf_vars)
+
+    # Remove non-essential variable objects from memory
+    if reduce_memory:
+        if num_objects >= 1:
+            mmm_vars.reduce_memory()
+        if num_objects >= 2:
+            cdf_vars.reduce_memory()
+        if num_objects >= 3:
+            raw_cdf_vars.reduce_memory()
+
+    if num_objects == 1:
+        return mmm_vars
+    elif num_objects == 2:
+        return mmm_vars, cdf_vars
 
     return mmm_vars, cdf_vars, raw_cdf_vars
 

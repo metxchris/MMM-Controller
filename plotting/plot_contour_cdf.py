@@ -448,7 +448,7 @@ if __name__ == '__main__':
     """
 
     # vars_to_plot = ['var_to_scan']
-    vars_to_plot = ['gni']
+    vars_to_plot = ['gnf']
     # vars_to_plot = ['gmaW20ii', 'gmaW20ee', 'gmaW20ie']
     # vars_to_plot = ['gmaW20i', 'gmaW20e']
     # vars_to_plot = ['vcz']
@@ -464,7 +464,7 @@ if __name__ == '__main__':
         - values (list of int): The scan_numbers to plot from
     """
 
-    scan_data.append('120982A09')
+    scan_data.append('138536A01')
 
     """
     Plotting Options:
