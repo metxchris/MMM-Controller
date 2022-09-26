@@ -819,7 +819,7 @@ class InputVariables(Variables):
             cdfvar='GXI',
             units='m^-1',
             label=r'$\nabla \hat{\rho}$',
-            # save_type=SaveType.INPUT,
+            save_type=SaveType.INPUT,
         )
 
         self.gyrfe = Variable(
@@ -1068,7 +1068,7 @@ class InputVariables(Variables):
             'bu Gradient',
             label=r'$g_{\mathrm{Bu}}$',
             absminvalue=1e-32,
-            # save_type=SaveType.INPUT,
+            save_type=SaveType.INPUT,
         )
 
         self.gne = Variable(
