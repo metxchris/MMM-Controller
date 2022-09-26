@@ -31,6 +31,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 # Local Packages
+import settings
 import modules.datahelper as datahelper
 import modules.constants as constants
 
@@ -161,7 +162,7 @@ def _interp_to_boundarygrid(input_var, xvals):
     # Interpolate/Extrapolate variable from X or XB to XBO
     elif xdim in ['X', 'XB']:
         set_interp = interp1d(getattr(xvals, xdim.lower()), input_var.values,
-                              kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
+                              kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
         input_var.set(values=set_interp(xvals.xbo))
         input_var.set_xdim('XBO')
 
@@ -208,7 +209,8 @@ def _interp_to_input_points(input_vars):
                 raise ValueError(f'Trying to interpolate variable {var} with values equal to None')
 
             if isinstance(mmm_var.values, np.ndarray) and mmm_var.values.size > 1:
-                set_interp = interp1d(xb, mmm_var.values, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
+                set_interp = interp1d(xb, mmm_var.values, kind=settings.INTERPOLATION_METHOD,
+                                      fill_value="extrapolate", axis=0)
                 mmm_var.set(values=set_interp(xb_new))
 
     return mmm_vars

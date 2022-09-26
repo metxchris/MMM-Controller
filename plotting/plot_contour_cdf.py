@@ -49,7 +49,31 @@ import plotting.modules.colormaps
 _log = logging.getLogger(__name__)
 
 
-def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, savedata=False):
+class PlotOptions:
+    """ Store options for the contour plot
+
+    Initialization parameters determine plot settings and must be specified as
+    keyword arguments.
+    """
+
+    def __init__(self, **kwargs):
+        self.ymin: float | None = None
+        self.ymax: float | None = None
+        self.xmin: float | None = None
+        self.xmax: float | None = None
+
+        self._set_kwargs(kwargs)
+
+    def _set_kwargs(self, kwargs):
+        """Set member values using keyword arguments"""
+        for key, value in kwargs.items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+            else:
+                _log.error(f'\n\t"{key}" is not a valid parameter for PlotOptions')
+
+
+def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', savefig=False, savedata=False):
     """
     Creates PDF Plots of each variable in vars_to_plot
 
@@ -58,6 +82,7 @@ def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, save
     Parameters:
     * vars_to_plot (list): List of output variables to plot
     * options (Options): Object containing user options
+    * plot_options (PlotOptions): Object containing options for the contour plot (Optional)
     * savenameend (str): Name to end file save name with (Optional)
     * savefig (bool): Automatically save the plot if True (Optional)
     * savedata (bool): Automatically save the data if True (Optional)
@@ -200,6 +225,21 @@ def run_plotting_loop(vars_to_plot, options, savenameend='', savefig=False, save
 
     x = mmm_vars.rho.values[:, 0]
     y = mmm_vars.time.values
+
+    x0 = x
+    y0 = y
+
+    # Apply boundary limits to x, y variables
+    if plot_options is not None:
+        if plot_options.xmin is not None:
+            x = x[x >= plot_options.xmin]
+        if plot_options.xmax is not None:
+            x = x[x <= plot_options.xmax]
+        if plot_options.ymin is not None:
+            y = y[y >= plot_options.ymin]
+        if plot_options.ymax is not None:
+            y = y[y <= plot_options.ymax]
+
     X, Y = np.meshgrid(x, y)
     Z = np.zeros_like(X)
 
@@ -400,13 +440,14 @@ def _verify_vars_to_plot(vars_to_plot):
             raise NameError(f'{var_to_plot} not found in Variables classes')
 
 
-def main(vars_to_plot, scan_data, savenameend='', savefig=False, savedata=False):
+def main(vars_to_plot, scan_data, plot_options=None, savenameend='', savefig=False, savedata=False):
     '''
     Verifies vars_to_plot, then runs the plotting loop for each var_to_plot, runid, and scan_num
 
     Parameters:
     * vars_to_plot (list): List of output variables to plot
     * scan_data (dict): Dictionary of runid to list of scan numbers
+    * plot_options (PlotOptions): Object containing options for the contour plot (Optional)
     * savenameend (str): Name to end file save name with
     * savefig (bool): Automatically save the plot if True (Optional)
     * savedata (bool): Automatically save the data if True (Optional)
@@ -424,7 +465,7 @@ def main(vars_to_plot, scan_data, savenameend='', savefig=False, savedata=False)
     for runid in scan_data:
         options.set(runid=runid)
         print(f'\nInitializing data for {runid}...')
-        run_plotting_loop(vars_to_plot, options, savenameend, savefig, savedata)
+        run_plotting_loop(vars_to_plot, options, plot_options, savenameend, savefig, savedata)
 
 
 
@@ -435,7 +476,14 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE1B,
+        layout=StyleType.Layout.AIP2,
+    )
+
+    plot_options = PlotOptions(
+        # xmin=0.0,
+        # xmax=0.5,
+        # ymin=1.5,
+        # ymax=2,
     )
 
     plt.rcParams.update({
@@ -448,7 +496,9 @@ if __name__ == '__main__':
     """
 
     # vars_to_plot = ['var_to_scan']
-    vars_to_plot = ['gnf']
+    vars_to_plot = ['tf', 'te', 'tf_te']
+    vars_to_plot = ['gne', 'gte',]
+    # vars_to_plot = ['gne', 'gte',]
     # vars_to_plot = ['gmaW20ii', 'gmaW20ee', 'gmaW20ie']
     # vars_to_plot = ['gmaW20i', 'gmaW20e']
     # vars_to_plot = ['vcz']
@@ -464,11 +514,14 @@ if __name__ == '__main__':
         - values (list of int): The scan_numbers to plot from
     """
 
-    scan_data.append('138536A01')
+    # scan_data.append('138536A01')
+    # scan_data.append('129041A10')
+    # scan_data.append('120982A09')
+    scan_data.append('16297T01')
 
     """
     Plotting Options:
     * savefig: show figure when True, autosave figure without showing it when False
     * savedata: autosave data into CSVs when True
     """
-    main(vars_to_plot, scan_data, savenameend='NEW', savefig=0, savedata=False)
+    main(vars_to_plot, scan_data, plot_options, savenameend='NEW', savefig=0, savedata=False)

@@ -223,6 +223,8 @@ def main(scanned_vars, controls):
             reshaper.create_rho_files(options)
             print(f'\nScan complete: {options.runid}, scan {options.scan_num}, {options.var_to_scan}\n')
 
+        print(settings.R8TOMSQZ_CALLS)
+        print(settings.R8TOMSQZ_CALLS / 264068)
 
 # Run this file directly to plot variable profiles and run the MMM driver
 if __name__ == '__main__':
@@ -255,7 +257,7 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '98777V06', ShotType.D3D, 5.6     #            239
     # runid, shot_type, input_time = '101381T31', ShotType.D3D, 5.6    #            300
     # runid, shot_type, input_time = '101391J08', ShotType.D3D, 5.6    #            151
-    # runid, shot_type, input_time = '118341T54', ShotType.D3D, 5.6    #            41
+    # runid, shot_type, input_time = '118341T54', ShotType.D3D, 5.7    #            41
     # runid, shot_type, input_time = '132017T01', ShotType.D3D, 2      #            21
     # runid, shot_type, input_time = '132411T02', ShotType.D3D, 0.56   #            101
     # runid, shot_type, input_time = '132498J05', ShotType.D3D, 0.56   #            300
@@ -264,7 +266,7 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '153283T50', ShotType.D3D, 2      #            51
 
     # runid, shot_type, input_time = '85126T02', ShotType.EAST, 2      #            300
-    # runid, shot_type, input_time = '85610T01', ShotType.EAST, 2      #            300
+    runid, shot_type, input_time = '85610T01', ShotType.EAST, 2      #            300
     # runid, shot_type, input_time = '85122T04', ShotType.EAST, 2      #            300
     # runid, shot_type, input_time = '80208T04', ShotType.EAST, 2      #            300
     # runid, shot_type, input_time = '90328T01', ShotType.EAST, 2      #            300
@@ -273,7 +275,7 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '16295T10', ShotType.KSTR, 2      #            300
     # runid, shot_type, input_time = '16297T01', ShotType.KSTR, 2      #            300
     # runid, shot_type, input_time = '16299T01', ShotType.KSTR, 2.25   #            300
-    runid, shot_type, input_time = '16325T10', ShotType.KSTR, 9.503   #            300
+    # runid, shot_type, input_time = '16325T10', ShotType.KSTR, 9.503   #            300
     # runid, shot_type, input_time = '16901T01', ShotType.KSTR, 2      #            300
     # runid, shot_type, input_time = '18399T05', ShotType.KSTR, 2      #            300
     # runid, shot_type, input_time = '18400T01', ShotType.KSTR, 2      #            300
@@ -320,7 +322,7 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '33701K02', ShotType.ITER, 2
     # runid, shot_type, input_time = '35601B11', ShotType.ITER, 2
     # runid, shot_type, input_time = '59100A05', ShotType.ITER, 2
-    # runid, shot_type, input_time = '129016A03', ShotType.NSTX, 0.49
+    # runid, shot_type, input_time = '129016A03', ShotType.NSTX, 0.46
     # runid, shot_type, input_time = '101381J05', ShotType.D3D, 5.6
 
     '''
@@ -329,14 +331,13 @@ if __name__ == '__main__':
     * MMM will only run once if no specific scan is specified below
     '''
 
-    # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1e-6, stop=1.01 + 1e-6, step=0.005)
     # scanned_vars['dribm_kyrhos_min'] = np.arange(start=0.225, stop=0.235 + 1e-6, step=0.001)
     # scanned_vars['mtm_kyrhos_min'] = np.arange(start=0.1, stop=3 + 1e-6, step=0.1)
     # scanned_vars['mtm_kyrhos_max'] = np.arange(start=5, stop=10.0 + 1e-6, step=0.5)
     # scanned_vars['weiland_kyrhos'] = np.arange(start=0.2, stop=0.4 + 1e-6, step=0.005)
-    # scanned_vars['epm_n_start'] = np.arange(start=1, stop=50 + 1e-6, step=1)
+    # scanned_vars['epm_n_start'] = np.arange(start=1, stop=100 + 1e-6, step=1)
 
-    # scanned_vars['etgm_kyrhos_min'] = np.arange(start=0.1, stop=20 + 1e-6, step=0.1)
+    # scanned_vars['etgm_kyrhos_min'] = np.arange(start=0.5, stop=100 + 1e-6, step=0.5)
     # scanned_vars['etgm_alpha_mult'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_betae_mult'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['etgm_nuei_mult'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.025)
@@ -387,9 +388,15 @@ if __name__ == '__main__':
     # scanned_vars['time'] = np.arange(start=0.3, stop=0.6 + 1e-6, step=0.001)
 
     # normalized time scan (options.normalize_time_range = 1)
-    scanned_vars['time'] = np.linspace(start=0, stop=1, num=40)
+    # scanned_vars['time'] = np.linspace(start=0, stop=1, num=40)
     # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
     # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=300)
+
+
+    # EPM Scans
+    scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
+    # scanned_vars['time'] = np.linspace(start=0.53, stop=0.54, num=10)
+    # scanned_vars['epm_n_start'] = np.arange(start=1, stop=200 + 1e-6, step=1)
 
 
     # DRIBM Scans
@@ -404,6 +411,8 @@ if __name__ == '__main__':
     # scanned_vars['dribm_ti_te_mult'] = np.arange(start=0.25, stop=4 + 1e-6, step=0.05)
     # scanned_vars['dribm_vei_mult'] = np.arange(start=0.25, stop=4 + 1e-6, step=0.05)
     # scanned_vars['etae'] = np.arange(start=0.25, stop=4 + 1e-6, step=0.05)
+    # scanned_vars['wexb'] = np.arange(start=0.05, stop=2 + 1e-6, step=0.05)
+    # scanned_vars['weiland_gmult'] = np.arange(start=-2, stop=2 + 1e-6, step=0.02)
 
     '''
     Options:
@@ -416,7 +425,7 @@ if __name__ == '__main__':
         shot_type=shot_type,
         input_time=input_time,
         input_points=101,
-        apply_smoothing=0,
+        apply_smoothing=1,
         use_gtezero=0,
         use_gnezero=0,
         use_gneabs=0,
@@ -434,22 +443,22 @@ if __name__ == '__main__':
     controls = modules.controls.InputControls(
         options,
         # CMODEL
-        cmodel_weiland=0,
+        cmodel_weiland=1,
         cmodel_dribm=0,
         cmodel_epm=0,
         cmodel_etgm=1,
-        cmodel_mtm=0,
+        cmodel_mtm=1,
         cmodel_etg=0,
         # W20
-        weiland_shear_def=0,
-        weiland_extra_int=0,
-        weiland_exbs=wexb,
-        weiland_kyrhos=0.316,
+        w20_shear_def=0,
+        w20_extra_int=0,
+        w20_exbs=wexb,
+        w20_kyrhos=0.316,
         # EPM
         epm_exbs=wexb,
         epm_direction=0,
         epm_n_start=1,
-        epm_n_end=10,
+        epm_n_end=5,
         epm_n_step=1,
         # DRBM
         dribm_exbs=wexb,
@@ -515,9 +524,10 @@ if __name__ == '__main__':
 
     settings.AUTO_OPEN_PDFS = 0
     settings.MAKE_PROFILE_PDFS = 0
-    settings.PRINT_MMM_RESPONSE = 0
+    settings.PRINT_MMM_RESPONSE = 1
     settings.SAVE_ADDITIONAL_VARIABLES = 1
     # settings.STARTING_SCAN_NUMBER = 13260
     settings.STARTING_SCAN_NUMBER = 1
+    settings.USE_EPM = 0
 
     main(scanned_vars, controls)

@@ -19,3 +19,22 @@ SAVE_ADDITIONAL_VARIABLES = True
 
 # Adjust the initial scan number to group different types of scans
 STARTING_SCAN_NUMBER = 1
+
+# Method of interpolation using scipy.interpolate.interp1d(kind=INTERPOLATION_METHOD)
+#   Consider using additional smoothing with linear interpolation, and less
+#   smoothing with cubic interpolation.
+#   kind: 'slinear', 'quadratic', 'cubic'
+INTERPOLATION_METHOD = 'quadratic'
+
+# Method to take gradients:
+#   'traditional': Gradients taken as they are computed in testmmm.f90.
+#                  This is faster, but less accurate when not many input points are available.
+#   'interpolate': Gradients taken using interpolation.  This is more accurate when not using
+#                  many input points, but the endpoint values are more dependent on the
+#                  interpolation method.
+GRADIENT_METHOD = 'traditional'
+
+# Temp EPM switch
+USE_EPM = True
+
+R8TOMSQZ_CALLS = 0

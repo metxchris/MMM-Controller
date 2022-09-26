@@ -33,7 +33,7 @@ import numpy as np
 import scipy.ndimage
 import matplotlib.pyplot as plt
 from matplotlib import colors, ticker
-from matplotlib.ticker import NullFormatter
+from matplotlib.ticker import NullFormatter, LogFormatter
 from PyQt5.QtGui import QImage
 from PyQt5.QtWidgets import QApplication
 
@@ -174,25 +174,36 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
             sigma = (1, 1)
         return sigma
 
-    def get_contour_levels():
-        """Get the displayed contour levels"""
-        contour_level_count = min(20, len(np.unique(np.round(Z, 3))))  # Average number of contours to show (actual number will vary)
-        loc = ticker.MaxNLocator(contour_level_count + 1, min_n_ticks=contour_level_count - 4)
-        lvls = loc.tick_values(Z.min(), Z.max())
+    def use_log():
+        """Check whether the axis should be logarithmic"""
+        uselog = ['errorEPM']
+        return var_to_plot in uselog
 
-        ## Code for logarithmic scales
-        # loc = ticker.LogLocator(base=10)
-        # lvls = loc.tick_values(max(np.power(10, np.floor(np.log10(Z.min()) - 1)), 1), np.power(10, np.ceil(np.log10(Z.max()) + 1)))
-        # args_both['locator'] = ticker.LogLocator(base=10)
-        # locator=ticker.LogLocator()
+    def set_contour_levels():
+        """Set the displayed contour levels"""
 
-        ## Condition for nonlinear contour levels
+        # Average number of contours to show (actual number will vary)
+        contour_level_count = 20
+
+        if not use_log():
+            contour_level_count = min(contour_level_count, len(np.unique(np.round(Z, 3))))
+            loc = ticker.MaxNLocator(contour_level_count + 1, min_n_ticks=contour_level_count - 4)
+            args_fill['levels'] = loc.tick_values(Z.min(), Z.max())
+        else:
+            loc = ticker.LogLocator(numticks=contour_level_count + 0, base=10)  # set max ticks
+            tick_min = np.power(10, np.floor(np.log10(Z.min())))
+            tick_max = np.power(10, np.ceil(np.log10(Z.max())))
+            levels = loc.tick_values(tick_min, tick_max)
+            levels = levels[levels >= tick_min]
+            levels = levels[levels <= tick_max]
+            args_fill['levels'] = levels
+            args_both['locator'] = loc
+
+        # # Condition for nonlinear contour levels
         # lowest_bucket = Z[Z <= lvls[1]].size / Z.size
         # if (var_to_plot == options.var_to_scan or var_to_plot == 'shat_gxi') and lowest_bucket > 0.4:
         #     power = 1.2
         #     lvls = np.round(lvls**power / (lvls**power)[-1] * lvls[-1], 3)
-
-        return lvls
 
     def get_savename():
         """Get the name to save the file as"""
@@ -280,12 +291,17 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
         for s in ax.spines.values():
             s.set_zorder(10)  # Put axes frame on top of everything
 
+        if use_log():
+            Z = np.ma.masked_where(Z <= 0, Z)
+
         # Apply smoothing and restore original extrema
         # Z[Z < 1E-6] = -1E-6
         Zmax, Zmin = Z.max(), Z.min()
         # print(Z)
         Z = scipy.ndimage.gaussian_filter(Z, sigma=get_smoothing_sigma())
         Z = np.minimum(np.maximum(Z, Zmin), Zmax)
+
+        # print(10**(np.average(np.log10(Z))))
 
         # Default arguments for filled contours, line contours, and both types
         args_fill = {'zorder': -3}
@@ -323,8 +339,10 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
         else:
             args_both['extend'] = 'neither'
 
+        set_contour_levels()
+
         # Plot contour fills
-        cf = plt.contourf(X, Y, Z, levels=get_contour_levels(), **args_fill, **args_both)
+        cf = plt.contourf(X, Y, Z, **args_fill, **args_both)
 
         # Remove lowest level when it is also a boundary, so an extra contour line isn't drawn
         if cf.levels[0] == Z.min():
@@ -332,9 +350,14 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
                 cf.levels = cf.levels[1:]
 
         # Colorbar for filled contour colormap
-        cb = plt.colorbar(spacing='proportional', pad=0.02, aspect=30, fraction=0.1, drawedges=True)
-        cb.ax.ticklabel_format(axis="y", style="sci", scilimits=(-2, 2))
+        cb = plt.colorbar(spacing='uniform', pad=0.02, aspect=30, fraction=0.1, drawedges=True)
         cb.ax.tick_params(size=0, labelsize=plt.rcParams['ytick.labelsize'] - 0.5)
+
+        if use_log():
+            ticks = [utils.get_power_10(t) for t in cf.levels]
+            cb.ax.axes.set_yticklabels(ticks)
+        else:
+            cb.ax.ticklabel_format(axis="y", style="sci", scilimits=(-2, 2))
 
         # An upper colorbar extension moves the offset text down, so we raise it back up
         if 'extend' in args_both:
@@ -478,7 +501,7 @@ if __name__ == '__main__':
     )
 
     plot_options = PlotOptions(
-        xmin=0,
+        xmin=0.0,
         xmax=1,
     )
 
@@ -495,20 +518,20 @@ if __name__ == '__main__':
     vars_to_plot = ['xti', 'xte', 'xdi', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp', 'vct']
     # vars_to_plot = ['xti', 'xte', 'xde']
     # vars_to_plot = ['xteDBM', 'xtiDBM', 'xdiDBM', 'gmaDBM', 'omgDBM', 'kyrhosDBM', 'phi2DBM', 'Apara2DBM', 'gaveDBM', 'satDBM', 'fti', 'fte', 'fde']
-    # vars_to_plot = ['gmaW20ii', 'gmaW20ee', 'gmaW20ie']
-    vars_to_plot = ['gaveDBM', 'gmaDBM', 'omgDBM', 'xtiDBM', 'xteDBM', 'kyrhosDBM', 'xdeDBM', 'phi2DBM', 'Apara2DBM', 'fti', 'fte', 'fde']
+    # vars_to_plot = ['gmaW20i', 'gmaW20e']
+    # vars_to_plot = ['gaveDBM', 'gmaDBM', 'omgDBM', 'xtiDBM', 'xteDBM', 'kyrhosDBM', 'xdeDBM', 'phi2DBM', 'Apara2DBM', 'fti', 'fte', 'fde']
     # vars_to_plot = ['fti', 'fte', 'fde']
     # vars_to_plot = ['xteDBM', 'xtiDBM', 'xteETGM', 'xte2ETGM', 'xteETG', 'xteMTM', 'xteW20', 'xtiW20', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp']
-    # vars_to_plot = ['gmaDBM', 'omgDBM']
+    vars_to_plot = ['gmaDBM', 'omgDBM', 'xteDBM', 'xtiDBM', 'gaveDBM']
     # vars_to_plot = OutputVariables().get_all_output_vars()
     # vars_to_plot = OutputVariables().get_etgm_vars()
     # vars_to_plot = OutputVariables().get_weiland_vars()
     # vars_to_plot = OutputVariables().get_etgm_vars()
     # vars_to_plot = ['xtiW20', 'xteW20', 'xdeW20']
     # vars_to_plot = ['gmaDBM',]
-    # vars_to_plot = ['xtiEPM','nEPM', 'gmaEPM', 'omgEPM', 'gaveEPM']
+    # vars_to_plot = ['errorEPM', 'gmaEPM', 'omgEPM', 'nEPM', 'kyrhosEPM', 'gaveEPM']
     # vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
-    vars_to_plot = ['gmaETGM']
+    # vars_to_plot = ['gaveETGM']
     # vars_to_plot = ['xtiEPM', 'xteEPM', 'xdeEPM']
     # vars_to_plot = ['gmaW20i', 'gmaW20e', 'omgW20i', 'omgW20e']
 
@@ -543,9 +566,244 @@ if __name__ == '__main__':
     # scan_data['141040A01'] = [13080]
     # scan_data['141716A80'] = [13080]
 
-    scan_data['129016A03'] = [31]
+    # scan_data['129016A03'] = [31]
     # scan_data['129016A04'] = [15]
-    # scan_data['138536A01'] = [456]
+    # scan_data['138536A01'] = [465]  # EPM no Convergence (bad krhoi2)
+    # scan_data['138536A01'] = [466]  # EPM (bad krhoi2)
+    # scan_data['138536A01'] = [469]  # EPM ion direction (bad krhoi2)
+    # scan_data['138536A01'] = [470]  # EPM elc direction (bad krhoi2)
+    # scan_data['138536A01'] = [467]  # Old EPM
+    # scan_data['138536A01'] = [468]  # Old EPM no Convergence
+    # scan_data['138536A01'] = [471]  # EPM
+    # scan_data['138536A01'] = [472]  # EPM n = 1, 50
+    # scan_data['138536A01'] = [473]  # EPM n scan 1, 200
+    # scan_data['138536A01'] = [474]  # EPM n scan 1, 500
+    # scan_data['138536A01'] = [476]  # EPM added normalization n = 1, 50
+    # scan_data['138536A01'] = [477]  # EPM added normalization n = 1, 10
+    # scan_data['138536A01'] = [480]  # EPM added normalization n = 1, 10 disabled optimizations
+    # scan_data['138536A01'] = [484]  # EPM ndeg = 5
+    # scan_data['138536A01'] = [485]  # EPM ndeg = 6
+    # scan_data['138536A01'] = [489]  # EPM ndeg = 6, norm=1e10
+    # scan_data['138536A01'] = [490]  # EPM ndeg = 3, wdf norm
+    # scan_data['138536A01'] = [491]  # EPM ndeg = 3, wde norm
+
+    # scan_data['138536A01'] = [495]  # EPM_OLD, r8tomsqz
+    # scan_data['138536A01'] = [494]  # EPM ndeg = 3, wdf norm
+    # scan_data['138536A01'] = [497]  # EPM ndeg = 5, wdf norm
+    # scan_data['138536A01'] = [498]  # EPM ndeg = 6, wdf norm
+    # scan_data['138536A01'] = [499]  # EPM n scan
+    # scan_data['138536A01'] = [500]  # EPM n scan, unit
+    # scan_data['138536A01'] = [503]  # EPM ndeg = 6, unit
+    # scan_data['138536A01'] = [504]  # EPM ndeg = 6
+    # scan_data['138536A01'] = [505]  # EPM ndeg = 6, n=1, 3
+    # scan_data['138536A01'] = [506]  # EPM ndeg = 6, n=1, 10, wdi fix
+    # scan_data['138536A01'] = [516]  # definition updates / cleanup
+
+    # scan_data['138536A01'] = [522]  # Positive signs wdi, wdf, wsf
+    # scan_data['138536A01'] = [523]  # Positive signs wdi, wdf, wsf -- n scan
+    # scan_data['138536A01'] = [527]  # Negative signs wdi, wdf, wsf -- n scan
+    # scan_data['138536A01'] = [526]  # Negative signs wdi, wdf, wsf
+
+    # scan_data['138536A01'] = [528]  # Negative 3rd term dnf -- n scan
+    # scan_data['138536A01'] = [529]  # Negative 3rd term dnf
+    # scan_data['138536A01'] = [530]  # delta**2 small
+    # scan_data['138536A01'] = [531]  # density ratios = 1
+    # scan_data['138536A01'] = [532]  # density ratios = 1 -- n scan
+    # scan_data['138536A01'] = [537]  # current
+    # scan_data['138536A01'] = [540]  # current -- n scan
+    # scan_data['138536A01'] = [541]  # current -- n scan, ky in norm
+    # scan_data['138536A01'] = [542]  # current, ky in norm, n = 1
+    # scan_data['138536A01'] = [543]  # current, ky in norm
+    # scan_data['138536A01'] = [544]  # updated CN_const
+    # scan_data['138536A01'] = [545]  # updated CN_const -- n scan
+    # scan_data['138536A01'] = [546]  # CN_const = wdf_const 
+    # scan_data['138536A01'] = [547]  # CN_const = abs(wdf_const) 
+    # scan_data['138536A01'] = [548]  # CN_const = abs(wde_const) 
+    # scan_data['138536A01'] = [549]  # CN_const = max(abs(wdf_const), abs(wde_const))
+    # scan_data['138536A01'] = [551]  # CN_const = max(all 4)
+    # scan_data['138536A01'] = [552]  # CN_const = max(all 4) -- n scan
+    # scan_data['138536A01'] = [554]  # CN_const = max(all 3), removed wsf from norm
+    # scan_data['138536A01'] = [556]  # fixed 6th order eqs
+    # scan_data['138536A01'] = [557]  # fixed 6th order eqs, added tf_te to norm
+    # scan_data['138536A01'] = [558]  # n scan
+    # scan_data['138536A01'] = [559]  # n scan (without tf_te norm)
+    # scan_data['138536A01'] = [560]  # testing norm * 1e10
+    # scan_data['138536A01'] = [561]  # testing norm * 1e10, with norm in error calc
+    # scan_data['138536A01'] = [562]  # testing norm, with norm in error calc
+    # scan_data['138536A01'] = [563]  # testing norm without tf_te, with norm in error calc
+    # scan_data['138536A01'] = [564]  # testing norm without tf_te, with norm in error calc -- n scan
+    # scan_data['138536A01'] = [567]  # error ratio? usual norm
+    # scan_data['138536A01'] = [568]  # error ratio? norm = ky
+    # scan_data['138536A01'] = [569]  # error ratio? norm = 1e15
+    # scan_data['138536A01'] = [570]  # error ratio? wde, wdf only
+    # scan_data['138536A01'] = [571]  # error ratio? wde, wdf * tf_te only
+    # scan_data['138536A01'] = [572]  # Error Test: No norm
+    # scan_data['138536A01'] = [573]  # Error Test: max(wdf, wse) norm
+    # scan_data['138536A01'] = [575]  # Error Test: max(wdf, wse)**3 norm
+    # scan_data['138536A01'] = [576]  # Error Ratio Test: max(wdf, wse)**3 norm
+    # scan_data['138536A01'] = [577]  # Error Ratio Test: max(wdf, wse) norm
+    # scan_data['138536A01'] = [578]  # Error Ratio Test: No norm
+    # scan_data['138536A01'] = [581]  # New error
+    # scan_data['138536A01'] = [582]  # New error -- n scan
+    # scan_data['138536A01'] = [583]  # New error, norm * Gave
+    # scan_data['138536A01'] = [584]  # New error, norm * Gave -- n scan
+    # scan_data['138536A01'] = [586]  # New error, norm w/ wdi -- n scan
+    # scan_data['138536A01'] = [587]  # New error, norm w/ wdi -- n scan
+    # scan_data['138536A01'] = [589]  # kyrhos correlation
+    # scan_data['138536A01'] = [590]  # default
+    # scan_data['138536A01'] = [591]  # without freq shift
+    # scan_data['138536A01'] = [592]  # default
+    # scan_data['138536A01'] = [593]  # Gave>=1E-2
+    # scan_data['138536A01'] = [600]  # Fake Gave
+    # scan_data['138536A01'] = [601]  # Real Gave
+    # scan_data['138536A01'] = [602]  # Real Gave no kyrhos corr
+    # scan_data['138536A01'] = [603]  # Fake Gave no kyrhos corr
+    # scan_data['138536A01'] = [606]  # Fake Gave no kyrhos corr
+    # scan_data['138536A01'] = [607]  # Fake Gave no kyrhos corr
+    # scan_data['138536A01'] = [610]  # Gave allowed negative
+    # scan_data['138536A01'] = [612]  # Gave >= 1E-2
+    # scan_data['138536A01'] = [613]  # Gave >= zepslon
+    # scan_data['138536A01'] = [615]  # A_lpk_n
+    # scan_data['138536A01'] = [616]  # A_lpk
+    # scan_data['138536A01'] = [617]  # A_lpk simplified
+    # scan_data['138536A01'] = [618]  # fixed normalization
+    # scan_data['138536A01'] = [619]  # fixed normalization
+    # scan_data['138536A01'] = [622]  # Reverted to original A_lpk, Gave >= 1E-2
+    # scan_data['138536A01'] = [625]  # Freq normalized by wde until saved
+    # scan_data['138536A01'] = [626]  # Freq normalized by CN_const until saved (incorrect)
+    # scan_data['138536A01'] = [627]  # correct normalization
+    # scan_data['138536A01'] = [632]  # fixed optimization skips, saving of frequency
+    # scan_data['138536A01'] = [633]  # ndeg = 3
+    # scan_data['138536A01'] = [634]  # ndeg = 3 + shift
+    # scan_data['138536A01'] = [635]  # ndeg = 6 + shift
+    # scan_data['138536A01'] = [639]  # ndeg = 6 + shift -- n scan
+    # scan_data['138536A01'] = [638]  # ndeg = 3 + shift -- n scan
+    # scan_data['138536A01'] = [644]  # ndeg = 6 + shift -- n scan -- lower Gave limit
+    # scan_data['138536A01'] = [645]  # ndeg = 6 + shift -- lower Gave limit
+    # scan_data['138536A01'] = [646]  # ndeg = 6 + shift -- lower Gave limit
+    # scan_data['138536A01'] = [647]  # freq guess = 1
+    # scan_data['138536A01'] = [649]  # freq guess = 1 + i
+    # scan_data['138536A01'] = [650]  # freq guess / (2r)**3
+    # scan_data['138536A01'] = [651]  # freq guess = 0
+    # scan_data['138536A01'] = [652]  # freq guess negative
+    # scan_data['138536A01'] = [654]  # shat kappa
+    # scan_data['138536A01'] = [655]  # shat kappa, n = 1
+    # scan_data['138536A01'] = [658]  # correlation loop
+    # scan_data['138536A01'] = [659]  # kyrhos 0.1 to 1
+    # scan_data['138536A01'] = [660]  # 0.5 Freq guess
+    # scan_data['138536A01'] = [661]  # 0.1 Freq guess
+    # scan_data['138536A01'] = [663]  # A_lpk min value change
+    # scan_data['138536A01'] = [664]  # A_lpk sign change removal
+    # scan_data['138536A01'] = [665]  # A_lpk simplification
+    # scan_data['138536A01'] = [666]  # ALPC simplification
+    # scan_data['138536A01'] = [667]  # ALPC simplification + shat nonzero
+    # scan_data['138536A01'] = [668]  # ALPC simplification + shat nonzero, n scan
+    # scan_data['138536A01'] = [669]  # ALPC simplification + shat nonzero, n scan
+    # scan_data['138536A01'] = [670]  # ALPC simplification + shat nonzero
+    # scan_data['138536A01'] = [671]  # calculate omgbar subroutine input/output
+    # scan_data['138536A01'] = [673]  # kpara2 lower restriction
+    # scan_data['138536A01'] = [674]  # kpara2 lower restriction, n scan
+    # scan_data['138536A01'] = [675]  # kva2 fix units
+    # scan_data['138536A01'] = [677]  # kva2 fix units, squared?
+    # scan_data['138536A01'] = [678]  # kva2 fix units, squared? n scan
+    # scan_data['138536A01'] = [679]  # kva2 fix units, squared? n scan (1/q**2)
+    # scan_data['138536A01'] = [680]  # kva2 fix units, squared
+    # scan_data['138536A01'] = [681]  # n = 1, 4
+    # scan_data['138536A01'] = [683]  # n = 1, 4, kpara with 0.5 factor
+    # scan_data['138536A01'] = [686]  # fixed kps, n = 1, 10
+    # scan_data['138536A01'] = [687]  # fixed kps, n = 1, 5
+    # scan_data['138536A01'] = [688]  # fixed kps, n = 1, 5
+    # scan_data['138536A01'] = [689]  # fixed again kps, n = 1, 10
+    # scan_data['138536A01'] = [690]  # fixed again kps, n = 1, 5
+
+    # scan_data['138536A01'] = [713]  # default guess, n = 1 5
+    # scan_data['138536A01'] = [714]  # guess = 1, n = 1 5
+    # scan_data['138536A01'] = [715]  # guess x100, n = 1 5
+    # scan_data['138536A01'] = [716]  # default guess, n = 1 10
+    # scan_data['138536A01'] = [717]  # guess x1E6, n = 1 5
+
+
+    # vars_to_plot = ['gmaDBM', 'omgDBM', 'gaveDBM']
+    # scan_data['138536A01'] = [718]  # Dribm normal Gave
+    # scan_data['138536A01'] = [720]  # Dribm Gave = min(Gave, -Gave)
+    # scan_data['138536A01'] = [721]  # Dribm Gave = min(Gave, -Gave) max zepslon
+
+    # vars_to_plot = ['gmaETGM', 'omgETGM', 'gaveETGM']
+    # scan_data['138536A01'] = [724]  # ETGM normal Gave
+    # scan_data['138536A01'] = [725]  # ETGM Gave = min(Gave, -Gave)
+    # scan_data['138536A01'] = [726]  # ETGM Gave = min(Gave, -Gave) max zepslon
+
+    # vars_to_plot = ['gmaEPM', 'omgEPM', 'gaveEPM']
+    # scan_data['138536A01'] = [727]  # EPM Gave > 0, guess x1E6
+    # scan_data['138536A01'] = [728]  # EPM Gave < 0, guess x1E6
+    # scan_data['138536A01'] = [729]  # EPM Gave = zepslon, guess x1E6
+    # scan_data['138536A01'] = [731]  # EPM Gave = zepslon, normal guess
+    # scan_data['138536A01'] = [732]  # EPM Gave = zepslon**2, normal guess
+
+
+    # vars_to_plot = ['errorEPM', 'gmaEPM', 'omgEPM', 'gaveEPM']
+    # scan_data['138536A01'] = [735]  # Guess = 1E6
+    # scan_data['138536A01'] = [734]  # Guess = x1E6
+    # scan_data['138536A01'] = [736]  # Guess = 1E2
+    # scan_data['138536A01'] = [737]  # Guess = 1E2 * sign(guess)
+
+    # vars_to_plot = ['errorEPM', 'gmaEPM', 'omgEPM', 'gaveEPM', 'nEPM', 'wdeEPM', 'wdfEPM', 'wseEPM', 'kpara2EPM', 'vA']
+    # vars_to_plot = ['shat_gxi', 'q',]
+    # scan_data['138536A01'] = [739]  # Guess = CN / wde * sign(guess)
+    # scan_data['138536A01'] = [740]  # Guess = CN / wde * sign(guess), wdf / 100
+    # scan_data['138536A01'] = [741]  # Guess = CN / wde * sign(guess), wdf *= zepslon
+    # scan_data['138536A01'] = [742]  # Guess = CN / wde * sign(guess), tf/te = 1
+    # scan_data['138536A01'] = [743]  # Guess = CN / wde * sign(guess), tf/te = 1, kva2 = wde**2
+    # scan_data['138536A01'] = [744]  # Guess = CN / wde * sign(guess), kva2 = wde**2
+    # scan_data['138536A01'] = [745]  # Guess = 1E2 * sign(guess), CN = wde
+    # scan_data['138536A01'] = [746]  # Guess = 1E2 * sign(guess), CN = wde, tf/te = 1
+    # scan_data['138536A01'] = [748]  # Guess = CN/wde * sign(guess)
+    # scan_data['138536A01'] = [749]  # Guess = CN/wde * sign(guess), corr kyrhos
+    # scan_data['138536A01'] = [809]  # Guess = default, updated matching
+    # scan_data['138536A01'] = [810]  # Guess = default * ratio, updated matching
+    # scan_data['138536A01'] = [811]  # Guess = 1 + i, updated matching
+    # scan_data['138536A01'] = [812]  # Guess = 1 + i, def matching
+    # scan_data['138536A01'] = [813]  # Guess = def, def matching
+
+
+    # vars_to_plot = ['gmaW20e', 'gmaW20i', 'xteW20', 'xtiW20', 'xdeW20']
+    vars_to_plot = ['gmaETGM', 'xteETGM', 'xte2ETGM']
+    vars_to_plot = ['gmaW20i', 'gmaW20e', 'xtiW20', 'xteW20']
+    # vars_to_plot = ['gaveW20i', 'gaveW20e', 'kyrhosW20i', 'kyrhosW20e', 'kparaW20i', 'kparaW20e']
+    # vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
+    # vars_to_plot = ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
+    vars_to_plot = ['xte', 'fte']
+    vars_to_plot = ['xteW20', 'xtiW20', 'xteETG', 'xteMTM', 'xteETGM', 'xte2ETGM']
+
+    # scan_data['138536A01'] = [1053]  # wexb off
+    # scan_data['138536A01'] = [1052]  # wexb on
+    # scan_data['138536A01'] = [1054]  # wexb scan
+    # scan_data['118341T54'] = [566]  # wexb off, guess = 1,1
+    # scan_data['118341T54'] = [571]  # wexb off, def guess
+    # scan_data['118341T54'] = [572]  # wexb off, def guess, gave fix
+    # scan_data['118341T54'] = [568]  # wexb scan
+    # scan_data['118341T54'] = [558]  # guess scan
+    # scan_data['118341T54'] = [559]  # guess scan, guess = 1,1, to 5
+    # scan_data['118341T54'] = [560]  # guess scan, guess = 1,1, to 25
+    # scan_data['118341T54'] = [564]  # guess scan, guess = 1,1, -2 to 2 high prec
+
+    # scan_data['138536A01'] = [1058]  # guess scan, guess = def, -2 to 2
+    # scan_data['138536A01'] = [1059]  # guess scan, guess = 1+i, -2 to 2
+
+    # vars_to_plot = ['waETGM',]
+    # scan_data['118341T54'] = [576]  # updated kpara dbm
+    # scan_data['16297T01'] = [9]  # main
+    # scan_data['85610T01'] = [9]  # main
+    scan_data['85610T01'] = [10]  # main
+    # scan_data['85610T01'] = [11]  # (#24)
+
+
+
+
+
+    # scan_data['138536A01'] = [1290]  # no skips
+    # scan_data['138536A01'] = [1119]  # no skips, discards
+    # scan_data['138536A01'] = [1151]  # w20 testing
 
     # scan_data['153283T50'] = [8]
     # scan_data['129041A10'] = [3001]; vars_to_plot = ['ah', 'ai']

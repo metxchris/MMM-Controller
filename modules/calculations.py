@@ -4,7 +4,7 @@ Variable Classifications:
 * Base variable: A non-gradient variable that is either used as input to MMM,
   or is needed to calculate an MMM input variable.  Base variables do not
   depend on values of gradient or additional variables.
-* Gradient variable: A variable that is a normalized gradient, and may be used
+* gradient variable: A variable that is a normalized gradient, and may be used
   as an input to MMM.  These variables depend on values of base variables,
   but not on values of additional variables.
 * Additional variable: A variable that is not needed for MMM input nor input
@@ -37,6 +37,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 # Local Packages
+import settings
 import modules.constants as constants
 import modules.datahelper as datahelper
 
@@ -44,9 +45,68 @@ import modules.datahelper as datahelper
 _gradients = set()  # Stores the names of calculated gradient variables
 
 
-def gradient(gvar_name, var_name, drmin, calc_vars):
+def differential(x):
     '''
-    Calculates the normalized gradient
+    Take the radial differential of variable x
+
+    Parameters:
+    * x (np.ndarray): values to take differential of
+
+    Raises:
+    * ValueError: If settings.GRADIENT_METHOD does not match a valid gradient method
+    '''
+
+    if settings.GRADIENT_METHOD == 'interpolate':
+        return np.diff(x, axis=0)
+
+    elif settings.GRADIENT_METHOD == 'traditional':
+        dx = np.zeros_like(x)
+        tmp = np.diff(x, axis=0)
+        dx[:-1, :] = tmp
+        dx[1:, :] += tmp
+        return dx
+
+    else:
+        raise ValueError(
+            f'\'{settings.GRADIENT_METHOD}\' is not a valid argument for the gradient method\n'
+            f'Possible choices: \'interpolate\', \'traditional\''
+        )
+
+
+def differentiate(yname, xname, calc_vars):
+    '''
+    Take the derivative of variable y with respect to variable x
+
+    Parameters:
+    * yname (str): name of variable to use for y
+    * xname (str): name of variable to use for x
+    * calc_vars (InputVariables): Object containing variable data
+    '''
+
+    dy = differential(getattr(calc_vars, yname).values)
+
+    if xname == 'rmin':
+        dx = calc_vars.drmin.values
+    else:
+        dx = differential(getattr(calc_vars, xname).values)
+
+    dy_dx = dy / dx
+
+    if settings.GRADIENT_METHOD == 'interpolate':
+
+        rhox = calc_vars.x.values[:, 0]
+        rhoxb = calc_vars.xb.values[:, 0]  # includes origin
+
+        # interpolate from rhox grid to rhoxb grid
+        set_interp = interp1d(rhox, dy_dx, kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
+        dy_dx = set_interp(rhoxb)
+
+    return dy_dx
+
+
+def gradient(gvar_name, var_name, gsign, calc_vars):
+    '''
+    Calculates the normalized gradient using interpolation
 
     After the gradient value is calculated, optional smoothing is applied, and
     then the gradient is checked for min and nan values.  The overall sign of
@@ -55,29 +115,19 @@ def gradient(gvar_name, var_name, drmin, calc_vars):
     Parameters:
     * gvar_name (str): The name of the variable to store the gradient result in
     * var_name (str): The name of the variable to take the gradient of
-    * drmin (np.ndarray): Differential rmin
+    * gsign (int): sign on gradient, should be +1 or -1
     * calc_vars (InputVariables): Object containing variable data
     '''
 
     _gradients.add(gvar_name)
     rmaj = calc_vars.rmaj.values
-    x = calc_vars.x.values[:, 0]
-    xb = calc_vars.xb.values[:, 0]  # includes origin
 
     # get variables related to the gradient from variable names
     gvar = getattr(calc_vars, gvar_name)
     var = getattr(calc_vars, var_name)
 
-    # partial derivative along radial dimension
-    dxvar = np.diff(var.values, axis=0) / drmin
-
-    # interpolate from x grid to xb grid
-    set_interp = interp1d(x, dxvar, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
-    dxvar = set_interp(xb)
-
-    # take gradient
-    gradient_values = rmaj * dxvar / var.values
-    gvar.set(values=gradient_values, units='')
+    dy_dx = differentiate(var_name, 'rmin', calc_vars)
+    gvar.set(values=gsign * rmaj * dy_dx / var.values, units='')
 
     if calc_vars.options.apply_smoothing:
         gvar.apply_smoothing()
@@ -283,7 +333,7 @@ def bu(calc_vars):
     drho_drmin = np.diff(rhochi, axis=0) / np.diff(rmin, axis=0)
 
     # interpolate from x grid to xb grid
-    set_interp = interp1d(x, drho_drmin, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
+    set_interp = interp1d(x, drho_drmin, kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
     dxrho = set_interp(xb)
 
     bu = np.empty_like(dxrho)
@@ -356,35 +406,19 @@ def curohrho(calc_vars):
 @calculation
 def dbp(calc_vars):
     '''dBpol / drho'''
-    bpol = calc_vars.bpol.values
-    rho = calc_vars.rho.values
-    x = calc_vars.x.values[:, 0]
-    xb = calc_vars.xb.values[:, 0]  # includes origin
-
-    # partial derivative along radial dimension
-    dbpol_drho = np.diff(bpol, axis=0) / np.diff(rho, axis=0)
-
-    # interpolate from x grid to xb grid
-    set_interp = interp1d(x, dbpol_drho, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
-
-    return set_interp(xb)
+    return differentiate('bpol', 'rho', calc_vars)
 
 
 @calculation
 def d2bp(calc_vars):
     '''d^2Bpol / drho^2'''
-    dbp = calc_vars.dbp.values
-    rho = calc_vars.rho.values
-    x = calc_vars.x.values[:, 0]
-    xb = calc_vars.xb.values[:, 0]  # includes origin
+    return differentiate('dbp', 'rho', calc_vars)
 
-    # partial derivative along radial dimension
-    d2bpol_drho = np.diff(dbp, axis=0) / np.diff(rho, axis=0)
 
-    # interpolate from x grid to xb grid
-    set_interp = interp1d(x, d2bpol_drho, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
-
-    return set_interp(xb)
+@calculation
+def drmin(calc_vars):
+    '''differential rmin'''
+    return differential(calc_vars.rmin.values)
 
 
 @calculation
@@ -439,7 +473,7 @@ def e_r_grp(calc_vars):
     dpdr_x = np.diff(p_i, axis=0) / drmin
 
     # interpolate from x grid to xb grid
-    set_interp = interp1d(x, dpdr_x, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
+    set_interp = interp1d(x, dpdr_x, kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
     dpdr = set_interp(xb)
 
     # From pt_vflows_mod.f90:
@@ -518,24 +552,10 @@ def etai(calc_vars):
 
 @calculation
 def gelong(calc_vars):
-    '''Elongation Gradient (delong / deps)'''
+    '''Elongation gradient (delong / deps)'''
     _gradients.add('gelong')
-    elong = calc_vars.elong.values
-    rmin = calc_vars.rmin.values
     rmaj0 = calc_vars.rmaj.values[0, :]
-    x = calc_vars.x.values[:, 0]
-    xb = calc_vars.xb.values[:, 0]  # includes origin
-
-    # Inverse aspect ratio
-    eps = rmin / rmaj0
-
-    # partial derivative along radial dimension
-    delong_deps = np.diff(elong, axis=0) / np.diff(eps, axis=0)
-
-    # interpolate from x grid to xb grid
-    set_interp = interp1d(x, delong_deps, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
-
-    return set_interp(xb)
+    return rmaj0 * differentiate('elong', 'rmin', calc_vars)
 
 
 @calculation
@@ -594,7 +614,7 @@ def gxi(calc_vars):
     dxvar = np.diff(rhochi, axis=0) / drmin
 
     # interpolate from x grid to xb grid
-    set_interp = interp1d(x, dxvar, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
+    set_interp = interp1d(x, dxvar, kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
     dxvar2 = set_interp(xb)
 
     return dxvar2 * rmin[-1, :] * elong[-1, :]**0.5
@@ -707,15 +727,7 @@ def nuei(calc_vars):
 
 @calculation
 def nuste(calc_vars):
-    '''
-    Electron Collisionality
-
-    This is in approximate agreement with NUSTE in TRANSP.  One source of the
-    disagreement is likely because the modmmm7_1.f90 Coulomb logarithm
-    (loge) does not match perfectly with the TRANSP version (CLOGE).  However,
-    our Coulomb logarithm definition follows from the NRL plasma formulary,
-    and we feel that it's use is correct here.
-    '''
+    '''Electron Collisionality'''
 
     eps = calc_vars.eps.values
     nuei = calc_vars.nuei.values
@@ -753,9 +765,7 @@ def rhochi(calc_vars):
 
 @calculation
 def rhos(calc_vars):
-    '''
-    Rhos
-    '''
+    '''Rhos'''
 
     csound = calc_vars.csound.values
     gyrfi = calc_vars.gyrfi.values
@@ -765,9 +775,7 @@ def rhos(calc_vars):
 
 @calculation
 def rhosu(calc_vars):
-    '''
-    Rhos (Unit)
-    '''
+    '''Rhos (Unit)'''
 
     csound = calc_vars.csound.values
     gyrfiu = calc_vars.gyrfiu.values
@@ -827,6 +835,15 @@ def ti_te(calc_vars):
 
 
 @calculation
+def tf_te(calc_vars):
+    '''Temperature Ratio tf / te'''
+    te = calc_vars.te.values
+    tf = calc_vars.tf.values
+
+    return tf / te
+
+
+@calculation
 def tbtbe(calc_vars):
     '''Temperature Ratio ti / te'''
     btbe = calc_vars.btbe.values
@@ -837,6 +854,18 @@ def tbtbe(calc_vars):
     zckb = constants.ZCKB
 
     return btbe * btor**2 / (2 * zcmu0 * zckb * nf) * 1.8
+
+
+@calculation
+def vA(calc_vars):
+    '''Alfven Velocity'''
+    zcmp = constants.ZCMP
+    zcmu0 = constants.ZCMU0
+    btor = calc_vars.btor.values
+    ai = calc_vars.ai.values
+    ni = calc_vars.ne.values  # Assuming quasi-neutrality
+
+    return btor / (zcmu0 * ni * ai * zcmp)**(0.5)
 
 
 @calculation
@@ -929,7 +958,7 @@ def wexb(calc_vars):
         dfdr_x = np.diff(f, axis=0) / drmin
 
         # interpolate from x grid to xb grid
-        set_interp = interp1d(x, dfdr_x, kind=constants.INTERP_TYPE, fill_value="extrapolate", axis=0)
+        set_interp = interp1d(x, dfdr_x, kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
         return set_interp(xb)
 
     x = calc_vars.x.values[:, 0]  # same for all time values
@@ -1108,9 +1137,41 @@ def waETGM(calc_vars, output_vars):
     bu = calc_vars.bu.values[:, t]
     ai = calc_vars.ai.values[:, t]
     ni = calc_vars.ni.values[:, t]
-    kpara2 = output_vars.kpara2ETGM.values
+    kpara = output_vars.kparaETGM.values
 
-    return kpara2**(0.5) * bu / (zcmu0 * zcmp * ai * ni)**(0.5)
+    return kpara * bu / (zcmu0 * zcmp * ai * ni)**(0.5)
+
+
+@calculation_output
+def wdeEPM(calc_vars, output_vars):
+    '''wde'''
+    t = calc_vars.options.time_idx
+    csound = calc_vars.csound.values[:, t]
+    rmaj = calc_vars.rmaj.values[:, t]
+    kyrhos = output_vars.kyrhosEPM.values
+
+    return 2 * csound * kyrhos / rmaj
+
+
+@calculation_output
+def wdfEPM(calc_vars, output_vars):
+    '''wdf'''
+    t = calc_vars.options.time_idx
+    tf = calc_vars.tf.values[:, t]
+    te = calc_vars.te.values[:, t]
+    wdeEPM = output_vars.wdeEPM.values
+
+    return -tf / te * wdeEPM
+
+
+@calculation_output
+def wseEPM(calc_vars, output_vars):
+    '''wdf'''
+    t = calc_vars.options.time_idx
+    gne = calc_vars.gne.values[:, t]
+    wdeEPM = output_vars.wdeEPM.values
+
+    return 0.5 * gne * wdeEPM
 
 
 def calculate_output_variables(calc_vars, output_vars, controls):
@@ -1148,7 +1209,9 @@ def calculate_output_variables(calc_vars, output_vars, controls):
         omgnMTM(calc_vars, output_vars)
 
     if controls.cmodel_epm.values:
-        ...
+        wdeEPM(calc_vars, output_vars)
+        wdfEPM(calc_vars, output_vars)
+        wseEPM(calc_vars, output_vars)
 
 
 def calculate_base_variables(calc_vars):
@@ -1169,6 +1232,7 @@ def calculate_base_variables(calc_vars):
     # matters here.
 
     # nh0(calc_vars)
+    drmin(calc_vars)
     nh(calc_vars)
     ni(calc_vars)
     ni2(calc_vars)
@@ -1202,7 +1266,7 @@ def calculate_gradient_variables(calc_vars):
     Calculates gradient variables
 
     Since the input parameter calc_vars is a reference, no return value for
-    calculations are needed.  Gradient calculations do not depend on any
+    calculations are needed.  gradient calculations do not depend on any
     additional variables.
 
     Parameters:
@@ -1211,31 +1275,28 @@ def calculate_gradient_variables(calc_vars):
 
     # Each use of the following calculate_variable functions are passing in
     # the local function of the variable to be calculated, which shares the
-    # same name as the variable it calculates. Additionally, the sign on
-    # drmin (differential rmin) sets the sign of the gradient equation
+    # same name as the variable it calculates.
 
-    drmin = np.diff(calc_vars.rmin.values, axis=0)
-    # Positive drmin
-    gradient('gq', 'q', drmin, calc_vars)
-    gradient('gbu', 'bu', drmin, calc_vars)
-    gradient('gbtor', 'btor', drmin, calc_vars)
-    # Negative drmin
-    gradient('gne', 'ne', -drmin, calc_vars)
-    gradient('gnh', 'nh', -drmin, calc_vars)
-    gradient('gnf', 'nf', -drmin, calc_vars)
-    gradient('gni', 'ni', -drmin, calc_vars)
-    gradient('gnz', 'nz', -drmin, calc_vars)
-    gradient('gte', 'te', -drmin, calc_vars)
-    gradient('gtf', 'tf', -drmin, calc_vars)
-    gradient('gti', 'ti', -drmin, calc_vars)
-    gradient('gvpar', 'vpar', -drmin, calc_vars)
-    gradient('gvpol', 'vpol', -drmin, calc_vars)
-    gradient('gvtor', 'vtor', -drmin, calc_vars)
+    # Positive sign
+    gradient('gq', 'q', 1, calc_vars)
+    gradient('gbu', 'bu', 1, calc_vars)
+    gradient('gbtor', 'btor', 1, calc_vars)
+
+    # Negative sign
+    gradient('gne', 'ne', -1, calc_vars)
+    gradient('gnh', 'nh', -1, calc_vars)
+    gradient('gnf', 'nf', -1, calc_vars)
+    gradient('gni', 'ni', -1, calc_vars)
+    gradient('gnz', 'nz', -1, calc_vars)
+    gradient('gte', 'te', -1, calc_vars)
+    gradient('gtf', 'tf', -1, calc_vars)
+    gradient('gti', 'ti', -1, calc_vars)
+    gradient('gvpar', 'vpar', -1, calc_vars)
+    gradient('gvpol', 'vpol', -1, calc_vars)
+    gradient('gvtor', 'vtor', -1, calc_vars)
+
     # gelong calculated differently than other normalized gradients
     gelong(calc_vars)
-
-    # calc_vars.tf.values = 10 * calc_vars.ti.values
-    # calc_vars.gtf.values = calc_vars.gti.values
 
     if hasattr(calc_vars.options, 'use_gnezero') and calc_vars.options.use_gnezero:
         calc_vars.gne.values[:, :] = 1e-12
@@ -1283,6 +1344,7 @@ def calculate_additional_variables(calc_vars):
 
     te_ti(calc_vars)
     ti_te(calc_vars)
+    tf_te(calc_vars)
     eps(calc_vars)
     p(calc_vars)
     beta(calc_vars)
@@ -1316,6 +1378,7 @@ def calculate_additional_variables(calc_vars):
     etai(calc_vars)
     epsne(calc_vars)
     vei_nc(calc_vars)
+    vA(calc_vars)
 
     # curlh(calc_vars)
     # curoh(calc_vars)

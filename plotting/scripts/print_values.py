@@ -27,6 +27,8 @@ from modules.enums import ShotType, ScanType, ProfileType, SaveType
 runid, input_time, scan_num = '129016A03', 0.46, 30  # wexb 0.5
 # runid, input_time, scan_num = '129016A03', 0.46, 26  # wexb on
 runid, input_time, scan_num = '129016A03', 0.46, 27  # wexb off
+runid, input_time, scan_num = '129016A03', 0.46, 40  # wexb off, mi = mh
+runid, input_time, scan_num = '129016A03', 0.46, 41  #0.5 fsa
 # runid, input_time, scan_num = '129016A04', 0.49, 19
 
 def print_value(name, vars):

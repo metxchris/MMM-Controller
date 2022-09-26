@@ -19,10 +19,6 @@ RHO_VALUE_SEPARATOR = ' = '
 ABSMIN_SCAN_FACTOR_VALUE = 1e-12
 MAX_GRADIENT = 1e3
 
-# Misc
-INTERP_TYPE = 'quadratic'  # scipy.interpolate.interp1d(kind=INTERP_TYPE)
-                           # linear, nearest, nearest-up, zero, slinear, quadratic, cubic, previous, next.
-
 # Physical Constants
 PI = 3.1415926535
 ZCC = 299792458                                               # Speed of light                 [m/s]

@@ -300,9 +300,9 @@ def plot_contour_difference(contour_list, plot_options):
     elif plot_options.difftype == 'absratio':
         Z = np.absolute(Zdiff / Zsum)
 
-    print(f'Max difference for {var_to_plot1}, {var_to_plot2}: {Z.max():.3e}')
-    plt.close(fig)
-    return
+    # print(f'Max difference for {var_to_plot1}, {var_to_plot2}: {Z.max():.3e}')
+    # plt.close(fig)
+    # return
 
     if np.isnan(Z).any():
         # This can happen due to calculation errors or or when loading
@@ -333,7 +333,7 @@ def plot_contour_difference(contour_list, plot_options):
     # Zmax, Zmin = get_vmax_vmin()
 
     # Clamp Z between Zmin and Zmax
-    # Z = np.minimum(np.maximum(Z, Zmin), Zmax)
+    Z = np.minimum(np.maximum(Z, Zmin), Zmax)
 
     # Set colormaps
     if (Z1 == Z2).all():

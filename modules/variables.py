@@ -79,7 +79,9 @@ _UNITS_TO_UNITS_LABEL = {
     'm^2/s': r'm$^2$/s',
     'm^2/s^2': r'm$^2$/s$^2$',
     's^{-1}': r's$^{-1}$',
+    's^-1': r's$^{-1}$',
     'm^-1': r'm$^{-1}$',
+    'm^-2': r'm$^{-2}$',
     'm^2': r'm$^2$',
     'MA/m^2': r'MA/m$^2$',
     'keVm/s': r'keV$\,$m/s',
@@ -298,13 +300,11 @@ class InputVariables(Variables):
         self.gtf = Variable(
             'Fast Ion Temperature Gradient',
             label=r'$g_{\mathrm{Tf}}$',
-            save_type=SaveType.INPUT,
         )
 
         self.gnf = Variable(
             'Fast Ion Density Gradient',
             label=r'$g_{\mathrm{nf}}$',
-            save_type=SaveType.INPUT,
         )
 
         self.tf = Variable(
@@ -313,8 +313,12 @@ class InputVariables(Variables):
             minvalue=1e-6,
             smooth=1,
             units='keV',
-            save_type=SaveType.INPUT,
         )
+
+        if settings.USE_EPM:
+            self.gtf.save_type = SaveType.INPUT
+            self.gnf.save_type = SaveType.INPUT
+            self.tf.save_type = SaveType.INPUT
 
         # Fundamental CDF Variables
         self.time = Variable(
@@ -796,7 +800,7 @@ class InputVariables(Variables):
 
         self.etai = Variable(
             'Ion Gradient Ratio',
-            cdfvar='ETAI',  # This is not the same definition as our is not gti/gni
+            cdfvar='ETAI',  # This is not the same definition as our gti/gni
             label=r'$\eta_\mathrm{\,i}$',
         )
 
@@ -815,7 +819,7 @@ class InputVariables(Variables):
             cdfvar='GXI',
             units='m^-1',
             label=r'$\nabla \hat{\rho}$',
-            save_type=SaveType.INPUT,
+            # save_type=SaveType.INPUT,
         )
 
         self.gyrfe = Variable(
@@ -984,6 +988,12 @@ class InputVariables(Variables):
             save_type=SaveType.ADDITIONAL,
         )
 
+        self.tf_te = Variable(
+            'Temperature Ratio',
+            label=r'$T_\mathrm{f}/T_\mathrm{e}$',
+            minvalue=0,
+        )
+
         self.vpar = Variable(
             'Parallel Velocity',
             label=r'$v_\parallel$',
@@ -1034,6 +1044,13 @@ class InputVariables(Variables):
             save_type=SaveType.ADDITIONAL,
         )
 
+        self.vA = Variable(
+            'Alfven Velocity',
+            label=r'$v_{\rm A}$',
+            units='m/s',
+            save_type=SaveType.ADDITIONAL,
+        )
+
         self.vei_nc = Variable(
             'Collision Frequency NC',
             label=r'$\nu_\mathrm{ei,NC}$',
@@ -1044,77 +1061,96 @@ class InputVariables(Variables):
         self.gbtor = Variable(
             'Btor Gradient',
             label=r'$g_{\mathrm{B\phi}}$',
+            absminvalue=1e-32,
         )
 
         self.gbu = Variable(
             'bu Gradient',
             label=r'$g_{\mathrm{Bu}}$',
-            save_type=SaveType.INPUT,
+            absminvalue=1e-32,
+            # save_type=SaveType.INPUT,
         )
 
         self.gne = Variable(
             'Electron Density Gradient',
             label=r'$g_{\mathrm{ne}}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
+        )
+
+        self.gq2 = Variable(
+            'gq2',
+            label=r'$g_{\mathrm{q}}$',
+            absminvalue=1e-32,
         )
 
         self.gnh = Variable(
             'Hydrogenic Ion Density Gradient',
             label=r'$g_{\mathrm{nh}}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
         )
 
         self.gni = Variable(
             'Thermal Ion Density Gradient',
             label=r'$g_{\mathrm{ni}}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
         )
 
         self.gnz = Variable(
             'Impurity Density Gradient',
             label=r'$g_{\mathrm{nz}}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
         )
 
         self.gq = Variable(
             'Safety Factor Gradient',
             label=r'$g_{q}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
         )
 
         self.gte = Variable(
             'Electron Temperature Gradient',
             label=r'$g_{\mathrm{Te}}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
         )
 
         self.gti = Variable(
             'Thermal Ion Temperature Gradient',
             label=r'$g_{\mathrm{Ti}}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
         )
 
         self.gvpar = Variable(
             'Parallel Velocity Gradient',
             label=r'$g_{v\parallel}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
         )
 
         self.gvpol = Variable(
             'Poloidal Velocity Gradient',
             label=r'$g_{v\theta}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
         )
 
         self.gvtor = Variable(
             'Toroidal Velocity Gradient',
             label=r'$g_{v\phi}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
         )
 
         self.gelong = Variable(
             'Elongation Gradient',
             label=r'$g_{\kappa}$',
+            absminvalue=1e-32,
             save_type=SaveType.INPUT,
         )
 
@@ -1206,6 +1242,12 @@ class InputVariables(Variables):
             label=r'$\chi_{\mathrm{i}}$',
             default_values=0,
             contour_max=200,
+        )
+
+        self.drmin = Variable(
+            'dr',
+            label=r'$dr$',
+            units='m',
         )
 
         self.darea = Variable(
@@ -1364,12 +1406,12 @@ class OutputVariables(Variables):
         self.rmin = Variable('Minor Radius', units='m', label=r'$r$', minvalue=0)
         self.rmina = Variable('rmina', label=r'$r/a$', units=r'', minvalue=0)
         # Total Fluxes
-        self.fti = Variable('fti', units='keVm/s', label=r'$\Gamma_\mathrm{i}$')
-        self.fde = Variable('fde', units='m^-2s^-1', label=r'$\Gamma_\mathrm{n}$')
-        self.fte = Variable('fte', units='keVm/s', label=r'$\Gamma_\mathrm{e}$')
-        self.fdz = Variable('fdz', units='m^-2s^-1', label=r'$\Gamma_\mathrm{z}$')
-        self.fvt = Variable('fvt', units='m^2/s^2', label=r'$\Gamma_\phi$')
-        self.fvp = Variable('fvp', units='m^2/s^2', label=r'$\Gamma_\theta$')
+        self.fti = Variable('fti', units='keVm/s', label=r'$\Gamma_\mathrm{i}$', contour_min=0)
+        self.fde = Variable('fde', units='m^-2s^-1', label=r'$\Gamma_\mathrm{n}$', contour_min=0)
+        self.fte = Variable('fte', units='keVm/s', label=r'$\Gamma_\mathrm{e}$', contour_min=0)
+        self.fdz = Variable('fdz', units='m^-2s^-1', label=r'$\Gamma_\mathrm{z}$', contour_min=0)
+        self.fvt = Variable('fvt', units='m^2/s^2', label=r'$\Gamma_\phi$', contour_min=0)
+        self.fvp = Variable('fvp', units='m^2/s^2', label=r'$\Gamma_\theta$', contour_min=0)
         # Convective Velocities
         self.vci = Variable('vci', units='m/s', label=r'$V_{\mathrm{i}}$')
         self.vch = Variable('vch', units='m/s', label=r'$V_{\mathrm{n}}$')
@@ -1406,18 +1448,31 @@ class OutputVariables(Variables):
         self.omgW20ee = Variable('omgW20ee', units='s^{-1}', label=r'$\omega_\mathrm{ee, w20}$',
                                  contour_max=5e6, contour_min=-5e6)
         self.gmaW20e = Variable('gmaW20e', units='s^{-1}', label=r'$\gamma_\mathrm{e, w20}$',
-                                 contour_max=5e7, contour_min=-5e7)
+                                 contour_max=5e5, contour_min=-5e5)
         self.omgW20e = Variable('omgW20e', units='s^{-1}', label=r'$\omega_\mathrm{e, w20}$',
-                                 contour_max=5e6, contour_min=-5e6)
+                                 contour_max=5e5, contour_min=-5e5)
         self.gmaW20i = Variable('gmaW20i', units='s^{-1}', label=r'$\gamma_\mathrm{i, w20}$',
-                                 contour_max=5e7, contour_min=-5e7)
+                                 contour_max=5e5, contour_min=-5e5)
         self.omgW20i = Variable('omgW20i', units='s^{-1}', label=r'$\omega_\mathrm{i, w20}$',
-                                 contour_max=5e6, contour_min=-5e6)
+                                 contour_max=5e5, contour_min=-5e5)
+        self.gaveW20i = Variable('gaveW20i', units='', label=r'$\overline{G}_{\rm i}$',
+                                 contour_max=2, contour_min=0)
+        self.gaveW20e = Variable('gaveW20e', units='', label=r'$\overline{G}_{\rm e}$',
+                                 contour_max=2, contour_min=0)
+        self.kyrhosW20i = Variable('kyrhosW20i', units='', label=r'$k_y\rho_\mathrm{s, i}$',
+                                  )
+        self.kyrhosW20e = Variable('kyrhosW20e', units='', label=r'$k_y\rho_\mathrm{s, e}$',
+                                  )
+        self.kparaW20i = Variable('kparaW20i', units='1/m', label=r'$\langle k_{\parallel}\! \rangle_{\rm i}$',
+                                  )
+        self.kparaW20e = Variable('kparaW20e', units='1/m', label=r'$\langle k_{\parallel}\! \rangle_{\rm e}$',
+                                  )
         # DBM Components
         self.Apara2DBM = Variable('Apara2DBM', units='', label=r'$|\hat{A}_{\!\parallel}\!|^2$')
-        self.gaveDBM = Variable('gaveDBM', units='', label=r'$\overline{G}$')
-        self.gmaDBM = Variable('gmaDBM', units='s^{-1}', label=r'$\gamma_\mathrm{dbm}$', contour_max=5e18, contour_min=-5e18)
+        self.gaveDBM = Variable('gaveDBM', units='', label=r'$\overline{G}$',contour_max=5, contour_min=-5)
+        self.gmaDBM = Variable('gmaDBM', units='s^{-1}', label=r'$\gamma_\mathrm{dbm}$', contour_max=5e6, contour_min=-5e6)
         self.kyrhosDBM = Variable('kyrhosDBM', units='', label=r'$k_y\rho_\mathrm{s}$')
+        self.kparaDBM = Variable('kparaDBM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
         self.omgDBM = Variable('omgDBM', units='s^{-1}', label=r'$\omega_\mathrm{dbm}$', contour_max=5e6, contour_min=-5e6)
         self.phi2DBM = Variable('phi2DBM', units='', label=r'$|\hat{\phi}|^2$')
         self.satDBM = Variable('satDBM', units='', label=r'$2\hat{\gamma}/|\hat{\phi}| R k_\mathrm{x}$')
@@ -1428,14 +1483,19 @@ class OutputVariables(Variables):
         self.xti2DBM = Variable('xti2DBM', units='m^2/s', label=r'$\chi^*_\mathrm{i, dbm}$')
         self.xtiDBM = Variable('xtiDBM', units='m^2/s', label=r'$\chi_\mathrm{i, dbm}$')
         # EPM Component
-        self.gmaEPM = Variable('gmaEPM', units='s^{-1}', label=r'$\gamma_\mathrm{epm}$', contour_max=1e8, contour_min=-1e8)
+        self.gmaEPM = Variable('gmaEPM', units='s^{-1}', label=r'$\gamma_\mathrm{epm}$', contour_max=5e7, contour_min=-5e7)
         self.kyrhosEPM = Variable('kyrhosEPM', units='', label=r'$k_y\rho_\mathrm{s}$')
-        self.omgEPM = Variable('omgEPM', units='s^{-1}', label=r'$\omega_\mathrm{epm}$', contour_max=1e7, contour_min=-1e7)
+        self.omgEPM = Variable('omgEPM', units='s^{-1}', label=r'$\omega_\mathrm{epm}$', contour_max=5e7, contour_min=-5e7)
         self.xdeEPM = Variable('xdeEPM', units='m^2/s', label=r'$\chi_\mathrm{n, epm}$')
         self.xteEPM = Variable('xteEPM', units='m^2/s', label=r'$\chi_\mathrm{e, epm}$')
         self.xtiEPM = Variable('xtiEPM', units='m^2/s', label=r'$\chi_\mathrm{i, epm}$')
         self.nEPM = Variable('nEPM', units='', label=r'$n$')
         self.gaveEPM = Variable('gaveEPM', units='', label=r'$\overline{G}$', contour_max=5, contour_min=-5)
+        self.kparaEPM = Variable('kparaEPM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
+        self.errorEPM = Variable('errorEPM', units='', label=r'Error$_{\rm epm}$')
+        self.wdfEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm Df}$')
+        self.wdeEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm De}$')
+        self.wseEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm *e}$')
         # ETG Component
         self.xteETG = Variable('xteETG', units='m^2/s', label=r'$\chi_\mathrm{e, etg}$')
         self.gtecETG = Variable(r'Critical $g_\mathrm{Te}$ (Jenko ETG)', units='',
@@ -1467,9 +1527,10 @@ class OutputVariables(Variables):
         self.kyrhoeETGM = Variable('Wave Number', units='', label=r'$k_y\rho_\mathrm{e}$')
         self.kyrhosETGM = Variable('Wave Number', units='', label=r'$k_y\rho_\mathrm{s}$')
         self.gaveETGM = Variable('Magnetic Field Curvature', units='', label=r'$\overline{G}$',
-                                 contour_max=5, contour_min=0)
+                                 contour_max=5, contour_min=-5)
         self.alphaETGM = Variable('alphaMHD', units='', label=r'$\alpha_\mathrm{MHD}$')
-        self.kpara2ETGM = Variable('kpara2ETGM', units='', label=r'$\langle k^{2}_\parallel \rangle$')
+        self.kpara2ETGM = Variable('kpara2ETGM', units='m^-2', label=r'$\langle k^{2}_\parallel \rangle$')
+        self.kparaETGM = Variable('kparaETGM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
         self.fleETGM = Variable('fleETGM', units='', label=r'$\langle k^{2}_\perp \rho^{2}_\mathrm{e}\rangle$')
         self.phi2ETGM = Variable('Electrostatic Potential', units='', label=r'$|\hat{\phi}|^2$')
         self.Apara2ETGM = Variable('Electromagnetic Potential', units='', label=r'$|\hat{A}_{\!\parallel}\!|^2$')

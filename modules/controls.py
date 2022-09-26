@@ -57,6 +57,7 @@ import numpy as np
 import modules.utils as utils
 import modules.constants as constants
 from modules.enums import SaveType
+import settings
 
 
 _log = logging.getLogger(__name__)
@@ -95,24 +96,25 @@ class InputControls:
         self.cmodel_mtm = Control('MTM', float, 1)
 
         # Weiland options
-        self.weiland_shear_def = Control('[SHAT Definition] 0: use elong; 1: use grad rho', int, 0)
-        self.weiland_extra_int = Control('extra', int, 0)
+        self.w20_shear_def = Control('[SHAT Definition] 0: use elong; 1: use grad rho', int, 0)
+        self.w20_extra_int = Control('extra', int, 0)
 
-        self.weiland_exbs = Control('ExB shear coefficient', float, 1)
-        self.weiland_mpsf = Control('Momentum pinch scaling factor', float, 1)
-        self.weiland_kyrhos = Control('kyrhos', float, 0.316, label=r'$k_\mathrm{y}\rho_\mathrm{s}$')
-        self.weiland_lbetd = Control('Lower bound of electron thermal diffusivity', float, 0)
-        self.weiland_ubetd = Control('Upper bound of electron thermal diffusivity', float, 100)
-        self.weiland_lbitd = Control('Lower bound of ion thermal diffusivity', float, 0)
-        self.weiland_ubitd = Control('Upper bound of ion thermal diffusivity', float, 100)
-        self.weiland_lbpd = Control('Lower bound of particle diffusivity', float, 0)
-        self.weiland_ubpd = Control('Upper bound of particle diffusivity', float, 100)
-        self.weiland_lbzd = Control('Lower bound of impurity diffusivity', float, 0)
-        self.weiland_ubzd = Control('Upper bound of impurity diffusivity', float, 100)
-        self.weiland_xvt_min = Control('xvt: Upper Bound', float, 0)
-        self.weiland_xvt_max = Control('     Lower Bound', float, 100)
-        self.weiland_xvp_min = Control('xvp: Upper Bound', float, 0)
-        self.weiland_xvp_max = Control('     Lower Bound', float, 100)
+        self.w20_exbs = Control('ExB shear coefficient', float, 1)
+        self.w20_mpsf = Control('Momentum pinch scaling factor', float, 1)
+        self.w20_kyrhos = Control('kyrhos', float, 0.316, label=r'$k_\mathrm{y}\rho_\mathrm{s}$')
+        self.w20_xte_min = Control('Lower bound of electron thermal diffusivity', float, -100)
+        self.w20_xte_max = Control('Upper bound of electron thermal diffusivity', float, 100)
+        self.w20_xti_min = Control('Lower bound of ion thermal diffusivity', float, -100)
+        self.w20_xti_max = Control('Upper bound of ion thermal diffusivity', float, 100)
+        self.w20_xde_min = Control('Lower bound of particle diffusivity', float, -100)
+        self.w20_xde_max = Control('Upper bound of particle diffusivity', float, 100)
+        self.w20_xdz_min = Control('Lower bound of impurity diffusivity', float, -100)
+        self.w20_xdz_max = Control('Upper bound of impurity diffusivity', float, 100)
+        self.w20_xvt_min = Control('xvt: Upper Bound', float, -100)
+        self.w20_xvt_max = Control('     Lower Bound', float, 100)
+        self.w20_xvp_min = Control('xvp: Upper Bound', float, -100)
+        self.w20_xvp_max = Control('     Lower Bound', float, 100)
+        self.w20_gmult = Control('gmult', float, 1, label='guess factor', )
         
         # EPM options
         self.epm_direction = Control('[Search Direction] 0: Any, 1: Electron, -1: Ion', int, 0)
@@ -234,6 +236,33 @@ class InputControls:
         * TypeError: If input_points.values is of type np.ndarray
         '''
 
+        # Temporary EPM switch
+        epm1 = ''
+        epm2 = ''
+        if settings.USE_EPM:
+            epm1 = f'   {self.cmodel_epm.get_input_line()}'
+            epm2 = (
+                '!.. EPM integer options\n'
+                'iEPM =\n'
+                f'   {self.epm_direction.get_input_line()}'
+                f'   {self.epm_n_start.get_input_line()}'
+                f'   {self.epm_n_end.get_input_line()}'
+                f'   {self.epm_n_step.get_input_line()}'
+                f'   {self.epm_sum_modes.get_input_line()}'
+                '\n'
+                '!.. EPM real options\n'
+                'rEPM =\n'
+                f'   {self.epm_exbs.get_input_line()}'
+                f'   {self.epm_xti_min.get_input_line()}'
+                f'   {self.epm_xti_max.get_input_line()}'
+                f'   {self.epm_xde_min.get_input_line()}'
+                f'   {self.epm_xde_max.get_input_line()}'
+                f'   {self.epm_xte_min.get_input_line()}'
+                f'   {self.epm_xte_max.get_input_line()}'
+                f'   {self.epm_chi_cal.get_input_line()}'
+                '\n'
+            )
+
         if not self.input_points.values and self.options.input_points:
             self.input_points.values = self.options.input_points
 
@@ -252,53 +281,36 @@ class InputControls:
             'cmodel  =\n'
             f'   {self.cmodel_weiland.get_input_line()}'
             f'   {self.cmodel_dribm.get_input_line()}'
-            f'   {self.cmodel_epm.get_input_line()}'
+            + epm1 +
             f'   {self.cmodel_etgm.get_input_line()}'
             f'   {self.cmodel_mtm.get_input_line()}'
             f'   {self.cmodel_etg.get_input_line()}'
             '\n'
             '!.. Weiland integer options\n'
             'iW20 =\n'
-            f'   {self.weiland_shear_def.get_input_line()}'
-            f'   {self.weiland_extra_int.get_input_line()}'
+            f'   {self.w20_shear_def.get_input_line()}'
+            f'   {self.w20_extra_int.get_input_line()}'
             '\n'
             '!.. Weiland real options\n'
             'rW20 =\n'
-            f'   {self.weiland_exbs.get_input_line()}'
-            f'   {self.weiland_mpsf.get_input_line()}'
-            f'   {self.weiland_kyrhos.get_input_line()}'
-            f'   {self.weiland_lbetd.get_input_line()}'
-            f'   {self.weiland_ubetd.get_input_line()}'
-            f'   {self.weiland_lbitd.get_input_line()}'
-            f'   {self.weiland_ubitd.get_input_line()}'
-            f'   {self.weiland_lbpd.get_input_line()}'
-            f'   {self.weiland_ubpd.get_input_line()}'
-            f'   {self.weiland_lbzd.get_input_line()}'
-            f'   {self.weiland_ubzd.get_input_line()}'
-            f'   {self.weiland_xvt_min.get_input_line()}'
-            f'   {self.weiland_xvt_max.get_input_line()}'
-            f'   {self.weiland_xvp_min.get_input_line()}'
-            f'   {self.weiland_xvp_max.get_input_line()}'
+            f'   {self.w20_exbs.get_input_line()}'
+            f'   {self.w20_mpsf.get_input_line()}'
+            f'   {self.w20_kyrhos.get_input_line()}'
+            f'   {self.w20_xti_min.get_input_line()}'
+            f'   {self.w20_xti_max.get_input_line()}'
+            f'   {self.w20_xde_min.get_input_line()}'
+            f'   {self.w20_xde_max.get_input_line()}'
+            f'   {self.w20_xte_min.get_input_line()}'
+            f'   {self.w20_xte_max.get_input_line()}'
+            f'   {self.w20_xdz_min.get_input_line()}'
+            f'   {self.w20_xdz_max.get_input_line()}'
+            f'   {self.w20_xvt_min.get_input_line()}'
+            f'   {self.w20_xvt_max.get_input_line()}'
+            f'   {self.w20_xvp_min.get_input_line()}'
+            f'   {self.w20_xvp_max.get_input_line()}'
+            f'   {self.w20_gmult.get_input_line()}'
             '\n'
-            '!.. EPM integer options\n'
-            'iEPM =\n'
-            f'   {self.epm_direction.get_input_line()}'
-            f'   {self.epm_n_start.get_input_line()}'
-            f'   {self.epm_n_end.get_input_line()}'
-            f'   {self.epm_n_step.get_input_line()}'
-            f'   {self.epm_sum_modes.get_input_line()}'
-            '\n'
-            '!.. EPM real options\n'
-            'rEPM =\n'
-            f'   {self.epm_exbs.get_input_line()}'
-            f'   {self.epm_xti_min.get_input_line()}'
-            f'   {self.epm_xti_max.get_input_line()}'
-            f'   {self.epm_xde_min.get_input_line()}'
-            f'   {self.epm_xde_max.get_input_line()}'
-            f'   {self.epm_xte_min.get_input_line()}'
-            f'   {self.epm_xte_max.get_input_line()}'
-            f'   {self.epm_chi_cal.get_input_line()}'
-            '\n'
+            + epm2 +
             '!.. DRIBM integer options\n'
             'iDBM =\n'
             f'   {self.dribm_direction.get_input_line()}'

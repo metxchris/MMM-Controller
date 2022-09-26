@@ -176,7 +176,7 @@ def init(style):
             'figure.subplot.bottom': 0.17,
             'figure.subplot.hspace': 0.38,
             'figure.subplot.left': 0.2,
-            'figure.subplot.right': 0.94,
+            'figure.subplot.right': 0.93,
             'figure.subplot.top': 0.9,
             'figure.subplot.wspace': 0.22,
             'legend.fontsize': 10,

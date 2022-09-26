@@ -445,3 +445,21 @@ def get_sci_notation(number, precision=1):
     exponent = int(floor(log10(abs(number))))
     coeff = number / float(10**exponent)
     return f'${coeff:.{precision}f}\\times 10^{{{exponent:d}}}$'
+
+
+def get_power_10(number, precision=1):
+    '''
+    Converts a number into a power of 10 for use with LaTeX formatting
+
+    Example:
+    * 1e4 converts to $10^{4}$
+
+    Parameters:
+    * number (float): The number to convert into scientific notation
+
+    Returns:
+    * (str): The string representing the scientific notation of the number
+    '''
+
+    exponent = int(floor(log10(abs(number))))
+    return f'$10^{{{exponent:d}}}$'
