@@ -87,7 +87,8 @@ _UNITS_TO_UNITS_LABEL = {
     'keVm/s': r'keV$\,$m/s',
     'm^-2s^-1': r'm$^{-2}$s$^{-1}$',
     'ohm*m': r'$\Omega\,$m',
-    'A/m^2': r'A/m$^2$'
+    'A/m^2': r'A/m$^2$',
+    '-': r'',
 }
 
 
@@ -344,7 +345,7 @@ class InputVariables(Variables):
         self.az = Variable(
             'Mean Mass of Impurities',
             cdfvar='AIMP',
-            label=r'$\overline{M}_\mathrm{imp}$',
+            label=r'$\overline{M}_\mathrm{z}$',
             minvalue=1,
             smooth=1,
             save_type=SaveType.INPUT,
@@ -362,13 +363,13 @@ class InputVariables(Variables):
 
         self.dbp = Variable(
             'dbp',
-            label=r'$dB_\theta/d\rho$',
+            label=r'$B_{\rm \theta}^\prime$',
             save_type=SaveType.INPUT,
         )
 
         self.d2bp = Variable(
             'd2bp',
-            label=r'$d^2B_\theta/d\rho^2$',
+            label=r'$B_{\rm \theta}^{\prime\prime}$',
             save_type=SaveType.INPUT,
         )
 
@@ -456,7 +457,7 @@ class InputVariables(Variables):
         )
 
         self.rhochi = Variable(
-            'Radius',
+            'rhochi',
             label=r'$\rho_\chi$'
         )
 
@@ -538,7 +539,7 @@ class InputVariables(Variables):
             cdfvar='VTOR_AVG',  # CDF variable only for comparison with MMM definition
             label=r'$v_\phi$',
             absminvalue=1e-6,
-            smooth=3,
+            smooth=0,
             units='m/s',
             save_type=SaveType.INPUT,
         )
@@ -546,7 +547,7 @@ class InputVariables(Variables):
         self.wexb = Variable(
             'ExB Shear Rate',
             label=r'$\omega_{E \times B}$',
-            smooth=3,
+            smooth=0,
             units='s^{-1}',
             minvalue=1e-6,
             save_type=SaveType.INPUT,
@@ -626,7 +627,7 @@ class InputVariables(Variables):
             label=r'$\overline{M}_\mathrm{i}$',
             units='u',
             minvalue=1,
-            save_type=SaveType.INPUT,
+            # save_type=SaveType.INPUT,
         )
 
         self.ah = Variable(  # Hydrogen + Deuterium + Tritium
@@ -1095,7 +1096,7 @@ class InputVariables(Variables):
             'Thermal Ion Density Gradient',
             label=r'$g_{\mathrm{ni}}$',
             absminvalue=1e-32,
-            save_type=SaveType.INPUT,
+            # save_type=SaveType.INPUT,
         )
 
         self.gnz = Variable(
@@ -1204,7 +1205,7 @@ class InputVariables(Variables):
             default_values=0,
         )
 
-        self.xkemmm07 = Variable(
+        self.xkemmm = Variable(
             'XKEMMM07',
             cdfvar='XKEMMM07',
             units='m^2/s',
@@ -1212,11 +1213,267 @@ class InputVariables(Variables):
             default_values=0,
         )
 
-        self.xkimmm07 = Variable(
-            'XKIMMM07',
+        self.xkdmmm = Variable(
+            'XKDMMM07',
+            cdfvar='XKDMMM07',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{n}}$',
+            default_values=0,
+        )
+
+        self.xkhmmm = Variable(
+            'XKHMMM07',
+            cdfvar='XKHMMM07',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{e}}$',
+            default_values=0,
+        )
+
+        self.xkzmmm = Variable(
+            'XKZMMM07',
+            cdfvar='XKZMMM07',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{z}}$',
+            default_values=0,
+        )
+
+        self.xppmmm = Variable(
+            'XPPMMM07',
+            cdfvar='XPPMMM07',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{\theta}}$',
+            default_values=0,
+        )
+
+        self.xptmmm = Variable(
+            'XPTMMM07',
+            cdfvar='XPTMMM07',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{\phi}}$',
+            default_values=0,
+        )
+
+        self.xkemtm = Variable(
+            'XKEMTM',
+            cdfvar='XKEMTM',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{e}}$',
+            default_values=0,
+        )
+
+        self.xkeetg = Variable(
+            'XKEETG',
+            cdfvar='XKEETG',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{e}}$',
+            default_values=0,
+        )
+
+        self.xkew20 = Variable(
+            'xkew20',
+            cdfvar='xkew19',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{e}}$',
+            default_values=0,
+        )
+
+        self.xkiw20 = Variable(
+            'xkiw20',
+            cdfvar='xkiw19',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{i}}$',
+            default_values=0,
+        )
+
+        self.xdew20 = Variable(
+            'xdiw20',
+            cdfvar='xdiw19',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{n}}$',
+            default_values=0,
+        )
+
+        self.xkdw20 = Variable(
+            'xkdw20',
+            cdfvar='xkdw19',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{n}}$',
+            default_values=0,
+        )
+
+        self.xkzw20 = Variable(
+            'xkzw20',
+            cdfvar='xkzw19',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{z}}$',
+            default_values=0,
+        )
+
+        self.xppw20 = Variable(
+            'xppw20',
+            cdfvar='xppw19',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{\theta}}$',
+            default_values=0,
+        )
+
+        self.xptw20 = Variable(
+            'xptw20',
+            cdfvar='xptw19',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{\phi}}$',
+            default_values=0,
+        )
+
+        self.xkedrbm = Variable(
+            'xkedrbm',
+            cdfvar='xkedrbm',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{e}}$',
+            default_values=0,
+        )
+
+        self.xkidrbm = Variable(
+            'xkidrbm',
+            cdfvar='xkidrbm',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{i}}$',
+            default_values=0,
+        )
+
+        self.xkhdrbm = Variable(
+            'xkhdrbm',
+            cdfvar='xkhdrbm',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{n}}$',
+            default_values=0,
+        )
+
+        self.xkimmm = Variable(
+            'XKIMMM',
             cdfvar='XKIMMM07',
             units='m^2/s',
             label=r'$\chi_{\mathrm{i}}$',
+            default_values=0,
+        )
+
+        self.vphimmm = Variable(
+            'VPHIMMM',
+            cdfvar='VPHIMMM07',
+            units='m/s',
+            label=r'$v_{\mathrm{\phi}}$',
+            default_values=0,
+        )
+
+        self.kyrsdbm = Variable(
+            'kyrsdbm',
+            cdfvar='KYRSDRBM',
+            units=' ',
+            label=r'$k_{\mathrm{y}}\rho_{\rm s, dbm}$',
+            default_values=0,
+        )
+
+        self.kyrsetg = Variable(
+            'kyrsetg',
+            cdfvar='kyrsetg',
+            units=' ',
+            label=r'$k_{\mathrm{y}}\rho_{\rm s, etg}$',
+            default_values=0,
+        )
+
+        self.kyrsmtm = Variable(
+            'kyrsmtm',
+            cdfvar='kyrsmtm',
+            units=' ',
+            label=r'$k_{\mathrm{y}}\rho_{\rm s, mtm}$',
+            default_values=0,
+        )
+
+        self.gamma1w20 = Variable(
+            'gamma1w2-',
+            cdfvar='GAM1W19',
+            units='1/s',
+            label=r'$\gamma_{\mathrm{i, w}}$',
+            default_values=0,
+        )
+
+        self.gamma2w20 = Variable(
+            'gamma2w20',
+            cdfvar='GAM2W19',
+            units='1/s',
+            label=r'$\gamma_{\mathrm{e, w}}$',
+            default_values=0,
+        )
+
+        self.omega1w20 = Variable(
+            'omega1w',
+            cdfvar='OME1W19',
+            units='1/s',
+            label=r'$\omega_{\mathrm{i, w}}$',
+            default_values=0,
+        )
+
+        self.omega2w20 = Variable(
+            'omega2w',
+            cdfvar='OME2W19',
+            units='1/s',
+            label=r'$\omega_{\mathrm{e, w}}$',
+            default_values=0,
+        )
+
+        self.gammadbm = Variable(
+            'gammadbm',
+            cdfvar='GAMDRBM',
+            units='1/s',
+            label=r'$\gamma_{\mathrm{e, dbm}}$',
+            default_values=0,
+        )
+
+        self.omegadbm = Variable(
+            'omegadbm',
+            cdfvar='OMGDRBM',
+            units='1/s',
+            label=r'$\omega_{\mathrm{i, dbm}}$',
+            default_values=0,
+        )
+
+        self.gammamtm = Variable(
+            'gammamtm',
+            cdfvar='GAMMAMTM',
+            units='1/s',
+            label=r'$\gamma_{\mathrm{e, mtm}}$',
+            default_values=0,
+        )
+
+        self.omegamtm = Variable(
+            'omegamtm',
+            cdfvar='OMEGAMTM',
+            units='1/s',
+            label=r'$\omega_{\mathrm{i, mtm}}$',
+            default_values=0,
+        )
+
+        self.gammaetg = Variable(
+            'gammaetg',
+            cdfvar='GAMMAETG',
+            units='1/s',
+            label=r'$\gamma_{\mathrm{e, etg}}$',
+            default_values=0,
+        )
+
+        self.omegaetg = Variable(
+            'omegaetg',
+            cdfvar='OMEGAETG',
+            units='1/s',
+            label=r'$\omega_{\mathrm{i, etg}}$',
+            default_values=0,
+        )
+
+        self.xdbmtm = Variable(
+            'xdbmtm',
+            cdfvar='xdbmtm',
+            units=' ',
+            label=r'$|\delta B/B|^2$',
             default_values=0,
         )
 
@@ -1244,6 +1501,30 @@ class InputVariables(Variables):
             contour_max=200,
         )
 
+        self.walltime = Variable(
+            'Walltime',
+            cdfvar='WALLTIME',
+            units='h',
+            label=r'Walltime',
+            default_values=0,
+        )
+
+        self.cpmcfi = Variable(
+            'CPMCFI',
+            cdfvar='CPMCFI',
+            units='h',
+            label=r'CPMCFI',
+            default_values=0,
+        )
+
+        self.cpbmax = Variable(
+            'CPBMAX',
+            cdfvar='CPBMAX',
+            units='h',
+            label=r'CPBMAX',
+            default_values=0,
+        )
+
         self.drmin = Variable(
             'dr',
             label=r'$dr$',
@@ -1267,6 +1548,12 @@ class InputVariables(Variables):
             'Total plasma current density',
             cdfvar='CUR', label=r'j$_{\rm p}$',
             units='A/m^2',
+        )
+
+        self.test = Variable(
+            'test',
+            cdfvar='xkicdbm', label=r'',
+            units='',
         )
 
         super().__init__(options)  # Init parent class
@@ -1389,6 +1676,39 @@ class InputVariables(Variables):
         self.xkepaleo = None
         self.xki = None
         self.xkimmm07 = None
+        self.xkptmmm07 = None
+        self.xkppmmm07 = None
+        self.xkpzmmm07 = None
+        self.xdew20 = None
+        self.xkdw20 = None
+        self.xkiw20 = None
+        self.xkew20 = None
+        self.xkzw20 = None
+        self.xptw20 = None
+        self.xppw20 = None
+        self.xkddrbm = None
+        self.xkidrbm = None
+        self.xkedrbm = None
+        self.xkhdrbm = None
+        self.xkemtm = None
+        self.xkeetg = None
+        self.vphimmm = None
+        self.kyrsdbm = None
+        self.kyrsetg = None
+        self.kyrsmtm = None
+        self.xdbmtm = None
+        self.gamma1w20 = None
+        self.gamma2w20 = None
+        self.omega1w20 = None
+        self.omega2w20 = None
+        self.gammadbm = None
+        self.omegadbm = None
+        self.gammamtm = None
+        self.omegamtm = None
+        self.gammaetg = None
+        self.omegaetg = None
+        self.walltime = None
+        self.test = None
 
 
 class OutputVariables(Variables):
@@ -1470,7 +1790,7 @@ class OutputVariables(Variables):
         # DBM Components
         self.Apara2DBM = Variable('Apara2DBM', units='', label=r'$|\hat{A}_{\!\parallel}\!|^2$')
         self.gaveDBM = Variable('gaveDBM', units='', label=r'$\overline{G}$',contour_max=5, contour_min=-5)
-        self.gmaDBM = Variable('gmaDBM', units='s^{-1}', label=r'$\gamma_\mathrm{dbm}$', contour_max=5e6, contour_min=-5e6)
+        self.gmaDBM = Variable('gmaDBM', units='s^{-1}', label=r'$\gamma_\mathrm{dbm}$', contour_max=5e5, contour_min=-5e5)
         self.kyrhosDBM = Variable('kyrhosDBM', units='', label=r'$k_y\rho_\mathrm{s}$')
         self.kparaDBM = Variable('kparaDBM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
         self.omgDBM = Variable('omgDBM', units='s^{-1}', label=r'$\omega_\mathrm{dbm}$', contour_max=5e6, contour_min=-5e6)
@@ -1490,7 +1810,7 @@ class OutputVariables(Variables):
         self.xteEPM = Variable('xteEPM', units='m^2/s', label=r'$\chi_\mathrm{e, epm}$')
         self.xtiEPM = Variable('xtiEPM', units='m^2/s', label=r'$\chi_\mathrm{i, epm}$')
         self.nEPM = Variable('nEPM', units='', label=r'$n$')
-        self.gaveEPM = Variable('gaveEPM', units='', label=r'$\overline{G}$', contour_max=5, contour_min=-5)
+        self.gaveEPM = Variable('gaveEPM', units='', label=r'$\overline{G}$', contour_max=1, contour_min=0)
         self.kparaEPM = Variable('kparaEPM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
         self.errorEPM = Variable('errorEPM', units='', label=r'Error$_{\rm epm}$')
         self.wdfEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm Df}$')
@@ -1513,7 +1833,7 @@ class OutputVariables(Variables):
         self.dbsqMTM = Variable('dbsqMTM', units='', label=r'$|\delta B/B|^2$')
         # ETGM Components
         self.xteETGM = Variable('Thermal Diffusivity', units='m^2/s', label=r'$\chi_\mathrm{e, etgm}$',
-                                contour_max=12.6, contour_min=-2e1)
+                                contour_max=25, contour_min=-25)
         self.xte2ETGM = Variable('Thermal Diffusivity', units='m^2/s', label=r'$\chi^{\ast}_\mathrm{e, etgm}$',
                                  contour_max=1e1, contour_min=-1e1)
         self.gmaETGM = Variable('Growth Rate', units='s^{-1}', label=r'$\gamma_\mathrm{etgm}$',

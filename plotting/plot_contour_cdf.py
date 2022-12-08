@@ -61,6 +61,7 @@ class PlotOptions:
         self.ymax: float | None = None
         self.xmin: float | None = None
         self.xmax: float | None = None
+        self.raw: bool | None = None
 
         self._set_kwargs(kwargs)
 
@@ -218,35 +219,54 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
     adjustment_name = options.adjustment_name or options.var_to_scan
 
     # mmm_vars_rho, output_vars_rho, controls_rho = datahelper.get_all_rho_data(options)
-    mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
+
+    if not plot_options.raw:
+        mmm_vars, cdf_vars, __ = datahelper.initialize_variables(options)
+    else:
+        __, cdf_vars, mmm_vars = datahelper.initialize_variables(options)
 
     # rho_strs = mmm_vars_rho.keys()
     
-
-    x = mmm_vars.rho.values[:, 0]
+    if not plot_options.raw:
+        x = mmm_vars.rho.values[:, 0]
+    else:
+        x = mmm_vars.xb.values[:, 0]
     y = mmm_vars.time.values
 
-    x0 = x
-    y0 = y
+    x0 = np.zeros_like(x)
+    y0 = np.zeros_like(y)
+
+    x0[:] = x[:]
+    y0[:] = y[:]
 
     # Apply boundary limits to x, y variables
     if plot_options is not None:
         if plot_options.xmin is not None:
-            x = x[x >= plot_options.xmin]
+            x = x[x0 >= plot_options.xmin]
+            # y = y[x0 >= plot_options.xmin]
         if plot_options.xmax is not None:
-            x = x[x <= plot_options.xmax]
+            x = x[x0 <= plot_options.xmax]
+            # y = y[x0 <= plot_options.xmax]
         if plot_options.ymin is not None:
-            y = y[y >= plot_options.ymin]
+            y = y[y0 >= plot_options.ymin]
+            # x = x[y0 >= plot_options.ymin]
         if plot_options.ymax is not None:
-            y = y[y <= plot_options.ymax]
+            y = y[y0 <= plot_options.ymax]
+            # x = x[y0 <= plot_options.ymax]
 
     X, Y = np.meshgrid(x, y)
+    X0, Y0 = np.meshgrid(x0, y0)
     Z = np.zeros_like(X)
 
     for var_to_plot in vars_to_plot:
 
         var_to_scan = var_to_plot
-        xbase = mmm_vars.rho
+
+        if not plot_options.raw:
+            xbase = mmm_vars.rho
+        else:
+            xbase = mmm_vars.xb
+
         ybase = mmm_vars.time
         zbase = getattr(mmm_vars, var_to_plot)
 
@@ -280,6 +300,18 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
             # no exception is raised
             _log.warning(f'\n\tnan values found in {var_to_plot}, continuing to next variable...')
             continue
+
+        if plot_options is not None:
+            zshape = X.shape
+            if plot_options.xmin is not None:
+                Z = Z[X0 >= plot_options.xmin]
+            if plot_options.xmax is not None:
+                Z = Z[X0 <= plot_options.xmax]
+            if plot_options.ymin is not None:
+                Z = Z[Y0 >= plot_options.ymin]
+            if plot_options.ymax is not None:
+                Z = Z[Y0 <= plot_options.ymax]
+            Z = Z.reshape(zshape)
 
         if not savefig:  # Connect key-press handler when not autosaving figures
             fig.canvas.mpl_connect('key_press_event', on_press)
@@ -329,7 +361,6 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
             args_both['extend'] = 'neither'
 
         # Plot contour fills
-        print(X.shape, Y.shape, Z.shape)
         cf = plt.contourf(X, Y, Z, levels=get_contour_levels(), **args_fill, **args_both)
 
         # Remove lowest level when it is also a boundary, so an extra contour line isn't drawn
@@ -361,7 +392,7 @@ def run_plotting_loop(vars_to_plot, options, plot_options=None, savenameend='', 
 
         ax.yaxis.set_minor_formatter(NullFormatter())
 
-        plt.xlabel(r'$\rho$')
+        plt.xlabel(r'$\hat{\rho}$')
         plt.ylabel(get_ylabel())
         plt.title(get_title())
 
@@ -481,9 +512,10 @@ if __name__ == '__main__':
 
     plot_options = PlotOptions(
         # xmin=0.0,
-        # xmax=0.5,
+        # xmax=0.8,
         # ymin=1.5,
-        # ymax=2,
+        ymax=0.17,
+        raw=1,
     )
 
     plt.rcParams.update({
@@ -496,12 +528,12 @@ if __name__ == '__main__':
     """
 
     # vars_to_plot = ['var_to_scan']
-    vars_to_plot = ['tf', 'te', 'tf_te']
-    vars_to_plot = ['gne', 'gte',]
+    vars_to_plot = ['ti', 'te', 'ne', 'ni']
+    # vars_to_plot = ['gne', 'gte',]
     # vars_to_plot = ['gne', 'gte',]
     # vars_to_plot = ['gmaW20ii', 'gmaW20ee', 'gmaW20ie']
     # vars_to_plot = ['gmaW20i', 'gmaW20e']
-    # vars_to_plot = ['vcz']
+    vars_to_plot = ['xkemmm', 'xkiw20', 'xdew20', 'xkew20', 'xkemtm']
     # vars_to_plot = ['gmaETGM', 'omgETGM', 'xteETGM', 'xte2ETGM']
     # vars_to_plot = OutputVariables().get_all_output_vars()
     # vars_to_plot = OutputVariables().get_etgm_vars()
@@ -516,8 +548,69 @@ if __name__ == '__main__':
 
     # scan_data.append('138536A01')
     # scan_data.append('129041A10')
-    # scan_data.append('120982A09')
-    scan_data.append('16297T01')
+    # scan_data.append('129016T17')
+
+    # vars_to_plot = ['walltime', ]
+    # vars_to_plot = ['wexbsv2', ]
+    # vars_to_plot = ['xkiw20', 'xkdw20', 'xkew20', ]
+    # vars_to_plot = ['xkemmm07', 'condepr', 'conde']
+    # vars_to_plot = ['xkimmm07', 'condipr', 'condi']
+    # vars_to_plot = ['xkdmmm07', 'condipr', 'condi']
+    # vars_to_plot = ['te', 'ti',]
+    
+    vars_to_plot = ['xkimmm', 'xkdmmm', 'xkemmm', 'xkidrbm', 'xkhdrbm', 'xkedrbm', 'gammadbm', 'omegadbm', 'kyrsdbm']
+    # scan_data.append('129016Q39') # DRIBM Crash
+    # scan_data.append('129016Q71') # DRIBM success
+    # scan_data.append('129016Q51') # All Disabled
+    # scan_data.append('129016W47') # MMM 9.0.6 DBM Failure, shat_e
+    
+
+    # vars_to_plot = ['te',]
+    # scan_data.append('129016A03')
+    # scan_data.append('129016Q57')
+
+    # vars_to_plot = ['xkemmm', 'xkeetg', 'kyrsetg', 'gammaetg', 'omegaetg']
+    # scan_data.append('129016Q58') # ETGM 
+    # scan_data.append('129016Q62') # ETGM with overly large diffusivity
+
+    # vars_to_plot = ['xkemtm', 'gammamtm', 'omegamtm', 'kyrsmtm', 'xdbmtm']
+    # scan_data.append('129016Q79') # Custom MMM library 
+
+    # vars_to_plot = ['xkiw20', 'xdew20', 'xkew20', 'xkzw20', 'xppw20', 'xptw20', ]
+    vars_to_plot = ['xkiw20', 'xkew20','xkemtm', ]
+    vars_to_plot = ['gti', 'gte','ti','te', ]
+    # vars_to_plot = ['wexbsmod', 'wexbsv2', 'te', 'ti', 'wexb',]
+    # vars_to_plot = ['vphimmm', 'gamma1w20', 'gamma2w20', 'omega1w20', 'omega2w20',]
+    vars_to_plot = ['xkemmm', 'xkimmm', 'xkdmmm', 'xkzmmm',  'xppmmm',  'xptmmm', ]
+    # vars_to_plot = ['vphimmm', 'kyrsdbm', 'kyrsetg', 'kyrsmtm',  'xkeetg',  'xptmmm', ]
+    # vars_to_plot = [ 'xkemtm', 'xkeetg']
+    vars_to_plot = [ 'gamma1w20', 'xkeetg']
+    # scan_data.append('129016Q68') # MMM v8, W20 only
+    # scan_data.append('129016Q73') # MMM v8, all models, cal = 1E-6
+    # scan_data.append('129016Q57') # W20 only, max xte = 0.01
+    # scan_data.append('129016Q92') # MMM9.0.6, ETGM and MTM only
+    # scan_data.append('129016Q93') # MMM9.0.6, W20
+    # scan_data.append('129016Q94') # MMM9.0.6, W20 with +- diffusivity
+    # scan_data.append('129016Q99') # MMM9.0.7 tshare
+    # scan_data.append('129016Q50') # MMM disabled
+    # scan_data.append('129016W46') # w20, etgm, mtm
+    # scan_data.append('129016W53') # MMM 9.0.6, (W20: te, ti, pphi)
+    # scan_data.append('129016W56') # MMM 9.0.6, (W20, 0 pinch: te, ti, pphi)
+    # scan_data.append('129016W55') # MMM 9.0.6, (W20: te)
+
+    # scan_data.append('129016Z11') # MMM 9.0.7  W20, ETGM, MTM crash; +- Chi
+    # scan_data.append('129016Z13') # MMM 9-8  W20, MTM crash; + Chi
+    # scan_data.append('129016Z29') # MMM 8.2.1
+    # scan_data.append('129016Z33') # MMM 9.0.7
+    # scan_data.append('129016Z36') # MMM 9.0.7 + ETGM
+
+    # scan_data.append('120982W30') # 8.2.1
+    scan_data.append('120982W31') # MMM 9.0.7 + ETGM
+    # scan_data.append('120982W32') # MMM 9.0.7
+    
+
+    # vars_to_plot = ['xkidrbm', 'xkddrbm', 'xkedrbm', 'xkhdrbm']
+    # scan_data.append('129016Q71') # DBM, 0.001 cal
 
     """
     Plotting Options:

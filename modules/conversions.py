@@ -55,16 +55,19 @@ def _choose_variables(input_vars):
     * input_vars (InputVariables): Object containing variable data
     '''
 
+    # For some reason, SREXBSMOD values appear to be shifted by an entire radial point
+    input_vars.wexbsmod.values[:-1, :] = input_vars.wexbsmod.values[1:, :]
+
     # Choose wexb (CDF values are actually 1/s even if they say rad/s)
     wexbsv2 = input_vars.wexbsv2
     wexbsmod = input_vars.wexbsmod
     wexbsa = input_vars.wexbsa
     tolerance = 1.001
 
-    if wexbsv2.values is not None and not (wexbsv2.values <= tolerance * wexbsv2.default_values).all():
-        input_vars.wexb.values = wexbsv2.values
-    elif wexbsmod.values is not None and not (wexbsmod.values <= tolerance * wexbsv2.default_values).all():
+    if wexbsmod.values is not None and not (wexbsmod.values <= tolerance * wexbsv2.default_values).all():
         input_vars.wexb.values = wexbsmod.values
+    elif wexbsv2.values is not None and not (wexbsv2.values <= tolerance * wexbsv2.default_values).all():
+        input_vars.wexb.values = wexbsv2.values
     elif wexbsa.values is not None and not (wexbsa.values <= tolerance * wexbsv2.default_values).all():
         input_vars.wexb.values = wexbsa.values
 
@@ -78,7 +81,7 @@ def convert_units(input_var):
     '''
 
     # TODO: Implement lowercase checks to remove redundancies
-    units = input_var.units
+    units = input_var.units.upper()
     if units == 'CM':
         input_var.set(values=input_var.values / 100, units='m')
     elif units == 'CM**-1':
@@ -247,6 +250,7 @@ def _initial_conversion(cdf_vars):
     # Get list of CDF variables to convert to the format needed for MMM
     # Independent variables listed below don't need to be converted
     cdf_var_list = cdf_vars.get_cdf_variables()
+
     for var_name in cdf_var_list:
         input_var = getattr(input_vars, var_name)
         convert_units(input_var)

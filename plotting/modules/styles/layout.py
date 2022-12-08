@@ -107,8 +107,8 @@ def init(style):
     elif style is Layout.SINGLE3:
         rcParams.update({
             'axes.labelpad': 2,
-            'axes.labelsize': 8.5,
-            'axes.titlesize': 8.5,
+            'axes.labelsize': 10,
+            'axes.titlesize': 10,
             'axes.titlepad': 4,
             'figure.figsize': [3.6, 3],
             'figure.subplot.bottom': 0.15,
@@ -117,9 +117,9 @@ def init(style):
             'figure.subplot.right': 0.94,
             'figure.subplot.top': 0.9,
             'figure.subplot.wspace': 0.22,
-            'legend.fontsize': 8,
-            'xtick.labelsize': 8,
-            'ytick.labelsize': 8,
+            'legend.fontsize': 9,
+            'xtick.labelsize': 9,
+            'ytick.labelsize': 9,
         })
 
     elif style is Layout.GRID3X2:

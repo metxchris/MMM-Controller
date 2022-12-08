@@ -84,6 +84,7 @@ class Options:
     * time_idx (int): the index of the CDF time value that is closest to input_time
     * use_gnezero (bool): set gne equal to zero (sets gne to a small number to avoid division by 0)
     * use_gtezero (bool): set gte equal to zero (sets gte to a small number to avoid division by 0)
+    * use_gtizero (bool): set gti equal to zero (sets gte to a small number to avoid division by 0)
     * use_gneabs (bool): take absolute value of gne
     * use_gnethreshold (bool): used when calculating the threshold for gne
     * use_gtethreshold (bool): used when calculating the threshold for gte
@@ -115,6 +116,7 @@ class Options:
         self.time_idx = None
         self.use_gnezero = False
         self.use_gtezero = False
+        self.use_gtizero = False
         self.use_gneabs = False
         self.use_gnethreshold = False
         self.use_gtethreshold = False

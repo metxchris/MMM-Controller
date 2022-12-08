@@ -554,8 +554,10 @@ def etai(calc_vars):
 def gelong(calc_vars):
     '''Elongation gradient (delong / deps)'''
     _gradients.add('gelong')
-    rmaj0 = calc_vars.rmaj.values[0, :]
-    return rmaj0 * differentiate('elong', 'rmin', calc_vars)
+    # rmaj0 = calc_vars.rmaj.values[0, :]
+    # rmaj = calc_vars.rmaj.values
+    # return rmaj0 * differentiate('elong', 'rmin', calc_vars)
+    return differentiate('elong', 'eps', calc_vars)
 
 
 @calculation
@@ -617,7 +619,9 @@ def gxi(calc_vars):
     set_interp = interp1d(x, dxvar, kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
     dxvar2 = set_interp(xb)
 
-    return dxvar2 * rmin[-1, :] * elong[-1, :]**0.5
+    return dxvar2
+
+    # return dxvar2 * rmin[-1, :] * elong[-1, :]**0.5
     # return (1 + elong**2 / (2 * elong**2))**0.5
 
 
@@ -790,7 +794,10 @@ def shat(calc_vars):
     elong = calc_vars.elong.values
     shear = calc_vars.shear.values
 
-    return np.maximum(2 * shear - 1 + (elong * (shear - 1))**2, 0)**(0.5)
+    signs = np.ones_like(shear)
+    signs[shear < 0] = -1
+    
+    return np.maximum(2 * shear - 1 + (elong * (shear - 1))**2, shear**2)**(0.5) * signs
 
 
 @calculation
@@ -804,7 +811,7 @@ def shat_gxi(calc_vars):
     signs = np.ones_like(shear)
     signs[shear < 0] = -1
 
-    return np.maximum(2 * shear - 1 + ((a * gxi) * (shear - 1))**2, 0)**(0.5) * signs
+    return np.maximum(2 * shear - 1 + ((a * gxi) * (shear - 1))**2, shear**2)**(0.5) * signs
 
 
 @calculation
@@ -1079,6 +1086,17 @@ def omgdiffETGM(calc_vars, output_vars):
 
 
 @calculation_output
+def wdeETGM(calc_vars, output_vars):
+    '''ETGM Frequency resonance'''
+    t = calc_vars.options.time_idx
+    rmaj = calc_vars.rmaj.values[:, t]
+    csound = calc_vars.csound.values[:, t]
+    kyrhos = output_vars.kyrhosETGM.values
+
+    return 2 * kyrhos * csound / rmaj
+
+
+@calculation_output
 def wde_gaveETGM(calc_vars, output_vars):
     '''ETGM Frequency resonance'''
     wdeETGM = output_vars.wdeETGM.values
@@ -1194,6 +1212,7 @@ def calculate_output_variables(calc_vars, output_vars, controls):
     # matters here.
 
     if controls.cmodel_etgm.values:
+        wdeETGM(calc_vars, output_vars)
         wde_gaveETGM(calc_vars, output_vars)
         wseETGM(calc_vars, output_vars)
         wsetaETGM(calc_vars, output_vars)
@@ -1248,6 +1267,7 @@ def calculate_base_variables(calc_vars):
     vpar(calc_vars)
     vtor(calc_vars)
     tf(calc_vars)
+    eps(calc_vars)
 
     # Calculations for testing
     # 
@@ -1255,7 +1275,7 @@ def calculate_base_variables(calc_vars):
     # e_r_phi(calc_vars)
     # e_r_tht(calc_vars)
     # wexb(calc_vars)
-    # gxi(calc_vars)
+    gxi(calc_vars)
 
     if hasattr(calc_vars.options, 'use_etgm_btor') and calc_vars.options.use_etgm_btor:
         calc_vars.bu.values = calc_vars.btor.values
@@ -1303,6 +1323,9 @@ def calculate_gradient_variables(calc_vars):
 
     if hasattr(calc_vars.options, 'use_gtezero') and calc_vars.options.use_gtezero:
         calc_vars.gte.values[:, :] = 1e-12
+
+    if hasattr(calc_vars.options, 'use_gtizero') and calc_vars.options.use_gtizero:
+        calc_vars.gti.values[:, :] = 1e-12
 
     if hasattr(calc_vars.options, 'use_gneabs') and calc_vars.options.use_gneabs:
         calc_vars.gne.values = np.absolute(calc_vars.gne.values)

@@ -318,6 +318,9 @@ def plot_contour_difference(contour_list, plot_options):
 
     # Apply smoothing and restore original extrema
     Zmax, Zmin = Z.max(), Z.min()
+    # Zmax = 3e2
+    # if var_to_plot1 == 'fde':
+    #     Zmax = 1e21
     # Z = scipy.ndimage.gaussian_filter(Z, sigma=get_smoothing_sigma())
     # Z = np.minimum(np.maximum(Z, Zmin), Zmax)
 
@@ -540,7 +543,7 @@ if __name__ == '__main__':
         savenameend='gi',
         savefig=0,
         savedata=0,
-        difftype='absdiff',
+        difftype='diff',
         plotempty=0,
     )
 
@@ -598,7 +601,8 @@ if __name__ == '__main__':
     vars_to_plot = ['xteMTM', 'xteDBM', 'xtiDBM', 'xteETG', 'xteETGM', 'xte2ETGM', 'xteW20', 'xtiW20', 'xdeW20', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp']
     vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp', 'vcz', 'vcp', 'vct']
     vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
-    vars_to_plot = ['nEPM', 'gmaEPM', 'omgEPM', 'gaveEPM']
+    # vars_to_plot = ['gmaW20i', 'gmaW20e']
+    vars_to_plot = ['errorEPM', 'gmaEPM', 'omgEPM', 'nEPM', 'gaveEPM']
     # vars_to_plot = ['gmaETGM', 'xteETGM', 'xte2ETGM',]
     # vars_to_plot = ['xtiEPM', 'xteEPM', 'xdeEPM']
     # vars_to_plot = ['gmaEPM']
@@ -622,8 +626,103 @@ if __name__ == '__main__':
     # scan_data['138536A01'] = [255, 263]  # testmmm update and prior to removing smoothing from q
     # scan_data['138536A01'] = [157, 158]  #
 
-    diff1, diff2 = 452, 453
-    scan_data['138536A01'] = [diff1, diff2]
+    # 696: W20 base
+    # 698: ALPK sign fix
+    # 700: + kps definition change
+    # 702: + lower limits
+    # 705: new subroutine
+
+    # 697: W20 base, wexb
+    # 699: ALPK sign fix, wexb
+    # 701: + kps definition change
+    # 703: + lower limits
+    # 704: new subroutine
+
+    # 706: new subroutine, old def
+    # 707: existing code
+
+    # vars_to_plot = ['fti', 'fte', 'fde', 'xdz', 'xvt', 'xvp']
+    # vars_to_plot = ['gmaW20i', 'gmaW20e']
+    # vars_to_plot = OutputVariables().get_all_output_vars()
+    vars_to_plot = ['gmaEPM', 'xteEPM', 'xtiEPM', 'xdeEPM',]
+    # vars_to_plot = ['gaveW20i', 'gaveW20e', 'kyrhosW20i', 'kyrhosW20e', 'kparaW20i', 'kparaW20e']
+    # diff1, diff2 = 1065, 1081
+    # diff1, diff2 = 1082, 1100
+
+    old = 1082   # All skips disabled
+    old = 1119   # All optimization disabled
+    old = 1130   # All optimization disabled FOR REAL
+    old = 1260   # All optimization disabled FOR REAL X10 TOL
+    old = 1262   # All optimization disabled FOR REAL SAME TOL
+    old = 1244   # PREVIOUS PREVOIUS NO OPTIMIZATION
+    # old = 1287   # Match guess NO OPTIMIZATION
+
+    # old = 1277   # NEW BASELINE with im_omg_max > 0
+    old = 1279   # NEW BASELINE
+    # old = 1192   #
+    # old = 1201   # 1012 -- same sq tol, larger weak/bad tol
+    # old = 1205   # 1019 -- same sq tol, larger weak/bad tol, larger loop relative
+    # old = 1202   # 889 -- larger sq tol, smaller weak/bad tol
+    # old = 1203   # 817 -- larger sq tol everything
+    # old = 1184   # pre growth rate both signs
+    # old = 1204   # pre growth rate both signs
+    # old = 1212   # New Baseline
+    # old = 1219   # New Baseline
+    # old = 1213   # PREVIOUS BASELINE
+
+
+    new = 1131   # 10, 1, 2, X, X, X -- ACCEPTABLE
+    new = 1132   # 10, 1, 2, X, X, X: CONVERGE FREQ MUST MATCH SIGN
+    new = 1133   # 10, 1, 2, X, X, X: + MIN ITERATION 1
+    # new = 1135   # 10, 1, 2, X, X, X: + MIN ITERATION 2
+    new = 1145   # 10, 1, 2, X, X, o: + MIN ITERATION 2
+    new = 1146   # 10, 1, 2, X, X, o: + MIN ITERATION 1
+    new = 1147   # 10, 1, 2, X, o, o: + MIN ITERATION 1
+    new = 1150   # 10, 1, 2, 2e5, o, o: + MIN ITERATION 1
+    new = 1151   # 10, 1, 2, 2e1, o, o: + MIN ITERATION 1
+    new = 1152   # 10, 1, 2, 2e1, o, o: + MIN ITERATION 2
+    new = 1153   # 10, 1, 2, 2e1, o, o: + MIN ITERATION 2, dont discard if too far from convergence
+    new = 1154   # 10, 1, 2, 2e1, o, o: + MIN ITERATION 1, dont discard if too far from convergence
+    new = 1155   # 10, 1, 2, 2e1, o, o: + MIN ITERATION 1, discard only if max > 0
+    # new = 1156   # 10, 1, 2, 2e1, o, o: + MIN ITERATION 1, discard only if max > 0, dont worry about convergence
+    # new = 1157   # 10, 1, 2, 2, o, o: + MIN ITERATION 1, discard only if max > 0, dont worry about convergence
+    new = 1158   # 10, 1, 2, 2, o, o: + MIN ITERATION 1, discard only if max > 0, worry about convergence
+    # new = 1159   # 10, 1, 2, 2, o, o: + MIN ITERATION 1, discard only if max > 0, worry about convergence less
+    new = 1160   # 10, 1, 2, 2, o, o: + MIN ITERATION 1, discard only if max > 0, worry about convergence less 2
+    new = 1161   # 10, 1, 2, 2, o, o: + MIN ITERATION 1, discard only if max > 0, worry about convergence less 3
+    new = 1170   # 10, 1, 2, 2, o, o: + IT 10, discard only if max > 0, worry about convergence less 3
+    new = 1171   # 10, 1, 2, 2, o, o: + IT 1, discard only if max > 0, worry about convergence less 3
+    new = 1173   # 10, 1, 0.2, 2, o, o: + IT 1, discard only if max > 0, worry about convergence less 3
+    new = 1192   # abs10, 1, 0.2, 2, o, o: + IT 1, 
+    new = 1206   # abs10, 1, 0.2, 2, o, o: + IT 1, same reltol, larger relweak+
+    new = 1207   # abs10, 1, 0.2, 2, o, o: + IT 1, larger reltol, same relweak+ as above
+    new = 1208   # abs10, 1, 0.2, 2, o, o: + IT 1, same sqtol, larger sqweak+
+    new = 1209   # abs10, 1, 0.2, 2, o, o: + IT 1, same sqtol weaktol, larger sqbad
+    new = 1210   # abs10, 1, 0.2, 2, o, o: + IT 1, smaller bad tols
+    new = 1212   # abs10, 1, 0.2, 2, o, o: + IT 1, new baseline
+    new = 1218   # abs10, 0.5, 0.2, 2, o, o: + IT 1, new baseline 2x rel
+    new = 1219   # abs10, 0.5, 0.2, 2, o, o: + IT 1, new baseline 1x rel
+
+    # new = 1213 # PREVIOUS BASELINE
+    new = 1241 # OLD BASELINE
+    # new = 1279 # NEW BASELINE
+    # # new = 1280 # NEW BASELINE 100 max iteration
+    # # new = 1281 # NEW BASELINE 40 max iteration
+    # new = 1286 # Match guess, new guess strategy
+    # # new = 1287 # Match guess, no optimization
+    # new = 1288 # Match guess, same strategy
+    new = 1291
+
+
+    vars_to_plot = ['xkemtm', 'wexb', 'xtiEPM', 'xdeEPM',]
+    # scan_data['138536A01'] = [1335, 1336]
+    # scan_data['85610T01'] = [18, 19]
+
+    vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
+    vars_to_plot = ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
+    vars_to_plot = ['gmaDBM', 'omgDBM', 'xtiDBM', 'xti2DBM', 'xdeDBM', 'xde2DBM', 'xteDBM', 'xte2DBM']
+    # vars_to_plot = ['ni', 'gni']
+    scan_data['129016Q50'] = [28, 29]
     # all_scans = [
     #     # NSTU
     #     '121123K55',

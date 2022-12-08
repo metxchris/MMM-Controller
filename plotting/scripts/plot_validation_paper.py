@@ -154,9 +154,9 @@ if __name__ == '__main__':
     savefig = 1
     savedata = 1
 
-    plot_east = 1
+    plot_east = 0
     plot_kstr = 0
-    plot_d3d = 0
+    plot_d3d = 1
     plot_jet = 0
 
     
@@ -165,60 +165,60 @@ if __name__ == '__main__':
 
     """EAST PLOTS"""
     if plot_east:
-        """85126, 85610 Currents"""
-        make_plot(
-            extradata=(
-                csv_to_plotdata('85126LHC.txt', '85126', 4, 'curdlh', 'rho', yunits='AMPS/CM**2', legend='High Density'),
-                csv_to_plotdata('85610LHC.txt', '85610', 4, 'curdlh', 'rho', yunits='AMPS/CM**2', legend='Low Density'),
-            ),
-            title='EAST 85126, 85610', time=4.0, ymax=1.4, xmin=0, xmax=1,
-        )
-        make_plot(
-            extradata=(
-                csv_to_plotdata('85126LHX.txt', '85126', 4, 'curlh', 'rho', yunits='AMPS', legend='High Density'),
-                csv_to_plotdata('85610LHX.txt', '85610', 4, 'curlh', 'rho', yunits='AMPS', legend='Low Density'),
-            ),
-            title='EAST 85126, 85610', time=4.0, ymax=0.4, xmin=0, xmax=1,
-        )
-        make_plot(
-            extradata=(
-                csv_to_plotdata('85126LHT.txt', '85126', 1.0, 'curlh', 'time', yunits='AMPS', timeplot=True, legend='High Density'),
-                csv_to_plotdata('85610LHT.txt', '85610', 1.0, 'curlh', 'time', yunits='AMPS', timeplot=True, legend='Low Density'),
-            ),
-            title='EAST 85126, 85610', time=1.0, ymax=0.5, xmax=6, xmin=1, timeplot=True, xticks=np.arange(1,7),
-        )
-        make_plot(
-            extradata=(
-                csv_to_plotdata('85126OHC.txt', '85126', 4, 'curdoh', 'rho', yunits='AMPS/CM**2', legend='High Density'),
-                csv_to_plotdata('85610OHC.txt', '85610', 4, 'curdoh', 'rho', yunits='AMPS/CM**2', legend='Low Density'),
-            ),
-            title='EAST 85126, 85610', time=4.0, ymax=2.5, xmin=0, xmax=1,
-        )
-        make_plot(
-            extradata=(
-                csv_to_plotdata('85126OHX.txt', '85126', 4, 'curoh', 'rho', yunits='AMPS', legend='High Density'),
-                csv_to_plotdata('85610OHX.txt', '85610', 4, 'curoh', 'rho', yunits='AMPS', legend='Low Density'),
-            ),
-            title='EAST 85126, 85610', time=4.0, ymax=0.4, xmin=0, xmax=1,
-        )
-        make_plot(
-            extradata=(
-                csv_to_plotdata('85126oHT.txt', '85126', 1.0, 'curoh', 'time', yunits='AMPS', timeplot=True, legend='High Density'),
-                csv_to_plotdata('85610oHT.txt', '85610', 1.0, 'curoh', 'time', yunits='AMPS', timeplot=True, legend='Low Density'),
-            ),
-            title='EAST 85126, 85610', time=1.0, ymax=0.6, xmax=6, xmin=1, timeplot=True, xticks=np.arange(1,7),
-        )
+        # """85126, 85610 Currents"""
+        # make_plot(
+        #     extradata=(
+        #         csv_to_plotdata('85126LHC.txt', '85126', 4, 'curdlh', 'rho', yunits='AMPS/CM**2', legend='High Density'),
+        #         csv_to_plotdata('85610LHC.txt', '85610', 4, 'curdlh', 'rho', yunits='AMPS/CM**2', legend='Low Density'),
+        #     ),
+        #     title='EAST 85126, 85610', time=4.0, ymax=1.4, xmin=0, xmax=1,
+        # )
+        # make_plot(
+        #     extradata=(
+        #         csv_to_plotdata('85126LHX.txt', '85126', 4, 'curlh', 'rho', yunits='AMPS', legend='High Density'),
+        #         csv_to_plotdata('85610LHX.txt', '85610', 4, 'curlh', 'rho', yunits='AMPS', legend='Low Density'),
+        #     ),
+        #     title='EAST 85126, 85610', time=4.0, ymin=0, ymax=0.5, xmin=0, xmax=1,
+        # )
+        # make_plot(
+        #     extradata=(
+        #         csv_to_plotdata('85126LHT.txt', '85126', 1.0, 'curlh', 'time', yunits='AMPS', timeplot=True, legend='High Density'),
+        #         csv_to_plotdata('85610LHT.txt', '85610', 1.0, 'curlh', 'time', yunits='AMPS', timeplot=True, legend='Low Density'),
+        #     ),
+        #     title='EAST 85126, 85610', time=1.0, ymin=0, ymax=0.5, xmax=6, xmin=1, timeplot=True, xticks=np.arange(1,7),
+        # )
+        # make_plot(
+        #     extradata=(
+        #         csv_to_plotdata('85126OHC.txt', '85126', 4, 'curdoh', 'rho', yunits='AMPS/CM**2', legend='High Density'),
+        #         csv_to_plotdata('85610OHC.txt', '85610', 4, 'curdoh', 'rho', yunits='AMPS/CM**2', legend='Low Density'),
+        #     ),
+        #     title='EAST 85126, 85610', time=4.0, ymax=2.5, xmin=0, xmax=1,
+        # )
+        # make_plot(
+        #     extradata=(
+        #         csv_to_plotdata('85126OHX.txt', '85126', 4, 'curoh', 'rho', yunits='AMPS', legend='High Density'),
+        #         csv_to_plotdata('85610OHX.txt', '85610', 4, 'curoh', 'rho', yunits='AMPS', legend='Low Density'),
+        #     ),
+        #     title='EAST 85126, 85610', time=4.0, ymin=0, ymax=0.5, xmin=0, xmax=1,
+        # )
+        # make_plot(
+        #     extradata=(
+        #         csv_to_plotdata('85126oHT.txt', '85126', 1.0, 'curoh', 'time', yunits='AMPS', timeplot=True, legend='High Density'),
+        #         csv_to_plotdata('85610oHT.txt', '85610', 1.0, 'curoh', 'time', yunits='AMPS', timeplot=True, legend='Low Density'),
+        #     ),
+        #     title='EAST 85126, 85610', time=1.0, ymin=0, ymax=0.5, xmax=6, xmin=1, timeplot=True, xticks=np.arange(1,7),
+        # )
 
         """85126"""
         make_plot(
             {'runid': '85126T02', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '85126W05', 'yname': 'te', 'legend': 'Experiment'},
-            title='EAST 85126', time=2.175, ymin=0,
+            title='EAST 85126', time=2.175, ymin=0, ymax=1.5,
         )
         make_plot(
             {'runid': '85126T02', 'yname': 'ti', 'legend': 'Prediction'},
             # {'runid': '85126W05', 'yname': 'ti', 'legend': 'Experiment'},
-            title='EAST 85126', time=2.175, ymin=0,
+            title='EAST 85126', time=2.175, ymin=0, ymax=1.5,
         )
         make_plot(
             extradata=(
@@ -239,12 +239,12 @@ if __name__ == '__main__':
         make_plot(
             {'runid': '85610T01', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '85610W02', 'yname': 'te', 'legend': 'Experiment'},
-            time=2.118, title='EAST 85610',
+            time=2.118, title='EAST 85610', ymax=1.25,
         )
         make_plot(
             {'runid': '85610T01', 'yname': 'ti', 'legend': 'Prediction'},
             # {'runid': '85610W02', 'yname': 'ti', 'legend': 'Experiment'},
-            time=2.118, title='EAST 85610',
+            time=2.118, title='EAST 85610', ymax=1.25,
         )
         make_plot(
             extradata=(
@@ -261,76 +261,76 @@ if __name__ == '__main__':
         )
 
 
-        """85122"""
-        make_plot(
-            {'runid': '85122T04', 'yname': 'te', 'legend': 'Prediction'},
-            {'runid': '85122W57', 'yname': 'te', 'legend': 'Experiment'},
-            time=2.17, title='EAST 85122',
-        )
-        make_plot(
-            {'runid': '85122T04', 'yname': 'ti', 'legend': 'Prediction'},
-            # {'runid': '85122W57', 'yname': 'ti', 'legend': 'Experiment'},
-            time=2.17, title='EAST 85122',
-        )
-        make_plot(
-            {'runid': '85122T04', 'yname': 'q', 'legend': 'Prediction'},
-            {'runid': '85122W57', 'yname': 'q', 'legend': 'Analysis'},
-            extradata=(csv_to_plotdata('85122q.csv', '85122', 4.38, 'q', 'rho', legend='Experiment'),),
-            time=4.38, title='EAST 85122', ymax=7, ymin=0,
-        )
-        make_plot(
-            {'runid': '85122T04', 'yname': 'xke'},
-            {'runid': '85122T04', 'yname': 'xki'},
-            time=2.17, title='EAST 85122', ymin=0, ymax=4, xmax=0.91,
-        )
+        ##"""85122"""
+        ##make_plot(
+        ##    {'runid': '85122T04', 'yname': 'te', 'legend': 'Prediction'},
+        ##    {'runid': '85122W57', 'yname': 'te', 'legend': 'Experiment'},
+        ##    time=2.17, title='EAST 85122',
+        ##)
+        ##make_plot(
+        ##    {'runid': '85122T04', 'yname': 'ti', 'legend': 'Prediction'},
+        ##    # {'runid': '85122W57', 'yname': 'ti', 'legend': 'Experiment'},
+        ##    time=2.17, title='EAST 85122',
+        ##)
+        ##make_plot(
+        ##    {'runid': '85122T04', 'yname': 'q', 'legend': 'Prediction'},
+        ##    {'runid': '85122W57', 'yname': 'q', 'legend': 'Analysis'},
+        ##    extradata=(csv_to_plotdata('85122q.csv', '85122', 4.38, 'q', 'rho', legend='Experiment'),),
+        ##    time=4.38, title='EAST 85122', ymax=7, ymin=0,
+        ##)
+        ##make_plot(
+        ##    {'runid': '85122T04', 'yname': 'xke'},
+        ##    {'runid': '85122T04', 'yname': 'xki'},
+        ##    time=2.17, title='EAST 85122', ymin=0, ymax=4, xmax=0.91,
+        ##)
 
 
-        """85124"""
-        make_plot(
-            {'runid': '85124T02', 'yname': 'te', 'legend': 'Prediction'},
-            {'runid': '85124W02', 'yname': 'te', 'legend': 'Experiment'},
-            time=2.076, title='EAST 85124',
-        )
-        make_plot(
-            {'runid': '85124T02', 'yname': 'ti', 'legend': 'Prediction'},
-            # {'runid': '85124W02', 'yname': 'ti', 'legend': 'Experiment'},
-            time=2.076, title='EAST 85124',
-        )
-        make_plot(
-            {'runid': '85124T02', 'yname': 'q', 'legend': 'Prediction'},
-            {'runid': '85124W02', 'yname': 'q', 'legend': 'Analysis'},
-            extradata=(csv_to_plotdata('85124q.csv', '85124', 3.5, 'q', 'rho', legend='Experiment'),),
-            time=3.5, title='EAST 85124', ymax=7, ymin=0,
-        )
-        make_plot(
-            {'runid': '85124T02', 'yname': 'xke'},
-            {'runid': '85124T02', 'yname': 'xki'},
-            time=2.076, title='EAST 85124', ymin=0, ymax=4, xmax=0.91,
-        )
+        ##"""85124"""
+        ##make_plot(
+        ##    {'runid': '85124T02', 'yname': 'te', 'legend': 'Prediction'},
+        ##    {'runid': '85124W02', 'yname': 'te', 'legend': 'Experiment'},
+        ##    time=2.076, title='EAST 85124',
+        ##)
+        ##make_plot(
+        ##    {'runid': '85124T02', 'yname': 'ti', 'legend': 'Prediction'},
+        ##    # {'runid': '85124W02', 'yname': 'ti', 'legend': 'Experiment'},
+        ##    time=2.076, title='EAST 85124',
+        ##)
+        ##make_plot(
+        ##    {'runid': '85124T02', 'yname': 'q', 'legend': 'Prediction'},
+        ##    {'runid': '85124W02', 'yname': 'q', 'legend': 'Analysis'},
+        ##    extradata=(csv_to_plotdata('85124q.csv', '85124', 3.5, 'q', 'rho', legend='Experiment'),),
+        ##    time=3.5, title='EAST 85124', ymax=7, ymin=0,
+        ##)
+        ##make_plot(
+        ##    {'runid': '85124T02', 'yname': 'xke'},
+        ##    {'runid': '85124T02', 'yname': 'xki'},
+        ##    time=2.076, title='EAST 85124', ymin=0, ymax=4, xmax=0.91,
+        ##)
 
 
-        """90328"""
-        make_plot(
-            {'runid': '90328T01', 'yname': 'te', 'legend': 'Prediction'},
-            {'runid': '90328W23', 'yname': 'te', 'legend': 'Experiment'},
-            time=1.997, title='EAST 90328',
-        )
-        make_plot(
-            {'runid': '90328T01', 'yname': 'ti', 'legend': 'Prediction'},
-            # {'runid': '90328W23', 'yname': 'ti', 'legend': 'Experiment'},
-            time=1.997, title='EAST 90328',
-        )
-        make_plot(
-            {'runid': '90328T01', 'yname': 'q', 'legend': 'Prediction'},
-            {'runid': '90328W23', 'yname': 'q', 'legend': 'Analysis'},
-            extradata=(csv_to_plotdata('90328q.csv', '90328', 3.02, 'q', 'rho', legend='Experiment'),),
-            time=3.02, title='EAST 90328', ymax=7, ymin=0,
-        )
-        make_plot(
-            {'runid': '90328T01', 'yname': 'xke'},
-            {'runid': '90328T01', 'yname': 'xki'},
-            time=1.997, title='EAST 90328', ymin=0, ymax=6, xmax=0.91,
-        )
+        ##"""90328"""
+        ##make_plot(
+        ##    {'runid': '90328T01', 'yname': 'te', 'legend': 'Prediction'},
+        ##    {'runid': '90328W23', 'yname': 'te', 'legend': 'Experiment'},
+        ##    time=1.997, title='EAST 90328',
+        ##)
+        ##make_plot(
+        ##    {'runid': '90328T01', 'yname': 'ti', 'legend': 'Prediction'},
+        ##    # {'runid': '90328W23', 'yname': 'ti', 'legend': 'Experiment'},
+        ##    time=1.997, title='EAST 90328',
+        ##)
+        ##make_plot(
+        ##    {'runid': '90328T01', 'yname': 'q', 'legend': 'Prediction'},
+        ##    {'runid': '90328W23', 'yname': 'q', 'legend': 'Analysis'},
+        ##    extradata=(csv_to_plotdata('90328q.csv', '90328', 3.02, 'q', 'rho', legend='Experiment'),),
+        ##    time=3.02, title='EAST 90328', ymax=7, ymin=0,
+        ##)
+        ##make_plot(
+        ##    {'runid': '90328T01', 'yname': 'xke'},
+        ##    {'runid': '90328T01', 'yname': 'xki'},
+        ##    time=1.997, title='EAST 90328', ymin=0, ymax=6, xmax=0.91,
+        ##)
 
         """80208"""
         make_plot(
@@ -338,26 +338,26 @@ if __name__ == '__main__':
                 csv_to_plotdata('80208TE4.dat', '80208', 4.0, 'te', 'rho', legend='Prediction'),
                 csv_to_plotdata('80208TEexp4.dat', '80208', 4.0, 'te', 'rho', legend='Experiment'),
             ),
-            time=4, title='EAST 80208', xmin=0, xmax=1, ymin=0, ymax=1.5, savename_append='4',
+            time=4, title='EAST 80208', xmin=0, xmax=1, ymin=0, ymax=2, savename_append='4',
         )
         make_plot(
             extradata=(
                 csv_to_plotdata('80208TE.dat', '80208', 3.5, 'te', 'rho', legend='Prediction'),
                 csv_to_plotdata('80208TEexp.dat', '80208', 3.5, 'te', 'rho', legend='Experiment'),
             ),
-            time=3.5, title='EAST 80208', xmin=0, xmax=1, ymin=0,
+            time=3.5, title='EAST 80208', xmin=0, xmax=1, ymin=0, ymax=2,
         )
         make_plot(
             extradata=(
                 csv_to_plotdata('80208TI4.dat', '80208', 4.0, 'ti', 'rho', legend='Prediction'),
             ),
-            time=4, title='EAST 80208', xmin=0, xmax=1, ymin=0, savename_append='4',
+            time=4, title='EAST 80208', xmin=0, xmax=1, ymin=0, ymax=2, savename_append='4',
         )
         make_plot(
             extradata=(
                 csv_to_plotdata('80208TI.dat', '80208', 3.5, 'ti', 'rho', legend='Prediction'),
             ),
-            time=3.5, title='EAST 80208', xmin=0, xmax=1, ymin=0,
+            time=3.5, title='EAST 80208', xmin=0, xmax=1, ymin=0, ymax=2,
         )
         make_plot(
             extradata=(
@@ -412,33 +412,35 @@ if __name__ == '__main__':
         #     ),
         #     title='KSTAR 16901', time=0.5, timeplot=True, ymax=5, ymin=0, xmin=1, 
         # )
-        # """16901"""
-        # make_plot(
-        #     {'runid': '16901T01', 'yname': 'te', 'legend': 'Prediction'},
-        #     {'runid': '16901P03', 'yname': 'te', 'legend': 'Experiment'},
-        #     time=0.5, timeplot=True, title='KSTAR 16901', xmin=1, xmax=9, ymin=0.5,
-        # )
+
+
+        """16901"""
+        make_plot(
+            {'runid': '16901T01', 'yname': 'te', 'legend': 'Prediction'},
+            {'runid': '16901P03', 'yname': 'te', 'legend': 'Experiment'},
+            time=0.5, timeplot=True, title='KSTAR 16901', xmin=1, xmax=9, ymin=0, ymax=2.5,
+        )
         PlotStyles(lines=StyleType.Lines.COMPARE_MMM)
         make_plot(
             {'runid': '16901T01', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '16901P03', 'yname': 'ti', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 16901', xmin=1, xmax=9, ymin=0.5,
+            time=0.5, timeplot=True, title='KSTAR 16901', xmin=1, xmax=9, ymin=0, ymax=2.5,
         )
         PlotStyles(lines=StyleType.Lines.RHO_MMM)
         make_plot(
             {'runid': '16901T01', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '16901P03', 'yname': 'te', 'legend': 'Experiment'},
-            time=5.0, title='KSTAR 16901', ymin=0,
+            time=5.0, title='KSTAR 16901', ymin=0, ymax=3,
         )
         make_plot(
             {'runid': '16901T01', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '16901P03', 'yname': 'ti', 'legend': 'Experiment'},
-            time=5.0, title='KSTAR 16901', ymin=0,
+            time=5.0, title='KSTAR 16901', ymin=0, ymax=3,
         )
         make_plot(
             {'runid': '16901T01', 'yname': 'xke', 'legend': 'Total'},
             {'runid': '16901T01', 'yname': 'xkemmm07', 'legend': 'MMM'},
-            time=5.0, title='KSTAR 16901', xmax=0.8, ymin=0,
+            time=5.0, title='KSTAR 16901', xmax=0.8, ymin=0, ymax=5, 
         )
         make_plot(
             {'runid': '16901T01', 'yname': 'xki', 'legend': 'Total'},
@@ -450,111 +452,111 @@ if __name__ == '__main__':
         make_plot(
             {'runid': '16295T10', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '16295P03', 'yname': 'te', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 16295', xmin=2, ymax=1.6, ymin=0.5,
+            time=0.5, timeplot=True, title='KSTAR 16295', xmin=2, ymax=2.5, ymin=0,
         )
         make_plot(
             {'runid': '16296T10', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '16296P02', 'yname': 'te', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 16296', xmin=0.8, xmax=3, ymax=3, ymin=0.5,
+            time=0.5, timeplot=True, title='KSTAR 16296', xmin=0.8, xmax=3, ymax=4, ymin=0,
         )
         make_plot(
             {'runid': '16297T01', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '16297P02', 'yname': 'te', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 16297', xmin=0.8, ymin=0.5,
+            time=0.5, timeplot=True, title='KSTAR 16297', xmin=0.8, ymin=0, ymax=2.5,
         )
         PlotStyles(lines=StyleType.Lines.COMPARE_MMM)
         make_plot(
             {'runid': '16295T10', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '16295P03', 'yname': 'ti', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 16295', xmin=2, ymin=0.5,
+            time=0.5, timeplot=True, title='KSTAR 16295', xmin=2, ymin=0, ymax=2.5,
         )
         make_plot(
             {'runid': '16296T10', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '16296P02', 'yname': 'ti', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 16296', xmin=0.8, xmax=3, ymin=0,
+            time=0.5, timeplot=True, title='KSTAR 16296', xmin=0.8, xmax=3, ymin=0, ymax=4,
         )
         make_plot(
             {'runid': '16297T01', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '16297P02', 'yname': 'ti', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 16297', xmin=0.8, ymin=0,
+            time=0.5, timeplot=True, title='KSTAR 16297', xmin=0.8, ymin=0, ymax=2.5,
         )
         PlotStyles(lines=StyleType.Lines.RHO_MMM)
 
-        """18399, 18400, 16325"""
-        make_plot(
-            {'runid': '18399T05', 'yname': 'te', 'legend': 'Prediction'},
-            {'runid': '18399P01', 'yname': 'te', 'legend': 'Experiment'},
-            time=10.0, title='KSTAR 18399', ymin=0,
-        )
-        make_plot(
-            {'runid': '18399T05', 'yname': 'ti', 'legend': 'Prediction'},
-            {'runid': '18399P01', 'yname': 'ti', 'legend': 'Experiment'},
-            time=10.0, title='KSTAR 18399', ymin=0,
-        )
-        make_plot(
-            {'runid': '18400T01', 'yname': 'te', 'legend': 'Prediction'},
-            {'runid': '18400P01', 'yname': 'te', 'legend': 'Experiment'},
-            time=11.5, title='KSTAR 18400', ymin=0, ymax=3,
-        )
-        make_plot(
-            {'runid': '18400T01', 'yname': 'ti', 'legend': 'Prediction'},
-            {'runid': '18400P01', 'yname': 'ti', 'legend': 'Experiment'},
-            time=11.5, title='KSTAR 18400', ymin=0,
-        )
-        make_plot(
-            {'runid': '16325T10', 'yname': 'te', 'legend': 'Prediction'},
-            {'runid': '16325P01', 'yname': 'te', 'legend': 'Experiment'},
-            time=10.0, title='KSTAR 16325', ymin=0,
-        )
-        make_plot(
-            {'runid': '16325T10', 'yname': 'ti', 'legend': 'Prediction'},
-            {'runid': '16325P01', 'yname': 'ti', 'legend': 'Experiment'},
-            time=10.0, title='KSTAR 16325', ymin=0,
-        )
+        ## """18399, 18400, 16325"""
+        ## make_plot(
+        ##     {'runid': '18399T05', 'yname': 'te', 'legend': 'Prediction'},
+        ##     {'runid': '18399P01', 'yname': 'te', 'legend': 'Experiment'},
+        ##     time=10.0, title='KSTAR 18399', ymin=0, ymax=3.5,
+        ## )
+        ## make_plot(
+        ##     {'runid': '18399T05', 'yname': 'ti', 'legend': 'Prediction'},
+        ##     {'runid': '18399P01', 'yname': 'ti', 'legend': 'Experiment'},
+        ##     time=10.0, title='KSTAR 18399', ymin=0, ymax=3.5,
+        ## )
+        ## make_plot(
+        ##     {'runid': '18400T01', 'yname': 'te', 'legend': 'Prediction'},
+        ##     {'runid': '18400P01', 'yname': 'te', 'legend': 'Experiment'},
+        ##     time=11.5, title='KSTAR 18400', ymin=0, ymax=3,
+        ## )
+        ## make_plot(
+        ##     {'runid': '18400T01', 'yname': 'ti', 'legend': 'Prediction'},
+        ##     {'runid': '18400P01', 'yname': 'ti', 'legend': 'Experiment'},
+        ##     time=11.5, title='KSTAR 18400', ymin=0, ymax=3,
+        ## )
+        ## make_plot(
+        ##     {'runid': '16325T10', 'yname': 'te', 'legend': 'Prediction'},
+        ##     {'runid': '16325P01', 'yname': 'te', 'legend': 'Experiment'},
+        ##     time=10.0, title='KSTAR 16325', ymin=0,
+        ## )
+        ## make_plot(
+        ##     {'runid': '16325T10', 'yname': 'ti', 'legend': 'Prediction'},
+        ##     {'runid': '16325P01', 'yname': 'ti', 'legend': 'Experiment'},
+        ##     time=10.0, title='KSTAR 16325', ymin=0,
+        ## )
 
-        """18404, 16949"""
-        make_plot(
-            {'runid': '18404T05', 'yname': 'te', 'legend': 'Prediction'},
-            {'runid': '18404P01', 'yname': 'te', 'legend': 'Experiment'},
-            time=12.0, title='KSTAR 18404', ymin=0,
-        )
-        make_plot(
-            {'runid': '18404T05', 'yname': 'ti', 'legend': 'Prediction'},
-            {'runid': '18404P01', 'yname': 'ti', 'legend': 'Experiment'},
-            time=12.0, title='KSTAR 18404', ymin=0,
-        )
-        make_plot(
-            {'runid': '16949T02', 'yname': 'te', 'legend': 'Prediction'},
-            {'runid': '16949P01', 'yname': 'te', 'legend': 'Experiment'},
-            time=9.0, title='KSTAR 16949', ymin=0,
-        )
-        make_plot(
-            {'runid': '16949T02', 'yname': 'ti', 'legend': 'Prediction'},
-            {'runid': '16949P01', 'yname': 'ti', 'legend': 'Experiment'},
-            time=9.0, title='KSTAR 16949', ymin=0,
-        )
+        ##"""18404, 16949"""
+        ##make_plot(
+        ##    {'runid': '18404T05', 'yname': 'te', 'legend': 'Prediction'},
+        ##    {'runid': '18404P01', 'yname': 'te', 'legend': 'Experiment'},
+        ##    time=12.0, title='KSTAR 18404', ymin=0,
+        ##)
+        ##make_plot(
+        ##    {'runid': '18404T05', 'yname': 'ti', 'legend': 'Prediction'},
+        ##    {'runid': '18404P01', 'yname': 'ti', 'legend': 'Experiment'},
+        ##    time=12.0, title='KSTAR 18404', ymin=0,
+        ##)
+        ##make_plot(
+        ##    {'runid': '16949T02', 'yname': 'te', 'legend': 'Prediction'},
+        ##    {'runid': '16949P01', 'yname': 'te', 'legend': 'Experiment'},
+        ##    time=9.0, title='KSTAR 16949', ymin=0,
+        ##)
+        ##make_plot(
+        ##    {'runid': '16949T02', 'yname': 'ti', 'legend': 'Prediction'},
+        ##    {'runid': '16949P01', 'yname': 'ti', 'legend': 'Experiment'},
+        ##    time=9.0, title='KSTAR 16949', ymin=0,
+        ##)
 
         """18402"""
         make_plot(
             {'runid': '18402T01', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '18402P01', 'yname': 'te', 'legend': 'Experiment'},
-            time=11.5, title='KSTAR 18402', ymin=0,
+            time=11.5, title='KSTAR 18402', ymin=0, ymax=3.5,
         )
         make_plot(
             {'runid': '18402T01', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '18402P01', 'yname': 'ti', 'legend': 'Experiment'},
-            time=11.5, title='KSTAR 18402', ymin=0,
+            time=11.5, title='KSTAR 18402', ymin=0, ymax=3.5,
         )
         PlotStyles(lines=StyleType.Lines.COMPARE_MMM)
         make_plot(
             {'runid': '18402T01', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '18402P01', 'yname': 'te', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 18402', xmin=1, xmax=12, ymin=0.5,
+            time=0.5, timeplot=True, title='KSTAR 18402', xmin=1, xmax=12, ymin=0, ymax=2,
         )
         make_plot(
             {'runid': '18402T01', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '18402P01', 'yname': 'ti', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 18402', xmin=1, xmax=12, ymin=0.5,
+            time=0.5, timeplot=True, title='KSTAR 18402', xmin=1, xmax=12, ymin=0, ymax=2,
         )
         PlotStyles(lines=StyleType.Lines.RHO_MMM)
         make_plot(
@@ -575,12 +577,12 @@ if __name__ == '__main__':
         make_plot(
             {'runid': '18476T02', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '18476P01', 'yname': 'te', 'legend': 'Experiment'},
-            time=7.0, title='KSTAR 18476', ymin=0,
+            time=7.0, title='KSTAR 18476', ymin=0, ymax=3.5,
         )
         make_plot(
             {'runid': '18476T02', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '18476P01', 'yname': 'ti', 'legend': 'Experiment'},
-            time=7.0, title='KSTAR 18476', ymin=0,
+            time=7.0, title='KSTAR 18476', ymin=0, ymax=3.5,
         )
         make_plot(
             {'runid': '18476T02', 'yname': 'te', 'legend': 'Prediction'},
@@ -623,23 +625,23 @@ if __name__ == '__main__':
         make_plot(
             {'runid': '18602T01', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '18602P03', 'yname': 'te', 'legend': 'Experiment'},
-            time=6.9, title='KSTAR 18602', ymin=0,
+            time=6.9, title='KSTAR 18602', ymin=0, ymax=3,
         )
         make_plot(
             {'runid': '18602T01', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '18602P03', 'yname': 'ti', 'legend': 'Experiment'},
-            time=6.9, title='KSTAR 18602', ymin=0,
+            time=6.9, title='KSTAR 18602', ymin=0, ymax=3,
         )
         make_plot(
             {'runid': '18602T01', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '18602P03', 'yname': 'te', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 18602', xmin=4, xmax=8, ymin=0,
+            time=0.5, timeplot=True, title='KSTAR 18602', xmin=4, xmax=8, ymin=0, ymax=2.5,
         )
         PlotStyles(lines=StyleType.Lines.COMPARE_MMM)
         make_plot(
             {'runid': '18602T01', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '18602P03', 'yname': 'ti', 'legend': 'Experiment'},
-            time=0.5, timeplot=True, title='KSTAR 18602', xmin=4, xmax=8, ymin=0,
+            time=0.5, timeplot=True, title='KSTAR 18602', xmin=4, xmax=8, ymin=0, ymax=2.5,
         )
         PlotStyles(lines=StyleType.Lines.RHO_MMM)
 
@@ -685,7 +687,7 @@ if __name__ == '__main__':
         make_plot(
             {'runid': '118341T55', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '118341V01', 'yname': 'te', 'legend': 'Experiment'},
-            time=5.85, title='DIII-D 118341', xmin=0, xmax=1, ymin=0, ymax=4,
+            time=5.85, title='DIII-D 118341', xmin=0, xmax=1, ymin=0, ymax=5,
         )
         make_plot(
             {'runid': '118341T55', 'yname': 'ti', 'legend': 'Prediction'},
@@ -697,22 +699,22 @@ if __name__ == '__main__':
             {'runid': '118341V01', 'yname': 'ne', 'legend': 'Experiment'},
             time=5.85, title=r'$\ \ $DIII-D 118341', xmin=0, xmax=1, ymin=0,
         )
-        make_plot(
-            {'runid': '118341T55', 'yname': 'omega', 'legend': 'Prediction'},
-            {'runid': '118341V01', 'yname': 'omegadata', 'legend': 'Experiment'},
-            time=5.85, title=r'$\ \ $DIII-D 118341', xmin=0, xmax=1, ymin=0,
-        )
+        # make_plot(
+        #     {'runid': '118341T55', 'yname': 'omega', 'legend': 'Prediction'},
+        #     {'runid': '118341V01', 'yname': 'omegadata', 'legend': 'Experiment'},
+        #     time=5.85, title=r'$\ \ $DIII-D 118341', xmin=0, xmax=1, ymin=0,
+        # )
 
         """144449"""
         make_plot(
             {'runid': '144449T54', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '144449T52', 'yname': 'te', 'legend': 'Experiment'},
-            time=3.0, title='DIII-D 144449', xmin=0, xmax=1, ymin=0,
+            time=3.0, title='DIII-D 144449', xmin=0, xmax=1, ymin=0, ymax=5,
         )
         make_plot(
             {'runid': '144449T54', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '144449T52', 'yname': 'ti', 'legend': 'Experiment'},
-            time=3.0, title='DIII-D 144449', xmin=0, xmax=1, ymin=0,
+            time=3.0, title='DIII-D 144449', xmin=0, xmax=1, ymin=0, ymax=5,
         )
         make_plot(
             {'runid': '144449T54', 'yname': 'ne', 'legend': 'Prediction'},
@@ -736,33 +738,33 @@ if __name__ == '__main__':
             {'runid': '153283T52', 'yname': 'ne', 'legend': 'Experiment'},
             time=3.3, title=r'$\ \ $DIII-D 153283', xmin=0, xmax=1, ymin=0,
         )
-        make_plot(
-            {'runid': '153283T51', 'yname': 'omega', 'legend': 'Prediction'},
-            {'runid': '153283T52', 'yname': 'omegadata', 'legend': 'Experiment'},
-            time=3.3, title=r'$\ \ $DIII-D 153283', xmin=0, xmax=1,
-        )
+        # make_plot(
+        #     {'runid': '153283T51', 'yname': 'omega', 'legend': 'Prediction'},
+        #     {'runid': '153283T52', 'yname': 'omegadata', 'legend': 'Experiment'},
+        #     time=3.3, title=r'$\ \ $DIII-D 153283', xmin=0, xmax=1,
+        # )
 
         """150840"""
         make_plot(
             {'runid': '150840T03', 'yname': 'te', 'legend': 'Prediction'},
             {'runid': '150840T02', 'yname': 'te', 'legend': 'Experiment'},
-            time=3.1, title='DIII-D 150840', xmin=0, xmax=1, ymin=0,
+            time=3.1, title='DIII-D 150840', xmin=0, xmax=1, ymin=0, ymax=3,
         )
         make_plot(
             {'runid': '150840T03', 'yname': 'ti', 'legend': 'Prediction'},
             {'runid': '150840T02', 'yname': 'ti', 'legend': 'Experiment'},
-            time=3.1, title='DIII-D 150840', xmin=0, xmax=1, ymin=0,
+            time=3.1, title='DIII-D 150840', xmin=0, xmax=1, ymin=0, ymax=3,
         )
         make_plot(
             {'runid': '150840T03', 'yname': 'ne', 'legend': 'Prediction'},
             {'runid': '150840T02', 'yname': 'ne', 'legend': 'Experiment'},
             time=3.1, title=r'$\ \ $DIII-D 150840', xmin=0, xmax=1, ymin=0,
         )
-        make_plot(
-            {'runid': '150840T03', 'yname': 'omega', 'legend': 'Prediction'},
-            {'runid': '150840T02', 'yname': 'omegadata', 'legend': 'Experiment'},
-            time=3.1, title=r'$\ \ $DIII-D 150840', xmin=0, xmax=1, ymin=0,
-        )
+        # make_plot(
+        #     {'runid': '150840T03', 'yname': 'omega', 'legend': 'Prediction'},
+        #     {'runid': '150840T02', 'yname': 'omegadata', 'legend': 'Experiment'},
+        #     time=3.1, title=r'$\ \ $DIII-D 150840', xmin=0, xmax=1, ymin=0,
+        # )
 
     """JET PLOTS"""
     if plot_jet:

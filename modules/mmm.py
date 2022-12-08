@@ -64,7 +64,8 @@ def run_wrapper(input_vars, controls):
 
     # Create input file in temp directory
     with open(input_file, 'w') as f:
-        f.write(controls.get_mmm_header())
+        # f.write(controls.get_mmm_header())
+        f.write(controls.get_mmm_header_old())
 
         # Loop through MMM variables and write input variable labels and values
         var_names = input_vars.get_vars_of_type(SaveType.INPUT)
@@ -88,6 +89,9 @@ def run_wrapper(input_vars, controls):
 
     if settings.PRINT_MMM_RESPONSE:
         print(result.stdout)  # Only prints after MMM finishes running
+        if 'r8tomsqz calls:' in result.stdout:
+            spl = result.stdout.split('r8tomsqz calls:')
+            settings.R8TOMSQZ_CALLS += int(spl[1].split('\n')[0])
 
     # Error checks
     if result.stderr:

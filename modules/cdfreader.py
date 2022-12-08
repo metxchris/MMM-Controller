@@ -62,17 +62,19 @@ def extract_data(options, print_warnings=False):
     # Get values for all specified CDF variables
     for var_name in cdf_vars_to_get:
         var = getattr(cdf_vars, var_name)
-        if var.cdfvar in cdf.variables:
+        cdfvar = var.cdfvar.upper()
+
+        if cdfvar in cdf.variables:
             # Transpose to put the values in the format needed for calculations: (X, T)
-            values = np.array(cdf.variables[var.cdfvar][:].T)
+            values = np.array(cdf.variables[cdfvar][:].T)
 
             # Not all variable values in the CDF are arrays
             var.values = values[:] if values.size > 1 else values
-            var.units = (cdf.variables[var.cdfvar].units).strip()
-            var.desc = (cdf.variables[var.cdfvar].long_name).strip()
+            var.units = (cdf.variables[cdfvar].units).strip()
+            var.desc = (cdf.variables[cdfvar].long_name).strip()
 
             # Store variable dimensions in reverse order, since we transposed the values above
-            cdf_dimensions = cdf.variables[var.cdfvar].get_dims()
+            cdf_dimensions = cdf.variables[cdfvar].get_dims()
             var.dimensions = [dim.name for dim in cdf_dimensions]
             var.dimensions.reverse()
 
@@ -121,7 +123,7 @@ if __name__ == '__main__':
     # For testing purposes
     import modules.options
     utils.init_logging()
-    options = modules.options.Options(runid='138536A01')
+    options = modules.options.Options(runid='129016Z41')
     cdf_cdf_vars = extract_data(options, print_warnings=True)
     print_dimensions(options.runid)
     print_variables(options.runid)

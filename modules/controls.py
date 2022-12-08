@@ -96,25 +96,26 @@ class InputControls:
         self.cmodel_mtm = Control('MTM', float, 1)
 
         # Weiland options
-        self.w20_shear_def = Control('[SHAT Definition] 0: use elong; 1: use grad rho', int, 0)
-        self.w20_extra_int = Control('extra', int, 0)
+        self.w20_shear_def = Control('[Effective Shear Definition] 0: use elong; 1: use grad rho', int, 0)
+        self.w20_negative_chi = Control('[Minimum Diffusivity] 0: Zero, 1: Negative of max', int, 1)
 
         self.w20_exbs = Control('ExB shear coefficient', float, 1)
-        self.w20_mpsf = Control('Momentum pinch scaling factor', float, 1)
-        self.w20_kyrhos = Control('kyrhos', float, 0.316, label=r'$k_\mathrm{y}\rho_\mathrm{s}$')
-        self.w20_xte_min = Control('Lower bound of electron thermal diffusivity', float, -100)
-        self.w20_xte_max = Control('Upper bound of electron thermal diffusivity', float, 100)
-        self.w20_xti_min = Control('Lower bound of ion thermal diffusivity', float, -100)
-        self.w20_xti_max = Control('Upper bound of ion thermal diffusivity', float, 100)
-        self.w20_xde_min = Control('Lower bound of particle diffusivity', float, -100)
-        self.w20_xde_max = Control('Upper bound of particle diffusivity', float, 100)
-        self.w20_xdz_min = Control('Lower bound of impurity diffusivity', float, -100)
-        self.w20_xdz_max = Control('Upper bound of impurity diffusivity', float, 100)
-        self.w20_xvt_min = Control('xvt: Upper Bound', float, -100)
-        self.w20_xvt_max = Control('     Lower Bound', float, 100)
-        self.w20_xvp_min = Control('xvp: Upper Bound', float, -100)
-        self.w20_xvp_max = Control('     Lower Bound', float, 100)
+        self.w20_vconv = Control('Convective velocity coefficient', float, 1)
+        self.w20_kyrhos = Control('kyrhos (ion direction)', float, 0.316, label=r'$k_\mathrm{y}\rho_\mathrm{s}$')
+        self.w20_xti_max = Control('max |xde|', float, 100)
+        self.w20_xde_max = Control('max |xte|', float, 100)
+        self.w20_xte_max = Control('max |xti|', float, 100)
+        self.w20_xdz_max = Control('max |xdz|', float, 100)
+        self.w20_xvt_max = Control('max |xvt|', float, 100)
+        self.w20_xvp_max = Control('max |xvp|', float, 100)
+        self.w20_xte_min = Control('Lower Bound', float, -100)
+        self.w20_xti_min = Control('Lower Bound', float, -100)
+        self.w20_xde_min = Control('Lower Bound', float, -100)
+        self.w20_xdz_min = Control('Lower Bound', float, -100)
+        self.w20_xvp_min = Control('Lower Bound', float, -100)
+        self.w20_xvt_min = Control('Lower Bound', float, -100)
         self.w20_gmult = Control('gmult', float, 1, label='guess factor', )
+        self.w20_mpsf = Control('Convective velocity coefficient', float, 1)
         
         # EPM options
         self.epm_direction = Control('[Search Direction] 0: Any, 1: Electron, -1: Ion', int, 0)
@@ -138,18 +139,19 @@ class InputControls:
         self.dribm_diffusivity_type = Control('[Diffusivity Type] 1: Alternate, 0: Default ', int, 0)
         self.dribm_sat_expo = Control('Saturation ratio exponent (min 0)', int, 2)
         self.dribm_sum_modes = Control('[Mode Handling] 1: Sum modes, 0: Most unstable mode', int, 0)
-        self.dribm_kyrhos_type = Control('kyrhos Increments] 1: Exponential, 0: Linear', int, 1)
+        self.dribm_negative_chi = Control('[Minimum Diffusivity] 0: Zero, 1: Negative of max', int, 0)
+        self.dribm_kyrhos_type = Control('[kyrhos Increments] 1: Exponential, 0: Linear', int, 1)
 
         self.dribm_exbs = Control('ExB shear coefficient', float, 1)
         self.dribm_kyrhos_min = Control('lower limit of kyrhos scan', float, 1, label=r'$k_\mathrm{y}\rho_\mathrm{s}$')
         self.dribm_kyrhos_max = Control('upper limit of kyrhos scan', float, 50, label=r'$(k_\mathrm{y}\rho_\mathrm{s})_\mathrm{max}$')
         self.dribm_kxoky = Control('kx / ky', float, 0.1)
+        self.dribm_xti_max = Control('max |xti|', float, 100)
+        self.dribm_xde_max = Control('max |xde|', float, 100)
+        self.dribm_xte_max = Control('max |xte|', float, 100)
         self.dribm_xti_min = Control('Lower bound of ion thermal diffusivity', float, -100)
-        self.dribm_xti_max = Control('Upper bound of ion thermal diffusivity', float, 100)
         self.dribm_xde_min = Control('Lower bound of electron particle diffusivity', float, -100)
-        self.dribm_xde_max = Control('Upper bound of electron particle diffusivity', float, 100)
         self.dribm_xte_min = Control('Lower bound of electron thermal diffusivity', float, -100)
-        self.dribm_xte_max = Control('Upper bound of electron thermal diffusivity', float, 100)
         self.dribm_chi_max_cal = Control('Diffusivity calibration (max)', float, 1)
         self.dribm_chi_sum_cal = Control('Diffusivity calibration (sum)', float, 1)
         self.dribm_chi2_max_cal = Control('Alternate Diffusivity calibration (max)', float, 1)
@@ -161,6 +163,7 @@ class InputControls:
         # MTM options
         self.mtm_kyrhos_loops = Control('kyrhos scan iterations', int, 2000)
         self.mtm_capsw = Control('capsw', int, 1)
+        self.mtm_negative_chi = Control('[Minimum Diffusivity] 0: Zero, 1: Negative of max', int, 0)
         self.mtm_kyrhos_type = Control('[kyrhos Increments] 1: Exponential, 0: Linear', int, 1)
 
         self.mtm_ky_kx = Control('ky / kx', float, 0.2, label=r'$k_y/k_x$')
@@ -169,14 +172,17 @@ class InputControls:
         self.mtm_kyrhos_max = Control('upper limit of kyrhos scan', float, 10, label=r'$(k_\mathrm{y}\rho_\mathrm{s})_\mathrm{max}$')
         self.mtm_lbetd = Control('Lower bound of electron thermal diffusivity', float, 0)
         self.mtm_ubetd = Control('Upper bound of electron thermal diffusivity', float, 100)
+        self.mtm_xte_max = Control('max |xte|', float, 100)
+        self.mtm_xte_min = Control('min xte', float, -100)
         
         # ETG options
         self.etg_jenko_threshold = Control('Jenko threshold', int, 2)
+        self.etg_restrict_chi = Control('[Diffusivity Values] 0: No restrictions, 1: Strictly non-negative', int, 0)
 
         self.etg_cees_scale = Control('CEES scale', float, 0.06)
         self.etg_ceem_scale = Control('CEEM scale', float, 0.06)
         self.etg_xte_min = Control('CEEM scale', float, 0)
-        self.etg_xte_max = Control('CEEM scale', float, 100)
+        self.etg_xte_max = Control('max |xte|', float, 99)
 
         # ETGM options
         self.etgm_direction = Control('[Search Direction] 0: All, 1: Electron, -1: Ion', int, 0)
@@ -185,6 +191,7 @@ class InputControls:
         self.etgm_kyrhos_type = Control('1: Exponential kyrhos increments, 0: Linear kyrhos increments', int, 1)
         self.etgm_kyrhos_scan = Control('Number of kyrhos scan loops (min 50), 0: disable kyrhos scan', int, 50)
         self.etgm_diffusivity_type = Control('0: Default diffusivity, 1: Alternate diffusivity', int, 0)
+        self.etgm_negative_chi = Control('[Minimum Diffusivity] 0: Zero, 1: Negative of max', int, 0)
         self.etgm_empty_int = Control('empty', int, 1)
 
         self.etgm_exbs = Control('ExB shear coefficient', float, 0)
@@ -193,6 +200,8 @@ class InputControls:
         self.etgm_kxoky = Control('kx / ky', float, 0.1)
         self.etgm_lbetd = Control('Lower bound of electron thermal diffusivity', float, -100)
         self.etgm_ubetd = Control('Upper bound of electron thermal diffusivity', float, 100)
+        self.etgm_xte_max = Control('max |xte|', float, 100)
+        self.etgm_xte_min = Control('min xte', float, 100)
         self.etgm_xte_max_cal = Control('xte calibration (max)', float, 1)
         self.etgm_xte_sum_cal = Control('xte calibration (sum)', float, 1)
         self.etgm_xte2_max_cal = Control('xte2 calibration (max)', float, 1)
@@ -281,21 +290,149 @@ class InputControls:
             'cmodel  =\n'
             f'   {self.cmodel_weiland.get_input_line()}'
             f'   {self.cmodel_dribm.get_input_line()}'
-            + epm1 +
             f'   {self.cmodel_etgm.get_input_line()}'
             f'   {self.cmodel_mtm.get_input_line()}'
             f'   {self.cmodel_etg.get_input_line()}'
+            + epm1 +
             '\n'
             '!.. Weiland integer options\n'
             'iW20 =\n'
             f'   {self.w20_shear_def.get_input_line()}'
-            f'   {self.w20_extra_int.get_input_line()}'
+            f'   {self.w20_restrict_chi.get_input_line()}'
+            '\n'
+            '!.. Weiland real options\n'
+            'rW20 =\n'
+            f'   {self.w20_exbs.get_input_line()}'
+            f'   {self.w20_vconv.get_input_line()}'
+            f'   {self.w20_kyrhos.get_input_line()}'
+            f'   {self.w20_xti_max.get_input_line()}'
+            f'   {self.w20_xde_max.get_input_line()}'
+            f'   {self.w20_xte_max.get_input_line()}'
+            f'   {self.w20_xdz_max.get_input_line()}'
+            f'   {self.w20_xvt_max.get_input_line()}'
+            f'   {self.w20_xvp_max.get_input_line()}'
+            '\n'
+            + epm2 +
+            '!.. DRIBM integer options\n'
+            'iDBM =\n'
+            f'   {self.dribm_kyrhos_scan.get_input_line()}'
+            f'   {self.dribm_sat_expo.get_input_line()}'
+            f'   {self.dribm_direction.get_input_line()}'
+            f'   {self.dribm_sum_modes.get_input_line()}'
+            f'   {self.dribm_restrict_chi.get_input_line()}'
+            f'   {self.dribm_diffusivity_type.get_input_line()}'
+            '\n'
+            '!.. DRIBM real options\n'
+            'rDBM =\n'
+            f'   {self.dribm_exbs.get_input_line()}'
+            f'   {self.dribm_kyrhos_min.get_input_line()}'
+            f'   {self.dribm_kyrhos_max.get_input_line()}'
+            f'   {self.dribm_xti_max.get_input_line()}'
+            f'   {self.dribm_xde_max.get_input_line()}'
+            f'   {self.dribm_xte_max.get_input_line()}'
+            '\n'
+            '!.. MTM integer options\n'
+            'iMTM =\n'
+            f'   {self.mtm_kyrhos_loops.get_input_line()}'
+            f'   {self.mtm_capsw.get_input_line()}'
+            f'   {self.mtm_restrict_chi.get_input_line()}'
+            '\n'
+            '!.. MTM real options\n'
+            'rMTM =\n'
+            f'   {self.mtm_kyrhos_min.get_input_line()}'
+            f'   {self.mtm_kyrhos_max.get_input_line()}'
+            f'   {self.mtm_xte_max.get_input_line()}'
+            '\n'
+            '!.. ETG integer options\n'
+            'iETG =\n'
+            f'   {self.etg_jenko_threshold.get_input_line()}'
+            f'   {self.etg_restrict_chi.get_input_line()}'
+            '\n'
+            '!.. ETG real options\n'
+            'rETG =\n'
+            f'   {self.etg_xte_max.get_input_line()}'
+            '\n'
+            '!.. ETGM integer options\n'
+            'iETGM =\n'
+            f'   {self.etgm_kyrhos_scan.get_input_line()}'
+            f'   {self.etgm_sat_expo.get_input_line()}'
+            f'   {self.etgm_direction.get_input_line()}'
+            f'   {self.etgm_sum_modes.get_input_line()}'
+            f'   {self.etgm_restrict_chi.get_input_line()}'
+            f'   {self.etgm_diffusivity_type.get_input_line()}'
+            '\n'
+            '!.. ETGM real options\n'
+            'rETGM =\n'
+            f'   {self.etgm_exbs.get_input_line()}'
+            f'   {self.etgm_kyrhos_min.get_input_line()}'
+            f'   {self.etgm_kyrhos_max.get_input_line()}'
+            f'   {self.etgm_xte_max.get_input_line()}'
+            '\n'
+        )
+
+    def get_mmm_header_old(self):
+        '''
+        Gets the OLD header for the MMM input file
+
+        Raises:
+        * TypeError: If input_points.values is None
+        * TypeError: If input_points.values is of type np.ndarray
+        '''
+
+        # Temporary EPM switch
+        epm1 = ''
+        epm2 = ''
+        if settings.USE_EPM:
+            epm1 = f'   {self.cmodel_epm.get_input_line()}'
+            epm2 = (
+                '!.. EPM integer options\n'
+                'iEPM =\n'
+                f'   {self.epm_direction.get_input_line()}'
+                f'   {self.epm_n_start.get_input_line()}'
+                f'   {self.epm_n_end.get_input_line()}'
+                f'   {self.epm_n_step.get_input_line()}'
+                f'   {self.epm_sum_modes.get_input_line()}'
+                '\n'
+                '!.. EPM real options\n'
+                'rEPM =\n'
+                f'   {self.epm_exbs.get_input_line()}'
+                f'   {self.epm_xti_min.get_input_line()}'
+                f'   {self.epm_xti_max.get_input_line()}'
+                f'   {self.epm_xde_min.get_input_line()}'
+                f'   {self.epm_xde_max.get_input_line()}'
+                f'   {self.epm_xte_min.get_input_line()}'
+                f'   {self.epm_xte_max.get_input_line()}'
+                f'   {self.epm_chi_cal.get_input_line()}'
+                '\n'
+            )
+
+        if not self.input_points.values and self.options.input_points:
+            self.input_points.values = self.options.input_points
+
+        if not self.input_points.values:
+            raise TypeError('input_points must be set to generate the MMM header')
+        if isinstance(self.input_points.values, np.ndarray):
+            raise TypeError('Unable to create MMM header for controls loaded with array values')
+        return (
+            '&testmmm_input_control\n'
+            f'   npoints = {self.input_points.get_input_line()}'
+            f'   input_kind = 1\n'
+            '/\n'
+            '&testmmm_input_1stkind\n'
+            '\n'
+            '!.. Switches for component models (1D0 - ON, 0D0 - OFF)\n'
+            'cmodel  =\n'
+            f'   {self.cmodel_weiland.get_input_line()}'
+            f'   {self.cmodel_dribm.get_input_line()}'
+            f'   {self.cmodel_etg.get_input_line()}'
+            f'   {self.cmodel_mtm.get_input_line()}'
+            f'   {self.cmodel_etgm.get_input_line()}'
+            + epm1 +
             '\n'
             '!.. Weiland real options\n'
             'rW20 =\n'
             f'   {self.w20_exbs.get_input_line()}'
             f'   {self.w20_mpsf.get_input_line()}'
-            f'   {self.w20_kyrhos.get_input_line()}'
             f'   {self.w20_xti_min.get_input_line()}'
             f'   {self.w20_xti_max.get_input_line()}'
             f'   {self.w20_xde_min.get_input_line()}'
@@ -308,7 +445,6 @@ class InputControls:
             f'   {self.w20_xvt_max.get_input_line()}'
             f'   {self.w20_xvp_min.get_input_line()}'
             f'   {self.w20_xvp_max.get_input_line()}'
-            f'   {self.w20_gmult.get_input_line()}'
             '\n'
             + epm2 +
             '!.. DRIBM integer options\n'
@@ -319,32 +455,24 @@ class InputControls:
             f'   {self.dribm_sat_expo.get_input_line()}'
             f'   {self.dribm_sum_modes.get_input_line()}'
             f'   {self.dribm_kyrhos_type.get_input_line()}'
+            
             '\n'
             '!.. DRIBM real options\n'
             'rDBM =\n'
             f'   {self.dribm_exbs.get_input_line()}'
             f'   {self.dribm_kyrhos_min.get_input_line()}'
             f'   {self.dribm_kyrhos_max.get_input_line()}'
-            f'   {self.dribm_kxoky.get_input_line()}'
             f'   {self.dribm_xti_min.get_input_line()}'
             f'   {self.dribm_xti_max.get_input_line()}'
             f'   {self.dribm_xde_min.get_input_line()}'
             f'   {self.dribm_xde_max.get_input_line()}'
             f'   {self.dribm_xte_min.get_input_line()}'
             f'   {self.dribm_xte_max.get_input_line()}'
-            f'   {self.dribm_chi_max_cal.get_input_line()}'
-            f'   {self.dribm_chi_sum_cal.get_input_line()}'
-            f'   {self.dribm_chi2_max_cal.get_input_line()}'
-            f'   {self.dribm_chi2_sum_cal.get_input_line()}'
-            f'   {self.dribm_kpsh_mult.get_input_line()}'
-            f'   {self.dribm_ti_te_mult.get_input_line()}'
-            f'   {self.dribm_vei_mult.get_input_line()}'
             '\n'
             '!.. MTM integer options\n'
             'iMTM =\n'
             f'   {self.mtm_kyrhos_loops.get_input_line()}'
             f'   {self.mtm_capsw.get_input_line()}'
-            f'   {self.mtm_kyrhos_type.get_input_line()}'
             '\n'
             '!.. MTM real options\n'
             'rMTM =\n'
@@ -352,8 +480,8 @@ class InputControls:
             f'   {self.mtm_cf.get_input_line()}'
             f'   {self.mtm_kyrhos_min.get_input_line()}'
             f'   {self.mtm_kyrhos_max.get_input_line()}'
-            f'   {self.mtm_lbetd.get_input_line()}'
-            f'   {self.mtm_ubetd.get_input_line()}'
+            f'   {self.mtm_xte_min.get_input_line()}'
+            f'   {self.mtm_xte_max.get_input_line()}'
             '\n'
             '!.. ETG integer options\n'
             'iETG =\n'
@@ -363,8 +491,6 @@ class InputControls:
             'rETG =\n'
             f'   {self.etg_cees_scale.get_input_line()}'
             f'   {self.etg_ceem_scale.get_input_line()}'
-            f'   {self.etg_xte_min.get_input_line()}'
-            f'   {self.etg_xte_max.get_input_line()}'
             '\n'
             '!.. ETGM integer options\n'
             'iETGM =\n'
@@ -374,12 +500,6 @@ class InputControls:
             f'   {self.etgm_sat_expo.get_input_line()}'
             f'   {self.etgm_sum_modes.get_input_line()}'
             f'   {self.etgm_kyrhos_type.get_input_line()}'
-            f'   {self.etgm_empty_int.get_input_line()}'
-            f'   {self.etgm_empty_int.get_input_line()}'
-            f'   {self.etgm_empty_int.get_input_line()}'
-            f'   {self.etgm_empty_int.get_input_line()}'
-            # f'   {self.etgm_disable_geometry.get_input_line()}'
-            # f'   {self.etgm_electrostatic.get_input_line()}'
             '\n'
             '!.. ETGM real options\n'
             'rETGM =\n'
@@ -387,8 +507,8 @@ class InputControls:
             f'   {self.etgm_kyrhos_min.get_input_line()}'
             f'   {self.etgm_kyrhos_max.get_input_line()}'
             f'   {self.etgm_kxoky.get_input_line()}'
-            f'   {self.etgm_lbetd.get_input_line()}'
-            f'   {self.etgm_ubetd.get_input_line()}'
+            f'   {self.etgm_xte_min.get_input_line()}'
+            f'   {self.etgm_xte_max.get_input_line()}'
             f'   {self.etgm_xte_max_cal.get_input_line()}'
             f'   {self.etgm_xte_sum_cal.get_input_line()}'
             f'   {self.etgm_xte2_max_cal.get_input_line()}'
