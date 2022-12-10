@@ -81,7 +81,7 @@ class PlotData:
     def __init__(self, options, runid, yname, xname, yvar, xvar, zidx, zval,
                  timeplot=False, yval_base=None, xval_base=None, source='mmm',
                  is_cdf=False, is_csv=False, factor_symbol=None, scan_factor=None,
-                 ymult=1, xmult=1, rho_value=None, runname='', legend=''):
+                 ymult=1, xmult=1, rho_value=None, runname=None, legend=''):
 
         self.options = options
         self.timeplot = timeplot
@@ -102,7 +102,7 @@ class PlotData:
         self.time: str = options.time_str
         self.zval: float = zval
         self.runid: str = runid
-        self.runname: str = runname
+        self.runname: str | None = runname
         self.rho: str | None = rho_value
         self.factor: str | None = scan_factor
         self.factor_symbol: str | None = factor_symbol
@@ -141,7 +141,7 @@ class PlotData:
 
     def get_run_label_str(self):
         """Returns (str): The runname or runid string used in the legend label and title details"""
-        return self.runname or self.runid
+        return self.runname if self.runname is not None else self.runid
 
     def get_time_label_str(self):
         """Returns (str): The time string used in the legend label and title details"""

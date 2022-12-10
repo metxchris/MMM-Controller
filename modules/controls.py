@@ -136,7 +136,7 @@ class InputControls:
         # DRIBM options
         self.dribm_direction = Control('[Search Direction] 0: Any, 1: Electron, -1: Ion', int, 0)
         self.dribm_kyrhos_scan = Control('Number of scanned ky modes (min 50), 0: Disable ky scan', int, 20)
-        self.dribm_diffusivity_type = Control('[Diffusivity Type] 1: Alternate, 0: Default ', int, 0)
+        self.dribm_diffusivity_type = Control('[DBM Model] 0: Default, 1: Alternate', int, 0)
         self.dribm_sat_expo = Control('Saturation ratio exponent (min 0)', int, 2)
         self.dribm_sum_modes = Control('[Mode Handling] 1: Sum modes, 0: Most unstable mode', int, 0)
         self.dribm_negative_chi = Control('[Minimum Diffusivity] 0: Zero, 1: Negative of max', int, 0)
@@ -176,7 +176,7 @@ class InputControls:
         self.mtm_xte_min = Control('min xte', float, -100)
         
         # ETG options
-        self.etg_jenko_threshold = Control('Jenko threshold', int, 2)
+        self.etg_jenko_threshold = Control('[Jenko threshold] 1: Electrostatic, 2: Electromagnetic', int, 2)
         self.etg_restrict_chi = Control('[Diffusivity Values] 0: No restrictions, 1: Strictly non-negative', int, 0)
 
         self.etg_cees_scale = Control('CEES scale', float, 0.06)
@@ -190,8 +190,9 @@ class InputControls:
         self.etgm_sum_modes = Control('Sum modes, 0: Use most unstable mode', int, 0)
         self.etgm_kyrhos_type = Control('1: Exponential kyrhos increments, 0: Linear kyrhos increments', int, 1)
         self.etgm_kyrhos_scan = Control('Number of kyrhos scan loops (min 50), 0: disable kyrhos scan', int, 50)
-        self.etgm_diffusivity_type = Control('0: Default diffusivity, 1: Alternate diffusivity', int, 0)
+        self.etgm_diffusivity_type = Control('[ETGM Model] 0: Default, 1: Alternate, 2: Horton', int, 0)
         self.etgm_negative_chi = Control('[Minimum Diffusivity] 0: Zero, 1: Negative of max', int, 0)
+        self.etgm_jenko_threshold = Control('[Jenko threshold] 1: Electrostatic, 2: Electromagnetic', int, 2)
         self.etgm_empty_int = Control('empty', int, 1)
 
         self.etgm_exbs = Control('ExB shear coefficient', float, 0)
@@ -292,13 +293,12 @@ class InputControls:
             f'   {self.cmodel_dribm.get_input_line()}'
             f'   {self.cmodel_etgm.get_input_line()}'
             f'   {self.cmodel_mtm.get_input_line()}'
-            f'   {self.cmodel_etg.get_input_line()}'
             + epm1 +
             '\n'
             '!.. Weiland integer options\n'
             'iW20 =\n'
             f'   {self.w20_shear_def.get_input_line()}'
-            f'   {self.w20_restrict_chi.get_input_line()}'
+            f'   {self.w20_negative_chi.get_input_line()}'
             '\n'
             '!.. Weiland real options\n'
             'rW20 =\n'
@@ -319,7 +319,7 @@ class InputControls:
             f'   {self.dribm_sat_expo.get_input_line()}'
             f'   {self.dribm_direction.get_input_line()}'
             f'   {self.dribm_sum_modes.get_input_line()}'
-            f'   {self.dribm_restrict_chi.get_input_line()}'
+            f'   {self.dribm_negative_chi.get_input_line()}'
             f'   {self.dribm_diffusivity_type.get_input_line()}'
             '\n'
             '!.. DRIBM real options\n'
@@ -335,7 +335,7 @@ class InputControls:
             'iMTM =\n'
             f'   {self.mtm_kyrhos_loops.get_input_line()}'
             f'   {self.mtm_capsw.get_input_line()}'
-            f'   {self.mtm_restrict_chi.get_input_line()}'
+            f'   {self.mtm_negative_chi.get_input_line()}'
             '\n'
             '!.. MTM real options\n'
             'rMTM =\n'
@@ -343,22 +343,14 @@ class InputControls:
             f'   {self.mtm_kyrhos_max.get_input_line()}'
             f'   {self.mtm_xte_max.get_input_line()}'
             '\n'
-            '!.. ETG integer options\n'
-            'iETG =\n'
-            f'   {self.etg_jenko_threshold.get_input_line()}'
-            f'   {self.etg_restrict_chi.get_input_line()}'
-            '\n'
-            '!.. ETG real options\n'
-            'rETG =\n'
-            f'   {self.etg_xte_max.get_input_line()}'
-            '\n'
             '!.. ETGM integer options\n'
             'iETGM =\n'
             f'   {self.etgm_kyrhos_scan.get_input_line()}'
             f'   {self.etgm_sat_expo.get_input_line()}'
             f'   {self.etgm_direction.get_input_line()}'
             f'   {self.etgm_sum_modes.get_input_line()}'
-            f'   {self.etgm_restrict_chi.get_input_line()}'
+            f'   {self.etgm_negative_chi.get_input_line()}'
+            f'   {self.etgm_jenko_threshold.get_input_line()}'
             f'   {self.etgm_diffusivity_type.get_input_line()}'
             '\n'
             '!.. ETGM real options\n'
@@ -650,7 +642,7 @@ class Control:
         self.units_label = units_label
 
     def get_value_str(self):
-        return int(self.values) if self.vtype is int else f'{self.values:{constants.INPUT_CONTROL_VALUE_FMT}}D0'
+        return int(self.values) if self.vtype is int else self.values
 
     def get_input_line(self):
         return f'{self.get_value_str()}  ! {self.name}\n'

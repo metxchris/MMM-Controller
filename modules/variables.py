@@ -338,7 +338,8 @@ class InputVariables(Variables):
         self.xb = Variable(
             'XB',
             cdfvar='XB',
-            label=r'$x_\mathrm{B}$',
+            # label=r'$x_\mathrm{B}$',
+            label=r'$\hat{\rho}$',
         )
 
         # CDF Variables needed for calculations
@@ -1357,6 +1358,14 @@ class InputVariables(Variables):
             default_values=0,
         )
 
+        self.xkeetgm = Variable(
+            'XKEETGM',
+            cdfvar='XKEETGM',
+            units='m^2/s',
+            label=r'$\chi_{\mathrm{e}}$',
+            default_values=0,
+        )
+
         self.vphimmm = Variable(
             'VPHIMMM',
             cdfvar='VPHIMMM07',
@@ -1556,6 +1565,12 @@ class InputVariables(Variables):
             units='',
         )
 
+        self.rms = Variable(
+            'RMS',
+            cdfvar='', label=r'RMS',
+            units='',
+        )
+
         super().__init__(options)  # Init parent class
 
     def set_x_values(self):
@@ -1709,6 +1724,7 @@ class InputVariables(Variables):
         self.omegaetg = None
         self.walltime = None
         self.test = None
+        self.xkeetgm = None
 
 
 class OutputVariables(Variables):

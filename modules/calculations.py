@@ -1013,6 +1013,17 @@ def xke(calc_vars):
 
 
 @calculation
+def xkeetgm(calc_vars):
+    '''ETGM Electron Thermal Diffusivity from CDF'''
+    xkemmm = calc_vars.xkemmm.values
+    xkemtm = calc_vars.xkemtm.values
+    xkew20 = calc_vars.xkew20.values
+    xkedrbm = calc_vars.xkedrbm.values
+
+    return xkemmm - xkemtm - xkew20 - xkedrbm
+
+
+@calculation
 def xki(calc_vars):
     '''Total Ion Thermal Diffusivity from CDF'''
     condipr = calc_vars.condipr.values
@@ -1410,6 +1421,7 @@ def calculate_additional_variables(calc_vars):
     # Non essential calculations that may have been removed from memory
     if calc_vars.xke is not None:
         xke(calc_vars)
+        xkeetgm(calc_vars)
     if calc_vars.xki is not None:
         xki(calc_vars)
 

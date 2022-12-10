@@ -50,6 +50,12 @@ if __name__ == '__main__':
 
     all_data.set(
 
+        ## ---------------------------------------------------------------------------
+        ## ---------------------------------------------------------------------------
+        ## 129016: 0.3 to 0.5 (some to 0.4)
+        ## ---------------------------------------------------------------------------
+        ## ---------------------------------------------------------------------------
+
         ## 32000 vs 8000 PTCLS
         # PlotDataCdf(runid='129016Z33', yname='ti', xname='rho', zval=0.500, legend='NPTCLS=32000'),
         # PlotDataCdf(runid='129016Z35', yname='ti', xname='rho', zval=0.500, legend='NPTCLS=8000'),
@@ -98,12 +104,18 @@ if __name__ == '__main__':
         # title_override='129016',
         # PlotDataCdf(runid='129016A03', yname='ti', xname='rho', zval=0.35, legend='Experiment'),
         # PlotDataCdf(runid='129016Z21', yname='ti', xname='rho', zval=0.35, legend='MMM Disabled'),
+        # title_override='129016',
         ## ---------------------------------------------------------------------------
 
         ## MMM 8 vs 9 + ETGM
-        # PlotDataCdf(runid='129016Z29', yname='te', xname='rho', zval=0.37, legend='MMM 8.2.1'),
-        # PlotDataCdf(runid='129016Z36', yname='te', xname='rho', zval=0.5, legend='MMM 9.0.7'),
-        # PlotDataCdf(runid='129016A03', yname='te', xname='rho', zval=0.5, legend='Experiment'),
+        # PlotDataCdf(runid='129016Z36', yname='ti', xname='rho', zval=0.35, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='129016Z43', yname='ti', xname='rho', zval=0.35, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='129016Z33', yname='ti', xname='rho', zval=0.35, legend='9.0.7'),
+        # PlotDataCdf(runid='129016Z29', yname='te', xname='rho', zval=0.4, legend='8.2.1'),
+        # PlotDataCdf(runid='129016A03', yname='ti', xname='rho', zval=0.35, legend='Experiment'),
+        # PlotDataCdf(runid='129016Z21', yname='ti', xname='rho', zval=0.46, legend='MMM Disabled'),
+        # xmax=0.8, title_override='129016 (0.46s)'
+
 
         # PlotDataCdf(runid='129016Z29', yname='wexb', xname='rho', zval=0.34, legend='MMM 8.2.1'),
         # PlotDataCdf(runid='129016Z36', yname='wexb', xname='rho', zval=0.34, legend='MMM 9.0.7'),
@@ -130,19 +142,28 @@ if __name__ == '__main__':
 
         ## ---------------------------------------------------------------------------
         ## ---------------------------------------------------------------------------
-        ## 120968
+        ## 120968: 0.1 to 0.6
         ## ---------------------------------------------------------------------------
         ## ---------------------------------------------------------------------------
         ## MMM 8 vs 9 + ETGM
-        # PlotDataCdf(runid='120968A02', yname='ti', xname='rho', zval=0.56, legend='Experiment'),
-        # PlotDataCdf(runid='120968W34', yname='ti', xname='rho', zval=0.56, legend='MMM 9.0.7 + ETGM'),
-        # PlotDataCdf(runid='120968W33', yname='ti', xname='rho', zval=0.56, legend='MMM 9.0.7'),
-        # PlotDataCdf(runid='120968W32', yname='te', xname='rho', zval=0.37, legend='MMM 8.2.1'),
-        # xmax=0.8, title_override='120968, 0.56s',
+        # PlotDataCdf(runid='120968A02', yname='te', xname='rho', zval=0.511, legend='Experiment'),
+        # PlotDataCdf(runid='120968W34', yname='te', xname='rho', zval=0.511, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='120968W35', yname='te', xname='rho', zval=0.511, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='120968W33', yname='te', xname='rho', zval=0.511, legend='9.0.7'),
+        # xmax=1, xmin=0.02, title_override='120968',
+
+        # PlotDataCdf(runid='120968W34', yname='xkew20',  xname='xb', zval=0.559, legend='W20', source='mmm'),
+        # PlotDataCdf(runid='120968W34', yname='xkemtm',  xname='xb', zval=0.559, legend='MTM', source='mmm'),
+        # PlotDataCdf(runid='120968W34', yname='xkeetgm', xname='xb', zval=0.559, legend='ETGM', source='mmm'),
+        # xmax=0.8, xmin=0.02, title_override='120968', allow_title_runid=0,
+
+        # PlotDataCdf(runid='120968W34', yname='xkemmm',  xname='xb', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120968W34', yname='xkimmm',  xname='xb', zval=0.559, source='mmm'),
+        # xmax=0.8, xmin=0.02, title_override='120968', allow_title_runid=0,
 
         ## ---------------------------------------------------------------------------
         ## ---------------------------------------------------------------------------
-        ## 120982
+        ## 120982: 0.15 to 0.65
         ## ---------------------------------------------------------------------------
         ## ---------------------------------------------------------------------------
         ## MMM 8 vs 9 + ETGM
@@ -165,6 +186,49 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='120982W31', yname='xkemmm', xname='rho', zval=0.62, legend='MMM 9.0.7 + ETGM'),
         # PlotDataCdf(runid='120982W32', yname='xkemmm', xname='rho', zval=0.62, legend='MMM 9.0.7'),
         # xmax=0.8, title_override='120982',
+
+        ## ---------------------------------------------------------------------------
+        ## ---------------------------------------------------------------------------
+        ## MTM kyrhos counts
+        ## ---------------------------------------------------------------------------
+        ## ---------------------------------------------------------------------------
+        # PlotDataCdf(runid='129016Z37', yname='xkemtm', xname='rho', zval=0.35, legend='100'),
+        # PlotDataCdf(runid='129016Z38', yname='xkemtm', xname='rho', zval=0.35, legend='200'),
+        # PlotDataCdf(runid='129016Z39', yname='xkemtm', xname='rho', zval=0.35, legend='400'),
+
+
+        ## ---------------------------------------------------------------------------
+        ## ---------------------------------------------------------------------------
+        ## 129017: 0.01 to 1
+        ## ---------------------------------------------------------------------------
+        ## ---------------------------------------------------------------------------
+        PlotDataCdf(runid='129017W04', yname='te', xname='rho', zval=0.75, legend='MMM 9.0.7 + ETGM'),
+        PlotDataCdf(runid='129017W03', yname='te', xname='rho', zval=0.75, legend='MMM 9.0.7'),
+        PlotDataCdf(runid='129017W02', yname='te', xname='rho', zval=0.75, legend='MMM 8.2.1'),
+        PlotDataCdf(runid='129017W01', yname='te', xname='rho', zval=0.75, legend='Experiment'),
+        xmax=0.8, title_override='129017 (0.25s)',
+
+        ## ---------------------------------------------------------------------------
+        ## ---------------------------------------------------------------------------
+        ## 141716: 0.11 to 0.562
+        ## ---------------------------------------------------------------------------
+        ## ---------------------------------------------------------------------------
+        # PlotDataCdf(runid='141716W01', yname='ti', xname='rho', zval=0.17, legend='Experiment'),
+        # PlotDataCdf(runid='141716W04', yname='ti', xname='rho', zval=0.17, legend='MMM 9.0.7 ETGM On'),
+        # PlotDataCdf(runid='120982W32', yname='ti', xname='rho', zval=0.17, legend='MMM 9.0.7'),
+        # PlotDataCdf(runid='141716W02', yname='ti', xname='rho', zval=0.17, legend='MMM 8.2.1'),
+        # xmax=0.8, title_override='120982 (0.17s)',
+
+        # ---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+        # 138536: 0.04 to 0.79
+        # ---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+        # PlotDataCdf(runid='138536A01', yname='te', xname='rho', zval=0.755, legend='Experiment'),
+        # PlotDataCdf(runid='138536W03', yname='te', xname='rho', zval=0.755, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='138536W02', yname='te', xname='rho', zval=0.755, legend='9.0.7'),
+        # # PlotDataCdf(runid='138536W01', yname='te', xname='rho', zval=0.17, legend='8.2.1'),
+        # xmax=1, title_override='138536',
     )
 
 

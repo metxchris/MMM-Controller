@@ -715,14 +715,20 @@ if __name__ == '__main__':
 
 
     vars_to_plot = ['xkemtm', 'wexb', 'xtiEPM', 'xdeEPM',]
+    vars_to_plot = ['vcz', 'vct', 'vcp', 'xdeEPM',]
     # scan_data['138536A01'] = [1335, 1336]
     # scan_data['85610T01'] = [18, 19]
 
     vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
-    vars_to_plot = ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
-    vars_to_plot = ['gmaDBM', 'omgDBM', 'xtiDBM', 'xti2DBM', 'xdeDBM', 'xde2DBM', 'xteDBM', 'xte2DBM']
+    # vars_to_plot = ['xtiW20', 'xteW20', 'xdeW20', 'xdz', 'xvt', 'xvp']
+    # vars_to_plot = ['xteETGM', 'xteMTM', 'xdeW20', 'xdz', 'xvt', 'xvp']
+    # vars_to_plot = ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
+    # vars_to_plot = ['gmaDBM', 'omgDBM', 'xtiDBM', 'xti2DBM', 'xdeDBM', 'xde2DBM', 'xteDBM', 'xte2DBM']
     # vars_to_plot = ['ni', 'gni']
-    scan_data['129016Q50'] = [28, 29]
+    # scan_data['129016Q50'] = [28, 29]
+    # scan_data['129016A04'] = [86, 87]
+    # scan_data['129016A04'] = [89, 87]
+    scan_data['129016A04'] = [90, 93]
     # all_scans = [
     #     # NSTU
     #     '121123K55',

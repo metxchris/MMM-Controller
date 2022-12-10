@@ -64,8 +64,8 @@ def run_wrapper(input_vars, controls):
 
     # Create input file in temp directory
     with open(input_file, 'w') as f:
-        # f.write(controls.get_mmm_header())
-        f.write(controls.get_mmm_header_old())
+        f.write(controls.get_mmm_header())
+        # f.write(controls.get_mmm_header_old())
 
         # Loop through MMM variables and write input variable labels and values
         var_names = input_vars.get_vars_of_type(SaveType.INPUT)

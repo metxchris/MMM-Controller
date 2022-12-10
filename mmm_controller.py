@@ -452,21 +452,20 @@ if __name__ == '__main__':
     * cmodel enables (disables) the corresponding model if set to 1 (0)
     '''
     wexb = 0.0
-    restrict_chi = 1
+    negative_chi = 0
     controls = modules.controls.InputControls(
         options,
         # CMODEL
         cmodel_weiland=1,
-        cmodel_dribm=0,
+        cmodel_dribm=1,
+        cmodel_etgm=1,
+        cmodel_mtm=1,
         cmodel_epm=0,
-        cmodel_etgm=0,
-        cmodel_mtm=0,
-        cmodel_etg=0,
         # W20
         w20_exbs=wexb,
         w20_shear_def=0,
         w20_kyrhos=0.316,
-        w20_restrict_chi=restrict_chi,
+        w20_negative_chi=negative_chi,
         # EPM
         epm_exbs=wexb,
         epm_direction=0,
@@ -483,7 +482,7 @@ if __name__ == '__main__':
         dribm_kxoky=1,
         dribm_sat_expo=2,
         dribm_diffusivity_type=0,
-        dribm_restrict_chi=restrict_chi,
+        dribm_negative_chi=negative_chi,
         dribm_kyrhos_type=1,
         dribm_chi_max_cal=0.15,
         dribm_chi_sum_cal=0.15 * 0.05,
@@ -501,7 +500,7 @@ if __name__ == '__main__':
         etgm_kyrhos_max=50,
         etgm_kxoky=0.5,
         etgm_sat_expo=2,
-        etgm_restrict_chi=restrict_chi,
+        etgm_negative_chi=negative_chi,
         etgm_kyrhos_type=1,
         etgm_xte_max_cal=0.05,
         etgm_xte_sum_cal=0.05 * 0.05,
@@ -518,7 +517,7 @@ if __name__ == '__main__':
         mtm_kyrhos_loops=100,
         mtm_kyrhos_min=0.005,
         mtm_kyrhos_max=10,
-        mtm_restrict_chi=restrict_chi,
+        mtm_negative_chi=negative_chi,
         mtm_kyrhos_type=1,
         mtm_cf=0.01,
     )

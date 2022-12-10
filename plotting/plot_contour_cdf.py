@@ -514,7 +514,7 @@ if __name__ == '__main__':
         # xmin=0.0,
         # xmax=0.8,
         # ymin=1.5,
-        ymax=0.17,
+        # ymax=0.17,
         raw=1,
     )
 
@@ -583,8 +583,8 @@ if __name__ == '__main__':
     # vars_to_plot = ['vphimmm', 'gamma1w20', 'gamma2w20', 'omega1w20', 'omega2w20',]
     vars_to_plot = ['xkemmm', 'xkimmm', 'xkdmmm', 'xkzmmm',  'xppmmm',  'xptmmm', ]
     # vars_to_plot = ['vphimmm', 'kyrsdbm', 'kyrsetg', 'kyrsmtm',  'xkeetg',  'xptmmm', ]
-    # vars_to_plot = [ 'xkemtm', 'xkeetg']
-    vars_to_plot = [ 'gamma1w20', 'xkeetg']
+    vars_to_plot = [ 'xkemtm', 'xkeetg']
+    # vars_to_plot = [ 'gamma1w20', 'xkeetg']
     # scan_data.append('129016Q68') # MMM v8, W20 only
     # scan_data.append('129016Q73') # MMM v8, all models, cal = 1E-6
     # scan_data.append('129016Q57') # W20 only, max xte = 0.01
@@ -605,8 +605,10 @@ if __name__ == '__main__':
     # scan_data.append('129016Z36') # MMM 9.0.7 + ETGM
 
     # scan_data.append('120982W30') # 8.2.1
-    scan_data.append('120982W31') # MMM 9.0.7 + ETGM
+    # scan_data.append('120982W31') # MMM 9.0.7 + ETGM
     # scan_data.append('120982W32') # MMM 9.0.7
+    scan_data.append('129017W02') # MMM 8.2.1
+    # scan_data.append('129017W03') # MMM 9.0.7
     
 
     # vars_to_plot = ['xkidrbm', 'xkddrbm', 'xkedrbm', 'xkhdrbm']

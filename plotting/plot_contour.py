@@ -560,7 +560,7 @@ if __name__ == '__main__':
 
     vars_to_plot = ['xtiW20', 'xteW20', 'xdeW20', 'xdz', 'xvp', 'xvt']
     # vars_to_plot = ['btor','bu','gbu','wexb', ]
-    vars_to_plot = ['gti','gte','gbu','wexb', ]
+    # vars_to_plot = ['gti','gte','gbu','wexb', ]
     # vars_to_plot = ['gmaDBM', 'xtiDBM','xdeDBM','xteDBM',]
     # vars_to_plot = ['gmaDBM', 'fti','fde','fte',]
     # vars_to_plot = ['xteDBM', 'xte2DBM', 'xte', 'fte']
@@ -619,8 +619,13 @@ if __name__ == '__main__':
     # vars_to_plot = ['gmaEPM', 'kyrhosEPM', 'nEPM']
     # scan_data['129016A04'] = [77]  # EPM Default kyrhos scan
     # scan_data['129016A04'] = [78]  # EPM changed denom, kyrhos scan
-    scan_data['129016A04'] = [82]  # EPM changed denom, kyrhos scan
+    # scan_data['129016A04'] = [82]  # EPM changed denom, kyrhos scan
+   
     # scan_data['129016A04'] = [81]  # EPM changed denom, kyrhos scan
+
+    # scan_data['129016A04'] = [85]  # All, Default, 9.0.9 input file update, negative chi
+    # scan_data['129016A04'] = [86]  # All, Default, 9.0.9 input file update
+    scan_data['129016A04'] = [87]  # All, Default, pre 9.0.9 input file update
     
 
     # scan_data['129016Q50'] = [25]  # Testing gni depreciation (before)
