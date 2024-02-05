@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 # Local Packages
 import modules.utils as utils
 from plotting.modules.plotstyles import PlotStyles, StyleType
-from plotting.plot_variables import AllPlotData, PlotDataCdf, PlotDataCsv, main
+from plotting.plot_variables import FigData, PlotDataCdf, PlotDataCsv, main
 
 
 _log = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     )
 
     # Define settings for the plot
-    all_data = AllPlotData(
+    fig_data = FigData(
         replace_offset_text=False,
         allow_title_runid=0,
         allow_title_time=1,
@@ -44,12 +44,12 @@ if __name__ == '__main__':
         xmax=0.8,
     )
 
-    all_data.set(
+    fig_data.set(
 
 
     )
 
-    all_data.set(
+    fig_data.set(
 
         # ## 1:
         # PlotDataCdf(runid='129016X32', yname='xkiw20', xname='xb', zval=0.3, legend=r'$B_{\rm \phi}$ MMM Input', source=r'cdf'),
@@ -149,7 +149,8 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='129016X40', yname='etanc', xname='xb', zval=0.3, source=r'mmm'),
         # ylabel_override=r'$\Omega {\rm m}$',
         # PlotDataCdf(runid='129016X40', yname='xdew20', xname='xb', zval=0.3, ymult=1e-4, legend=r'$n_\mathrm{e}$ MMM Input', source=r'raw'),
-        # PlotDataCdf(runid='129016X40', yname='ne', xname='xb', zval=0.3, ymult=1e-19, source=r'mmm'),
+        # PlotDataCdf(runid='129016X40', yname='ne', xname='xb', zval=0.3, ymult=1e-19, legend=r'$n_\mathrm{e}$ Calculated', source=r'mmm'),
+        # PlotDataCdf(runid='129016X40', yname='ne', xname='xb', zval=0.3, ymult=1e-19, legend=r'$n_\mathrm{e}$ CDF', source=r'cdf'),
         # ylabel_override=r'1/m$^3$', title_override=r'$\ \ $ne',
         # PlotDataCdf(runid='129016X40', yname='xkew20', xname='xb', zval=0.3, ymult=1e-4, legend=r'$n_\mathrm{h}$ MMM Input', source=r'raw'),
         # PlotDataCdf(runid='129016X40', yname='nh', xname='xb', zval=0.3, ymult=1e-19, source=r'mmm'),
@@ -193,11 +194,11 @@ if __name__ == '__main__':
         # WEXB CHECKS
         # """
         ## 7:
-        PlotDataCdf(runid='129016X38', yname='xkiw20', xname='xb', zval=0.3, ymult=1e-4, legend=r'MMM Input', source=r'raw'),
+        # PlotDataCdf(runid='129016X38', yname='xkiw20', xname='xb', zval=0.3, ymult=1e-4, legend=r'MMM Input', source=r'raw'),
         # PlotDataCdf(runid='129016X38', yname='wexbsmod', xname='xb', zval=0.3, legend=r'SREXBSMOD', source=r'raw'),
-        PlotDataCdf(runid='129016X38', yname='wexbsmod', xname='xb', zval=0.3, legend=r'SREXBSMOD', source=r'cdf'),
-        PlotDataCdf(runid='129016X38', yname='wexbsv2', xname='xb', zval=0.3, legend=r'SREXBSV2', source=r'raw'),
-        ylabel_override='1/s', title_override=r'$\omega_{\rm E \times B}$'
+        # PlotDataCdf(runid='129016X38', yname='wexbsmod', xname='xb', zval=0.3, legend=r'SREXBSMOD', source=r'cdf'),
+        # PlotDataCdf(runid='129016X38', yname='wexbsv2', xname='xb', zval=0.3, legend=r'SREXBSV2', source=r'raw'),
+        # ylabel_override='1/s', title_override=r'$\omega_{\rm E \times B}$'
 
         # """
         # OLD CHECKS (v9.0.1)
@@ -362,6 +363,6 @@ if __name__ == '__main__':
 
     )
 
-    main(all_data, savefig=False, savedata=False)
+    main(fig_data, savefig=False, savedata=False)
 
 

@@ -58,7 +58,7 @@ import modules.conversions as conversions
 import modules.variables as variables
 import modules.utils as utils
 from plotting.modules.plotstyles import PlotStyles, StyleType
-from plotting.plot_variables import AllPlotData, PlotDataCsv, PlotDataCdf, PlotData, main
+from plotting.plot_variables import FigData, PlotDataCsv, PlotDataCdf, PlotData, main
 
 
 def make_plot(*args, time=None, timeplot=False, title=None, extradata=None, **kwargs):
@@ -68,11 +68,11 @@ def make_plot(*args, time=None, timeplot=False, title=None, extradata=None, **kw
     if extradata:
         for d in extradata:
             plots.append(d)
-    all_data = copy.deepcopy(base_data)
+    fig_data = copy.deepcopy(base_data)
     title_override = f'{title}, ' + (fr'$t={time}$s' if not timeplot else fr'$\hat{{\rho}}={time}$')
-    all_data.set(*plots, title_override=title_override, **kwargs)
+    fig_data.set(*plots, title_override=title_override, **kwargs)
 
-    main(all_data, savefig, savedata)
+    main(fig_data)
 
 
 def csv_to_plotdata(filename, runid, zval, yname, xname, yunits='', xunits='', timeplot=False, runname='', legend=''):
@@ -116,7 +116,6 @@ def csv_to_plotdata(filename, runid, zval, yname, xname, yunits='', xunits='', t
     )
 
 
-
 if __name__ == '__main__':
     """Run this module directly to plot variable data stored in CDF or CSV files"""
 
@@ -135,7 +134,7 @@ if __name__ == '__main__':
     })
 
     # Define settings for the plot
-    base_data = AllPlotData(
+    base_data = FigData(
         replace_offset_text=0,
         allow_title_name=0,
         allow_title_runid=0,
@@ -149,10 +148,9 @@ if __name__ == '__main__':
         title_override=r'',
         ylabel_override=r'',
         xlabel_override=r'',
+        savefig=True,
+        savedata=True,
     )
-
-    savefig = 1
-    savedata = 1
 
     plot_east = 0
     plot_kstr = 0

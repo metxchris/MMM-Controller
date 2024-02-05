@@ -60,7 +60,8 @@ def run_wrapper(input_vars, controls):
     tmp_path = utils.get_temp_path(runid, scan_num)
     input_file = utils.get_temp_path(runid, scan_num, 'input.dat')  # input has no file type
     output_file = utils.get_temp_path(runid, scan_num, 'output.dat')
-    error_file = utils.get_temp_path(runid, scan_num, 'fort.36')
+    outputdev_file = utils.get_temp_path(runid, scan_num, 'output_dev.dat')
+    # error_file = utils.get_temp_path(runid, scan_num, 'fort.36')
 
     # Create input file in temp directory
     with open(input_file, 'w') as f:
@@ -89,9 +90,6 @@ def run_wrapper(input_vars, controls):
 
     if settings.PRINT_MMM_RESPONSE:
         print(result.stdout)  # Only prints after MMM finishes running
-        if 'r8tomsqz calls:' in result.stdout:
-            spl = result.stdout.split('r8tomsqz calls:')
-            settings.R8TOMSQZ_CALLS += int(spl[1].split('\n')[0])
 
     # Error checks
     if result.stderr:
@@ -103,9 +101,10 @@ def run_wrapper(input_vars, controls):
     # if os.path.exists(error_file):
     #     _log.error(f'\n\tMMM Produced an error file!\n')
 
-
     output_vars = variables.OutputVariables(input_vars.options)
     output_vars.load_from_file_path(output_file)
+    output_vars.load_from_file_path(outputdev_file)
     os.remove(output_file)  # ensure accurate error checks on next run
+    os.remove(outputdev_file)  # ensure accurate error checks on next run
 
     return output_vars

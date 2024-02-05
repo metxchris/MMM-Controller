@@ -310,7 +310,16 @@ class InputVariables(Variables):
 
         self.tf = Variable(
             'Fast Ion Temperature',
-            label=r'$T_\mathrm{f}$',
+            label=r'$T_\mathrm{f, EBEAM\_D}$',
+            minvalue=1e-6,
+            smooth=1,
+            units='keV',
+        )
+
+        self.bpshi = Variable(
+            'Fast Ion Temperature',
+            cdfvar='BPSHI',
+            label=r'BPSHI',
             minvalue=1e-6,
             smooth=1,
             units='keV',
@@ -332,7 +341,7 @@ class InputVariables(Variables):
         self.x = Variable(
             'X',
             cdfvar='X',
-            label=r'$x$',
+            label=r'$\hat{\rho}$',
         )
 
         self.xb = Variable(
@@ -414,6 +423,39 @@ class InputVariables(Variables):
             save_type=SaveType.INPUT,
         )
 
+        self.nfd = Variable(
+            'Fast Ion Density',
+            cdfvar='BDENS_D',
+            # label=r'$n_\mathrm{f,D}$',
+            label=r'BDENS$\_$D',
+            minvalue=1e-32,
+            smooth=1,
+            units='m^-3',
+            default_values=1e-16,
+            # save_type=SaveType.INPUT,
+        )
+
+        # self.nf2d = Variable(
+        #     'Fast Ion Density',
+        #     cdfvar='BDENS2_D',
+        #     label=r'$n_\mathrm{f,2D}$',
+        #     minvalue=1e-32,
+        #     smooth=1,
+        #     units='m^-3',
+        #     default_values=1e-16,
+        #     # save_type=SaveType.INPUT,
+        # )
+
+        self.nfmp = Variable(
+            'Fast Ion Density',
+            cdfvar='BDENSTOTMP',
+            label=r'BDENSTOTMP',
+            minvalue=1e-32,
+            smooth=1,
+            units='m^-3',
+            default_values=1e-16,
+        )
+
         self.nd = Variable(
             'Deuterium Ion Density',
             cdfvar='ND',
@@ -441,6 +483,7 @@ class InputVariables(Variables):
             cdfvar='OMEGA',
             label=r'$\omega_\phi$',
             units='1/s',  # CDF may list units as rad/s, but assume 1/s (CDF is wrong)
+            contour_max=1e3,
         )
 
         self.q = Variable(
@@ -469,6 +512,15 @@ class InputVariables(Variables):
             units='m',
             minvalue=0,
             save_type=SaveType.INPUT,
+        )
+
+        self.rmajm = Variable(
+            'Major Radius',
+            cdfvar='RMAJM',
+            label=r'RMAJM',
+            units='m',
+            minvalue=0,
+            # save_type=SaveType.INPUT,
         )
 
         self.rmin = Variable(
@@ -516,6 +568,16 @@ class InputVariables(Variables):
             save_type=SaveType.INPUT,
         )
 
+        self.tz = Variable(
+            'Thermal Ion Temperature',
+            cdfvar='TX',
+            label=r'$T_\mathrm{z}$',
+            minvalue=1e-6,
+            smooth=1,
+            units='keV',
+            # save_type=SaveType.INPUT,
+        )
+
         self.tipro = Variable(  # Data copied to ti when experimental profiles are used
             'Thermal Ion Temperature',
             cdfvar='TIPRO',
@@ -554,6 +616,15 @@ class InputVariables(Variables):
             save_type=SaveType.INPUT,
         )
 
+        self.wexbs = Variable(
+            'ExB Shear Rate',
+            label=r'$\omega_{E \times B}$',
+            smooth=0,
+            units='s^{-1}',
+            minvalue=1e-6,
+            # save_type=SaveType.INPUT,
+        )
+
         self.zz = Variable(
             'Mean Charge of Impurities',
             cdfvar='XZIMP',
@@ -570,6 +641,29 @@ class InputVariables(Variables):
             units='keV',
         )
 
+        self.ebeampp = Variable(
+            'Fast Ion Beam Energy',
+            cdfvar='EBAPPAV_MP',
+            label=r'EBAPPAV$\_$MP',
+            minvalue=1e-4,
+            units='keV',
+        )
+
+        self.ebeampl = Variable(
+            'Fast Ion Beam Energy',
+            cdfvar='EBAPLAV_MP',
+            label=r'EBAPLAV$\_$MP',
+            minvalue=1e-4,
+            units='keV',
+        )
+
+        self.ebeamsum = Variable(
+            'Fast Ion Beam Energy',
+            label=r'EBAPLAV$\_$MP + EBAPPAV$\_$MP',
+            minvalue=1e-4,
+            units='keV',
+        )
+
         self.pmhdf = Variable(
             'pmhdf',
             cdfvar='PMHDF_IN',
@@ -579,7 +673,7 @@ class InputVariables(Variables):
 
         self.tmhdf = Variable(
             'tmhdf',
-            label=r'$T_{\rm f}$',
+            label=r'$T_{\rm f, PMHDF\_IN}$',
             units='keV',
         )
 
@@ -673,6 +767,13 @@ class InputVariables(Variables):
             save_type=SaveType.ADDITIONAL,
         )
 
+        self.betaeunit = Variable(
+            'Electron Pressure Ratio',
+            label=r'$\beta_\mathrm{\,e,u}$',
+            minvalue=0,
+            # save_type=SaveType.ADDITIONAL,
+        )
+
         self.betapu = Variable(
             'Beta Prime',
             label=r'$\beta^\prime$',
@@ -682,8 +783,20 @@ class InputVariables(Variables):
         self.bftor = Variable(
             'Toroidal Magnetic Flux',
             cdfvar='TRFLX',
-            label=r'$\Psi_\mathrm{T}$',
+            label=r'$\Psi_\mathrm{\phi}$',
             minvalue=0,
+        )
+
+        self.bftor1 = Variable(
+            'Enclosed Toroidal Magnetic Flux',
+            cdfvar='TRFLXD',
+            label=r'$\Psi_\mathrm{\phi b}$',
+            minvalue=0,
+        )
+
+        self.bftorsqrt = Variable(
+            'SQRT of Toroidal Magnetic Flux',
+            absminvalue=1e-16,
         )
 
         self.bpol = Variable(
@@ -692,7 +805,8 @@ class InputVariables(Variables):
             label=r'$B_\theta$',
             units='T',
             minvalue=1e-32,
-            save_type=SaveType.ADDITIONAL,
+            save_type=SaveType.INPUT,
+            # save_type=SaveType.ADDITIONAL,
         )
 
         self.btor = Variable(
@@ -1059,6 +1173,22 @@ class InputVariables(Variables):
             minvalue=0,
         )
 
+        self.lpol = Variable(
+            'Poloidal Path Length',
+            label=r'$l_\theta$',
+            cdfvar='LPOL',
+            units='m',
+            minvalue=0,
+        )
+
+        self.dvol = Variable(
+            'Zone Volume',
+            label=r'$V$',
+            cdfvar='DVOL',
+            units='m^3',
+            minvalue=0,
+        )
+
         # Calculated Gradients
         self.gbtor = Variable(
             'Btor Gradient',
@@ -1212,6 +1342,8 @@ class InputVariables(Variables):
             units='m^2/s',
             label=r'$\chi_{\mathrm{e}}$',
             default_values=0,
+            # contour_max=15,
+            # contour_min=-30,
         )
 
         self.xkdmmm = Variable(
@@ -1258,7 +1390,7 @@ class InputVariables(Variables):
             'XKEMTM',
             cdfvar='XKEMTM',
             units='m^2/s',
-            label=r'$\chi_{\mathrm{e}}$',
+            label=r'$\chi_{\mathrm{e,mtm}}$',
             default_values=0,
         )
 
@@ -1274,15 +1406,17 @@ class InputVariables(Variables):
             'xkew20',
             cdfvar='xkew19',
             units='m^2/s',
-            label=r'$\chi_{\mathrm{e}}$',
+            label=r'$\chi_{\mathrm{e,w20}}$',
             default_values=0,
+            contour_min=1e-16,
+            contour_max=4,
         )
 
         self.xkiw20 = Variable(
             'xkiw20',
             cdfvar='xkiw19',
             units='m^2/s',
-            label=r'$\chi_{\mathrm{i}}$',
+            label=r'$\chi_{\mathrm{i,w20}}$',
             default_values=0,
         )
 
@@ -1290,7 +1424,7 @@ class InputVariables(Variables):
             'xdiw20',
             cdfvar='xdiw19',
             units='m^2/s',
-            label=r'$\chi_{\mathrm{n}}$',
+            label=r'$\chi_{\mathrm{n,w20}}$',
             default_values=0,
         )
 
@@ -1330,7 +1464,7 @@ class InputVariables(Variables):
             'xkedrbm',
             cdfvar='xkedrbm',
             units='m^2/s',
-            label=r'$\chi_{\mathrm{e}}$',
+            label=r'$\chi_{\mathrm{e,dbm}}$',
             default_values=0,
         )
 
@@ -1338,7 +1472,7 @@ class InputVariables(Variables):
             'xkidrbm',
             cdfvar='xkidrbm',
             units='m^2/s',
-            label=r'$\chi_{\mathrm{i}}$',
+            label=r'$\chi_{\mathrm{i,dbm}}$',
             default_values=0,
         )
 
@@ -1346,7 +1480,7 @@ class InputVariables(Variables):
             'xkhdrbm',
             cdfvar='xkhdrbm',
             units='m^2/s',
-            label=r'$\chi_{\mathrm{n}}$',
+            label=r'$\chi_{\mathrm{n,dbm}}$',
             default_values=0,
         )
 
@@ -1362,7 +1496,7 @@ class InputVariables(Variables):
             'XKEETGM',
             cdfvar='XKEETGM',
             units='m^2/s',
-            label=r'$\chi_{\mathrm{e}}$',
+            label=r'$\chi_{\mathrm{e,etg}}$',
             default_values=0,
         )
 
@@ -1502,6 +1636,14 @@ class InputVariables(Variables):
             contour_max=200,
         )
 
+        self.fke = Variable(
+            'Electron Thermal Flux',
+            units='keVm/s',
+            label=r'$\Gamma_{\mathrm{e}}$',
+            default_values=0,
+            contour_max=200,
+        )
+
         self.xki = Variable(
             'Ion Thermal Diffusivity',
             units='m^2/s',
@@ -1510,11 +1652,27 @@ class InputVariables(Variables):
             contour_max=200,
         )
 
+        self.fki = Variable(
+            'Ion Thermal FLUX',
+            units='keVm/s',
+            label=r'$\Gamma_{\mathrm{i}}$',
+            default_values=0,
+            contour_max=200,
+        )
+
+        self.mmmtime = Variable(
+            'Reduced Wall Time',
+            cdfvar='',
+            units='h',
+            label=r'Reduced Wall Time',
+            default_values=0,
+        )
+
         self.walltime = Variable(
             'Walltime',
             cdfvar='WALLTIME',
             units='h',
-            label=r'Walltime',
+            label=r'Wall Time',
             default_values=0,
         )
 
@@ -1523,6 +1681,70 @@ class InputVariables(Variables):
             cdfvar='CPMCFI',
             units='h',
             label=r'CPMCFI',
+            default_values=0,
+        )
+
+        self.cptim = Variable(
+            'CPTIM',
+            cdfvar='CPTIM',
+            units='h',
+            label=r'CPTIM',
+            default_values=0,
+        )
+
+        self.cpbroot = Variable(
+            'CPBROOT',
+            cdfvar='CPBROOT',
+            units='h',
+            label=r'CPBROOT',
+            default_values=0,
+        )
+
+        self.cpout = Variable(
+            'cpout',
+            cdfvar='CPOUT',
+            units='h',
+            label=r'CPOUT',
+            default_values=0,
+        )
+
+        self.cptrk = Variable(
+            'CPTRK',
+            cdfvar='CPTRK',
+            units='h',
+            label=r'CPTRK',
+            default_values=0,
+        )
+        
+        self.cpgeom = Variable(
+            'CPGEOM',
+            cdfvar='CPGEOM',
+            units='h',
+            label=r'CPGEOM',
+            default_values=0,
+        ) 
+
+        self.cpmhdq = Variable(
+            'CPMHDQ',
+            cdfvar='CPMHDQ',
+            units='h',
+            label=r'CPMHDQ',
+            default_values=0,
+        )
+
+        self.cpxgpl = Variable(
+            'CPXGPL',
+            cdfvar='CPXGPL',
+            units='h',
+            label=r'CPXGPL',
+            default_values=0,
+        )
+
+        self.cpsc0 = Variable(
+            'CPSC0',
+            cdfvar='CPSC0',
+            units='h',
+            label=r'CPSC0',
             default_values=0,
         )
 
@@ -1547,6 +1769,12 @@ class InputVariables(Variables):
             units='m^2',
         )
 
+        self.dvol_drho = Variable(
+            'dV/drho',
+            label=r'$dV/drho$',
+            units='m^3',
+        )
+
         self.icur = Variable(
             'Total plasma current',
             label=r'I$_{\rm p}$',
@@ -1568,6 +1796,82 @@ class InputVariables(Variables):
         self.rms = Variable(
             'RMS',
             cdfvar='', label=r'RMS',
+            units='',
+        )
+
+        # self.kapan = Variable(
+        #     'KAPAN',
+        #     cdfvar='KAPAN',
+        #     label=r'KAPAN',
+        #     units='',
+        # )
+        self.fkchh = Variable(
+            'FKCHH',
+            cdfvar='FKCHH',
+            label=r'FKCHH',
+            units='',
+        )
+
+        self.fkchz = Variable(
+            'FKCHZ',
+            cdfvar='FKCHZ',
+            label=r'FKCHZ',
+            units='',
+        )
+
+        self.nt = Variable(
+            'NT',
+            cdfvar='NT',
+            label=r'NT',
+            units='',
+        )
+
+        self.nhe3 = Variable(
+            'NHE3',
+            cdfvar='NHE3',
+            label=r'NHE3',
+            units='',
+        )
+
+        self.nhe4 = Variable(
+            'NHE4',
+            cdfvar='NHE4',
+            label=r'NHE4',
+            units='',
+        )
+
+        self.uphi = Variable(
+            'UPHI',
+            cdfvar='UPHI',
+            label=r'UPHI',
+            units='',
+        )
+
+        self.ufastpa = Variable(
+            'UFASTPA',
+            cdfvar='UFASTPA',
+            label=r'UFASTPA',
+            units='',
+        )
+
+        self.ufastpp = Variable(
+            'UFASTPP',
+            cdfvar='UFASTPP',
+            label=r'UFASTPP',
+            units='',
+        )
+
+        self.tfast = Variable(
+            'TFAST',
+            cdfvar='',
+            label=r'$T_{\rm f, UFASTPA, UFASTPP}$',
+            units='keV',
+        )
+
+        self.gr2i = Variable(
+            'GR2I',
+            cdfvar='GR2I',
+            label=r'GR2I',
             units='',
         )
 
@@ -1687,6 +1991,7 @@ class InputVariables(Variables):
         self.wexbsmod = None
         self.wexbsv2 = None
         self.xke = None
+        self.fke = None
         self.xkemmm07 = None
         self.xkepaleo = None
         self.xki = None
@@ -1723,8 +2028,18 @@ class InputVariables(Variables):
         self.gammaetg = None
         self.omegaetg = None
         self.walltime = None
+        self.cpmcfi = None
+        self.cpout = None
+        self.cptrk = None
+        self.cpgeom = None
+        self.cpmhdq = None
+        self.cpxgpl = None
+        self.cpsc0 = None
+        self.cpbmax = None
+        self.cpbroot = None
         self.test = None
         self.xkeetgm = None
+        self.rms = None
 
 
 class OutputVariables(Variables):
@@ -1887,6 +2202,15 @@ class OutputVariables(Variables):
                                       contour_max=1e7, contour_min=-1e7)
         self.waETGM = Variable('Alfven Frequency', units='s^{-1}', label=r'$\omega_\mathrm{A}$')
         self.satETGM = Variable('Saturation Ratio', units='', label=r'$2\hat{\gamma}/|\hat{\phi}| R k_\mathrm{x}$')
+
+
+        self.nR8TOMSQZ = Variable(
+            'Eigenvalue solver calls',
+            label=r'nR8TOMSQZ',
+            units='',
+            contour_min=0,
+        )
+
 
         super().__init__(options)  # Init parent class
 
@@ -2069,12 +2393,12 @@ class Variable:
             multiple_errors_per_timeval = (np.count_nonzero(self.values < self.minvalue, axis=0) > 1)
             if not ignore_exceptions and multiple_errors_per_timeval.any():
                 idx_list = [i for i in np.where(multiple_errors_per_timeval)][0]
-                raise ValueError(
-                    f'Multiple Nonphysical values obtained for {self.name}\n'
-                    f'    min value:     {self.values[:, idx_list].min()}\n'
-                    f'    threshold:     {self.minvalue}\n'
-                    f'    time indices:  {idx_list}\n'
-                )
+                # raise ValueError(
+                #     f'Multiple Nonphysical values obtained for {self.name}\n'
+                #     f'    min value:     {self.values[:, idx_list].min()}\n'
+                #     f'    threshold:     {self.minvalue}\n'
+                #     f'    time indices:  {idx_list}\n'
+                # )
             # When an exception is not raised, fix the minimum value
             self.values[self.values < self.minvalue] = self.minvalue
 

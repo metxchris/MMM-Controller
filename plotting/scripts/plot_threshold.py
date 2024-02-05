@@ -22,7 +22,7 @@ import modules.variables as variables
 import modules.utils as utils
 from modules.enums import SaveType
 from plotting.modules.plotstyles import PlotStyles, StyleType
-from plotting.plot_variables import AllPlotData, PlotDataCsv, PlotDataCdf, PlotData, main
+from plotting.plot_variables import FigData, PlotDataCsv, PlotDataCdf, PlotData, main
 
 
 _log = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ if __name__ == '__main__':
 
     # Define settings for the plot
     threshold_pow = 5
-    all_data = AllPlotData(
+    fig_data = FigData(
         replace_offset_text=False,
         allow_title_runid=False,
         allow_title_time=False,
@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     # input_vars.omgse_etgm.values = kyrhos * csound * gne / rmaj
 
-    # all_data.set(
+    # fig_data.set(
     #     PlotData(options, r, 'omgse_etgm', 'rho', input_vars.omgse_etgm, input_vars.rho, is_csv=True,
     #              legend='')
     # )
@@ -160,43 +160,43 @@ if __name__ == '__main__':
     output_vars_gne.gmaETGM.values = gmaETGM_gne.min(axis=1)
     output_vars_gte.gmaETGM.values = gmaETGM_gte.min(axis=1)
 
-    # all_data.set(
+    # fig_data.set(
     #     PlotData(options_gne, r, 'gne_threshold', 'rho', input_vars_gne.gne_threshold, input_vars_gne.rho, is_csv=True,
     #              legend=fr'$g_\mathrm{{ne}}$ ($\gamma = 10^{{{threshold_pow}}}s^{{-1}}$ Threshold)'),
     # )
 
-    # all_data.set(
+    # fig_data.set(
     #     PlotData(options_gte, r, 'gte_threshold', 'rho', input_vars_gte.gte_threshold, input_vars_gte.rho, is_csv=True,
     #              legend=fr'$g_\mathrm{{Te}}$ ($\gamma = 10^{{{threshold_pow}}}s^{{-1}}$ Threshold)'),
     # )
 
 
     # input_vars_base.gne.values *= 0.8
-    all_data.set(
+    fig_data.set(
         PlotData(options_gne, r, 'gne_threshold', 'rho', input_vars_gne.gne_threshold, input_vars_gne.rho, is_csv=True,
                  legend=fr'$g_\mathrm{{ne}}$ ($\gamma = 10^{{{threshold_pow}}}s^{{-1}}$ Threshold)'),
         PlotData(options_gne, r, 'shat_gxi', 'rho', input_vars_gne.shat_gxi, input_vars_gne.rho, is_csv=True),
     )
 
-    # all_data.set(
+    # fig_data.set(
     #     PlotData(options_gne, r, 'gne_threshold', 'rho', input_vars_gne.gne_threshold, input_vars_gne.rho, is_csv=True,
     #              legend=fr'$g_\mathrm{{ne}}$ ($\gamma = 10^{{{threshold_pow}}}s^{{-1}}$ Threshold)'),
     #     # PlotData(options_gte, r, 'gne', 'rho', input_vars_gte.gne, input_vars_gte.rho, is_csv=True),
     # )
 
-    # all_data.set(
+    # fig_data.set(
     #     PlotData(options_gte, r, 'gte_threshold', 'rho', input_vars_gte.gte_threshold, input_vars_gte.rho, is_csv=True,
     #              legend=fr'$g_\mathrm{{Te}}$ ($\gamma = 10^{{{threshold_pow}}}s^{{-1}}$ Threshold)'),
     #     # PlotData(options_gne, r, 'gte', 'rho', input_vars_gne.gte, input_vars_gne.rho, is_csv=True),
     # )
 
-    # all_data.set(
+    # fig_data.set(
     #     PlotData(options_gte, r, 'gte_threshold', 'rho', input_vars_gte.gte_threshold, input_vars_gte.rho, is_csv=True,
     #              legend=fr'$g_\mathrm{{Te}}$ ($\gamma = 10^{{{threshold_pow}}}s^{{-1}}$ Threshold)'),
     #     PlotData(options_gte, r, 'shat_gxi', 'rho', input_vars_gte.shat_gxi, input_vars_gte.rho, is_csv=True, legend=''),
     # )
 
-    # all_data.set(
+    # fig_data.set(
     #     PlotData(options_gne, r, 'gne_threshold', 'rho', input_vars_gne.gne_threshold, input_vars_gne.rho, is_csv=True,
     #              legend=fr'$g_\mathrm{{ne, ETGM}}$'),
     #     PlotData(options_gte, r, 'gte_threshold', 'rho', input_vars_gte.gte_threshold, input_vars_gte.rho, is_csv=True,
@@ -207,9 +207,9 @@ if __name__ == '__main__':
     #              legend=fr'0.8$g_{{ne}}$'),
     # )
 
-    # all_data.set(
+    # fig_data.set(
     #     PlotData(options, r, 'gmaETGM', 'rho', output_vars.gmaETGM, input_vars.rho, is_csv=True,
     #              legend='')
     # )
 
-    main(all_data)
+    main(fig_data)

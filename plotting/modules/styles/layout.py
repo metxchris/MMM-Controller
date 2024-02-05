@@ -10,8 +10,8 @@ class Dimensions:
     text2_pos: tuple = None
     text3_pos: tuple = None
     text4_pos: tuple = None
-    rows: int = None
-    cols: int = None
+    rows: int = 0
+    cols: int = 0
 
 
 def init(style):
@@ -139,6 +139,9 @@ def init(style):
             'ytick.labelsize': 9,
         })
 
+        Dimensions.rows = 2
+        Dimensions.cols = 3
+
     elif style is Layout.AIP:
         rcParams.update({
             'axes.formatter.limits': [-2, 2],  # Forces exponent notation below 1e-1 and above 1e2
@@ -182,6 +185,25 @@ def init(style):
             'legend.fontsize': 10,
             'xtick.labelsize': 8,
             'ytick.labelsize': 8,
+        })
+
+    elif style is Layout.AIP3:
+        rcParams.update({
+            'axes.formatter.limits': [-2, 2],  # Forces exponent notation below 1e-1 and above 1e2
+            'axes.labelpad': 2,
+            'axes.labelsize': 10,
+            'axes.titlesize': 8,
+            'axes.titlepad': 3.5,
+            'figure.figsize': [2.5, 2.08],
+            'figure.subplot.bottom': 0.17,
+            'figure.subplot.hspace': 0.38,
+            'figure.subplot.left': 0.2,
+            'figure.subplot.right': 0.93,
+            'figure.subplot.top': 0.9,
+            'figure.subplot.wspace': 0.22,
+            'legend.fontsize': 10,
+            'xtick.labelsize': 7,
+            'ytick.labelsize': 7,
         })
 
         Dimensions.text1_pos = (0.5, 0.905)

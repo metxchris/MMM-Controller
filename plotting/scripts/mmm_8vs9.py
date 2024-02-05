@@ -8,7 +8,7 @@ from matplotlib.pyplot import rcParams
 # Local Packages
 import modules.utils as utils
 from plotting.modules.plotstyles import PlotStyles, StyleType
-from plotting.plot_variables import AllPlotData, PlotDataCdf, PlotDataCsv, main
+from plotting.plot_variables import FigData, PlotDataCdf, PlotDataCsv, main
 
 
 _log = logging.getLogger(__name__)
@@ -27,7 +27,7 @@ if __name__ == '__main__':
     )
 
     # Define settings for the plot
-    all_data = AllPlotData(
+    fig_data = FigData(
         replace_offset_text=False,
         allow_title_runid=1,
         allow_title_time=1,
@@ -48,7 +48,10 @@ if __name__ == '__main__':
         'legend.fontsize': 8,
     })
 
-    all_data.set(
+    savefig = 1
+    savedata = 0
+
+    fig_data.set(
 
         ## ---------------------------------------------------------------------------
         ## ---------------------------------------------------------------------------
@@ -102,27 +105,33 @@ if __name__ == '__main__':
         # xmax=0.37, 
 
         # title_override='129016',
-        # PlotDataCdf(runid='129016A03', yname='ti', xname='rho', zval=0.35, legend='Experiment'),
+        # PlotDataCdf(runid='129016A03', yname='ti', xname='rho', zval=0.35, legend='Analysis'),
         # PlotDataCdf(runid='129016Z21', yname='ti', xname='rho', zval=0.35, legend='MMM Disabled'),
         # title_override='129016',
         ## ---------------------------------------------------------------------------
 
         ## MMM 8 vs 9 + ETGM
         # PlotDataCdf(runid='129016Z36', yname='ti', xname='rho', zval=0.35, legend='9.0.7 +ETGM'),
-        # PlotDataCdf(runid='129016Z43', yname='ti', xname='rho', zval=0.35, legend='9.0.7 +Horton'),
-        # PlotDataCdf(runid='129016Z33', yname='ti', xname='rho', zval=0.35, legend='9.0.7'),
-        # PlotDataCdf(runid='129016Z29', yname='te', xname='rho', zval=0.4, legend='8.2.1'),
-        # PlotDataCdf(runid='129016A03', yname='ti', xname='rho', zval=0.35, legend='Experiment'),
-        # PlotDataCdf(runid='129016Z21', yname='ti', xname='rho', zval=0.46, legend='MMM Disabled'),
+        # # PlotDataCdf(runid='129016Z43', yname='ti', xname='rho', zval=0.35, legend='9.0.7 +Horton'),
+        # # PlotDataCdf(runid='129016Z33', yname='ti', xname='rho', zval=0.35, legend='9.0.7'),
+        # PlotDataCdf(runid='129016Z29', yname='ti', xname='rho', zval=0.40, legend='8.2.1'),
+        # PlotDataCdf(runid='129016Z21', yname='ti', xname='rho', zval=0.46, legend='Only NC'),
+        # PlotDataCdf(runid='129016A03', yname='ti', xname='rho', zval=0.35, legend='Analysis'),
         # xmax=0.8, title_override='129016 (0.46s)'
 
 
-        # PlotDataCdf(runid='129016Z29', yname='wexb', xname='rho', zval=0.34, legend='MMM 8.2.1'),
-        # PlotDataCdf(runid='129016Z36', yname='wexb', xname='rho', zval=0.34, legend='MMM 9.0.7'),
-        # PlotDataCdf(runid='129016A03', yname='wexb', xname='rho', zval=0.34, legend='Experiment'),
+        # PlotDataCdf(runid='129016Z29', yname='te', xname='time', zval=0.3, legend='MMM 8.2.1'),
+        # PlotDataCdf(runid='129016Z36', yname='te', xname='time', zval=0.3, legend='MMM 9.0.7'),
+        # PlotDataCdf(runid='129016Z21', yname='te', xname='time', zval=0.3, legend='Only NC'),
+        # PlotDataCdf(runid='129016A03', yname='te', xname='time', zval=0.3, legend='Analysis'),
+        # title_override=r'129016, $\hat{\rho} = 0.3$',
+        # ## -----------------------------------------------
 
-        # PlotDataCdf(runid='129016Z21', yname='ti', xname='rho', zval=0.35, legend='MMM Disabled'),
-        # title_override='129016',
+        # PlotDataCdf(runid='129016W03', yname='te', xname='time', zval=0.3, legend='MMM 9.0.7'),
+        # PlotDataCdf(runid='129016W01', yname='te', xname='time', zval=0.3, legend='MMM 8.2.1'),
+        # PlotDataCdf(runid='129016Z21', yname='te', xname='time', zval=0.3, legend='Only NC'),
+        # PlotDataCdf(runid='129016A03', yname='te', xname='time', zval=0.3, legend='Analysis'),
+        # title_override=r'129016, $\hat{\rho} = 0.3$',
         ## ---------------------------------------------------------------------------
 
         ## WALLTIME
@@ -146,7 +155,7 @@ if __name__ == '__main__':
         ## ---------------------------------------------------------------------------
         ## ---------------------------------------------------------------------------
         ## MMM 8 vs 9 + ETGM
-        # PlotDataCdf(runid='120968A02', yname='te', xname='rho', zval=0.511, legend='Experiment'),
+        # PlotDataCdf(runid='120968A02', yname='te', xname='rho', zval=0.511, legend='Analysis'),
         # PlotDataCdf(runid='120968W34', yname='te', xname='rho', zval=0.511, legend='9.0.7 +ETGM'),
         # PlotDataCdf(runid='120968W35', yname='te', xname='rho', zval=0.511, legend='9.0.7 +Horton'),
         # PlotDataCdf(runid='120968W33', yname='te', xname='rho', zval=0.511, legend='9.0.7'),
@@ -167,15 +176,45 @@ if __name__ == '__main__':
         ## ---------------------------------------------------------------------------
         ## ---------------------------------------------------------------------------
         ## MMM 8 vs 9 + ETGM
-        # PlotDataCdf(runid='120982W31', yname='ti', xname='rho', zval=0.17, legend='MMM 9.0.7 + ETGM'),
-        # PlotDataCdf(runid='120982W32', yname='ti', xname='rho', zval=0.17, legend='MMM 9.0.7'),
-        # PlotDataCdf(runid='120982W30', yname='ti', xname='rho', zval=0.17, legend='MMM 8.2.1'),
-        # PlotDataCdf(runid='120982A09', yname='ti', xname='rho', zval=0.17, legend='Experiment'),
+        # PlotDataCdf(runid='120982W31', yname='te', xname='rho', zval=0.6, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='120982W33', yname='te', xname='rho', zval=0.6, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='120982W32', yname='te', xname='rho', zval=0.6, legend='9.0.7'),
+        # PlotDataCdf(runid='120982W30', yname='te', xname='rho', zval=0.6, legend='8.2.1'),
+        # PlotDataCdf(runid='120982A09', yname='te', xname='rho', zval=0.6, legend='Analysis'),
         # xmax=0.8, title_override='120982 (0.17s)',
+
+        # PlotDataCdf(runid='120982W31', yname='te', xname='time', zval=0.5, legend='9.0.7'), # +ETGM
+        # # PlotDataCdf(runid='120982W33', yname='te', xname='time', legend='9.0.7 +Horton'),
+        # # PlotDataCdf(runid='120982W32', yname='te', xname='time', legend='9.0.7'),
+        # PlotDataCdf(runid='120982W01', yname='te', xname='time', zval=0.5, legend='Only NC'),
+        # PlotDataCdf(runid='120982A09', yname='te', xname='time', zval=0.5, legend='Analysis'),
+        # title_override=r'120982, $\hat{\rho} = 0.5$'
+
+
+        # PlotDataCdf(runid='120982W31', yname='te', xname='time', zval=0.5, legend='9.0.7'), # +ETGM
+        # # PlotDataCdf(runid='120982W33', yname='te', xname='time', legend='9.0.7 +Horton'),
+        # # PlotDataCdf(runid='120982W32', yname='te', xname='time', legend='9.0.7'),
+        # PlotDataCdf(runid='120982W01', yname='walltime', xname='time', zval=0.5, legend='Only NC'),
+        # PlotDataCdf(runid='120982A09', yname='te', xname='time', zval=0.5, legend='Analysis'),
+        # title_override=r'120982'
+
+        # PlotDataCdf(runid='120982W31', yname='te', xname='time', legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='120982W33', yname='te', xname='time', legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='120982W32', yname='te', xname='time', legend='9.0.7'),
+        # PlotDataCdf(runid='120982W01', yname='te', xname='time', legend='9.0.7 Disabled'),
+        # PlotDataCdf(runid='120982W02', yname='mmmtime', xname='time', legend='9.0.7 Enabled'),
+        PlotDataCdf(runid='120982W01', yname='walltime', xname='time', legend='9.0.7 Disabled'),
+        PlotDataCdf(runid='120982W02', yname='walltime', xname='time', legend='9.0.7 Enabled'),
+        PlotDataCdf(runid='120982W02', yname='cptim', xname='time', legend='9.0.7 Enabled'),
+        title_override='120982' 
+
+        # PlotDataCdf(runid='120982W01', yname='xkemmm', xname='rho', zval=0.65, legend='9.0.7 Disabled'),
+        # PlotDataCdf(runid='120982W02', yname='xkemmm', xname='rho', zval=0.65, legend='9.0.7 Enabled'),
+        # title_override='120982'
 
         # PlotDataCdf(runid='120982W31', yname='ti', xname='rho', zval=0.62, legend='MMM 9.0.7 + ETGM'),
         # PlotDataCdf(runid='120982W32', yname='ti', xname='rho', zval=0.62, legend='MMM 9.0.7'),
-        # PlotDataCdf(runid='120982A09', yname='ti', xname='rho', zval=0.62, legend='Experiment'),
+        # PlotDataCdf(runid='120982A09', yname='ti', xname='rho', zval=0.62, legend='Analysis'),
         # xmax=0.8, title_override='120982',
 
         # PlotDataCdf(runid='120982W31', yname='xkemmm', xname='rho', zval=0.17, legend='MMM 9.0.7 + ETGM'),
@@ -202,18 +241,18 @@ if __name__ == '__main__':
         ## 129017: 0.01 to 1
         ## ---------------------------------------------------------------------------
         ## ---------------------------------------------------------------------------
-        PlotDataCdf(runid='129017W04', yname='te', xname='rho', zval=0.75, legend='MMM 9.0.7 + ETGM'),
-        PlotDataCdf(runid='129017W03', yname='te', xname='rho', zval=0.75, legend='MMM 9.0.7'),
-        PlotDataCdf(runid='129017W02', yname='te', xname='rho', zval=0.75, legend='MMM 8.2.1'),
-        PlotDataCdf(runid='129017W01', yname='te', xname='rho', zval=0.75, legend='Experiment'),
-        xmax=0.8, title_override='129017 (0.25s)',
+        # PlotDataCdf(runid='129017W04', yname='te', xname='rho', zval=0.75, legend='MMM 9.0.7 + ETGM'),
+        # PlotDataCdf(runid='129017W03', yname='te', xname='rho', zval=0.75, legend='MMM 9.0.7'),
+        # PlotDataCdf(runid='129017W02', yname='te', xname='rho', zval=0.75, legend='MMM 8.2.1'),
+        # PlotDataCdf(runid='129017W01', yname='te', xname='rho', zval=0.75, legend='Analysis'),
+        # xmax=0.8, title_override='129017 (0.25s)',
 
         ## ---------------------------------------------------------------------------
         ## ---------------------------------------------------------------------------
         ## 141716: 0.11 to 0.562
         ## ---------------------------------------------------------------------------
         ## ---------------------------------------------------------------------------
-        # PlotDataCdf(runid='141716W01', yname='ti', xname='rho', zval=0.17, legend='Experiment'),
+        # PlotDataCdf(runid='141716W01', yname='ti', xname='rho', zval=0.17, legend='Analysis'),
         # PlotDataCdf(runid='141716W04', yname='ti', xname='rho', zval=0.17, legend='MMM 9.0.7 ETGM On'),
         # PlotDataCdf(runid='120982W32', yname='ti', xname='rho', zval=0.17, legend='MMM 9.0.7'),
         # PlotDataCdf(runid='141716W02', yname='ti', xname='rho', zval=0.17, legend='MMM 8.2.1'),
@@ -224,14 +263,210 @@ if __name__ == '__main__':
         # 138536: 0.04 to 0.79
         # ---------------------------------------------------------------------------
         # ---------------------------------------------------------------------------
-        # PlotDataCdf(runid='138536A01', yname='te', xname='rho', zval=0.755, legend='Experiment'),
+        # PlotDataCdf(runid='138536A01', yname='te', xname='rho', zval=0.755, legend='Analysis'),
         # PlotDataCdf(runid='138536W03', yname='te', xname='rho', zval=0.755, legend='9.0.7 +ETGM'),
         # PlotDataCdf(runid='138536W02', yname='te', xname='rho', zval=0.755, legend='9.0.7'),
         # # PlotDataCdf(runid='138536W01', yname='te', xname='rho', zval=0.17, legend='8.2.1'),
         # xmax=1, title_override='138536',
+
+
+        # ---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+        # BEST MATCHES
+        # ---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+        # PlotDataCdf(runid='129016Z36', yname='te', xname='rho', zval=0.4108, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='129016Z43', yname='te', xname='rho', zval=0.4108, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='129016Z33', yname='te', xname='rho', zval=0.4108, legend='9.0.7'),
+        # PlotDataCdf(runid='129016A03', yname='te', xname='rho', zval=0.4108, legend='Analysis'),
+        # title_override='129016 (0.411s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='129016W11', yname='te', xname='rho', zval=0.4108, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='129016W10', yname='te', xname='rho', zval=0.4108, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='129016A03', yname='te', xname='rho', zval=0.4108, legend='Analysis'),
+        # title_override='129016 (0.411)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='129016W03', yname='walltime', xname='time', zval=0.55, legend=r'9.0.7 $+\chi$'),
+        # PlotDataCdf(runid='129016W11', yname='walltime', xname='time', zval=0.55, legend=r'9.0.7 $\pm\chi$'),
+        # PlotDataCdf(runid='129016A03', yname='walltime', xname='time', zval=0.55, legend='Analysis'),
+        # title_override='129016 (0.55)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='129016W03', yname='ti', xname='rho', zval=0.533, legend='9.0.7 +ETGM'),
+        # #PlotDataCdf(runid='129016W04', yname='te', xname='rho', zval=0.533, legend='9.0.7 +Horton'),
+        # #PlotDataCdf(runid='129016W02', yname='ti', xname='rho', zval=0.533, legend='9.0.7'),
+        # PlotDataCdf(runid='129016A03', yname='ti', xname='rho', zval=0.533, legend='Analysis'),
+        # title_override='129016 (0.533s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='129017W04', yname='te', xname='rho', zval=0.5, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='129017W05', yname='te', xname='rho', zval=0.5, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='129017W03', yname='te', xname='rho', zval=0.5, legend='9.0.7'),
+        # PlotDataCdf(runid='129017W02', yname='te', xname='rho', zval=0.5, legend='8.2.1'),
+        # PlotDataCdf(runid='129017W01', yname='te', xname='rho', zval=0.5, legend='Analysis'),
+        # title_override='129017 (0.500s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='120968W03', yname='ti', xname='rho', zval=0.511, legend='9.0.7 +ETGM'),
+        # # PlotDataCdf(runid='120968W35', yname='te', xname='rho', zval=0.511, legend='9.0.7 +Horton'),
+        # # PlotDataCdf(runid='120968W33', yname='te', xname='rho', zval=0.511, legend='9.0.7'),
+        # PlotDataCdf(runid='120968A02', yname='ti', xname='rho', zval=0.511, legend='Analysis'),
+        # title_override='120968 (0.511s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='120968W03', yname='te', xname='rho', zval=0.511, legend='Prediction', source='cdf'),
+        # PlotDataCdf(runid='120968W02', yname='te', xname='rho', zval=0.511, legend='Analysis', source='cdf'),
+        # title_override='120968', xmin=0.02,
+
+        # PlotDataCdf(runid='120982W31', yname='te', xname='rho', zval=0.431, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='120982W33', yname='te', xname='rho', zval=0.431, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='120982W32', yname='te', xname='rho', zval=0.431, legend='9.0.7'),
+        # PlotDataCdf(runid='120982A09', yname='te', xname='rho', zval=0.431, legend='Analysis'),
+        # title_override='120982 (0.431s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='120982W31', yname='te', xname='rho', zval=0.431, legend='ETGM Default'),
+        # PlotDataCdf(runid='120982W33', yname='te', xname='rho', zval=0.431, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='120982W32', yname='te', xname='rho', zval=0.431, legend='9.0.7'),
+        # PlotDataCdf(runid='120982A09', yname='te', xname='rho', zval=0.431, legend='Analysis'),
+        # title_override='120982 (0.431s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='138536W03', yname='ti', xname='rho', zval=0.755, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='138536W04', yname='ti', xname='rho', zval=0.755, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='138536W02', yname='ti', xname='rho', zval=0.755, legend='9.0.7'),
+        # PlotDataCdf(runid='138536A01', yname='ti', xname='rho', zval=0.755, legend='Analysis'),
+        # title_override='138536 (0.755s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='138536W03', yname='te', xname='rho', zval=0.755, legend='Prediction'),
+        # PlotDataCdf(runid='138536A01', yname='te', xname='rho', zval=0.755, legend='Analysis'),
+        # title_override='138536 (0.755s)', xmax=1, xmin=0.02, allow_title_time=0,
+
+
+        # PlotDataCdf(runid='141716W04', yname='te', zval=0.29, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='141716W05', yname='te', zval=0.29, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='141716W03', yname='te', zval=0.29, legend='9.0.7'),
+        # #PlotDataCdf(runid='141716W02', yname='ti', zval=0.29, legend='8.2.1'),
+        # PlotDataCdf(runid='141716W01', yname='te', zval=0.29, legend='Analysis'),
+        # title_override='141716 (0.29s)', allow_title_time=0, xmin=0.02,
+
+        # PlotDataCdf(runid='129016W12', yname='mmmtime', xname='time', legend=r'Default'),
+        # PlotDataCdf(runid='129016W15', yname='mmmtime', xname='time', legend=r'fact, min = 0'),
+        # # PlotDataCdf(runid='129016W19', yname='te', zval=0.533, legend=r'9.0.9 pphi, No Smoothing'),
+        # # PlotDataCdf(runid='129016W13', yname='te', zval=0.533, legend=r'Analysis'),
+        # title_override='129016', allow_title_time=1,
+
+        # ---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+        # TOTAL DIFFUSIVITIES AT BEST MATCHEES
+        # ---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+        # PlotDataCdf(runid='129016Z36', yname='xkimmm', xname='rho', zval=0.4108, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='129016Z43', yname='xkimmm', xname='rho', zval=0.4108, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='129016Z33', yname='xkimmm', xname='rho', zval=0.4108, legend='9.0.7'),
+        # title_override='129016 (0.411s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='129016W03', yname='xkimmm', xname='rho', zval=0.533, legend='9.0.7 +ETGM'),
+        # #PlotDataCdf(runid='129016W04', yname='xkimmm', xname='rho', zval=0.533, legend='9.0.7 +Horton'),
+        # #PlotDataCdf(runid='129016W02', yname='xkimmm', xname='rho', zval=0.533, legend='9.0.7'),
+        # title_override='129016 (0.533)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='129016W03', yname='xkemmm', zval=0.533, legend=r'9.0.7 $+\chi$'),
+        # PlotDataCdf(runid='129016W12', yname='xkemmm', zval=0.533, legend=r'9.0.7 $\pm\chi$'),
+        # PlotDataCdf(runid='129016W15', yname='xkemmm', zval=0.533, legend=r'9.0.7 $\pm\chi$ 0 PT'),
+        # # PlotDataCdf(runid='129016W13', yname='xkemmm', xname='rho', zval=0.533, legend=r'Analysis'),
+        # title_override='129016', allow_title_time=0,
+
+        # PlotDataCdf(runid='129017W04', yname='xkimmm', xname='rho', zval=0.5, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='129017W05', yname='xkimmm', xname='rho', zval=0.5, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='129017W03', yname='xkimmm', xname='rho', zval=0.5, legend='9.0.7'),
+        # PlotDataCdf(runid='129017W02', yname='xkimmm', xname='rho', zval=0.5, legend='8.2.1'),
+        # title_override='129017 (0.500s)', xmax=0.8, xmin=0.02, ymax_cutoff=15, allow_title_time=0,
+
+        # PlotDataCdf(runid='120968W34', yname='xkimmm', xname='rho', zval=0.511, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='120968W35', yname='xkimmm', xname='rho', zval=0.511, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='120968W33', yname='xkimmm', xname='rho', zval=0.511, legend='9.0.7'),
+        # title_override='120968 (0.511s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='120982W31', yname='xkimmm', xname='rho', zval=0.431, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='120982W33', yname='xkimmm', xname='rho', zval=0.431, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='120982W32', yname='xkimmm', xname='rho', zval=0.431, legend='9.0.7'),
+        # title_override='120982 (0.431s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='138536W03', yname='xkemmm', xname='rho', zval=0.755, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='138536W04', yname='xkemmm', xname='rho', zval=0.755, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='138536W02', yname='xkemmm', xname='rho', zval=0.755, legend='9.0.7'),
+        # title_override='138536 (0.755s)', xmax=0.8, xmin=0.02, allow_title_time=0,
+
+        # PlotDataCdf(runid='141716W04', yname='xkimmm', zval=0.29, legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='141716W05', yname='xkimmm', zval=0.29, legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='141716W03', yname='xkimmm', zval=0.29, legend='9.0.7'),
+        # #PlotDataCdf(runid='141716W02', yname='xkimmm', zval=0.29, legend='8.2.1'),
+        # title_override='141716 (0.29s)', allow_title_time=0, xmin=0.02,
+
+        # ---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+        # WALLTIME
+        # ---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+
+        # PlotDataCdf(runid='129016W12', yname='mmmtime', xname='time', legend=r'9.0.7 Default'),
+        # PlotDataCdf(runid='129016W15', yname='mmmtime', xname='time', legend=r'9.0.7 Default, No smoothing'),
+        # PlotDataCdf(runid='129016W20', yname='mmmtime', xname='time', legend=r'9.0.9 pphi'),
+        # PlotDataCdf(runid='129016W19', yname='mmmtime', xname='time', legend=r'9.0.9 pphi, No Smoothing'),
+        # # PlotDataCdf(runid='129016W13', yname='xkemmm', xname='rho', zval=0.533, legend=r'Analysis'),
+        # title_override='129016', allow_title_time=0,
+
+        # PlotDataCdf(runid='129016Z36', yname='mmmtime', xname='time', legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='129016Z44', yname='mmmtime', xname='time', legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='129016Z33', yname='mmmtime', xname='time', legend='9.0.7'),
+        # PlotDataCdf(runid='129016Z29', yname='mmmtime', xname='time', legend='8.2.1'),
+        # title_override='129016', allow_title_time=0,
+
+        # PlotDataCdf(runid='129016W03', yname='mmmtime', xname='time', legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='129016W04', yname='mmmtime', xname='time', legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='129016W02', yname='mmmtime', xname='time', legend='9.0.7'),
+        # PlotDataCdf(runid='129016W01', yname='mmmtime', xname='time', legend='8.2.1'),
+        # title_override='129016', allow_title_time=0,
+
+        # PlotDataCdf(runid='129017W04', yname='mmmtime', xname='time', legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='129017W05', yname='mmmtime', xname='time', legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='129017W03', yname='mmmtime', xname='time', legend='9.0.7'),
+        # PlotDataCdf(runid='129017W02', yname='mmmtime', xname='time', legend='8.2.1'),
+        # title_override='129017', allow_title_time=0,
+
+        # PlotDataCdf(runid='120968W34', yname='mmmtime', xname='time', legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='120968W35', yname='mmmtime', xname='time', legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='120968W33', yname='mmmtime', xname='time', legend='9.0.7'),
+        # PlotDataCdf(runid='120968W32', yname='mmmtime', xname='time', legend='8.2.1'),
+        # title_override='120968', allow_title_time=0,
+
+        # PlotDataCdf(runid='120982W31', yname='mmmtime', xname='time', legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='120982W33', yname='mmmtime', xname='time', legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='120982W32', yname='mmmtime', xname='time', legend='9.0.7'),
+        # PlotDataCdf(runid='120982W30', yname='mmmtime', xname='time', legend='8.2.1'),
+        # title_override='120982', allow_title_time=0,
+
+        # PlotDataCdf(runid='138536W03', yname='mmmtime', xname='time', legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='138536W04', yname='mmmtime', xname='time', legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='138536W02', yname='mmmtime', xname='time', legend='9.0.7'),
+        # PlotDataCdf(runid='138536W01', yname='mmmtime', xname='time', legend='8.2.1'),
+        # title_override='138536', allow_title_time=0,
+
+        # PlotDataCdf(runid='141716W04', yname='mmmtime', xname='time', legend='9.0.7 +ETGM'),
+        # PlotDataCdf(runid='141716W05', yname='mmmtime', xname='time', legend='9.0.7 +Horton'),
+        # PlotDataCdf(runid='141716W03', yname='mmmtime', xname='time', legend='9.0.7'),
+        # PlotDataCdf(runid='141716W02', yname='mmmtime', xname='time', legend='8.2.1'),
+        # title_override='141716', allow_title_time=0,
+
+
+        # ---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+        # MTM KYRHOS SCANS
+        # ---------------------------------------------------------------------------
+        # ---------------------------------------------------------------------------
+        # PlotDataCdf(runid='129016Z37', yname='walltime', xname='time', legend='100'),
+        # PlotDataCdf(runid='129016Z38', yname='walltime', xname='time', legend='200'),
+        # PlotDataCdf(runid='129016Z39', yname='walltime', xname='time', legend='400'),
+        # title_override='129016', allow_title_time=0,
+
     )
 
 
-    main(all_data, savefig=False, savedata=False)
+    main(fig_data, savefig=0, savedata=savedata)
 
 

@@ -20,7 +20,7 @@ import modules.constants as constants
 import modules.datahelper as datahelper
 import modules.utils as utils
 from plotting.modules.plotstyles import PlotStyles, StyleType
-from plotting.plot_variables import AllPlotData, PlotDataCsv, PlotDataCdf, main
+from plotting.plot_variables import FigData, PlotDataCsv, PlotDataCdf, main
 
 
 _log = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     })
 
     # Define settings for the plot
-    all_data = AllPlotData(
+    fig_data = FigData(
         replace_offset_text=0,
         allow_title_runid=1,
         allow_title_time=1,
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     # r = '129016A04'
     n1 = 95
     n2 = n1 + 1
-    all_data.set(
+    fig_data.set(
 
         # PlotDataCdf('18476T02', yname='ti', zval=0.4, timeplot=1, legend='Prediction'),
         # PlotDataCdf('18476P01', yname='ti', zval=0.4, timeplot=1, legend='Experiment'),
@@ -1029,4 +1029,4 @@ if __name__ == '__main__':
         # PlotDataCsv(r, 3, 'alphamhd', xname='var_to_scan', rho_value=0.4),
     )
 
-    main(all_data)
+    main(fig_data)

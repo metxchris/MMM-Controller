@@ -28,12 +28,11 @@ than that attributed to floating point errors.
 
 # 3rd Party Packages
 import numpy as np
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, Akima1DInterpolator
 
 # Local Packages
 import settings
 import modules.datahelper as datahelper
-import modules.constants as constants
 
 
 class _XValues:
@@ -90,6 +89,8 @@ def convert_units(input_var):
         input_var.set(values=input_var.values * 10**4, units='m^-2')
     elif units == 'CM**2' or units == 'CM2':
         input_var.set(values=input_var.values / 10**4, units='m^2')
+    elif units == 'CM**3' or units == 'CM3':
+        input_var.set(values=input_var.values / 10**6, units='m^3')
     elif units == 'CM/SEC':
         input_var.set(values=input_var.values / 100, units='m/s')
     elif units == 'N/CM**3' or units == '#/CM**3':
@@ -120,6 +121,8 @@ def convert_units(input_var):
         input_var.set(units='T')
     elif units == 'WEBERS':
         input_var.set(units='T*m^2')
+    elif units == 'HOURS':
+        input_var.set(units='h')
 
 
 def _interp_to_boundarygrid(input_var, xvals):
@@ -164,9 +167,11 @@ def _interp_to_boundarygrid(input_var, xvals):
 
     # Interpolate/Extrapolate variable from X or XB to XBO
     elif xdim in ['X', 'XB']:
-        set_interp = interp1d(getattr(xvals, xdim.lower()), input_var.values,
-                              kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
-        input_var.set(values=set_interp(xvals.xbo))
+        # set_interp = interp1d(getattr(xvals, xdim.lower()), input_var.values,
+        #                       kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
+        # input_var.set(values=set_interp(xvals.xbo))
+        set_interp = Akima1DInterpolator(getattr(xvals, xdim.lower()), input_var.values, axis=0)
+        input_var.set(values=set_interp(xvals.xbo, extrapolate=True))
         input_var.set_xdim('XBO')
 
     else:

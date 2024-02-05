@@ -59,7 +59,7 @@ def run_plotting_loop(vars_to_plot, options):
                 QApplication.clipboard().setImage(QImage.fromData(buffer.getvalue()))
 
         if event.key == 'alt+s':  # save plot lines to csv
-            all_data.save_to_csv()
+            fig_data.save_to_csv()
 
     fig = plt.figure()
 

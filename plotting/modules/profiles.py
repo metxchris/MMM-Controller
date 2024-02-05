@@ -55,20 +55,23 @@ def init_figure(options, dim, profile_type, xvar_points, scan_factor):
     # Set figure text (title and subtitles)
     title_txt = f'{profile_type.name.capitalize()} Profiles'
     subtitle_txt = f'{shot_type.name} Shot {runid}, Time {time}s, {points} Radial Points'
-    plt.figtext(*dim.text1_pos, title_txt, fontsize=21, ha='center')
-    plt.figtext(*dim.text2_pos, subtitle_txt, fontsize=10, ha='center', color='#444')
+    if dim.text1_pos:
+        plt.figtext(*dim.text1_pos, title_txt, fontsize=21, ha='center')
+    if dim.text2_pos:
+        plt.figtext(*dim.text2_pos, subtitle_txt, fontsize=10, ha='center', color='#444')
 
     # Set attributes text
     attributes = []
-    if options.uniform_rho:
-        attributes.append('Uniformly Spaced')
+
     if options.apply_smoothing:
         attributes.append('Smoothed')
     attributes_str = ', '.join(attributes)
     if len(attributes_str):
         attributes_str += ' '
     text3_str = f'Using {attributes_str}TRANSP Data'
-    plt.figtext(*dim.text3_pos, text3_str, fontsize=10, ha='center', color='#444')
+
+    if dim.text3_pos:
+        plt.figtext(*dim.text3_pos, text3_str, fontsize=10, ha='center', color='#444')
 
     # Set scan factor text
     if scan_factor:
@@ -80,9 +83,10 @@ def init_figure(options, dim, profile_type, xvar_points, scan_factor):
         else:
             raise TypeError(f'No data class found for {var_to_scan}')
 
-        scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_DISPLAY_FMT}}'
-        text4_str = f'Parameter Scan {scan_factor_str}' r'$\,$' f'{getattr(data_obj, var_to_scan).label}'
-        plt.figtext(*dim.text4_pos, text4_str, fontsize=10, ha='center', color='#444')
+        if dim.text4_pos:
+            scan_factor_str = f'{scan_factor:{constants.SCAN_FACTOR_DISPLAY_FMT}}'
+            text4_str = f'Parameter Scan {scan_factor_str}' r'$\,$' f'{getattr(data_obj, var_to_scan).label}'
+            plt.figtext(*dim.text4_pos, text4_str, fontsize=10, ha='center', color='#444')
 
     return fig, axs
 
@@ -101,7 +105,7 @@ def make_plot(ax, data, profile_type, time_idx=None):
     yvals = None
 
     for i, yvar in enumerate(data.yvars):
-        if yvar.values is None:
+        if yvar.values is None or isinstance(yvar.values, float) or isinstance(yvar.values, int):
             continue
         yvals = yvar.values if yvar.values.ndim == 1 else yvar.values[:, time_idx]
         ax.plot(xvals, yvals, label=yvar.label)
@@ -142,6 +146,10 @@ def run_plotting_loop(options, plotdata, profile_type, scan_factor):
     print(f'Creating {profile_type.name.lower()} profile figures...')
 
     for i, data in enumerate(plotdata):
+
+        print(i)
+        print(dim.cols)
+        print(dim.rows)
 
         # Logic to count (row, col) by col first, then by row; (0, 0), (0, 1), (0, 2), (1, 0), etc.
         row = int(i / dim.cols) % dim.rows

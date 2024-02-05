@@ -45,6 +45,7 @@ import numpy as np
 
 # Local Packages
 import settings
+import modules.cdfwriter as cdfwriter
 import modules.controls
 import modules.constants
 import modules.options
@@ -223,7 +224,6 @@ def main(scanned_vars, controls):
             reshaper.create_rho_files(options)
             print(f'\nScan complete: {options.runid}, scan {options.scan_num}, {options.var_to_scan}\n')
 
-        print(settings.R8TOMSQZ_CALLS)
 
 # Run this file directly to plot variable profiles and run the MMM driver
 if __name__ == '__main__':
@@ -236,17 +236,17 @@ if __name__ == '__main__':
     TRANSP Data:
     * Uncomment the line you wish to use
     # '''
-    runid, shot_type, input_time = '121123K55', ShotType.NSTU, 11.8  #            300
+    # runid, shot_type, input_time = '121123K55', ShotType.NSTU, 11.8  #            300
 
-    runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.56  # High       300
-    runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.62  # Low        290
-    runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.46  #            293
-    # runid, shot_type, input_time = '129017A04', ShotType.NSTX, 0.5   #            294
+    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.56 ## 0.56  # High       300
+    # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.62  # Low        290
+    # runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.494  #            293
+    # runid, shot_type, input_time = '129017A04', ShotType.NSTX, 0.1   #            294
     # runid, shot_type, input_time = '129018A02', ShotType.NSTX, 0.5   #            292
     # runid, shot_type, input_time = '129019A02', ShotType.NSTX, 0.62  #            288
     # runid, shot_type, input_time = '129020A02', ShotType.NSTX, 0.56  #            297
     # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.49  # Medium     297
-    # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.63  #            300
+    runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.63  #            300
     # runid, shot_type, input_time = '141007A10', ShotType.NSTX, 0.5   #            288
     # runid, shot_type, input_time = '141031A01', ShotType.NSTX, 0.5   #            162
     # runid, shot_type, input_time = '141032A01', ShotType.NSTX, 0.5   #            278
@@ -263,6 +263,7 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '141552A01', ShotType.D3D, 2      #            37
     # runid, shot_type, input_time = '150840T02', ShotType.D3D, 2      #            101
     # runid, shot_type, input_time = '153283T50', ShotType.D3D, 2      #            51
+    # runid, shot_type, input_time = '147634T61', ShotType.D3D, 2.53      #            51
 
     # runid, shot_type, input_time = '85126T02', ShotType.EAST, 2      #            300
     # runid, shot_type, input_time = '85610T01', ShotType.EAST, 2      #            300
@@ -270,7 +271,7 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '80208T04', ShotType.EAST, 2      #            300
     # runid, shot_type, input_time = '90328T01', ShotType.EAST, 2      #            300
 
-    # runid, shot_type, input_time = '15334T03', ShotType.KSTR, 2      #            300
+    runid, shot_type, input_time = '15334T03', ShotType.KSTR, 2      #            300
     # runid, shot_type, input_time = '16295T10', ShotType.KSTR, 2      #            300
     # runid, shot_type, input_time = '16297T01', ShotType.KSTR, 2      #            300
     # runid, shot_type, input_time = '16299T01', ShotType.KSTR, 2.25   #            300
@@ -288,7 +289,6 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '18602T01', ShotType.KSTR, 2      #            300
 
     # runid, shot_type, input_time = '08505Z06', ShotType.MAST, 2      #            31
-    # runid, shot_type, input_time = '18696B01', ShotType.MAST, 2      #            261
     # runid, shot_type, input_time = '22341P37', ShotType.MAST, 0.25   #            66
     # runid, shot_type, input_time = '24899R05', ShotType.MAST, 2      #            208
     # runid, shot_type, input_time = '27527M34', ShotType.MAST, 2      #            174
@@ -296,7 +296,6 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '29976U69', ShotType.MAST, 2      #            150
     # runid, shot_type, input_time = '45424H01', ShotType.MAST, 2      #            23
 
-    # runid, shot_type, input_time = '18696R06', ShotType.ITER, 2      #            205
     # runid, shot_type, input_time = '38265R80', ShotType.ITER, 2      #            300
     # runid, shot_type, input_time = '50000A10', ShotType.ITER, 2      #            300
     # runid, shot_type, input_time = '80200A13', ShotType.ITER, 1.0    #            300
@@ -335,25 +334,41 @@ if __name__ == '__main__':
     # runid, shot_type, input_time = '129016A03', ShotType.NSTX, 0.46
     # runid, shot_type, input_time = '101381J05', ShotType.D3D, 5.6
 
+
+    ### Kyrhos layer testing
+    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.56  # High       300
+    # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.62  # Low        290
+    # runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.494 #            293
+    # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.63  #            300
+    # runid, shot_type, input_time = '101381T31', ShotType.D3D, 5.6    #            300
+    # runid, shot_type, input_time = '132498J05', ShotType.D3D, 0.56   #            300
+    # runid, shot_type, input_time = '85126T02', ShotType.EAST, 2      #            300
+    # runid, shot_type, input_time = '90328T01', ShotType.EAST, 2      #            300
+    # runid, shot_type, input_time = '15334T03', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '18399T05', ShotType.KSTR, 2      #            300
+    # runid, shot_type, input_time = '24899R05', ShotType.MAST, 2      #            208
+    # runid, shot_type, input_time = '29976U69', ShotType.MAST, 2      #            150
+    # runid, shot_type, input_time = '38265R80', ShotType.ITER, 2      #            300
+    # runid, shot_type, input_time = '80200A13', ShotType.ITER, 1.0    #            300
+    # runid, shot_type, input_time = '84599T01', ShotType.JET, 2      #             85
+    # runid, shot_type, input_time = '87261T01', ShotType.JET, 2      #             65
+
+
     '''
     Scanned Variables:
     * Uncomment the lines you wish to include in scanned_vars
     * MMM will only run once if no specific scan is specified below
     '''
 
-    # scanned_vars['dribm_kyrhos_min'] = np.arange(start=0.05, stop=5 + 1e-6, step=0.025)
+    ## kyrhos scans
+    # scanned_vars['etgm_kyrhos_min'] = np.arange(start=1, stop=50 + 1e-6, step=0.05)
+    # scanned_vars['dribm_kyrhos_min'] = np.arange(start=0.05, stop=0.3 + 1e-6, step=0.001)
     # scanned_vars['mtm_kyrhos_min'] = np.arange(start=0.1, stop=3 + 1e-6, step=0.1)
     # scanned_vars['mtm_kyrhos_max'] = np.arange(start=5, stop=10.0 + 1e-6, step=0.5)
     # scanned_vars['weiland_kyrhos'] = np.arange(start=0.2, stop=0.4 + 1e-6, step=0.005)
     # scanned_vars['epm_n_start'] = np.arange(start=1, stop=100 + 1e-6, step=1)
 
-    # scanned_vars['etgm_kyrhos_min'] = np.arange(start=0.1, stop=20 + 1e-6, step=0.1)
-    # scanned_vars['etgm_alpha_mult'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['etgm_betae_mult'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
-    # scanned_vars['etgm_nuei_mult'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.025)
-    # scanned_vars['etgm_vthe_mult'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.025)
-    # scanned_vars['etgm_betaep_mult'] = np.arange(start=0, stop=3 + 1e-6, step=0.025)
-
+    ## variable scans
     # scanned_vars['betaeu'] = np.arange(start=0.025, stop=3 + 1e-6, step=0.025)
     # scanned_vars['bu'] = np.arange(start=0.2, stop=3 + 1e-6, step=0.02)
     # scanned_vars['gne'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
@@ -362,68 +377,34 @@ if __name__ == '__main__':
     # scanned_vars['q'] = np.arange(start=0.5, stop=2 + 1e-6, step=0.01)
     # scanned_vars['shear'] = np.arange(start=-3, stop=3 + 1e-6, step=0.05)
     # scanned_vars['te'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.025)
-
-    # scanned_vars['betaeu_alphaconst'] = np.arange(start=0.05, stop=3 + 1e-6, step=0.01)
-    # scanned_vars['betaeu'] = np.arange(start=0.05, stop=3 + 1e-6, step=0.05)
-    # scanned_vars['nuei_alphaconst'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.02)
-    # scanned_vars['nuei_lareunitconst'] = np.arange(start=0.2, stop=4 + 1e-6, step=0.02)
     # scanned_vars['ti'] = np.arange(start=0.2, stop=5 + 1e-6, step=0.02)
-
     # scanned_vars['zeff'] = np.arange(start=0.1, stop=4 + 1e-6, step=0.02)**2
     # scanned_vars['ai'] = np.arange(start=0.5, stop=1.5 + 1e-6, step=0.1)
 
-    # gte = 0
+    ## gte = 0
     # scanned_vars['gne'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
 
-    # gne = 0
+    ## gne = 0
     # scanned_vars['gte'] = np.arange(start=0.05, stop=6 + 1e-6, step=0.05)
     # scanned_vars['gte'] = np.arange(start=0.05, stop=2 + 1e-6, step=0.05)
     # scanned_vars['q'] = np.arange(start=0.5, stop=2 + 1e-6, step=0.01)
 
-    # gneabs
+    ## gneabs
     # scanned_vars['gne'] = np.arange(start=-4.0, stop=8 + 1e-6, step=0.05)
     # scanned_vars['gne_alphaconst'] = np.arange(start=-4.0, stop=8 + 1e-6, step=0.1)
 
-    # gne threshold
-    # scanned_vars['gne'] = np.arange(start=0.00, stop=201 + 1e-6, step=0.5)
-
-    # gte threshold
-    # scanned_vars['gte'] = np.arange(start=0.00, stop=201 + 1e-6, step=0.5)
-
-    # scanned_vars['mtm_kyrhos'] = np.arange(start=0.02, stop=32 + 1e-6, step=0.02)
-
-    # scanned_vars['etgm_kxoky_mult'] = np.arange(start=0, stop=1 + 1e-6, step=0.02)
-    # scanned_vars['etgm_extra_mult'] = np.arange(start=0.1, stop=6 + 1e-6, step=0.05)
-
-    # time scan (options.normalize_time_range = 0)
+    ## time scan (options.normalize_time_range = 0)
     # scanned_vars['time'] = np.arange(start=0.3, stop=0.6 + 1e-6, step=0.001)
 
-    # normalized time scan (options.normalize_time_range = 1)
+    ## normalized time scan (options.normalize_time_range = 1)
     # scanned_vars['time'] = np.linspace(start=0, stop=1, num=40)
     # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
     # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=300)
-
 
     # EPM Scans
     scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
     # scanned_vars['time'] = np.linspace(start=0.53, stop=0.54, num=10)
     # scanned_vars['epm_n_start'] = np.arange(start=1, stop=50 + 1e-6, step=1)
-
-
-    # DRIBM Scans
-    # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
-    # scanned_vars['ah'] = np.arange(start=0.5, stop=1.5 + 1e-6, step=0.025)
-    # scanned_vars['betaeu'] = np.arange(start=0.05, stop=3 + 1e-6, step=0.05)
-    # scanned_vars['gte'] = np.arange(start=0.1, stop=6 + 1e-6, step=0.1)
-    # scanned_vars['gne'] = np.arange(start=0.1, stop=6 + 1e-6, step=0.1)
-    # scanned_vars['q'] = np.arange(start=0.5, stop=2 + 1e-6, step=0.025)
-    # scanned_vars['shear'] = np.arange(start=-3, stop=3 + 1e-6, step=0.1)
-    # scanned_vars['dribm_kpsh_mult'] = np.arange(start=0.5, stop=2.0 + 1e-6, step=0.025)
-    # scanned_vars['dribm_ti_te_mult'] = np.arange(start=0.25, stop=4 + 1e-6, step=0.05)
-    # scanned_vars['dribm_vei_mult'] = np.arange(start=0.25, stop=4 + 1e-6, step=0.05)
-    # scanned_vars['etae'] = np.arange(start=0.25, stop=4 + 1e-6, step=0.05)
-    # scanned_vars['wexb'] = np.arange(start=0.05, stop=2 + 1e-6, step=0.05)
-    # scanned_vars['weiland_gmult'] = np.arange(start=-2, stop=2 + 1e-6, step=0.02)
 
     '''
     Options:
@@ -451,75 +432,56 @@ if __name__ == '__main__':
     Input Controls:
     * cmodel enables (disables) the corresponding model if set to 1 (0)
     '''
-    wexb = 0.0
-    negative_chi = 0
+    wexb_factor = 1
+    allow_negative_chi = 0
+
     controls = modules.controls.InputControls(
         options,
         # CMODEL
-        cmodel_weiland=1,
-        cmodel_dribm=1,
-        cmodel_etgm=1,
-        cmodel_mtm=1,
+        cmodel_weiland=0,
+        cmodel_dribm=0,
+        cmodel_etgm=0,
+        cmodel_mtm=0,
         cmodel_epm=0,
         # W20
-        w20_exbs=wexb,
+        w20_exbs=wexb_factor,
         w20_shear_def=0,
         w20_kyrhos=0.316,
-        w20_negative_chi=negative_chi,
+        w20_negative_chi=allow_negative_chi,
+        # DRBM
+        dribm_exbs=wexb_factor,
+        dribm_direction=1,
+        dribm_sum_modes=0,
+        dribm_kyrhos_scan=7,
+        dribm_kyrhos_layers=10,
+        dribm_kyrhos_min=0.05,
+        dribm_kyrhos_max=0.3,
+        dribm_sat_expo=2,
+        dribm_diffusivity_type=0,
+        dribm_negative_chi=allow_negative_chi,
+        # ETGM
+        etgm_exbs=wexb_factor,
+        etgm_direction=0,
+        etgm_sum_modes=1,
+        etgm_kyrhos_scan=100,
+        etgm_kyrhos_layers=1,
+        etgm_kyrhos_min=1,
+        etgm_kyrhos_max=40,
+        etgm_sat_expo=2,
+        etgm_negative_chi=allow_negative_chi,
+        etgm_diffusivity_type=0,
+        # MTM
+        mtm_kyrhos_loops=200,
+        mtm_kyrhos_min=0.005,
+        mtm_kyrhos_max=10,
+        mtm_negative_chi=allow_negative_chi,
+        mtm_kyrhos_type=1,
         # EPM
-        epm_exbs=wexb,
+        epm_exbs=wexb_factor,
         epm_direction=0,
         epm_n_start=1,
         epm_n_end=1,
         epm_n_step=1,
-        # DRBM
-        dribm_exbs=wexb,
-        dribm_direction=1,
-        dribm_sum_modes=0,
-        dribm_kyrhos_scan=20,
-        dribm_kyrhos_min=0.05,
-        dribm_kyrhos_max=0.3,
-        dribm_kxoky=1,
-        dribm_sat_expo=2,
-        dribm_diffusivity_type=0,
-        dribm_negative_chi=negative_chi,
-        dribm_kyrhos_type=1,
-        dribm_chi_max_cal=0.15,
-        dribm_chi_sum_cal=0.15 * 0.05,
-        dribm_chi2_max_cal=0.45,
-        dribm_chi2_sum_cal=0.45 * 0.05,
-        dribm_kpsh_mult=1,
-        dribm_ti_te_mult=1,
-        dribm_vei_mult=1,
-        # ETGM
-        etgm_exbs=wexb,
-        etgm_direction=0,
-        etgm_sum_modes=0,
-        etgm_kyrhos_scan=50,
-        etgm_kyrhos_min=1,
-        etgm_kyrhos_max=50,
-        etgm_kxoky=0.5,
-        etgm_sat_expo=2,
-        etgm_negative_chi=negative_chi,
-        etgm_kyrhos_type=1,
-        etgm_xte_max_cal=0.05,
-        etgm_xte_sum_cal=0.05 * 0.05,
-        etgm_xte2_max_cal=1,
-        etgm_xte2_sum_cal=1 * 0.05,
-        etgm_alpha_mult=1,  # Extra
-        etgm_betae_mult=1,  # Extra
-        etgm_nuei_mult=1,  # Extra
-        etgm_vthe_mult=1,  # Extra
-        etgm_betaep_mult=1,  # Extra
-        etgm_disable_geometry=0,  # Extra
-        etgm_electrostatic=0,  # Extra
-        # MTM
-        mtm_kyrhos_loops=100,
-        mtm_kyrhos_min=0.005,
-        mtm_kyrhos_max=10,
-        mtm_negative_chi=negative_chi,
-        mtm_kyrhos_type=1,
-        mtm_cf=0.01,
     )
 
     '''
@@ -539,8 +501,8 @@ if __name__ == '__main__':
     settings.MAKE_PROFILE_PDFS = 0
     settings.PRINT_MMM_RESPONSE = 1
     settings.SAVE_ADDITIONAL_VARIABLES = 1
-    # settings.STARTING_SCAN_NUMBER = 13400
-    settings.STARTING_SCAN_NUMBER = 1
+    settings.STARTING_SCAN_NUMBER = 26201
+    # settings.STARTING_SCAN_NUMBER = 1
     settings.USE_EPM = 0
 
     main(scanned_vars, controls)

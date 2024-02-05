@@ -1,26 +1,16 @@
 # Standard Packages
 import sys; sys.path.insert(0, '../'), sys.path.insert(0, '../../')
-import copy
-import os
 
 # 3rd Party Packages
 import matplotlib.pyplot as plt
 import numpy as np
 
 # Local Packages
-import settings
 import modules.controls
 import modules.constants
 import modules.options
-import modules.calculations as calculations
-import modules.adjustments as adjustments
-import modules.datahelper as datahelper
-import modules.mmm as mmm
-import modules.reshaper as reshaper
-import modules.utils as utils
 import modules.variables as variables
 import modules.controls as controls
-import plotting.modules.profiles as profiles
 from modules.enums import ShotType, ScanType, ProfileType, SaveType
 
 

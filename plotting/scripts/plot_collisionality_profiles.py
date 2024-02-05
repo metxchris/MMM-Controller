@@ -16,18 +16,18 @@ import matplotlib.pyplot as plt
 # Local Packages
 import modules.utils as utils
 from plotting.modules.plotstyles import PlotStyles, StyleType
-from plotting.plot_variables import AllPlotData, PlotDataCdf, PlotDataCsv, main
+from plotting.plot_variables import FigData, PlotDataCdf, PlotDataCsv, main
 
 
 _log = logging.getLogger(__name__)
 
 
-def plot_profiles(profile_list, all_data_list, savename='', savefig=True, savedata=True):
+def plot_profiles(profile_list, fig_data_list, savename='', savefig=True, savedata=True):
     print('plotting profiles...')
-    for profiles, all_data in zip(profile_list, all_data_list):
+    for profiles, fig_data in zip(profile_list, fig_data_list):
         for p in profiles:
-            all_data.set(*p, savename_append=savename)
-            main(all_data, savefig=savefig, savedata=savedata)
+            fig_data.set(*p, savename_append=savename)
+            main(fig_data, savefig=savefig, savedata=savedata)
 
 
 def get_plot_data(yname):
@@ -58,7 +58,7 @@ if __name__ == '__main__':
     )
 
     # Define settings for the plot
-    all_data = AllPlotData(
+    fig_data = FigData(
         replace_offset_text=False,
         allow_title_runid=False,
         allow_title_time=False,
@@ -213,4 +213,4 @@ if __name__ == '__main__':
     # ]
 
     # MAIN PROFILES
-    plot_profiles([profiles], [all_data], savename=savename, savefig=1, savedata=1)
+    plot_profiles([profiles], [fig_data], savename=savename, savefig=1, savedata=1)

@@ -56,18 +56,31 @@ def get_cdf_path(runid, shot_type=None):
     * FileNotFoundError: If the CDF cannot be found
     '''
     cdfpath = None
-    if shot_type is not None and shot_type.value > 0:
-        cdfpath = f'{os.path.dirname(cdfs.__file__)}\\{shot_type.name}\\{runid}.CDF'
-    else:
-        # Search for CDF when shot_type is not specified
-        subdirs = get_subdirs(os.path.dirname(cdfs.__file__))
-        for subdir in subdirs:
-            if check_exists(f'{subdir}\\{runid}.CDF'):
-                cdfpath = f'{subdir}\\{runid}.CDF'
-                break
+
+    # New search routine
+    files = glob.glob(f'{os.path.dirname(cdfs.__file__)}/**', recursive=True)
+    for f in files:
+        if f'{runid}.CDF' in f:
+            cdfpath = f
+
+    # Old search routine
+    if not cdfpath:
+        if shot_type is not None and shot_type.value > 0:
+            cdfpath = f'{os.path.dirname(cdfs.__file__)}\\{shot_type.name}\\{runid}.CDF'
+        else:
+            # Search for CDF when shot_type is not specified
+            subdirs = get_subdirs(os.path.dirname(cdfs.__file__))
+            for subdir in subdirs:
+                if check_exists(f'{subdir}\\{runid}.CDF'):
+                    cdfpath = f'{subdir}\\{runid}.CDF'
+                    break
+            if not cdfpath:
+                if check_exists(f'{os.path.dirname(cdfs.__file__)}/{runid}.CDF'):
+                    cdfpath = f'{os.path.dirname(cdfs.__file__)}/{runid}.CDF'
 
     if not cdfpath:
-        raise FileNotFoundError(f'CDF {runid} was not found in any sub-directory')
+        raise FileNotFoundError(f'{runid}.CDF was not found in any sub-directory')
+
     return cdfpath
 
 

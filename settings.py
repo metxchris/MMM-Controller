@@ -22,19 +22,19 @@ STARTING_SCAN_NUMBER = 1
 
 # Method of interpolation using scipy.interpolate.interp1d(kind=INTERPOLATION_METHOD)
 #   Consider using additional smoothing with linear interpolation, and less
-#   smoothing with cubic interpolation.
+#   smoothing with cubic interpolation.  Only used when GRADIENT_METHOD='interpolate'
 #   kind: 'slinear', 'quadratic', 'cubic'
 INTERPOLATION_METHOD = 'quadratic'
 
 # Method to take gradients:
-#   'traditional': Gradients taken as they are computed in testmmm.f90.
+#   'akima':       This is the same gradient method used by TRANSP for MMM calls.
+#                  Unfortunately, this method can be slow in Python.
+#   'traditional': Gradients taken using a simple nearest neighbor method.
 #                  This is faster, but less accurate when not many input points are available.
 #   'interpolate': Gradients taken using interpolation.  This is more accurate when not using
 #                  many input points, but the endpoint values are more dependent on the
 #                  interpolation method.
-GRADIENT_METHOD = 'traditional'
+GRADIENT_METHOD = 'akima'
 
 # Temp EPM switch
 USE_EPM = True
-
-R8TOMSQZ_CALLS = 0

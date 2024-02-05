@@ -34,7 +34,7 @@ import functools
 
 # 3rd Party Packages
 import numpy as np
-from scipy.interpolate import interp1d
+from scipy.interpolate import interp1d, Akima1DInterpolator
 
 # Local Packages
 import settings
@@ -66,10 +66,17 @@ def differential(x):
         dx[1:, :] += tmp
         return dx
 
+    elif settings.GRADIENT_METHOD == 'akima':
+        dx = np.zeros_like(x)
+        tmp = np.diff(x, axis=0)
+        dx[:-1, :] = tmp
+        dx[1:, :] += tmp
+        return dx  # I don't think akima uses this, but we need drmin to be nonzero
+
     else:
         raise ValueError(
             f'\'{settings.GRADIENT_METHOD}\' is not a valid argument for the gradient method\n'
-            f'Possible choices: \'interpolate\', \'traditional\''
+            f'Possible choices: \'interpolate\', \'traditional\', \'akima\''
         )
 
 
@@ -82,6 +89,9 @@ def differentiate(yname, xname, calc_vars):
     * xname (str): name of variable to use for x
     * calc_vars (InputVariables): Object containing variable data
     '''
+
+    if settings.GRADIENT_METHOD == 'akima':
+        return akima_differentiate(yname, xname, calc_vars)
 
     dy = differential(getattr(calc_vars, yname).values)
 
@@ -103,6 +113,19 @@ def differentiate(yname, xname, calc_vars):
 
     return dy_dx
 
+
+def akima_differentiate(yname, xname, mmm_vars):
+
+    yvals = getattr(mmm_vars, yname).values
+    xvals = getattr(mmm_vars, xname).values
+    dy_dx = np.zeros_like(yvals)
+    time_count = dy_dx.shape[1]
+
+    # Can't vectorize Akima derivative
+    for i in range(time_count):
+        set_interp = Akima1DInterpolator(xvals[:, i], yvals[:, i], axis=0)
+        dy_dx[:, i] = set_interp(xvals[:, i], 1)
+    return dy_dx
 
 def gradient(gvar_name, var_name, gsign, calc_vars):
     '''
@@ -302,14 +325,36 @@ def betaeu(calc_vars):
 
 
 @calculation
+def bftorsqrt(mmm_vars):
+    """Poloidal Magnetic Field"""
+    bftor = mmm_vars.bftor.values
+    return bftor**(0.5)
+
+
+@calculation
 def bpol(calc_vars):
     '''Poloidal Magnetic Field'''
-    btor = calc_vars.btor.values
-    q = calc_vars.q.values
-    rmaj = calc_vars.rmaj.values[-1, :]
-    rmin = calc_vars.rmin.values
+    # btor = calc_vars.btor.values
+    # q = calc_vars.q.values
+    # rmaj = calc_vars.rmaj.values
+    # rmin = calc_vars.rmin.values
+    # xb = calc_vars.xb.values
+    # rhochi = calc_vars.rhochi.values
+    # return rhochi / rmaj * btor / q
+    # # return rhochi[-1, :] * xb / rmaj * btor / q
+    # # return rmin[-1, :] * xb / rmaj * btor / q
+    # return rmin / rmaj * btor / q
 
-    return rmin / rmaj * btor / q
+    bftor = calc_vars.bftor.values[-1, :]
+    q = calc_vars.q.values
+    rho = calc_vars.rho.values
+    lpol = calc_vars.lpol.values
+    dvol = calc_vars.dvol.values
+    dvol_drho = calc_vars.dvol_drho.values
+    drho = np.diff(rho, axis=0)[0, 0]
+
+    return 2 * bftor * rho * lpol / np.maximum(dvol / drho * q, 1e-16)
+    # return 2 * bftor * rho * lpol / (dvol_drho * q)
 
 
 @calculation
@@ -321,26 +366,35 @@ def btor(calc_vars):
     return bzxr / rmaj
 
 
+# @calculation
+# def bu(calc_vars):
+#     '''Magnetic Field (unit)'''
+#     btor0 = calc_vars.btor.values[0, :]
+#     rhochi = calc_vars.rhochi.values
+#     rmin = calc_vars.rmin.values
+#     x = calc_vars.x.values[:, 0]  # same for all time values
+#     xb = calc_vars.xb.values[:, 0]  # same for all time values
+
+#     drho_drmin = np.diff(rhochi, axis=0) / np.diff(rmin, axis=0)
+
+#     # interpolate from x grid to xb grid
+#     set_interp = interp1d(x, drho_drmin, kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
+#     dxrho = set_interp(xb)
+
+#     bu = np.empty_like(dxrho)
+#     bu[1:, :] = btor0 * rhochi[1:, :] / rmin[1:, :] * dxrho[1:, :]
+#     bu[0, :] = bu[1, :]
+
+#     return bu
+
+
 @calculation
-def bu(calc_vars):
-    '''Magnetic Field (unit)'''
-    btor0 = calc_vars.btor.values[0, :]
-    rhochi = calc_vars.rhochi.values
-    rmin = calc_vars.rmin.values
-    x = calc_vars.x.values[:, 0]  # same for all time values
-    xb = calc_vars.xb.values[:, 0]  # same for all time values
-
-    drho_drmin = np.diff(rhochi, axis=0) / np.diff(rmin, axis=0)
-
-    # interpolate from x grid to xb grid
-    set_interp = interp1d(x, drho_drmin, kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
-    dxrho = set_interp(xb)
-
-    bu = np.empty_like(dxrho)
-    bu[1:, :] = btor0 * rhochi[1:, :] / rmin[1:, :] * dxrho[1:, :]
-    bu[0, :] = bu[1, :]
-
-    return bu
+def bu(mmm_vars):
+    """Magnetic Field (unit)"""
+    bftorsqrt = mmm_vars.bftorsqrt.values
+    rmin = mmm_vars.rmin.values
+    dbftorsqrt_dr = differentiate('bftorsqrt', 'rmin', mmm_vars)
+    return bftorsqrt * dbftorsqrt_dr / np.maximum(np.pi * rmin, 1e-3)
 
 
 @calculation
@@ -407,12 +461,21 @@ def curohrho(calc_vars):
 def dbp(calc_vars):
     '''dBpol / drho'''
     return differentiate('bpol', 'rho', calc_vars)
+    # return akima_differentiate('bpol', 'rho', calc_vars)
 
 
 @calculation
 def d2bp(calc_vars):
     '''d^2Bpol / drho^2'''
     return differentiate('dbp', 'rho', calc_vars)
+    # return akima_differentiate('dbp', 'rho', calc_vars)
+
+
+@calculation
+def dvol_drho(calc_vars):
+    '''d^2Bpol / drho^2'''
+    return differentiate('dvol', 'rho', calc_vars)
+    # return akima_differentiate('dbp', 'rho', calc_vars)
 
 
 @calculation
@@ -440,6 +503,21 @@ def tf(calc_vars):
 
 
 @calculation
+def rmajm(calc_vars):
+    '''Fast Ion Temperature'''
+    # return calc_vars.rmajm.values - 1
+    return calc_vars.rmajm.values
+
+
+@calculation
+def tfast(calc_vars):
+    '''Radial Electric Field (Pressure Term)'''
+
+    nf = calc_vars.nf.values
+
+    return (calc_vars.ufastpa.values + 0.5 * calc_vars.ufastpp.values) / (1.602176487E-16 * nf) * 1E6
+
+@calculation
 def ebeam2(calc_vars):
     '''Radial Electric Field (Pressure Term)'''
     ebeam = calc_vars.ebeam.values
@@ -454,6 +532,15 @@ def ebeamr(calc_vars):
     tf = calc_vars.tmhdf.values
 
     return ebeam / 1.5 / tf
+
+
+@calculation
+def ebeamsum(calc_vars):
+    '''Radial Electric Field (Pressure Term)'''
+    ebeampp = calc_vars.ebeampp.values
+    ebeampl = calc_vars.ebeampl.values
+
+    return ebeampp + ebeampl
 
 
 @calculation
@@ -603,26 +690,10 @@ def gyrfeu(calc_vars):
 
 
 @calculation
-def gxi(calc_vars):
-
-    rhochi = calc_vars.rhochi.values
-    elong = calc_vars.elong.values
-    rmin = calc_vars.rmin.values
-    x = calc_vars.x.values[:, 0]
-    xb = calc_vars.xb.values[:, 0]
-
-    drmin = np.diff(calc_vars.rmin.values, axis=0)
-
-    dxvar = np.diff(rhochi, axis=0) / drmin
-
-    # interpolate from x grid to xb grid
-    set_interp = interp1d(x, dxvar, kind=settings.INTERPOLATION_METHOD, fill_value="extrapolate", axis=0)
-    dxvar2 = set_interp(xb)
-
-    return dxvar2
-
-    # return dxvar2 * rmin[-1, :] * elong[-1, :]**0.5
-    # return (1 + elong**2 / (2 * elong**2))**0.5
+def gxi(mmm_vars):
+    """Grad of normalized xb (rho)"""
+    return differentiate('xb', 'rmin', mmm_vars)
+    # return akima_differentiate('xb', 'rmin', mmm_vars)
 
 
 @calculation
@@ -674,6 +745,22 @@ def loge(calc_vars):
 
 
 @calculation
+def mmmtime(calc_vars):
+    '''MMM Runtime in TRANSP'''
+    walltime = calc_vars.walltime.values
+    cpmcfi = calc_vars.cpmcfi.values
+    cpout = calc_vars.cpout.values
+    cptrk = calc_vars.cptrk.values
+    cpgeom = calc_vars.cpgeom.values
+    cpmhdq = calc_vars.cpmhdq.values
+    cpxgpl = calc_vars.cpxgpl.values
+    cpsc0 = calc_vars.cpsc0.values
+    cpbmax = calc_vars.cpbmax.values
+
+    return walltime - cpmcfi - cpout - cptrk - cpgeom - cpmhdq - cpxgpl - cpsc0
+
+
+@calculation
 def nh0(calc_vars):
     '''Hydrogen Ion Density'''
     nd = calc_vars.nd.values
@@ -705,16 +792,15 @@ def ni(calc_vars):
 
 
 @calculation
-def ni2(calc_vars):
-    '''Thermal Ion Density v2'''
+def ne(calc_vars):
+    '''Thermal Ion Density'''
     nh = calc_vars.nh.values
     nz = calc_vars.nz.values
-    nf = calc_vars.nf.values
     zz = calc_vars.zz.values
+    nf = calc_vars.nf.values
 
-    # TRANSP likely uses this for taking ion density gradients
-    return nh + zz * nz + nf
-    # return nh + zz**2 * nz + nf
+    # return nh + zz*nz + nf
+    return nh + zz*nz
 
 
 @calculation
@@ -859,8 +945,17 @@ def tbtbe(calc_vars):
     rmaj = calc_vars.rmaj.values
     zcmu0 = constants.ZCMU0
     zckb = constants.ZCKB
+    pi = constants.PI
+
+    gr2i = calc_vars.gr2i.values
+    dvol = np.maximum(calc_vars.dvol.values, 0.001)
+    bzxr = calc_vars.bzxr.values
+
+    # print(dvol)
 
     return btbe * btor**2 / (2 * zcmu0 * zckb * nf) * 1.8
+    # return btbe * btor**2 / (2 * zcmu0 * zckb * nf) * 8 / 15 * pi
+    # return 4 / 15 * 1000 * 3.1415 * rmaj**2 / (zcmu0 * nf * gr2i * dvol)
 
 
 @calculation
@@ -1007,9 +1102,22 @@ def xke(calc_vars):
     condewnc = calc_vars.condewnc.values
     xkepaleo = calc_vars.xkepaleo.values
 
-    xke = condepr + condewnc + xkepaleo
+    # xke = condepr + condewnc + xkepaleo
+    xke = condepr
 
     return xke
+
+
+@calculation
+def fke(calc_vars):
+    '''Total Electron Thermal Diffusivity from CDF'''
+    xke = calc_vars.xke.values
+    gte = calc_vars.gte.values
+    te = calc_vars.te.values
+    rmaj = calc_vars.rmaj.values
+
+    return xke * gte * te / rmaj
+
 
 
 @calculation
@@ -1027,11 +1135,23 @@ def xkeetgm(calc_vars):
 def xki(calc_vars):
     '''Total Ion Thermal Diffusivity from CDF'''
     condipr = calc_vars.condipr.values
-    condiwnc = calc_vars.condiwnc.values
+    # condiwnc = calc_vars.condiwnc.values
 
-    xki = condipr + condiwnc
+    # xki = condipr + condiwnc
+    xki = condipr
 
     return xki
+
+
+@calculation
+def fki(calc_vars):
+    '''Total Ion Thermal Diffusivity from CDF'''
+    xki = calc_vars.xki.values
+    gti = calc_vars.gti.values
+    ti = calc_vars.ti.values
+    rmaj = calc_vars.rmaj.values
+
+    return xki * gti * ti / rmaj
 
 
 @calculation
@@ -1261,22 +1381,24 @@ def calculate_base_variables(calc_vars):
     # same name as the variable it calculates. Note that calculation order
     # matters here.
 
+    dvol_drho(calc_vars)
     # nh0(calc_vars)
     drmin(calc_vars)
     nh(calc_vars)
     ni(calc_vars)
-    ni2(calc_vars)
+    ne(calc_vars)
     ah(calc_vars)
     ai(calc_vars)
     zeff(calc_vars)
     btor(calc_vars)
+    bftorsqrt(calc_vars)
     rhochi(calc_vars)
     bu(calc_vars)
     bpol(calc_vars)
     dbp(calc_vars)
     d2bp(calc_vars)
-    vpar(calc_vars)
     vtor(calc_vars)
+    vpar(calc_vars)
     tf(calc_vars)
     eps(calc_vars)
 
@@ -1419,16 +1541,24 @@ def calculate_additional_variables(calc_vars):
     # curohrho(calc_vars)
 
     # Non essential calculations that may have been removed from memory
+    if calc_vars.xkemmm is not None:
+        xkeetgm(calc_vars)
     if calc_vars.xke is not None:
         xke(calc_vars)
-        xkeetgm(calc_vars)
+        fke(calc_vars)
     if calc_vars.xki is not None:
         xki(calc_vars)
+        fki(calc_vars)
+    if calc_vars.walltime is not None:
+        mmmtime(calc_vars)
 
     # icur(calc_vars)
-    # tmhdf(calc_vars)
+    tmhdf(calc_vars)
 
-    # tbtbe(calc_vars)
+    tbtbe(calc_vars)
+    ebeamsum(calc_vars)
+    rmajm(calc_vars)
+    tfast(calc_vars)
 
 
 def calculate_new_variables(cdf_vars):

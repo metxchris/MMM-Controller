@@ -159,7 +159,8 @@ class PlotData:
     def get_calc_source_str(self):
         """Returns (str): The data source string used in the legend label"""
         # return r'$\mathtt{TRANSP}$' if self.source != 'mmm' else r'$\mathtt{MMM}$'
-        return r'$\mathtt{TRANSP}$' if self.source != 'mmm' else 'Expected'
+        # return r'$\mathtt{TRANSP}$' if self.source != 'mmm' else 'Expected'
+        return ''
 
     def get_data_source_str(self):
         """Returns (str): The data source string used in the legend label"""
@@ -196,17 +197,19 @@ class PlotDataCdf(PlotData):
     * apply_smoothing (bool): kill-switch to disable smoothing of all variables (Optional)
     """
 
-    def __init__(self, runid, zval, yname, xname=None, timeplot=False, runname='', legend='', source='mmm',
+    def __init__(self, runid, yname, xname='rho', zval=0, timeplot=False, runname='', legend='', source='mmm',
                  input_points=None, apply_smoothing=False, ymult=1, xmult=1):
+
+        if xname == 'time':
+            timeplot = True
+
         input_time = zval if not timeplot else None
+
         options = modules.options.Options(
             runid=runid, input_time=input_time, input_points=input_points,
             ignore_exceptions=True, apply_smoothing=apply_smoothing
         )
         mmm_vars, cdf_vars, raw_vars = datahelper.initialize_variables(options)
-
-        if xname is None:
-            xname = 'rho' if not timeplot else 'time'
 
         if source == 'mmm':
             plot_vars = mmm_vars
@@ -387,9 +390,9 @@ class PlotDataCsv(PlotData):
         return yval_base, xval_base
 
 
-class AllPlotData:
+class FigData:
     """
-    Store all individual PlotData objects
+    Store all individual PlotData objects on the figure
 
     Initialization parameters determine plot settings and must be specified as
     keyword arguments.  Plot data is set in a separate call using the set()
@@ -422,8 +425,10 @@ class AllPlotData:
     * ymax_cutoff (float | None): The maximum cutoff y-value to use
     * xmin_cutoff (float | None): The minimum cutoff x-value to use
     * xmax_cutoff (float | None): The maximum cutoff x-value to use
-    * xticks (list[float] | None): The tick marks on the x-axis
-    * yticks (list[float] | None): The tick marks on the y-axis
+    * xticks (np.arange[float] | None): The tick marks on the x-axis
+    * yticks (np.arange[float] | None): The tick marks on the y-axis
+    * savefig (bool): Automatically save the plot without showing it if True
+    * savedata (bool): Automatically save the data as a CSV
     """
 
     def __init__(self, **kwargs):
@@ -455,6 +460,8 @@ class AllPlotData:
         self.xmax_cutoff: float | None = None
         self.xticks: list[float] | None = None
         self.yticks: list[float] | None = None
+        self.savefig: bool = False
+        self.savedata: bool = False
 
         self._set_kwargs(kwargs)
 
@@ -587,7 +594,7 @@ class AllPlotData:
             if hasattr(self, key):
                 setattr(self, key, value)
             else:
-                _log.error(f'\n\t"{key}" is not a valid parameter for AllPlotData')
+                _log.error(f'\n\t"{key}" is not a valid parameter for FigData')
 
     @staticmethod
     def _get_units_str(units):
@@ -698,15 +705,6 @@ class AllPlotData:
         xmin, xmax = -np.inf, np.inf
         ymin, ymax = -np.inf, np.inf
 
-        if self.xmin_cutoff is not None:
-            xmin = max(xmin, self.xmin)
-        if self.xmax_cutoff is not None:
-            xmax = min(xmax, self.xmax)
-        if self.ymin_cutoff is not None:
-            ymin = max(ymin, self.ymin)
-        if self.ymax_cutoff is not None:
-            ymax = min(ymax, self.ymax)
-
         # Set strict axes boundaries
         if self.xmin is not None:
             xmin = self.xmin
@@ -732,6 +730,15 @@ class AllPlotData:
             ymin = all_yvals[~np.isnan(all_yvals)].min()
         if ymax == np.inf:
             ymax = all_yvals[~np.isnan(all_yvals)].max()
+
+        if self.xmin_cutoff is not None:
+            xmin = max(xmin, self.xmin_cutoff)
+        if self.xmax_cutoff is not None:
+            xmax = min(xmax, self.xmax_cutoff)
+        if self.ymin_cutoff is not None:
+            ymin = max(ymin, self.ymin_cutoff)
+        if self.ymax_cutoff is not None:
+            ymax = min(ymax, self.ymax_cutoff)
 
         # Set cutoff values for each axis
 
@@ -944,7 +951,7 @@ class AllPlotData:
         Save plotted data to a CSV
 
         Data is saved in the order it is generated, so the first CSV column
-        will be the first variable defined in AllPlotData, etc.  Filenames
+        will be the first variable defined in FigData, etc.  Filenames
         are chosen as sequentially increasing integers.
 
         Raises:
@@ -952,7 +959,7 @@ class AllPlotData:
         * FileNotFoundError: If the file cannot be found after saving it
         """
 
-        show_save_message = False
+        show_save_message = True
 
         if not file_name:  # Automatically generate the save name using a unique number
             show_save_message = True
@@ -995,12 +1002,12 @@ class AllPlotData:
             print(f'Plot Data Saved:\n\t{file_name}\n')  # Intentionally not using logging
 
 
-def main(all_data, savefig=False, savedata=False):
+def main(fig_data, savefig=False, savedata=False):
     """
     Create a plot using data loaded from CDF files
 
     This method advances the plot cycler twice for each variable in
-    AllPlotData, by plotting twice for each variable.  The first plot is a
+    FigData, by plotting twice for each variable.  The first plot is a
     line of the normal data for the variable, and the second plot is a single
     point of the base value for the previously plotted line.  When a variable
     contains no base values, as is the case when not plotting a specific
@@ -1009,7 +1016,7 @@ def main(all_data, savefig=False, savedata=False):
     directly increment the cycler.
 
     Parameters:
-    * all_data (AllPlotData): Object containing all PlotData objects
+    * fig_data (FigData): Object containing all PlotData objects
     * savefig (bool): Automatically save the plot without showing it if True
     * savedata (bool): Automatically save the data as a CSV
     """
@@ -1032,25 +1039,25 @@ def main(all_data, savefig=False, savedata=False):
                 plt.rcParams.update({'savefig.format': save_format})
 
         if event.key == 'alt+s':  # save plot lines to csv
-            all_data.save_to_csv()
+            fig_data.save_to_csv()
 
     fig, ax = plt.gcf(), plt.gca()
     fig.canvas.mpl_connect('key_press_event', on_press)
 
-    for d in all_data.data:
+    for d in fig_data.data:
         # x = d.xvals[np.absolute(d.yvals) > 1e-1]
         # y = d.yvals[np.absolute(d.yvals) > 1e-1]
-        # ax.semilogx(x, y, label=all_data.get_legend_label(d))
+        # ax.semilogx(x, y, label=fig_data.get_legend_label(d))
         # ax.plot([],[])
 
-        ax.plot(d.xvals, d.yvals, label=all_data.get_legend_label(d))
+        ax.plot(d.xvals, d.yvals, label=fig_data.get_legend_label(d))
         ax.plot(d.xval_base, d.yval_base, zorder=3)  # Advance the cycler when base values are empty lists
 
-    xlims, ylims = all_data.get_plot_limits()
+    xlims, ylims = fig_data.get_plot_limits()
     ax.set(xlim=xlims, ylim=ylims)  # lims need to be set before getting offsetText
 
     offset_text_x = offset_text_y = ''
-    if all_data.replace_offset_text:
+    if fig_data.replace_offset_text:
         fig.canvas.draw()  # needed to populate the offsetText string
         ax.xaxis.offsetText.set_visible(False)
         ax.yaxis.offsetText.set_visible(False)
@@ -1058,48 +1065,48 @@ def main(all_data, savefig=False, savedata=False):
         offset_text_y = ax.yaxis.offsetText.get_text()
 
     ax.set(
-        title=all_data.get_plot_title(),
-        xlabel=all_data.get_plot_xlabel(offset_text_x),
-        ylabel=all_data.get_plot_ylabel(offset_text_y),
+        title=fig_data.get_plot_title(),
+        xlabel=fig_data.get_plot_xlabel(offset_text_x),
+        ylabel=fig_data.get_plot_ylabel(offset_text_y),
     )
 
-    if all_data.xticks is not None:
-        plt.xticks(all_data.xticks)
+    if fig_data.xticks is not None:
+        plt.xticks(fig_data.xticks)
 
-    if all_data.yticks is not None:
-        plt.yticks(all_data.yticks)
+    if fig_data.yticks is not None:
+        plt.yticks(fig_data.yticks)
 
-    if all_data.show_legend:
+    if fig_data.show_legend or True:
         ax.legend().set_draggable(state=True)
 
-    if savefig or savedata:
-        ynames_list = list(set([d.yname for d in all_data.data]))
+    if fig_data.savefig or fig_data.savedata:
+        ynames_list = list(set([d.yname for d in fig_data.data]))
         ynames_list.sort()
         ynames = ''.join(ynames_list)
 
         # These flags are based on the first variable being plotted
-        if all_data.data[0].options.use_gnezero:
+        if fig_data.data[0].options.use_gnezero:
             ynames = f'{ynames}_gne0'
-        if all_data.data[0].options.use_gtezero:
+        if fig_data.data[0].options.use_gtezero:
             ynames = f'{ynames}_gte0'
-        if all_data.data[0].options.use_gtizero:
+        if fig_data.data[0].options.use_gtizero:
             ynames = f'{ynames}_gti0'
-        if all_data.data[0].options.use_gneabs:
+        if fig_data.data[0].options.use_gneabs:
             ynames = f'{ynames}_gneabs'
-        if all_data.savename_append:
-            ynames = f'{ynames}_{all_data.savename_append}'
-        if all_data.data[0].timeplot:
+        if fig_data.savename_append:
+            ynames = f'{ynames}_{fig_data.savename_append}'
+        if fig_data.data[0].timeplot:
             ynames = f'{ynames}_time'
 
-        savedir_base = f'{utils.get_plotting_singles_path()}\\{all_data.data[0].options.runid}'
+        savedir_base = f'{utils.get_plotting_singles_path()}\\{fig_data.data[0].options.runid}'
         utils.create_directory(savedir_base)
 
-    if savedata:
+    if fig_data.savedata:
         savedir = f'{savedir_base}\\data'
         utils.create_directory(savedir)
-        all_data.save_to_csv(f'{savedir}\\{ynames}')
+        fig_data.save_to_csv(f'{savedir}\\{ynames}')
 
-    if savefig:
+    if fig_data.savefig:
         savedir = f'{savedir_base}\\figures'
         utils.create_directory(savedir)
         fig.savefig(f'{savedir}\\{ynames}')
@@ -1117,7 +1124,7 @@ if __name__ == '__main__':
     PlotStyles(
         axes=StyleType.Axes.WHITE,
         lines=StyleType.Lines.RHO_MMM,
-        layout=StyleType.Layout.SINGLE1B,
+        layout=StyleType.Layout.AIP3,
     )
 
     plt.rcParams.update({
@@ -1125,10 +1132,10 @@ if __name__ == '__main__':
     })
 
     # Define settings for the plot
-    all_data = AllPlotData(
-        replace_offset_text=1,
-        allow_title_runid=1,
-        allow_title_time=1,
+    fig_data = FigData(
+        replace_offset_text=0,
+        allow_title_runid=0,
+        allow_title_time=0,
         allow_title_factor=1,
         allow_title_rho=1,
         invert_y_axis=False,
@@ -1138,10 +1145,12 @@ if __name__ == '__main__':
         title_override=' ',
         ylabel_override='',
         xlabel_override='',
+        savefig=False,
+        savedata=True,
     )
 
     # Define data for the plot (Examples shown below)
-    all_data.set(
+    fig_data.set(
         # CDF: Same y-variable, different x-variables
         # PlotDataCdf(runid='138536A01', yname='te', xname='rmina', zval=0.50),
         # PlotDataCdf(runid='138536A01', yname='te', xname='rho', zval=0.50),
@@ -1177,7 +1186,7 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='138536A01', yname='gmaETGM', xname='var_to_scan', scan_num=55, rho_value=0.39, runname=r'NEW'),
     )
 
-    all_data.set(
+    fig_data.set(
 
         # PlotDataCdf(runid='129016A03', yname='te', xname='rho', zval=0.395, legend='Experiment'),
         # PlotDataCdf(runid='129016Q50', yname='te', xname='rho', zval=0.395, legend='Off'),
@@ -1244,13 +1253,42 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='138536A01', yname='epa', xname='rho', zval=0.629),
         # PlotDataCdf(runid='138536A01', yname='tmhdf', xname='rho', zval=0.629),
         # PlotDataCdf(runid='138536A01', yname='pmhdf', xname='rho', zval=0.629),
+
         # PlotDataCdf(runid='138536A01', yname='nf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='nfd', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='nfmp', xname='rho', zval=0.629),
+
+        # PlotDataCdf(runid='138536A01', yname='nfmp', xname='rmajm', zval=0.629),
+
+        # PlotDataCdf(runid='138536A01', yname='ebeamsum', xname='rmajm', zval=0.629),
+
+        # PlotDataCdf(runid='138536A01', yname='dvol', xname='rho', zval=0.629),
+
+        # PlotDataCdf(runid='138536A01', yname='rmaj', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='rmajm', xname='rho', zval=0.629),
+
         # PlotDataCdf(runid='138536A01', yname='ebeam', xname='rho', zval=0.629),
-        # PlotDataCdf(runid='138536A01', yname='ebeamr', xname='rho', zval=0.629),
-        # PlotDataCdf(runid='138536A01', yname='ebeamr', xname='rho', zval=0.6),
+        # PlotDataCdf(runid='138536A01', yname='ebeampp', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='ebeampl', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='ebeamsum', xname='rho', zval=0.629),
+
+        # PlotDataCdf(runid='138536A01', yname='tf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='tmhdf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='tbtbe', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='tfast', xname='rho', zval=0.629),
+
+        # PlotDataCdf(runid='138536A01', yname='bpshi', xname='time', zval=0.629),
+
+        # PlotDataCdf(runid='138536A01', yname='gr2i', xname='rho', zval=0.629),
+
+        # PlotDataCdf(runid='138536A01', yname='pmhdf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='p', xname='rho', zval=0.629),
         # PlotDataCdf(runid='138536A01', yname='ebeamr', xname='rho', zval=0.58),
 
-        # PlotDataCdf(runid='138536A01', yname='tmhdf', xname='rho', zval=0.58),
+        # PlotDataCdf(runid='138536A01', yname='tf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='tmhdf', xname='rho', zval=0.629),
+        # PlotDataCdf(runid='138536A01', yname='tbtbe', xname='rho', zval=0.629),
+
         # PlotDataCdf(runid='138536A01', yname='ebeam', xname='rho', zval=0.0),
         # PlotDataCdf(runid='138536A01', yname='tf', xname='rho', zval=0.8),
         # PlotDataCdf(runid='138536A01', yname='gtf', xname='rho', zval=0.8),
@@ -1310,6 +1348,7 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='138536A01', yname='gnh', xname='rho', zval=0.629, apply_smoothing=1, input_points=101),
         # PlotDataCsv(runid='138536A01', yname='q', xname='rho', scan_num=253),
         # PlotDataCdf(runid='138536A01', yname='etanc', xname='rho', zval=0.629),
+
 
         # PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=547, legend=r'Old', scan_factor=0.001),
         # PlotDataCsv(runid='138536A01', yname='gmaEPM', xname='rho', scan_num=551, legend=r'New', scan_factor=0.001),
@@ -1564,6 +1603,22 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=10, legend=r'$n = 100\ \,$ (Exp.)'),
         # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=11, legend=r'$n = 200\ \,$ (Exp.)'),
 
+        # # NEW NSTX COLLISIONALITY COMPARISON (9.0.4)
+        # PlotDataCsv(runid='120968A02', yname='gmaMTM', xname='rmina', scan_num=13300, legend=r'High'),
+        # PlotDataCsv(runid='120982A09', yname='gmaMTM', xname='rmina', scan_num=13300, legend=r'Low'),
+        # xmax=0.8,
+
+   
+        # PlotDataCdf(runid='138536W03', yname='ti', xname='rho', zval=0.755, legend=r'MMM'),
+        # PlotDataCdf(runid='138536A01', yname='ti', legend=r'Analysis', zval=0.755, source='mmm'),
+        # xmax=1,
+
+        # PlotDataCdf(runid='138536W03', yname='xki', xname='rho', zval=0.755, legend=r'$\chi_{\rm i, tot}$'),
+        # PlotDataCdf(runid='138536W03', yname='xkimmm', xname='rho', zval=0.755, legend=r'$\chi_{\rm i, MMM}$'),
+        # PlotDataCdf(runid='138536W03', yname='xkemmm', xname='rho', zval=0.755, legend=r'$\chi_{\rm e, MMM}$'),
+        # xmax=1, ymin=0, ymax=35,
+
+
         # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=10, legend=r'$\mathtt{Exp.}$ 200'),
         # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=11, legend=r'$\mathtt{Lin.}$ 4000'),
         # PlotDataCsv(runid='121123K55', yname='xteMTM', xname='rho', scan_num=12, legend=r'$\mathtt{Converged}$'),
@@ -1704,6 +1759,7 @@ if __name__ == '__main__':
 
         # PlotDataCdf(runid='129016W50', yname='walltime', xname='time', zval=0.5, timeplot=True, legend='v9.0.6 Enabled'),
         # PlotDataCdf(runid='129016W51', yname='walltime', xname='time', zval=0.5, timeplot=True, legend='v9.0.6 Disabled'),
+        # xmax=0.35
 
         # PlotDataCdf(runid='129016Q69', yname='walltime', xname='time', zval=0.5, timeplot=True, legend='v8.2.3 Enabled'),
         # PlotDataCdf(runid='129016Q70', yname='walltime', xname='time', zval=0.5, timeplot=True, legend='v8.2.3 Disabled'),
@@ -1824,89 +1880,324 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='129016Z30', yname='xkimmm', xname='rho', zval=0.32, legend=r'Axial + Edge Active + ETG'),
         # PlotDataCdf(runid='129016Z31', yname='xkimmm', xname='rho', zval=0.32, legend=r'Axial + Edge Active'),
         # PlotDataCdf(runid='129016Z33', yname='xkimmm', xname='rho', zval=0.32, legend=r'Confinement Only'), 
-
-        ## 32000 vs 8000 PTCLS
-        # PlotDataCdf(runid='129016Z33', yname='ti', xname='rho', zval=0.500, legend='NPTCLS=32000'),
-        # PlotDataCdf(runid='129016Z35', yname='ti', xname='rho', zval=0.500, legend='NPTCLS=8000'),
-        ## ---------------------------------------------------------------------------
-
-
-        ## TESTING PPHI
-        # PlotDataCdf(runid='129016Z29', yname='xkemtm', xname='rho', zval=0.32, legend=r'$\mathtt{lpredict\_pphi=0}$'),
-        # PlotDataCdf(runid='129016Z24', yname='xkemtm', xname='rho', zval=0.32, legend=r'$\mathtt{lpredict\_pphi=1}$'),
         
-        # PlotDataCdf(runid='129016Z31', yname='xkemtm', xname='rho', zval=0.32, legend=r'All Regions'),
-        # PlotDataCdf(runid='129016Z30', yname='xkemtm', xname='rho', zval=0.32, legend=r'All Regions + pphi enabled'),
-        # PlotDataCdf(runid='129016Z33', yname='te', xname='rho', zval=0.32, legend=r'v9 Confinement Only'), 
+        # PlotDataCdf(runid='120968A02', yname='bpol', zval=0.5, legend='CDF', source='cdf'),
+        # PlotDataCsv(runid='120968A02', yname='bpol', scan_num=74, legend=r'modmmm'),
+        # PlotDataCsv(runid='120968A02', yname='bpol', scan_num=75, legend=r'pt$\_$mmm$\_$mod'),
 
-        ## MMM 8 vs 9
-        # PlotDataCdf(runid='129016Z29', yname='xkew20', xname='rho', zval=0.300, legend='MMM 8.2.1'),
-        # PlotDataCdf(runid='129016Z33', yname='xkew20', xname='rho', zval=0.300, legend='MMM 9.0.7'),
+        # PlotDataCdf(runid='120968A02', yname='shear', xname='rho', zval=0.5, legend='CDF', source='cdf'),
+        # PlotDataCsv(runid='120968A02', yname='gti', xname='rho', scan_num=78, legend=r'interp, trad'),
+        # PlotDataCsv(runid='120968A02', yname='gti', xname='rho', scan_num=79, legend=r'interp, interp'),
+        # PlotDataCsv(runid='120968A02', yname='gti', xname='rho', scan_num=80, legend=r'akima, trad'),
+        # PlotDataCsv(runid='120968A02', yname='gti', xname='rho', scan_num=81, legend=r'akima, interp'),
+
+        # PlotDataCsv(runid='120968A02', yname='gti', xname='rho', scan_num=78, legend=r'interp1d'),
+        # PlotDataCsv(runid='120968A02', yname='gti', xname='rho', scan_num=80, legend=r'Akima'),
+        # title_override='120968 (0.559s)',
+
+        # PlotDataCdf(runid='120968W34', yname='xke', legend=r'$\chi_{\mathrm{e, total}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120968W34', yname='condepr', legend=r'$\chi_{\mathrm{e, condepr}}$', zval=0.559, source='cdf'),
+        # PlotDataCdf(runid='120968W34', yname='xkemmm',legend=r'$\chi_{\mathrm{e, mmm}}$', zval=0.559, source='cdf'),
+        # PlotDataCdf(runid='120968W34', yname='xkeetgm',legend=r'$\chi_{\mathrm{e, etgm}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120968W34', yname='xkepaleo', legend=r'$\chi_{\mathrm{e, paleo}}$', zval=0.559, source='cdf'),
+        # PlotDataCdf(runid='120968W34', yname='xkemtm', legend=r'$\chi_{\mathrm{e, mtm}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120968W34', yname='xkew20', legend=r'$\chi_{\mathrm{e, w20}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120968W34', yname='condewnc', xname='rho', zval=0.559, source='cdf'),
+        # title_override='120968', xmin=0.02,
+
+        # PlotDataCdf(runid='120968W34', yname='xki', legend=r'$\chi_{\mathrm{i, total}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120968W34', yname='condipr', legend=r'$\chi_{\mathrm{i, condipr}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120968W34', yname='xkimmm', legend=r'$\chi_{\mathrm{i, mmm}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120968W34', yname='condiwnc', legend=r'$\chi_{\mathrm{i, neo}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120968W34', yname='xkiw20', legend=r'$\chi_{\mathrm{i, w20}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120968W34', yname='xkiw20', legend=r'$\chi_{\mathrm{i, w20}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120968W34', yname='condewnc', xname='rho', zval=0.559, source='cdf'),
+        # title_override='120968', xmin=0.02,
+
+        # PlotDataCdf(runid='120982W31', yname='xki', legend=r'$\chi_{\mathrm{i, total}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120982W31', yname='condipr', legend=r'$\chi_{\mathrm{i, condipr}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120982W31', yname='xkimmm', legend=r'$\chi_{\mathrm{i, mmm}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120982W31', yname='condiwnc', legend=r'$\chi_{\mathrm{i, neo}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120982W31', yname='xkiw20', legend=r'$\chi_{\mathrm{i, w20}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120968W34', yname='xkiw20', legend=r'$\chi_{\mathrm{i, w20}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120968W34', yname='condewnc', xname='rho', zval=0.559, source='cdf'),
+        # title_override='120982', xmin=0.02,
+
+        # PlotDataCdf(runid='120982W31', yname='xki', legend=r'$\chi_{\mathrm{i, total}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120982W31', yname='condipr', legend=r'$\chi_{\mathrm{i, condipr}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120982W31', yname='xkimmm', legend=r'$\chi_{\mathrm{i, mmm}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120982W31', yname='condiwnc', legend=r'$\chi_{\mathrm{i, neo}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120982W31', yname='fkch2', legend=r'$\chi_{\mathrm{i, fkch2}}$', zval=0.559, source='cdf'),
+        # PlotDataCdf(runid='120982W31', yname='fkchh', legend=r'$\chi_{\mathrm{i, fkchh}}$', zval=0.559, source='cdf'),
+        # PlotDataCdf(runid='120982W31', yname='fkchz', legend=r'$\chi_{\mathrm{i, fkchz}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120982W31', yname='xkiw20', legend=r'$\chi_{\mathrm{i, w20}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120968W34', yname='xkiw20', legend=r'$\chi_{\mathrm{i, w20}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120968W34', yname='condewnc', xname='rho', zval=0.559, source='cdf'),
+        # title_override='120982', xmin=0.02,
+
+        # PlotDataCdf(runid='18476T02', yname='xki', legend=r'$\chi_{\mathrm{i, total}}$', zval=7, source='mmm'),
+        # PlotDataCdf(runid='18476T02', yname='condipr', legend=r'$\chi_{\mathrm{i, condipr}}$', zval=7, source='cdf'),
+        # PlotDataCdf(runid='18476T02', yname='xkimmm', legend=r'$\chi_{\mathrm{i, mmm}}$', zval=7, source='cdf'),
+        # PlotDataCdf(runid='18476T02', yname='condiwnc', legend=r'$\chi_{\mathrm{i, neo}}$', zval=7, source='cdf'),
+        # # PlotDataCdf(runid='18476T02', yname='fkch2', legend=r'$\chi_{\mathrm{i, fkch2}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='18476T02', yname='fkchh', legend=r'$\chi_{\mathrm{i, fkchh}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='18476T02', yname='fkchz', legend=r'$\chi_{\mathrm{i, fkchz}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120982W31', yname='xkiw20', legend=r'$\chi_{\mathrm{i, w20}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120968W34', yname='xkiw20', legend=r'$\chi_{\mathrm{i, w20}}$', zval=0.559, source='cdf'),
+        # # PlotDataCdf(runid='120968W34', yname='condewnc', xname='rho', zval=0.559, source='cdf'),
+        # title_override='18476', xmin=0.02, ymax=6, xmax=0.8,
+
+        # PlotDataCdf(runid='120968W34', yname='xki', legend=r'$\chi_{\mathrm{i, total}}$', zval=0.559, source='mmm'),
+        # PlotDataCdf(runid='120968W34', yname='condipr', legend=r'$\chi_{\mathrm{i, condipr}}$', zval=0.559, source='cdf'),
+        # PlotDataCdf(runid='120968W34', yname='xkimmm', legend=r'$\chi_{\mathrm{i, mmm}}$', zval=0.559, source='cdf'),
+        # PlotDataCdf(runid='120968W34', yname='condiwnc', legend=r'$\chi_{\mathrm{i, neo}}$', zval=0.559, source='cdf'),
+        # title_override='120968', xmin=0.02, xmax=0.8,
+
+        # PlotDataCdf(runid='129016W16', yname='xkemmm',  zval=0.533, source='cdf'),
+        # PlotDataCdf(runid='129016W16', yname='xkew20',  zval=0.533, source='cdf'),
+        # PlotDataCdf(runid='129016W16', yname='xkeetgm', zval=0.533, source='mmm'),
+        # PlotDataCdf(runid='129016W16', yname='xkemtm',  zval=0.533, source='cdf'),
+        # PlotDataCdf(runid='129016W16', yname='xkedrbm',  zval=0.533, source='cdf'),
+        # title_override='129016', xmin=0.02, xmax=0.8,
+
+        # PlotDataCdf(runid='129016W12', yname='mmmtime', xname='time', legend='Default', source='mmm'),
+        # PlotDataCdf(runid='129016W21', yname='mmmtime', xname='time', legend=r'$g \geq 1$', source='mmm'),
+        # PlotDataCdf(runid='129016W22', yname='mmmtime', xname='time', legend=r'$g \geq 1$, 0 PT', source='mmm'),
         # title_override='129016',
-        # PlotDataCdf(runid='129016A03', yname='ti', xname='rho', zval=0.35, legend='Experiment'),
-        # PlotDataCdf(runid='129016Z21', yname='ti', xname='rho', zval=0.35, legend='MMM Disabled'),
-        ## ---------------------------------------------------------------------------
 
-        ## MMM 8 vs 9 + ETGM
-        # PlotDataCdf(runid='129016Z29', yname='te', xname='rho', zval=0.4, legend='MMM 8.2.1'),
-        PlotDataCdf(runid='129016Z36', yname='xkeetgm', xname='rho', zval=0.5, legend='MMM 9.0.7'),
-        PlotDataCdf(runid='129016A03', yname='xkeetgm', xname='rho', zval=0.5, legend='Experiment'),
-        # PlotDataCdf(runid='129016Z21', yname='ti', xname='rho', zval=0.35, legend='MMM Disabled'),
-        # title_override='129016',
-        ## ---------------------------------------------------------------------------
+        # PlotDataCdf(runid='129016W12', yname='mmmtime', xname='time', legend=r'9.0.7', source='mmm'),
+        # PlotDataCdf(runid='129016W24', yname='mmmtime', xname='time', legend=r'9.0.9', source='mmm'),
+        # PlotDataCdf(runid='129016W23', yname='mmmtime', xname='time', legend=r'9.0.9 $g \geq 1$', source='mmm'),
+        # title_override='129016', 
 
-        ## WALLTIME
-        # PlotDataCdf(runid='129016Z29', yname='walltime', xname='time', timeplot=True, zval=0.37, legend='WALLTIME'),
-        # PlotDataCdf(runid='129016Z29', yname='cpmcfi', xname='time', timeplot=True, zval=0.37, legend='CPMCFI'),
-        # title_override='MMM v8.2.1', xmax=0.37, ymax=1.75,
+        # PlotDataCdf(runid='120982A09', yname='ne', xname='rho', source='cdf'),
+        # PlotDataCdf(runid='120982A09', yname='ne', xname='rho', source='mmm'),
+        # PlotDataCdf(runid='120982A09', yname='ni', xname='rho', source='mmm'),
+        # title_override='129016', 
 
-        # PlotDataCdf(runid='129016Z33', yname='walltime', xname='time', timeplot=True, zval=0.37, legend='WALLTIME'),
-        # PlotDataCdf(runid='129016Z33', yname='cpmcfi', xname='time', timeplot=True, zval=0.37, legend='CPMCFI'),
-        # title_override='MMM v9.0.7', xmax=0.37, ymax=1.75,
+        # PlotDataCdf(runid='120982A09', yname='nf', xname='rho', source='cdf'),
+        # # PlotDataCdf(runid='120982A09', yname='nh', xname='rho', source='mmm'),
+        # PlotDataCdf(runid='120982A09', yname='nz', xname='rho', source='mmm'),
+        # title_override='120982A09', 
 
-        # PlotDataCdf(runid='129016Z35', yname='walltime', xname='time', timeplot=True, zval=0.37, legend='WALLTIME'),
-        # PlotDataCdf(runid='129016Z35', yname='cpmcfi', xname='time', timeplot=True, zval=0.37, legend='CPMCFI'),
-        # title_override='MMM v9.0.7 (8000 PTCLS)',
-        ## ---------------------------------------------------------------------------
+        # PlotDataCdf(runid='129016W12', yname='condepr', xname='rho', zval=0.5, source='cdf'),
+        # PlotDataCdf(runid='129016W12', yname='nh0', xname='rho',   zval=0.5,  source='cdf'),
+        # PlotDataCdf(runid='129016W12', yname='nd', xname='rho',   zval=0.5,  source='cdf'),
+        # PlotDataCdf(runid='129016W12', yname='nt', xname='rho',   zval=0.5,  source='cdf'),
+        # PlotDataCdf(runid='129016W12', yname='nhe3', xname='rho',   zval=0.5,  source='cdf'),
+        # PlotDataCdf(runid='129016W12', yname='nhe4', xname='rho',   zval=0.5,  source='cdf'),
+        # title_override='129016', 
 
-        # PlotDataCdf(runid='129016Z21', yname='ti', xname='rho', zval=0.45, legend='MMM 9 Disabled'),
-        # PlotDataCdf(runid='129016Z31', yname='ti', xname='rho', zval=0.45, legend='MMM 9.0.7'),
-        # PlotDataCdf(runid='129016Z33', yname='ti', xname='rho', zval=0.45, legend='MMM 9.0.7'),
-        # PlotDataCdf(runid='129016A03', yname='ti', xname='rho', zval=0.45, legend='Experiment'),
+        # PlotDataCdf(runid='120968A02', yname='bpol', zval=0.5, legend='cdf', source='cdf'),
+        # PlotDataCdf(runid='120968A02', yname='bpol', zval=0.5, legend='mmm', source='mmm'),
+        # title_override='120968A02', 
 
-        # Compare TR.DAT Settings:
-        # PlotDataCdf(runid='129016Z24', yname='xkimmm', xname='rho', zval=0.3, legend=r'Revised TR.DAT'),
-        # PlotDataCdf(runid='129016Z27', yname='xkimmm', xname='rho', zval=0.3, legend=r'Original TR.DAT'), # original TR.DAT
+        # PlotDataCdf(runid='129016W25', yname='omega', zval=0.51, legend='9.0.7 Only Confinement', source='cdf'),
+        # PlotDataCdf(runid='129016W26', yname='omega', zval=0.51, legend='9.0.7 All three regions', source='cdf'),
+        # PlotDataCdf(runid='129016W13', yname='omega', zval=0.51, legend='Analysis', source='cdf'),
+        # title_override='129016', 
+
+        # PlotDataCdf(runid='147634T61', yname='gne', zval=2.53, legend='9.0.7 Only Confinement', source='mmm'),
+        # PlotDataCdf(runid='129016W26', yname='omega', zval=0.51, legend='9.0.7 All three regions', source='cdf'),
+        # PlotDataCdf(runid='129016W13', yname='omega', zval=0.51, legend='Analysis', source='cdf'),
+        # title_override='129016', 
+
+        # PlotDataCdf(runid='120968W34', yname='ti', legend=r'MMM', zval=0.51),
+        # PlotDataCdf(runid='120968A02', yname='ti', legend=r'Analysis', zval=0.51),
 
 
-        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=21, legend='All terms'),
-        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=22, legend='without zamr(4,5)'),
-        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=16, legend='Original'),
-        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=18, legend='+ zami(2,6)'),
-        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=20, legend='+ New Vorticity Eq.'),
-        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=15, legend='Original'),
-        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=17, legend='+ zami(2,6)'),
-        # PlotDataCsv(runid='120982A09', yname='gmaDBM', xname='kyrhosDBM', rho_value=0.8, scan_num=19, legend='+ New Vorticity Eq.'),
-        # PlotDataCsv(runid='138536A01', yname='xdiDBM', xname='rho', scan_num=36),
-        # PlotDataCsv(runid='138536A01', yname='gmaDBM', xname='rho', scan_num=24),
-        # PlotDataCsv(runid='138536A01', yname='omgDBM', xname='rho', scan_num=24),
-        # PlotDataCsv(runid='138536A01', yname='xteDBM', xname='rho', scan_num=25),
-        # PlotDataCsv(runid='138536A01', yname='xteDBM', xname='rho', scan_num=26),
-        # PlotDataCsv(runid='138536A01', yname='xteDBM', xname='rho', scan_num=24),
-        # PlotDataCsv(runid='138536A01', yname='xtiDBM', xname='rho', scan_num=23),
-        # PlotDataCsv(runid='138536A01', yname='xdiDBM', xname='rho', scan_num=23),
-        # PlotDataCsv(runid='138536A01', yname='gaveDBM', xname='rho', scan_num=23),
-        # PlotDataCsv(runid='138536A01', yname='kyrhosDBM', xname='rho', scan_num=24),
-        # PlotDataCsv(runid='138536A01', yname='satDBM', xname='rho', scan_num=23),
-        # PlotDataCsv(runid='120968A02', yname='xdi', xname='rho', scan_num=11, scan_factor=0.51),
-        # PlotDataCsv(runid='120968A02', yname='xdi', xname='rho', scan_num=31),
-        # PlotDataCsv(runid='120968A02', yname='wexb', xname='rho', scan_num=7),
-        # PlotDataCsv(runid='16325T10', yname='vcz', xname='rho', scan_num=2, legend='Disabled MMM8.1'),
-        # PlotDataCsv(runid='16325T10', yname='vcz', xname='rho', scan_num=3, legend='Fixed MMM8.1'),
-        # PlotDataCsv(runid='118341T54', yname='xte', xname='rho', scan_num=197, scan_factor=6, legend='Original'),
-        # PlotDataCsv(runid='118341T54', yname='xte', xname='rho', scan_num=204, scan_factor=6, legend=r'60% Faster'),
-        # PlotDataCdf(runid='120968A02', yname='wexb', xname='rho', zval=0.629),
-        # ymax=4,ymin=0,xmin=0.2,xmax=0.8,
+
+        # ------------------------------------------------------------------------------- #
+
+
+        # PlotDataCdf(runid='120968W34', yname='ti', xname='x', legend=r'MMM', zval=0.56, source='raw', ymult=1e-3),
+        # PlotDataCdf(runid='120968A02', yname='ti', xname='x', legend=r'Analysis', zval=0.56, source='raw', ymult=1e-3),
+        # title_override='120968 (W34, A02), t = 0.56$\,$s',
+        # xmin=0, xmax=1, ymin=0, ymax=1, ylabel_override=r'$T_{\rm i}$ (keV)'
+
+        # PlotDataCdf(runid='120968W34', yname='te', xname='x', legend=r'MMM',      zval=0.56, source='raw', ymult=1e-3),
+        # PlotDataCdf(runid='120968A02', yname='te', xname='x', legend=r'Analysis', zval=0.56, source='raw', ymult=1e-3),
+        # title_override='120968 (W34, A02), t = 0.56$\,$s',
+        # xmin=0, xmax=1, ymin=0, ymax=1, ylabel_override=r'$T_{\rm e}$ (keV)'
+
+        # PlotDataCdf(runid='120982W31', yname='ti', xname='x', legend=r'MMM',      zval=0.62, source='raw', ymult=1e-3),
+        # PlotDataCdf(runid='120982A09', yname='ti', xname='x', legend=r'Analysis', zval=0.62, source='raw', ymult=1e-3),
+        # title_override='120968 (W34, A02), t = 0.62$\,$s',
+        # xmin=0, xmax=1, ymin=0, ymax=1.6, ylabel_override=r'$T_{\rm i}$ (keV)',
+        # yticks=np.arange(0, 1.8, step=0.4)
+
+        # PlotDataCdf(runid='120982W31', yname='te', xname='x', legend=r'MMM',      zval=0.62, source='raw', ymult=1e-3),
+        # PlotDataCdf(runid='120982A09', yname='te', xname='x', legend=r'Analysis', zval=0.62, source='raw', ymult=1e-3),
+        # title_override='120968 (W34, A02), t = 0.62$\,$s',
+        # xmin=0, xmax=1, ymin=0, ymax=1, ylabel_override=r'$T_{\rm e}$ (keV)',
+        # yticks=np.arange(0, 1.8, step=0.4)
+
+        # PlotDataCdf(runid='138536W03', yname='ti', xname='x', legend=r'MMM', zval=0.755, source='raw', ymult=1e-3),
+        # PlotDataCdf(runid='138536A01', yname='ti', xname='x', legend=r'Analysis', zval=0.755, source='raw', ymult=1e-3),
+        # title_override='138536 (W03, A01), t = 0.755$\,$s',
+        # xmin=0, xmax=1, ymin=0, ymax=1.2, ylabel_override=r'$T_{\rm i}$ (keV)'
+
+        # PlotDataCdf(runid='138536W03', yname='te', xname='x', legend=r'MMM', zval=0.755, source='raw', ymult=1e-3),
+        # PlotDataCdf(runid='138536A01', yname='te', xname='x', legend=r'Analysis', zval=0.755, source='raw', ymult=1e-3),
+        # title_override='138536 (W03, A01), t = 0.755$\,$s',
+        # xmin=0, xmax=1, ymin=0, ymax=1.2, ylabel_override=r'$T_{\rm e}$ (keV)'
+  
+        # PlotDataCdf(runid='138536W03', yname='condipr', xname='x', legend=r'$\chi_{\rm i, tot}$', zval=0.755, source='raw', ymult=1e-4),
+        # PlotDataCdf(runid='138536W03', yname='xkimmm', xname='x',  legend=r'$\chi_{\rm i, MMM}$', zval=0.755, source='raw', ymult=1e-4),
+        # PlotDataCdf(runid='138536W03', yname='xkemmm', xname='x',  legend=r'$\chi_{\rm e, MMM}$', zval=0.755, source='raw', ymult=1e-4),
+        # title_override='138536 (W03), t = 0.755$\,$s',
+        # xmin=0, xmax=1, ymin=0, ylabel_override=r'(m$^2$/s)'
+
+        # PlotDataCdf(runid='120968W34', yname='condipr', xname='x', legend=r'$\chi_{\rm i, tot}$', zval=0.51, source='raw', ymult=1e-4),
+        # PlotDataCdf(runid='120968W34', yname='xkimmm', xname='x', legend=r'$\chi_{\rm i, MMM}$', zval=0.51, source='raw', ymult=1e-4),
+        # PlotDataCdf(runid='120968W34', yname='xkemmm', xname='x', legend=r'$\chi_{\rm e, MMM}$', zval=0.51, source='raw', ymult=1e-4),
+        # title_override=r'120968 (W34), t = 0.51$\,$s',
+        # xmin=0, xmax=1, ymin=0, ylabel_override=r'(m$^2$/s)'
+
+
+        ## FIG 10
+
+        # PlotDataCdf(runid='120982W31', yname='ti', xname='x', legend=r'MMM',      zval=0.62, source='raw', ymult=1e-3),
+        # PlotDataCdf(runid='120982A09', yname='ti', xname='x', legend=r'Analysis', zval=0.62, source='raw', ymult=1e-3),
+        # title_override=r'120982 (W31, A09), t = 0.62$\,$s',
+        # xmin=0, xmax=1, ymin=0, ymax=1.6, ylabel_override=r'$T_{\rm i}$ (keV)',
+        # yticks=np.arange(0, 1.8, step=0.4)
+
+        # PlotDataCdf(runid='120982W31', yname='te', xname='x', legend=r'MMM',      zval=0.755, source='raw', ymult=1e-3),
+        # PlotDataCdf(runid='120982A09', yname='te', xname='x', legend=r'Analysis', zval=0.755, source='raw', ymult=1e-3),
+        # title_override=r'120982 (W31, A09), t = 0.62$\,$s',
+        # xmin=0, xmax=1, ymin=0, ymax=1.6, ylabel_override=r'$T_{\rm e}$ (keV)',
+        # yticks=np.arange(0, 1.8, step=0.4)
+  
+        # PlotDataCdf(runid='120982W31', yname='condipr', xname='x', legend=r'$\chi_{\rm i, tot}$', zval=0.62, source='raw', ymult=1e-4),
+        # PlotDataCdf(runid='120982W31', yname='xkimmm',  xname='x', legend=r'$\chi_{\rm i, MMM}$', zval=0.62, source='raw', ymult=1e-4),
+        # PlotDataCdf(runid='120982W31', yname='xkemmm',  xname='x', legend=r'$\chi_{\rm e, MMM}$', zval=0.62, source='raw', ymult=1e-4),
+        # title_override=r'120982 (W31), t = 0.62$\,$s',
+        # xmin=0, xmax=1, ymin=0, ylabel_override=r'(m$^2$/s)'
+  
+        ##### ETGM OPTIMIZATION PLOTS
+
+        ## 1: Default plots, no new optimization - show convergence inconsistencies wrt PT Solver convergence
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20003, legend=r'10000',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20002, legend=r'1000',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20000, legend=r'50',),
+
+        # # 2: 10x5 comparable to 10000
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20003, legend=r'10000',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20002, legend=r'1000',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20071, legend=r'10x5',),
+
+        # # 3: 2% tolerance + gamma cutoff = no change in results
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20071, legend=r'(5000) 10x5',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20089, legend=r'(4050) 10x5 2%',),
+
+        ## 4: 5% tolerance even faster, but with some error 
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20071, legend=r'(5000) 10x5',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20089, legend=r'(4050) 10x5 2%',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20086, legend=r'(3300) 10x5 5%',),
+
+        ## 5: 5% tolerance on par with 1000 default scans
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20089, legend=r'(4050) 10x5 2%',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20086, legend=r'(3300) 10x5 5%',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20002, legend=r'(1E5)  1000 Default',),
+
+        ## 6: New discharge, showing 10x5 = 10000 default
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=20022, legend=r'(1E7)  10000 Default',),
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=20000, legend=r'(5000) 10x5',),
+
+        ## 7: Showing different tolerances
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=20000, legend=r'(5000) 10x5',),
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=20019, legend=r'(2550) 10x5 2%',),
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=20020, legend=r'(2120) 10x5 5%',),
+
+        # 8: Different tolerance compared to 50 default
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=20019, legend=r'(2550) 10x5 2%',),
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=20020, legend=r'(2120) 10x5 5%',),
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=20029, legend=r'(1967) 7x10 2%',),
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=25004, legend=r'(1932) 7x10 2%',),
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=20021, legend=r'(5000) 50 Default',),
+
+        # PlotDataCsv(runid='129017A04', yname='xteETGM', xname='rho', scan_num=20028, legend=r'(2560) delta kyrhos',),
+
+        ## 9: kyrhos flat-line with gamma cutoff
+        # PlotDataCsv(runid='121123K55', yname='gmaETGM', xname='rho', scan_num=20071, legend=r'(5000) 10x5',),
+        # PlotDataCsv(runid='121123K55', yname='gmaETGM', xname='rho', scan_num=20089, legend=r'(4050) 10x5 2%',),
+        # PlotDataCsv(runid='121123K55', yname='gmaETGM', xname='rho', scan_num=20086, legend=r'(3300) 10x5 5%',),
+
+        # 10: Multi-tiered tolerance check (using kyrhos value)
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20089, legend=r'(4050) 10x5 2%',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20086, legend=r'(3300) 10x5 5%',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20099, legend=r'(3610) 10x5 2%, 5%',),
+
+        # # 11: Different kyrhos ranges
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20109, legend=r'(4050) kyrhos 1-50',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20108, legend=r'(4010) kyrhos 1-100',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20110, legend=r'(3960) kyrhos 1-25',),
+
+        ## 12: Exp vs linear (no gc)
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20003, legend=r'10000',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20112, legend=r'(4860) 10x5 2% no gc Linear',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20113, legend=r'(4640) 10x5 2% no gc Exp',),
+
+        ## 13: Exp vs linear (w/ gc)
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20003, legend=r'10000',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20114, legend=r'(4100) 10x5 2% Linear',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20089, legend=r'(4050) 10x5 2% Exp',),
+
+        ## 14: Exp vs linear (w/ gc, 5% tol)
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20003, legend=r'10000',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20115, legend=r'(3620) 10x5 5% Linear',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20086, legend=r'(3300) 10x5 5% Exp',),
+
+        ## Output inconsistency
+        # PlotDataCsv(runid='129016A04', yname='gmaETGM', xname='rho', scan_num=25009, legend=r'10000x1',),
+        # PlotDataCsv(runid='129016A04', yname='gmaETGM', xname='rho', scan_num=25005, legend=r'7x7',),
+        # PlotDataCsv(runid='129016A04', yname='gmaETGM', xname='rho', scan_num=25012, legend=r'8x10',),
+
+        ## Inconsistency gma vs kyrhos
+        # PlotDataCsv(runid='129016A04', yname='gmaETGM', xname='kyrhosETGM', scan_num=25027, rho_value=0.13),
+        # PlotDataCsv(runid='129016A04', yname='gmaETGM', xname='kyrhosETGM', scan_num=25027, rho_value=0.14),
+
+        ## Testing
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20089, legend=r'(4050) 10x5 2%',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20086, legend=r'(3300) 10x5 5%',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20111, legend=r'(4100) 10x5 2% Linear',),
+
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20092, legend=r'(3810) $<$1E-2',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20096, legend=r'(3970) Two tolerances 5e5',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20099, legend=r'(3610) kyrhos $>$ 5',),
+
+        # PlotDataCsv(runid='121123K55', yname='kyrhosETGM', xname='rho', scan_num=20098, legend=r'(3760) Two tolerances 1e6',),
+
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20089, legend=r'(4050) 10x5 2%',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20086, legend=r'(3300) 10x5 5%',),
+        # # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20123, legend=r'(2802) 6x10 5%',),
+        # # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20124, legend=r'(3162) 6x10 4%',),
+        # # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20127, legend=r'(3345) 5x10 2%',),
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20132, legend=r'(3325) 7x10 2%',),
+        # # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20130, legend=r'(2955) 5x10 test',),
+
+        # PlotDataCsv(runid='121123K55', yname='xteETGM', xname='rho', scan_num=20086, legend=r'(3300) 10x5 5%',),
+
+        # ### DBM Testing
+        # PlotDataCsv(runid='120968A02', yname='xtiDBM', xname='rho', scan_num=25031, legend=r'5000x1',),
+        # PlotDataCsv(runid='120968A02', yname='xtiDBM', xname='rho', scan_num=25029, legend=r'1000x1',),
+        # PlotDataCsv(runid='120968A02', yname='xtiDBM', xname='rho', scan_num=25028, legend=r'(2000) 20x1',),
+        # PlotDataCsv(runid='120968A02', yname='xtiDBM', xname='rho', scan_num=25032, legend=r'(2107) 7x10',),
+        # PlotDataCsv(runid='120968A02', yname='xtiDBM', xname='rho', scan_num=25033, legend=r'(2107) 7x10 gma-wexb',),
+
+    #     PlotDataCsv(runid='120968A02', yname='xtiDBM', xname='rho', scan_num=25038, legend=r'(1526) 7x10 1e3-wexb',),
+    #     PlotDataCsv(runid='120968A02', yname='xtiDBM', xname='rho', scan_num=25039, legend=r'(1435) 7x10 1e4-wexb',),
+    #     PlotDataCsv(runid='120968A02', yname='xtiDBM', xname='rho', scan_num=25037, legend=r'(2000) 20x1 gma-wexb',),
+
+        # PlotDataCsv(runid='138536A01', yname='gmaDBM', xname='kyrhosDBM', scan_num=25059, rho_value=0.85,),
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', xname='rho', scan_num=26026),
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', xname='rho', scan_num=26027),
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', xname='rmina', scan_num=26032, legend='wexb = 0'),
+        # xmax=0.8,
+
+        PlotDataCsv(runid='120968A02', yname='nR8TOMSQZ', xname='rho', scan_num=26044),
+
     )
 
-    main(all_data, savefig=False, savedata=False)
+    main(fig_data)
