@@ -139,7 +139,7 @@ if __name__ == '__main__':
     # scan_data['87261T01']  = [26100];  # 7x7 scans, w/ optimization  (31.9 scans)
 
     vars_to_plot = ['gte'] # 20001 - 7x7 scans w/ opt
-    scan_data['138536A01'] = [26205];  # 7x7 scans, w/ optimization (34.0 scans)
+    scan_data['15334T03'] = [26224];  # 7x7 scans, w/ optimization (34.0 scans)
 
     ## Examples using ranges
     # scan_data['138536A01'] = [i for i in range(1716, 1738 + 1)]

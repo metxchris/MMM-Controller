@@ -186,7 +186,7 @@ if __name__ == '__main__':
     # scan_data.append('113944W20') # Failed EAST run
     # scan_data.append('113944W15') # Good old EAST run
 
-    scan_data.append('120968A02') # Testing
+    scan_data.append('15334T03') # Testing
 
     # vars_to_plot = ['xkidrbm', 'xkddrbm', 'xkedrbm', 'xkhdrbm']
     # scan_data.append('129016Q71') # DBM, 0.001 cal

@@ -60,6 +60,14 @@ def extract_data(options, print_warnings=False):
     cdf_vars = variables.InputVariables(options)
     cdf_vars_to_get = cdf_vars.get_cdf_variables()
 
+    # Find indices of specified time values, so all times don't load
+    time_values = np.array(cdf.variables[cdf_vars.time.cdfvar.upper()][:].T)
+    cdf_vars.options.set_time_ranges(time_values)
+    cdf_vars.options.set_measurement_time(time_values)
+    time_idxs = cdf_vars.options.scan_range_idxs or options.time_idx
+    if time_idxs is not None and not isinstance(time_idxs, list):
+        time_idxs = [time_idxs]
+
     # Get values for all specified CDF variables
     for var_name in cdf_vars_to_get:
         var = getattr(cdf_vars, var_name)
@@ -71,6 +79,8 @@ def extract_data(options, print_warnings=False):
 
             # Not all variable values in the CDF are arrays
             var.values = values[:] if values.size > 1 else values
+            if time_idxs is not None:
+                var.values = values[:, time_idxs] if values.ndim == 2 else values[time_idxs]
             if hasattr(cdf.variables[cdfvar], 'units'):
                 var.units = (cdf.variables[cdfvar].units).strip()
             if hasattr(cdf.variables[cdfvar], 'long_name'):
@@ -84,6 +94,7 @@ def extract_data(options, print_warnings=False):
         elif print_warnings and var.default_values is None:
             _log.error(f'\n\t{var.cdfvar} not found in CDF and no default values were set\n')
 
+    # Update measurement time using loaded time values
     cdf_vars.options.set_measurement_time(cdf_vars.time.values)
 
     return cdf_vars

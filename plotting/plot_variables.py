@@ -2196,7 +2196,9 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='120968A02', yname='gmaDBM', xname='rmina', scan_num=26032, legend='wexb = 0'),
         # xmax=0.8,
 
-        PlotDataCsv(runid='120968A02', yname='nR8TOMSQZ', xname='rho', scan_num=26044),
+        # PlotDataCsv(runid='120968A02', yname='nR8TOMSQZ', xname='rho', scan_num=26044),
+        PlotDataCsv(runid='15334T03', yname='xteETGM', xname='rho', scan_num=26210),
+        PlotDataCsv(runid='15334T03', yname='xteETGM', xname='rho', scan_num=26217),
 
     )
 

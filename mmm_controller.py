@@ -146,18 +146,12 @@ def _execute_time_scan(mmm_vars, controls):
     * controls (InputControls): Specifies input control values in the MMM input file
     '''
 
-    # Set the time scan range
-    mmm_vars.options.set_time_ranges(mmm_vars.time.values)
-
-    # Save options again to save the computed time ranges
-    mmm_vars.options.save()
-
     scan_range_idxs = mmm_vars.options.scan_range_idxs
     var_to_scan = mmm_vars.options.var_to_scan
 
-    for i, time_idx in enumerate(scan_range_idxs):
+    for i, __ in enumerate(scan_range_idxs):
         print(f'{options.runid}.{options.scan_num} {var_to_scan} scan: {i + 1} / {len(scan_range_idxs)}')
-        options.time_idx = time_idx
+        options.time_idx = i
         options.time_str = options.scan_range[i]
         time_scan_str = f'{float(options.time_str):{modules.constants.SCAN_FACTOR_FMT}}'
         mmm_vars.save(time_scan_str)
@@ -398,11 +392,11 @@ if __name__ == '__main__':
 
     ## normalized time scan (options.normalize_time_range = 1)
     # scanned_vars['time'] = np.linspace(start=0, stop=1, num=40)
-    # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
+    scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
     # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=300)
 
     # EPM Scans
-    scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
+    # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
     # scanned_vars['time'] = np.linspace(start=0.53, stop=0.54, num=10)
     # scanned_vars['epm_n_start'] = np.arange(start=1, stop=50 + 1e-6, step=1)
 
@@ -440,7 +434,7 @@ if __name__ == '__main__':
         # CMODEL
         cmodel_weiland=0,
         cmodel_dribm=0,
-        cmodel_etgm=0,
+        cmodel_etgm=1,
         cmodel_mtm=0,
         cmodel_epm=0,
         # W20
@@ -462,9 +456,9 @@ if __name__ == '__main__':
         # ETGM
         etgm_exbs=wexb_factor,
         etgm_direction=0,
-        etgm_sum_modes=1,
-        etgm_kyrhos_scan=100,
-        etgm_kyrhos_layers=1,
+        etgm_sum_modes=0,
+        etgm_kyrhos_scan=7,
+        etgm_kyrhos_layers=10,
         etgm_kyrhos_min=1,
         etgm_kyrhos_max=40,
         etgm_sat_expo=2,

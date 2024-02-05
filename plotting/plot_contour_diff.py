@@ -196,11 +196,11 @@ if __name__ == '__main__':
 
     vars_to_plot = ['nR8TOMSQZ', 'xtiW20', 'xteW20']
     # vars_to_plot = ['gmaW20i', 'gmaW20e']
-    # vars_to_plot = ['xtiW20']
+    vars_to_plot = ['xteETGM']
     # scan_data['120968A02'] = [26205, 26204]  # X vs 1000x1 default xte
     # scan_data['120982A09'] = [26101, 26103]    # X vs 1000x1 default xte
     # scan_data['129016A04'] = [26101, 26103]  # X vs 1000x1 default xte
-    # scan_data['138536A01'] = [26101, 26103]  # X vs 1000x1 default xte
+    scan_data['138536A01'] = [26215, 26212]  # X vs 1000x1 default xte
     # scan_data['101381T31'] = [26101, 26102]  # X vs 1000x1 default xte
     # scan_data['132498J05'] = [26101, 26201]  # X vs 1000x1 default xte
     # scan_data['85126T02']  = [26101, 26102]   # X vs 1000x1 default xte
@@ -216,7 +216,7 @@ if __name__ == '__main__':
 
 
     ## Akima derivative vs normal derivative
-    vars_to_plot = ['gte']
+    # vars_to_plot = ['gte']
     # scan_data['138536A01'] = [26205, 26204]  # Traditional vs Akima derivative
     # scan_data['129016A04'] = [26202, 26201]  # Traditional vs Akima derivative
 

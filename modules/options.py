@@ -281,29 +281,30 @@ class Options:
         * time (np.ndarray(float)): Time values from the CDF
         '''
 
-        if self.scan_range is not None:
+        if self.scan_type != ScanType.TIME or self.scan_range is None:
+            return
 
-            times = time_values
-            if self.normalize_time_range:
-                # Compare normalized input time range against normalized time values
-                times = (time_values - time_values.min()) / (time_values.max() - time_values.min())
+        times = time_values
+        if self.normalize_time_range:
+            # Compare normalized input time range against normalized time values
+            times = (time_values - time_values.min()) / (time_values.max() - time_values.min())
 
-            rounded_range = np.round(self.scan_range, constants.TIME_VALUE_SIGFIGS)
-            times_tile = np.tile(np.round(times, constants.TIME_VALUE_SIGFIGS), (rounded_range.shape[0], 1))
-            rounded_range_tile = np.tile(rounded_range, (1, 1)).T
-            unique_idxs = np.unique(np.argmin(np.abs(times_tile - rounded_range_tile), axis=1))
+        rounded_range = np.round(self.scan_range, constants.TIME_VALUE_SIGFIGS)
+        times_tile = np.tile(np.round(times, constants.TIME_VALUE_SIGFIGS), (rounded_range.shape[0], 1))
+        rounded_range_tile = np.tile(rounded_range, (1, 1)).T
+        unique_idxs = np.unique(np.argmin(np.abs(times_tile - rounded_range_tile), axis=1))
 
-            scan_range_idxs = []
-            scan_range_time_strs = []
-            for i in unique_idxs:
-                time_idx = np.argmin(np.abs(time_values - time_values[i]))
-                time_str = f'{time_values[time_idx]:{constants.TIME_VALUE_FMT}}'
-                if time_str not in scan_range_time_strs:
-                    scan_range_time_strs.append(time_str)
-                    scan_range_idxs.append(i)
+        scan_range_idxs = []
+        scan_range_time_strs = []
+        for i in unique_idxs:
+            time_idx = np.argmin(np.abs(time_values - time_values[i]))
+            time_str = f'{time_values[time_idx]:{constants.TIME_VALUE_FMT}}'
+            if time_str not in scan_range_time_strs:
+                scan_range_time_strs.append(time_str)
+                scan_range_idxs.append(i)
 
-            self._scan_range = np.array(scan_range_time_strs).astype(float)
-            self.scan_range_idxs = scan_range_idxs
+        self._scan_range = np.array(scan_range_time_strs).astype(float)
+        self.scan_range_idxs = scan_range_idxs
 
     def find_scan_factor(self, scan_factor):
         '''
