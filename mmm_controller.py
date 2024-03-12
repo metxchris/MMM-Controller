@@ -45,7 +45,6 @@ import numpy as np
 
 # Local Packages
 import settings
-import modules.cdfwriter as cdfwriter
 import modules.controls
 import modules.constants
 import modules.options
@@ -57,6 +56,15 @@ import modules.reshaper as reshaper
 import modules.utils as utils
 import plotting.modules.profiles as profiles
 from modules.enums import ShotType, ScanType, ProfileType
+
+
+class CdfData():
+
+    def __init__(self, runid, shot_type, input_time):
+        self.runid = runid
+        self.shot_type = shot_type
+        self.input_time = input_time
+
 
 
 def _execute_variable_scan(mmm_vars, controls):
@@ -150,7 +158,7 @@ def _execute_time_scan(mmm_vars, controls):
     var_to_scan = mmm_vars.options.var_to_scan
 
     for i, __ in enumerate(scan_range_idxs):
-        print(f'{options.runid}.{options.scan_num} {var_to_scan} scan: {i + 1} / {len(scan_range_idxs)}')
+        print(f'{options.shot_type.name}.{options.runid}.{options.scan_num} {var_to_scan} {i + 1} / {len(scan_range_idxs)}')
         options.time_idx = i
         options.time_str = options.scan_range[i]
         time_scan_str = f'{float(options.time_str):{modules.constants.SCAN_FACTOR_FMT}}'
@@ -160,7 +168,7 @@ def _execute_time_scan(mmm_vars, controls):
         output_vars.save(time_scan_str)
 
 
-def main(scanned_vars, controls):
+def main(cdflist, scanned_vars, controls):
     '''
     Runs the controller for MMM
 
@@ -170,6 +178,7 @@ def main(scanned_vars, controls):
     and then an optional variable scan can be ran afterwards.
 
     Parameters:
+    * cdflist (list[CdfData]): list of cdfs to scan over
     * scanned_vars (Dict): Dictionary of variables being scanned
         - keys (str | None): The variable being scanned
         - values (np.ndarray | None): The range of factors to scan over
@@ -183,40 +192,46 @@ def main(scanned_vars, controls):
     if None in scanned_vars and len(scanned_vars) > 1:
         del scanned_vars[None]
 
-    # TODO: Add validation for all items in scanned_vars
-    for adjustment_name, scan_range in scanned_vars.items():
-        options.scan_num = utils.get_scan_num(options.runid)
-        options.set(adjustment_name=adjustment_name, scan_range=scan_range)
+    # Scan over all cdf in cdflist
+    for cdfdata in cdflist:
+        options.runid = cdfdata.runid
+        options.shot_type = cdfdata.shot_type
+        options.input_time = cdfdata.input_time
 
-        print(f'\nRunning MMM Controller for {options.runid}, scan {options.scan_num}...')
+        # TODO: Add validation for all items in scanned_vars
+        for adjustment_name, scan_range in scanned_vars.items():
+            options.scan_num = utils.get_scan_num(options.runid)
+            options.set(adjustment_name=adjustment_name, scan_range=scan_range)
 
-        utils.init_output_dirs(options)
+            print(f'\nRunning MMM Controller for {options.shot_type.name}.{options.runid}, scan {options.scan_num}...')
 
-        mmm_vars = datahelper.initialize_variables(options, num_objects=1, reduce_memory=True)
-        output_vars = mmm.run_wrapper(mmm_vars, controls)
-        calculations.calculate_output_variables(mmm_vars, output_vars, controls)
+            utils.init_output_dirs(options)
 
-        options.save()
-        controls.save()
-        mmm_vars.save()
-        output_vars.save()
+            mmm_vars = datahelper.initialize_variables(options, num_objects=1, reduce_memory=True)
+            output_vars = mmm.run_wrapper(mmm_vars, controls)
+            calculations.calculate_output_variables(mmm_vars, output_vars, controls)
 
-        if settings.MAKE_PROFILE_PDFS:
-            profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
-            profiles.plot_profiles(ProfileType.ADDITIONAL, mmm_vars)
-            profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
+            options.save()
+            controls.save()
+            mmm_vars.save()
+            output_vars.save()
 
-        # Variable and control scans
-        if options.scan_type.value:
-            if options.scan_type is ScanType.VARIABLE:
-                _execute_variable_scan(mmm_vars, controls)
-            elif options.scan_type is ScanType.CONTROL:
-                _execute_control_scan(mmm_vars, controls)
-            elif options.scan_type is ScanType.TIME:
-                _execute_time_scan(mmm_vars, controls)
+            if settings.MAKE_PROFILE_PDFS:
+                profiles.plot_profiles(ProfileType.INPUT, mmm_vars)
+                profiles.plot_profiles(ProfileType.ADDITIONAL, mmm_vars)
+                profiles.plot_profiles(ProfileType.OUTPUT, output_vars)
 
-            reshaper.create_rho_files(options)
-            print(f'\nScan complete: {options.runid}, scan {options.scan_num}, {options.var_to_scan}\n')
+            # Variable and control scans
+            if options.scan_type.value:
+                if options.scan_type is ScanType.VARIABLE:
+                    _execute_variable_scan(mmm_vars, controls)
+                elif options.scan_type is ScanType.CONTROL:
+                    _execute_control_scan(mmm_vars, controls)
+                elif options.scan_type is ScanType.TIME:
+                    _execute_time_scan(mmm_vars, controls)
+
+                reshaper.create_rho_files(options)
+                print(f'\nScan complete: {options.runid}, scan {options.scan_num}, {options.var_to_scan}\n')
 
 
 # Run this file directly to plot variable profiles and run the MMM driver
@@ -226,126 +241,139 @@ if __name__ == '__main__':
 
     scanned_vars = {None: None}
 
+
     '''
     TRANSP Data:
     * Uncomment the line you wish to use
-    # '''
-    # runid, shot_type, input_time = '121123K55', ShotType.NSTU, 11.8  #            300
+    '''
 
-    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.56 ## 0.56  # High       300
-    # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.62  # Low        290
-    # runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.494  #            293
-    # runid, shot_type, input_time = '129017A04', ShotType.NSTX, 0.1   #            294
-    # runid, shot_type, input_time = '129018A02', ShotType.NSTX, 0.5   #            292
-    # runid, shot_type, input_time = '129019A02', ShotType.NSTX, 0.62  #            288
-    # runid, shot_type, input_time = '129020A02', ShotType.NSTX, 0.56  #            297
-    # runid, shot_type, input_time = '129041A10', ShotType.NSTX, 0.49  # Medium     297
-    runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.63  #            300
-    # runid, shot_type, input_time = '141007A10', ShotType.NSTX, 0.5   #            288
-    # runid, shot_type, input_time = '141031A01', ShotType.NSTX, 0.5   #            162
-    # runid, shot_type, input_time = '141032A01', ShotType.NSTX, 0.5   #            278
-    # runid, shot_type, input_time = '141040A01', ShotType.NSTX, 0.5   #            279
-    # runid, shot_type, input_time = '141716A80', ShotType.NSTX, 0.5   #            281
+    cdflist = [
+        # ## NSTU
+        # CdfData('121123K55', ShotType.NSTX, 11.8),
+        # CdfData('205042A02', ShotType.NSTU, 11.8),
+        # CdfData('204980A05', ShotType.NSTU, 11.8),
+        # CdfData('204963A08', ShotType.NSTU, 11.8),
+        # CdfData('204665A01', ShotType.NSTU, 11.8),
+        # CdfData('204651A04', ShotType.NSTU, 11.8),
+        # CdfData('204556A01', ShotType.NSTU, 11.8),
+        # CdfData('204519A03', ShotType.NSTU, 11.8),
+        # CdfData('204511A03', ShotType.NSTU, 11.8),
+        # CdfData('204509A02', ShotType.NSTU, 11.8),
+        # CdfData('204201A01', ShotType.NSTU, 11.8),
+        # CdfData('204198A03', ShotType.NSTU, 11.8),
+        # CdfData('204179A01', ShotType.NSTU, 11.8),
+        # CdfData('203592A02', ShotType.NSTU, 11.8),
+        # CdfData('203531A08', ShotType.NSTU, 11.8),
+        # CdfData('202946A02', ShotType.NSTU, 11.8),
 
-    # runid, shot_type, input_time = '98777V06', ShotType.D3D, 5.6     #            239
-    # runid, shot_type, input_time = '101381T31', ShotType.D3D, 5.6    #            300
-    # runid, shot_type, input_time = '101391J08', ShotType.D3D, 5.6    #            151
-    # runid, shot_type, input_time = '118341T54', ShotType.D3D, 5.7    #            41
-    # runid, shot_type, input_time = '132017T01', ShotType.D3D, 2      #            21
-    # runid, shot_type, input_time = '132411T02', ShotType.D3D, 0.56   #            101
-    # runid, shot_type, input_time = '132498J05', ShotType.D3D, 0.56   #            300
-    # runid, shot_type, input_time = '141552A01', ShotType.D3D, 2      #            37
-    # runid, shot_type, input_time = '150840T02', ShotType.D3D, 2      #            101
-    # runid, shot_type, input_time = '153283T50', ShotType.D3D, 2      #            51
-    # runid, shot_type, input_time = '147634T61', ShotType.D3D, 2.53      #            51
+        ## NSTX
+        # CdfData('120968A02', ShotType.NSTX, 0.56),
+        # CdfData('120982A09', ShotType.NSTX, 0.62),
+        # CdfData('129016A04', ShotType.NSTX, 0.494),
+        # CdfData('129017A04', ShotType.NSTX, 0.10),
+        # CdfData('129018A02', ShotType.NSTX, 0.50),
+        # CdfData('129019A02', ShotType.NSTX, 0.62),
+        # CdfData('129020A02', ShotType.NSTX, 0.56),
+        # CdfData('129041A10', ShotType.NSTX, 0.49),
+        # CdfData('133964Z02', ShotType.NSTX, 0.50),
+        # CdfData('134020N01', ShotType.NSTX, 0.50),
+        # CdfData('138536A01', ShotType.NSTX, 0.63),
+        # CdfData('141007A10', ShotType.NSTX, 0.50),
+        # CdfData('141031A01', ShotType.NSTX, 0.50),
+        # CdfData('141032A01', ShotType.NSTX, 0.50),
+        # CdfData('141040A01', ShotType.NSTX, 0.50),
+        # CdfData('141716A80', ShotType.NSTX, 0.50),
+        # CdfData('204100J02', ShotType.NSTX, 0.50),
+        # CdfData('204202Z02', ShotType.NSTX, 0.50),
 
-    # runid, shot_type, input_time = '85126T02', ShotType.EAST, 2      #            300
-    # runid, shot_type, input_time = '85610T01', ShotType.EAST, 2      #            300
-    # runid, shot_type, input_time = '85122T04', ShotType.EAST, 2      #            300
-    # runid, shot_type, input_time = '80208T04', ShotType.EAST, 2      #            300
-    # runid, shot_type, input_time = '90328T01', ShotType.EAST, 2      #            300
+        # ## D3D
+        # CdfData('101381A01', ShotType.D3D, 0.50),
+        # CdfData('101391A07', ShotType.D3D, 0.50),
+        # CdfData('141069A01', ShotType.D3D, 0.50),
+        # CdfData('142111A03', ShotType.D3D, 0.50),
+        # CdfData('144226A01', ShotType.D3D, 0.50),
+        # CdfData('147634A02', ShotType.D3D, 0.50),
+        # CdfData('150840T02', ShotType.D3D, 0.50),
+        # CdfData('175275K01', ShotType.D3D, 0.50),
+        # CdfData('175288A01', ShotType.D3D, 0.50),
+        # CdfData('176523L01', ShotType.D3D, 0.50),
+        # CdfData('179415P02', ShotType.D3D, 0.50),
+        # CdfData('183743H01', ShotType.D3D, 0.50),
+        # CdfData('184822M01', ShotType.D3D, 0.50),
 
-    runid, shot_type, input_time = '15334T03', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '16295T10', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '16297T01', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '16299T01', ShotType.KSTR, 2.25   #            300
-    # runid, shot_type, input_time = '16325T10', ShotType.KSTR, 9.503   #            300
-    # runid, shot_type, input_time = '16901T01', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18399T05', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18400T01', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18402T01', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18404T05', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18476T02', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18477T01', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18492T01', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18495T01', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18499T01', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18602T01', ShotType.KSTR, 2      #            300
+        # ## EAST
+        # CdfData('85122L01',  ShotType.EAST, 2.00),
+        # CdfData('85606W02',  ShotType.EAST, 2.00),
+        # CdfData('85610W01',  ShotType.EAST, 2.00),
+        # CdfData('90328W02',  ShotType.EAST, 2.00),
+        CdfData('90949R01',  ShotType.EAST, 2.00),
+        # CdfData('100131N01', ShotType.EAST, 2.00),
+        # CdfData('100137N01', ShotType.EAST, 2.00),
+        # CdfData('100205N01', ShotType.EAST, 2.00),
+        # CdfData('100206N01', ShotType.EAST, 2.00),
+        # CdfData('101085N02', ShotType.EAST, 2.00),
+        # CdfData('102054N16', ShotType.EAST, 2.00),
+        # CdfData('113944B01', ShotType.EAST, 2.00),
+        # CdfData('128474X01', ShotType.EAST, 2.00),
 
-    # runid, shot_type, input_time = '08505Z06', ShotType.MAST, 2      #            31
-    # runid, shot_type, input_time = '22341P37', ShotType.MAST, 0.25   #            66
-    # runid, shot_type, input_time = '24899R05', ShotType.MAST, 2      #            208
-    # runid, shot_type, input_time = '27527M34', ShotType.MAST, 2      #            174
-    # runid, shot_type, input_time = '29271A01', ShotType.MAST, 2      #            46
-    # runid, shot_type, input_time = '29976U69', ShotType.MAST, 2      #            150
-    # runid, shot_type, input_time = '45424H01', ShotType.MAST, 2      #            23
+        # ## KSTR
+        # CdfData('16295A00', ShotType.KSTR, 2.00),
+        # CdfData('16325A00', ShotType.KSTR, 2.00),
+        # CdfData('17231P02', ShotType.KSTR, 2.00),
+        # CdfData('18399P01', ShotType.KSTR, 2.00),
+        # CdfData('18402H01', ShotType.KSTR, 2.00),
+        # CdfData('18476H01', ShotType.KSTR, 2.00),
+        # CdfData('18477P02', ShotType.KSTR, 2.00),
+        # CdfData('18492D01', ShotType.KSTR, 2.00),
+        # CdfData('18499D01', ShotType.KSTR, 2.00),
+        # CdfData('18602P03', ShotType.KSTR, 2.00),
+        # CdfData('22663J01', ShotType.KSTR, 2.00),
+        # CdfData('22773J12', ShotType.KSTR, 2.00),
+        # CdfData('22937T01', ShotType.KSTR, 2.00),
+        # CdfData('25768R01', ShotType.KSTR, 2.00),
+        # CdfData('26607A01', ShotType.KSTR, 2.00),
 
-    # runid, shot_type, input_time = '38265R80', ShotType.ITER, 2      #            300
-    # runid, shot_type, input_time = '50000A10', ShotType.ITER, 2      #            300
-    # runid, shot_type, input_time = '80200A13', ShotType.ITER, 1.0    #            300
-    # runid, shot_type, input_time = '80300A02', ShotType.ITER, 2      #            300
+        # ## MAST
+        # CdfData('08505Z06', ShotType.MAST, 2.00),
+        # CdfData('22341P01', ShotType.MAST, 0.25),
+        # CdfData('29976P01', ShotType.MAST, 2.00),
+        # CdfData('45083P01', ShotType.MAST, 2.00),
+        # CdfData('45163P01', ShotType.MAST, 2.00),
+        # CdfData('45238P01', ShotType.MAST, 2.00),
+        # CdfData('47014P01', ShotType.MAST, 2.00),
+
+        # ## ITER
+        # CdfData('20102A12', ShotType.ITER, 2.00),
+        # CdfData('38265A28', ShotType.ITER, 2.00),
+        # CdfData('38275A19', ShotType.ITER, 2.00),
+        # CdfData('38285A42', ShotType.ITER, 2.00),
+        # CdfData('38530A80', ShotType.ITER, 2.00),
+        # CdfData('50000A10', ShotType.ITER, 2.00),
+        # CdfData('59100A05', ShotType.ITER, 2.00),
+        # CdfData('80200A13', ShotType.ITER, 1015),
+
+        # ## JET
+        # CdfData('84599T01', ShotType.JET, 2.00),
+        # CdfData('86911T01', ShotType.JET, 2.00),
+        # CdfData('87215T01', ShotType.JET, 2.00),
+        # CdfData('87261T01', ShotType.JET, 2.00),
+    ]
+    
+    cdfcount = len(cdflist)
+    idx1 = int(0.25 * cdfcount)
+    idx2 = int(0.50 * cdfcount)
+    idx3 = int(0.75 * cdfcount)
+
+    # cdflist = cdflist[:idx1]
+    # cdflist = cdflist[idx1:idx2]
+    # cdflist = cdflist[idx2:idx3]
+    # cdflist = cdflist[idx3:]
+
+    # cdflist = cdflist[10:11]
 
 
-    # runid, shot_type, input_time = '84599T01', ShotType.JET, 2      #            
-    # runid, shot_type, input_time = '86911T01', ShotType.JET, 2      #            
-    # runid, shot_type, input_time = '87215T01', ShotType.JET, 2      #            
-    # runid, shot_type, input_time = '87261T01', ShotType.JET, 2      #            
+    # CdfData('103818A04', ShotType.D3D, 0.50), # Missing WEXB
 
-    # runid, shot_type, input_time = 'TEST', ShotType.NSTX, 0.5
-
-    # runid, shot_type, input_time = '129016Q50', ShotType.NSTX, 0.4 # MMM disabled
-    # runid, shot_type, input_time = '129016Q68', ShotType.NSTX, 0.4 # MMM v8 W20 only
-    # runid, shot_type, input_time = '129016Q94', ShotType.NSTX, 0.4 # MMM 9.0.6 W20 only
-
-    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.752  # DRIBM Spike
-    # runid, shot_type, input_time = '129016A03', ShotType.NSTX, 0.46  # Cesar data
-    # runid, shot_type, input_time = '129016A03', ShotType.NSTX, 0.282  # higher gma
-
-    # # !runid, shot_type, input_time = '144449T54', ShotType.D3D, 2
-    # # !runid, shot_type, input_time = '85124T02', ShotType.EAST, 2
-    # # !runid, shot_type, input_time = '16296T10', ShotType.KSTR, 2
-    # # !runid, shot_type, input_time = '16949T02', ShotType.KSTR, 2
-    # # runid, shot_type, input_time = '20100J26', ShotType.ITER, 2
-    # runid, shot_type, input_time = '20102A12', ShotType.ITER, 2
-    # runid, shot_type, input_time = '20105J18', ShotType.ITER, 2
-    # runid, shot_type, input_time = '20160H15', ShotType.ITER, 2
-    #     runid, shot_type, input_time = '28014T01', ShotType.ITER, 2
-    # runid, shot_type, input_time = '33610E10', ShotType.ITER, 2
-    # runid, shot_type, input_time = '33616N07', ShotType.ITER, 2
-    # runid, shot_type, input_time = '33701K02', ShotType.ITER, 2
-    # runid, shot_type, input_time = '35601B11', ShotType.ITER, 2
-    # runid, shot_type, input_time = '59100A05', ShotType.ITER, 2
-    # runid, shot_type, input_time = '129016A03', ShotType.NSTX, 0.46
-    # runid, shot_type, input_time = '101381J05', ShotType.D3D, 5.6
-
-
-    ### Kyrhos layer testing
-    # runid, shot_type, input_time = '120968A02', ShotType.NSTX, 0.56  # High       300
-    # runid, shot_type, input_time = '120982A09', ShotType.NSTX, 0.62  # Low        290
-    # runid, shot_type, input_time = '129016A04', ShotType.NSTX, 0.494 #            293
-    # runid, shot_type, input_time = '138536A01', ShotType.NSTX, 0.63  #            300
-    # runid, shot_type, input_time = '101381T31', ShotType.D3D, 5.6    #            300
-    # runid, shot_type, input_time = '132498J05', ShotType.D3D, 0.56   #            300
-    # runid, shot_type, input_time = '85126T02', ShotType.EAST, 2      #            300
-    # runid, shot_type, input_time = '90328T01', ShotType.EAST, 2      #            300
-    # runid, shot_type, input_time = '15334T03', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '18399T05', ShotType.KSTR, 2      #            300
-    # runid, shot_type, input_time = '24899R05', ShotType.MAST, 2      #            208
-    # runid, shot_type, input_time = '29976U69', ShotType.MAST, 2      #            150
-    # runid, shot_type, input_time = '38265R80', ShotType.ITER, 2      #            300
-    # runid, shot_type, input_time = '80200A13', ShotType.ITER, 1.0    #            300
-    # runid, shot_type, input_time = '84599T01', ShotType.JET, 2      #             85
-    # runid, shot_type, input_time = '87261T01', ShotType.JET, 2      #             65
 
 
     '''
@@ -387,17 +415,12 @@ if __name__ == '__main__':
     # scanned_vars['gne'] = np.arange(start=-4.0, stop=8 + 1e-6, step=0.05)
     # scanned_vars['gne_alphaconst'] = np.arange(start=-4.0, stop=8 + 1e-6, step=0.1)
 
-    ## time scan (options.normalize_time_range = 0)
-    # scanned_vars['time'] = np.arange(start=0.3, stop=0.6 + 1e-6, step=0.001)
-
     ## normalized time scan (options.normalize_time_range = 1)
-    # scanned_vars['time'] = np.linspace(start=0, stop=1, num=40)
-    scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
+    # scanned_vars['time'] = np.linspace(start=0, stop=1, num=50)
+    # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
     # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=300)
 
     # EPM Scans
-    # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
-    # scanned_vars['time'] = np.linspace(start=0.53, stop=0.54, num=10)
     # scanned_vars['epm_n_start'] = np.arange(start=1, stop=50 + 1e-6, step=1)
 
     '''
@@ -407,11 +430,11 @@ if __name__ == '__main__':
     * apply_smoothing enables smoothing of all variables that have a smooth value set in the Variables class
     '''
     options = modules.options.Options(
-        runid=runid,
-        shot_type=shot_type,
-        input_time=input_time,
         input_points=101,
+        wexb_factor=1,
+        allow_negative_chi=1,
         apply_smoothing=0,
+        load_all_vars=0,
         use_gtezero=0,
         use_gtizero=0,
         use_gnezero=0,
@@ -426,24 +449,36 @@ if __name__ == '__main__':
     Input Controls:
     * cmodel enables (disables) the corresponding model if set to 1 (0)
     '''
-    wexb_factor = 1
-    allow_negative_chi = 0
 
     controls = modules.controls.InputControls(
         options,
         # CMODEL
-        cmodel_weiland=0,
+        cmodel_weiland=1,
         cmodel_dribm=0,
-        cmodel_etgm=1,
+        cmodel_etgm=0,
         cmodel_mtm=0,
         cmodel_epm=0,
+        # MMM
+        mmm_separate_conv_vel=0,
+        mmm_convert_negative_chi=0,
+        mmm_use_solver_grads=0,
+        mmm_limit_small_grads=1,
+        mmm_xti_max=2e2,
+        mmm_xde_max=2e2,
+        mmm_xte_max=2e2,
+        mmm_xdz_max=2e2,
+        mmm_xvt_max=2e2,
+        mmm_xvp_max=2e2,
+        mmm_vti_max=5e12,
+        mmm_vde_max=5e12,
+        mmm_vte_max=5e12,
+        mmm_vdz_max=5e12,
+        mmm_vvt_max=5e12,
+        mmm_vvp_max=5e12,
         # W20
-        w20_exbs=wexb_factor,
         w20_shear_def=0,
         w20_kyrhos=0.316,
-        w20_negative_chi=allow_negative_chi,
         # DRBM
-        dribm_exbs=wexb_factor,
         dribm_direction=1,
         dribm_sum_modes=0,
         dribm_kyrhos_scan=7,
@@ -452,9 +487,7 @@ if __name__ == '__main__':
         dribm_kyrhos_max=0.3,
         dribm_sat_expo=2,
         dribm_diffusivity_type=0,
-        dribm_negative_chi=allow_negative_chi,
         # ETGM
-        etgm_exbs=wexb_factor,
         etgm_direction=0,
         etgm_sum_modes=0,
         etgm_kyrhos_scan=7,
@@ -462,16 +495,14 @@ if __name__ == '__main__':
         etgm_kyrhos_min=1,
         etgm_kyrhos_max=40,
         etgm_sat_expo=2,
-        etgm_negative_chi=allow_negative_chi,
         etgm_diffusivity_type=0,
+        etgm_jenko_threshold=2,
         # MTM
         mtm_kyrhos_loops=200,
         mtm_kyrhos_min=0.005,
         mtm_kyrhos_max=10,
-        mtm_negative_chi=allow_negative_chi,
         mtm_kyrhos_type=1,
         # EPM
-        epm_exbs=wexb_factor,
         epm_direction=0,
         epm_n_start=1,
         epm_n_end=1,
@@ -493,10 +524,12 @@ if __name__ == '__main__':
 
     settings.AUTO_OPEN_PDFS = 0
     settings.MAKE_PROFILE_PDFS = 0
-    settings.PRINT_MMM_RESPONSE = 1
-    settings.SAVE_ADDITIONAL_VARIABLES = 1
-    settings.STARTING_SCAN_NUMBER = 26201
-    # settings.STARTING_SCAN_NUMBER = 1
+    settings.PRINT_MMM_RESPONSE = 0
+    settings.SAVE_ADDITIONAL_VARIABLES = 0
+    # settings.STARTING_SCAN_NUMBER = 27051
+    settings.STARTING_SCAN_NUMBER = 1
     settings.USE_EPM = 0
+    settings.USE_MMM = 1
+    settings.MMM_HEADER_VERSION = '#111'
 
-    main(scanned_vars, controls)
+    main(cdflist, scanned_vars, controls)

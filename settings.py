@@ -35,6 +35,16 @@ INTERPOLATION_METHOD = 'quadratic'
 #                  many input points, but the endpoint values are more dependent on the
 #                  interpolation method.
 GRADIENT_METHOD = 'akima'
+SOLVER_GRADIENT_METHOD = 'ptsolver'
 
 # Temp EPM switch
 USE_EPM = True
+
+# Temp MMM switch
+USE_MMM = True
+
+# 'old', '#90', '#105', '#107', '#111', #113
+MMM_HEADER_VERSION = '#111'
+
+# Set False for #105 and older
+USE_SOLVER_GRADIENTS = True

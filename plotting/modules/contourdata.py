@@ -30,13 +30,20 @@ class PlotOptions:
         self.ymax: float | None = None
         self.xmin: float | None = None
         self.xmax: float | None = None
+        self.zmin_diff: float | None = None
+        self.zmax_diff: float | None = None
+        self.time_min: float = 0
+        self.time_max: float = 1
+        self.time_count: int = 100
         self.savefig: bool = False
         self.savedata: bool = False
         self.smoothing: bool = False
         self.showfig: bool = True
         self.raw: bool = False
+        self.plotidentical: bool = False
         self.difftype: str = ''
         self.saveappend: str = ''
+
         self._set_kwargs(kwargs)
         self._validate_members()
 
@@ -50,7 +57,7 @@ class PlotOptions:
 
     def _validate_members(self):
         if self.difftype:
-            difftypes = ['diff', 'absdiff', 'absratio', 'ratio', 'pureratio']
+            difftypes = ['diff', 'absdiff', 'absrel', 'rel', 'ratio']
             if self.difftype not in difftypes:
                 raise ValueError(
                     f'difftype \'{self.difftype}\' not in list of accepted types:'
@@ -170,11 +177,15 @@ class ContourData():
             # Could use some cleanup
             if self.controls.etgm_sum_modes.values and 'ETGM' in self.var_to_plot and '\chi' in self.zvar.label:
                 title = fr'$_{{^\sum}}${title}'
+        if self.zvar.label == r'$n_{\rm calls}$':
+            title = f'{title} ({round(np.average(self.Z[:, 1:]), 1)})'
+        if self.var_to_plot in ['nWarning', 'nError']:
+            title = f'{title} ({int(np.sum(self.Z))})'
         return title
 
     def get_savename(self):
         """Get the name to save the file as"""
-        savename = self.options.adjustment_name or self.options.var_to_scan or self.options.runid
+        savename = self.options.adjustment_name or self.options.var_to_scan or 'cdf'
         if self.options.use_gnezero:
             savename = f'{savename}_gne0'
         if self.options.use_gtezero:
@@ -186,10 +197,14 @@ class ContourData():
                 savename = f'{savename}_exbs1'
             if self.controls.etgm_sum_modes.values and 'xte' in self.var_to_plot:
                 savename = f'{savename}_sum'
-        if self.plot_options.saveappend:
-            savename = f'{savename}_{self.plot_options.saveappend}'
         if self.plot_options.difftype:
             savename = f'{savename}_{self.plot_options.difftype}'
+        if self.options.scan_num:
+            savename = f'{savename}_{self.options.scan_num}'
+        if hasattr(self, 'options2') and self.options2.scan_num:
+            savename = f'{savename}_{self.options2.scan_num}'
+        if self.plot_options.saveappend:
+            savename = f'{savename}_{self.plot_options.saveappend}'
         return f'{savename}_{self.var_to_plot}'
 
     def save_to_csv(self, savename):
@@ -372,6 +387,7 @@ class ContourDataDiff(ContourData):
 
         self.options2 = options2
 
+        self.isidentical: bool = False  # If both vars are identical
         self.input_vars_rho = None
         self.output_vars_rho = None
         self.controls_rho = None
@@ -473,7 +489,10 @@ class ContourDataDiff(ContourData):
 
         if (Z1 == Z2).all():
             _log.warning(f'\n\tIdentical data sets found for {var_to_plot}')
-            return True  # Error flag
+            if not self.plot_options.plotidentical:
+                return True  # Error flag
+            else:
+                self.isidentical = True
 
         # Take difference
         Zdiff = Z1 - Z2
@@ -484,11 +503,11 @@ class ContourDataDiff(ContourData):
             self.Z = Zdiff
         elif self.plot_options.difftype == 'absdiff':
             self.Z = np.absolute(Zdiff)
-        elif self.plot_options.difftype == 'ratio':
+        elif self.plot_options.difftype == 'rel':
             self.Z = Zdiff / Zsum
-        elif self.plot_options.difftype == 'absratio':
+        elif self.plot_options.difftype == 'absrel':
             self.Z = np.absolute(Zdiff / Zsum)
-        elif self.plot_options.difftype == 'pureratio':
+        elif self.plot_options.difftype == 'ratio':
             Z1[Z1 == 0] = 1
             Z2[Z2 == 0] = 1
             self.Z = Z1 / Z2
@@ -496,30 +515,35 @@ class ContourDataDiff(ContourData):
             _log.error(f'\n\tNo formula defined for difference type: {self.plot_options.difftype}')
             return True  # Error flag
 
+        if self.plot_options.zmax_diff:
+            self.Z = np.minimum(self.Z, self.zvar.contour_max)
+        if self.plot_options.zmin_diff:
+            self.Z = np.maximum(self.Z, self.zvar.contour_min)
+
+        # self.Z -= 1
+        # self.Z[self.Z > 2] = 2
+        # self.Z[self.Z < -2] = -2
+
         self.verify_z()
 
     def get_title(self):
         title = f'{self.zvar.label} ({self.zvar.units_label})' if self.zvar.units_label else f'{self.zvar.label}'
 
-        # if self.plot_options.difftype == 'diff':
-        #     title = fr'{title}: $x - x_0$'
-        # elif self.plot_options.difftype == 'absdiff':
-        #     title = fr'{title}: $|x - x_0|$'
-        # elif self.plot_options.difftype == 'ratio':
-        #     title = fr'{title}: $(x - x_0) / (x + x_0)$'
-        # elif self.plot_options.difftype == 'absratio':
-        #     title = fr'{title}: $|x - x_0| / |x + x_0|$'
+        if self.var_to_plot == 'nR8TOMSQZ':
+            title = f'{title} ({round(np.average(self.Z[:, 1:]), 1)})'
+        elif self.var_to_plot in ['nWarning', 'nError']:
+            title = f'{title} ({int(np.sum(self.Z))})'
 
         if self.plot_options.difftype == 'diff':
-            return fr'{title} [Diff]'
+            title = fr'{title} [Diff]'
         elif self.plot_options.difftype == 'absdiff':
-            return fr'{title} [Abs Diff]'
+            title = fr'{title} [Abs Diff]'
+        elif self.plot_options.difftype == 'rel':
+            title = fr'{title} [Rel]'
+        elif self.plot_options.difftype == 'absrel':
+            title = fr'{title} [Abs Rel]'
         elif self.plot_options.difftype == 'ratio':
-            return fr'{title} [Rel]'
-        elif self.plot_options.difftype == 'absratio':
-            return fr'{title} [Abs Rel]'
-        elif self.plot_options.difftype == 'pureratio':
-            return fr'{title} [Ratio]'
+            title = fr'{title} [Ratio]'
 
         return title
 

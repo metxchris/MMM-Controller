@@ -1049,7 +1049,6 @@ def main(fig_data, savefig=False, savedata=False):
         # y = d.yvals[np.absolute(d.yvals) > 1e-1]
         # ax.semilogx(x, y, label=fig_data.get_legend_label(d))
         # ax.plot([],[])
-
         ax.plot(d.xvals, d.yvals, label=fig_data.get_legend_label(d))
         ax.plot(d.xval_base, d.yval_base, zorder=3)  # Advance the cycler when base values are empty lists
 
@@ -2197,8 +2196,20 @@ if __name__ == '__main__':
         # xmax=0.8,
 
         # PlotDataCsv(runid='120968A02', yname='nR8TOMSQZ', xname='rho', scan_num=26044),
-        PlotDataCsv(runid='15334T03', yname='xteETGM', xname='rho', scan_num=26210),
-        PlotDataCsv(runid='15334T03', yname='xteETGM', xname='rho', scan_num=26217),
+        # PlotDataCsv(runid='15334T03', yname='xteETGM', xname='rho', scan_num=26210),
+        # PlotDataCsv(runid='15334T03', yname='xteETGM', xname='rho', scan_num=26217),
+
+        # PlotDataCsv(runid='80200A13', yname='xtiW20', xname='rho', scan_num=25),
+        # PlotDataCsv(runid='80200A13', yname='xtiW20', xname='rho', scan_num=17),
+        
+        # PlotDataCsv(runid='120968A02', yname='ne', xname='rho',  scan_num=41),
+        # PlotDataCsv(runid='120968A02', yname='zni', xname='rho', scan_num=41),
+        # PlotDataCsv(runid='120968A02', yname='ni', xname='rho',  scan_num=41),
+        
+        # PlotDataCsv(runid='120968A02', yname='zave', xname='rho',  scan_num=42),
+        # PlotDataCsv(runid='120968A02', yname='zeff', xname='rho',  scan_num=42),
+
+        PlotDataCsv(runid='129016A04', yname='vvp', xname='rho', scan_num=32),
 
     )
 

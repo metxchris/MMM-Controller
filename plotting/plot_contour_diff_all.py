@@ -140,80 +140,35 @@ if __name__ == '__main__':
         - values (list of int): The scan_numbers to plot from
     """
 
-    # vars_to_plot = ['gmaEPM', 'xteEPM', 'xtiEPM', 'xdeEPM',]
-    # vars_to_plot = ['gaveW20i', 'gaveW20e', 'kyrhosW20i', 'kyrhosW20e', 'kparaW20i', 'kparaW20e']
-    # vars_to_plot = ['xkemtm', 'wexb', 'xtiEPM', 'xdeEPM',]
-    # vars_to_plot = ['vcz', 'vct', 'vcp', 'xdeEPM',]
-    # scan_data['138536A01'] = [1335, 1336]
-    # scan_data['85610T01'] = [18, 19]
-
-    # vars_to_plot = ['xteETGM']
-    # scan_data['120968A02'] = [25001, 25002]  # ETGM kyrhos optimization vs no optimization
-    # scan_data['120982A09'] = [25001, 25002]  # ETGM kyrhos optimization vs no optimization
-    # scan_data['129016A04'] = [25001, 25002]  # ETGM kyrhos optimization vs no optimization
-    # scan_data['138536A01'] = [25001, 25002]  # ETGM kyrhos optimization vs no optimization
-    # scan_data['101381T31'] = [25001, 25002]  # ETGM kyrhos optimization vs no optimization
-    # scan_data['85126T02'] = [25001, 25002]  # ETGM kyrhos optimization vs no optimization
-    # scan_data['15334T03'] = [25001, 25002]  # ETGM kyrhos optimization vs no optimization
-    # scan_data['08505Z06'] = [25001, 25002]  # ETGM kyrhos optimization vs no optimization
-    # scan_data['18696R06'] = [25001, 25002]  # ETGM kyrhos optimization vs no optimization
-    # scan_data['84599T01'] = [25001, 25002]  # ETGM kyrhos optimization vs no optimization
-
-    # vars_to_plot = ['xtiW20'] # 39 = def, 40 = +, 41 = -, 42 = abs +, 43 = abs -
-    # scan_data['120968A02'] = [25003, 25002]  # 7x7 no optimization vs 1000x1
-    # scan_data['120982A09'] = [25003, 25002]  # 7x7 no optimization vs 1000x1
-    # scan_data['129016A04'] = [25003, 25002]  # 7x7 no optimization vs 1000x1
-    # scan_data['138536A01'] = [25004, 25002]  # 7x7 no optimization vs 1000x1
-    # scan_data['101381T31'] = [25003, 25002]  # 7x7 no optimization vs 1000x1
-    # scan_data['85126T02'] = [25003, 25002]   # 7x7 no optimization vs 1000x1
-    # scan_data['15334T03'] = [25003, 25002]   # 7x7 no optimization vs 1000x1
-    # scan_data['08505Z06'] = [25003, 25002]   # 7x7 no optimization vs 1000x1
-    # scan_data['18696R06'] = [25003, 25002]   # 7x7 no optimization vs 1000x1
-    # scan_data['84599T01'] = [25003, 25002]     # 7x7 no optimization vs 1000x1
-
-    # vars_to_plot = ['fte']
-    # scan_data['120968A02'] = [25041, 25015]  # X vs 1000x1 default xte
-    # scan_data['120982A09'] = [25017, 25015]    # X vs 1000x1 default xte
-    # scan_data['129016A04'] = [25039, 25038]  # X vs 1000x1 default xte
-    # scan_data['138536A01'] = [25025, 25013]  # X vs 1000x1 default xte
-    # scan_data['138536A01'] = [25060, 25061]  # X vs 1000x1 default xte
-    # scan_data['101381T31'] = [25011, 25012]  # X vs 1000x1 default xte
-    # scan_data['85126T02'] = [25010, 25009]   # X vs 1000x1 default xte
-    # scan_data['15334T03'] = [25008, 25007]   # X vs 1000x1 default xte
-    # scan_data['08505Z06'] = [25008, 25007]   # X vs 1000x1 default xte
-    # scan_data['18696R06'] = [25008, 25007]   # X vs 1000x1 default xte
-    # scan_data['84599T01'] = [25008, 25007]   # X vs 1000x1 default xte
-
-    # vars_to_plot = ['nR8TOMSQZ', 'xtiW20', 'xteW20']
-    # vars_to_plot = ['gmaW20i', 'gmaW20e']
-    # vars_to_plot = ['xteETGM']
-    # scan_data['120968A02'] = [26205, 26204]  # X vs 1000x1 default xte
-    # scan_data['120982A09'] = [26101, 26103]    # X vs 1000x1 default xte
-    # scan_data['129016A04'] = [26101, 26103]  # X vs 1000x1 default xte
-    # scan_data['138536A01'] = [26215, 26212]  # X vs 1000x1 default xte
-    # scan_data['101381T31'] = [26101, 26102]  # X vs 1000x1 default xte
-    # scan_data['132498J05'] = [26101, 26201]  # X vs 1000x1 default xte
-    # scan_data['85126T02']  = [26101, 26102]   # X vs 1000x1 default xte
-    # scan_data['90328T01']  = [26101, 26102]   # X vs 1000x1 default xte
-    # scan_data['15334T03']  = [26101, 26102]   # X vs 1000x1 default xte
-    # scan_data['18399T05']  = [26101, 26102]   # X vs 1000x1 default xte
-    # scan_data['24899R05']  = [26207, 26206]   # X vs 1000x1 default xte
-    # scan_data['29976U69']  = [26101, 26102]   # X vs 1000x1 default xte
-    # scan_data['38265R80']  = [26101, 26102]   # X vs 1000x1 default xte
-    # scan_data['80200A13']  = [26101, 26102]   # X vs 1000x1 default xte
-    # scan_data['84599T01']  = [26101, 26102]   # X vs 1000x1 default xte
-    # scan_data['87261T01']  = [26101, 26102]   # X vs 1000x1 default xte
-
-    # scan_data['141716A80'] = [26202, 26302]
-
     # vars_to_plot += ['xtiW20', 'xteW20', 'xdeW20', 'xdz', 'xvt', 'xvp']
-    # vars_to_plot += ['nR8TOMSQZ']
+    vars_to_plot += ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
+    # vars_to_plot += ['xti', 'xte', 'xde', 'xdz', 'xvp', 'xvt']
+    # vars_to_plot += ['fti']
+    # vars_to_plot += ['fti', 'fte', 'fde']
+    vars_to_plot += ['nR8TOMSQZ']
     # vars_to_plot = ['gmaW20e', 'gmaW20i', 'kparaW20i', 'kparaW20e', 'gaveW20i', 'gaveW20e', 'omgW20i', 'omgW20e']
     # vars_to_plot += ['nR8TOMSQZ', 'nWarning', 'nError']
     # vars_to_plot += ['gmaW20','gma0W20', 'gmagW20']
     # vars_to_plot = ['xtiW20', 'fte', 'fvt']
-
-    n_new = 27041  # #108 Limiting diff due to small grad
+    
+    n_new = 27065  # #111 Newton-Rahpson
+    # n_new = 27064  # #111 w20 min gma diffusivity zepsqrt
+    # n_new = 27063  # #111 kap1 no max
+    # n_new = 27062  # #111 w20 velocity min zepslon
+    # n_new = 27061  # #111 min eps zepslon
+    # n_new = 27060  # #111 min grad zepslon + limit small grad
+    # n_new = 27059  # #111 min grad zepslon
+    # n_new = 27058  # #111 w20 no max ti/te
+    # n_new = 27057  # #111 W20 XI(4) Term
+    # n_new = 27056  # #111 W20 max ti/te = 10
+    # n_new = 27055  # #111 W20 FIH min zepslon
+    # n_new = 27053  # #111 DBM Default no sum n + T
+    # n_new = 27052  # #111 DBM Default ti/te normal, max 5
+    # n_new = 27050  # #109 MTM 400
+    # n_new = 27049  # #109 MTM 100
+    # n_new = 27047  # #109 MTM 200
+    # n_new = 27045  # #108 increase pol to 1E1
+    # n_new = 27041  # #108 Limiting diff due to small grad
     # n_new = 27040  # #108 Default
     # n_new = 27032  # Major w20 fixes, + R_curv_min 0.1
     # n_new = 27031  # Major w20 fixes, + R_curv_min 0.01
@@ -254,7 +209,17 @@ if __name__ == '__main__':
     # n_new = 26321  # conv fix 2 (BASELINE OPT)
     # n_new = 26314  # conv fix 1
 
-    n_old = 27040  # #108 Default
+    n_old = 27064  # #111 w20 min gma diffusivity zepsqrt
+    # n_old = 27062  # #111 w20 velocity min zepslon
+    # n_old = 27061  # #111 min eps zepslon
+    # n_old = 27060  # #111 min grad zepslon + limit small grad
+    # n_old = 27059  # #111 min grad zepslon
+    # n_old = 27056  # #111 max ti/te = 10
+    # n_old = 27055  # #111 FIH min zepslon
+    # n_old = 27054  # #111 W20 Default
+    # n_old = 27051  # #111 DBM Default ti/te = 1
+    # n_old = 27046  # #109 MTM 2000
+    # n_old = 27040  # #108 Default
     # n_old = 27027  # Major w20 fixes, + suppressed kap1, ne/nh Curr, guess fix
     # n_old = 27025  # Major w20 fixes, + zflh, zflz, geometry
     # n_old = 27020  # #103 (cleanup of w20 equations)
@@ -275,54 +240,149 @@ if __name__ == '__main__':
     # n_old = 26302  # 9.0.10 with i = e
 
 
-    # scan_data['80200A13'] = [225, 224] #127 Base
-    # scan_data['120968A02'] = [47, 45] #16 Base
-    # scan_data['150840T02'] = [13, 26380]
-    # scan_data['138536A01'] = [35, 36]
-    # scan_data['138536A01'] = [37, 38]
-    # 11 default no wexb
-    # 12 default with wexb
-    # scan_data['138536A01'] = [10, 11] # 11 default no wexb
-    
-    # 14: zflh change
-    # 14: rmaj0 to rmaj
-    # scan_data['138536A01'] = [15, 14] # 12 default with wexb
+    ## NSTU
+    # scan_data['121123K55'] = [n_new, n_old]
+    # scan_data['202946A02'] = [n_new, n_old]
+    # scan_data['203531A08'] = [n_new, n_old]
+    # scan_data['203592A02'] = [n_new, n_old]
+    # scan_data['204179A01'] = [n_new, n_old]
+    # scan_data['204198A03'] = [n_new, n_old]
+    # scan_data['204201A01'] = [n_new, n_old]
+    # scan_data['204509A02'] = [n_new, n_old]
+    # scan_data['204511A03'] = [n_new, n_old]
+    # scan_data['204519A03'] = [n_new, n_old]
+    # scan_data['204556A01'] = [n_new, n_old]
+    # scan_data['204651A04'] = [n_new, n_old]
+    # scan_data['204665A01'] = [n_new, n_old]
+    # scan_data['204963A08'] = [n_new, n_old]
+    # scan_data['204980A05'] = [n_new, n_old]
+    # scan_data['205042A02'] = [n_new, n_old]
 
-    # vars_to_plot = ['fde', 'xde', 'vde']
-    # vars_to_plot = ['fdz', 'xdz', 'vdz']
-    # vars_to_plot = ['fti', 'xti', 'vti']
-    # vars_to_plot = ['fte', 'xte', 'vte']
-    # vars_to_plot = ['fvt', 'xvt', 'vvt']
-    vars_to_plot = ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
-    # vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
-    # vars_to_plot = ['fde', 'xde',]
-    # scan_data['129016A04'] = [123, 27043]
+    ##
 
-    scan_data['138536A01'] = [84, 83]
+    ## NSTX
+    scan_data['120968A02'] = [n_new, n_old]
+    scan_data['120982A09'] = [n_new, n_old]
+    scan_data['129016A04'] = [n_new, n_old]
+    scan_data['129017A04'] = [n_new, n_old]
+    scan_data['129018A02'] = [n_new, n_old]
+    scan_data['129019A02'] = [n_new, n_old]
+    scan_data['129020A02'] = [n_new, n_old]
+    scan_data['129041A10'] = [n_new, n_old]
+    scan_data['133964Z02'] = [n_new, n_old]
+    scan_data['134020N01'] = [n_new, n_old]
+    scan_data['138536A01'] = [n_new, n_old]
+    scan_data['141007A10'] = [n_new, n_old]
+    scan_data['141031A01'] = [n_new, n_old]
+    scan_data['141032A01'] = [n_new, n_old]
+    scan_data['141040A01'] = [n_new, n_old]
+    scan_data['141716A80'] = [n_new, n_old]
+    scan_data['204100J02'] = [n_new, n_old]
+    scan_data['204202Z02'] = [n_new, n_old]
 
+    ## D3D
+    scan_data['101381A01'] = [n_new, n_old]
+    scan_data['101391A07'] = [n_new, n_old]
+    scan_data['141069A01'] = [n_new, n_old]
+    scan_data['142111A03'] = [n_new, n_old]
+    scan_data['144226A01'] = [n_new, n_old]
+    scan_data['147634A02'] = [n_new, n_old]
+    scan_data['150840T02'] = [n_new, n_old]
+    scan_data['175275K01'] = [n_new, n_old]
+    scan_data['175288A01'] = [n_new, n_old]
+    scan_data['176523L01'] = [n_new, n_old]
+    scan_data['179415P02'] = [n_new, n_old]
+    scan_data['183743H01'] = [n_new, n_old]
+    scan_data['184822M01'] = [n_new, n_old]
 
-    ## Akima derivative vs normal derivative
-    # vars_to_plot = ['gte']
-    # scan_data['138536A01'] = [26205, 26204]  # Traditional vs Akima derivative
-    # scan_data['129016A04'] = [26202, 26201]  # Traditional vs Akima derivative
+    # ## EAST
+    scan_data['85122L01'] = [n_new, n_old]
+    scan_data['85606W02'] = [n_new, n_old]
+    scan_data['85610W01'] = [n_new, n_old]
+    scan_data['90328W02'] = [n_new, n_old]
+    scan_data['90949R01'] = [n_new, n_old]
+    scan_data['100131N01'] = [n_new, n_old]
+    scan_data['100137N01'] = [n_new, n_old]
+    scan_data['100205N01'] = [n_new, n_old]
+    scan_data['100206N01'] = [n_new, n_old]
+    scan_data['101085N02'] = [n_new, n_old]
+    scan_data['102054N16'] = [n_new, n_old]
+    scan_data['113944B01'] = [n_new, n_old]
+    scan_data['128474X01'] = [n_new, n_old]
 
-    # scan_data['120968A02'] = [5,6]
-    # scan_data['138536A01'] = [i for i in range(1716, 1738 + 1)]
-    # scan_data['138536A01'] = [i for i in [*range(1716, 1738 + 1), *range(1756, 1763 + 1)]]
+    # ## KSTR
+    scan_data['16295A00'] = [n_new, n_old]
+    scan_data['16325A00'] = [n_new, n_old]
+    scan_data['17231P02'] = [n_new, n_old]
+    scan_data['18399P01'] = [n_new, n_old]
+    scan_data['18402H01'] = [n_new, n_old]
+    scan_data['18476H01'] = [n_new, n_old]
+    scan_data['18477P02'] = [n_new, n_old]
+    scan_data['18492D01'] = [n_new, n_old]
+    scan_data['18499D01'] = [n_new, n_old]
+    scan_data['18602P03'] = [n_new, n_old]
+    scan_data['22663J01'] = [n_new, n_old]
+    scan_data['22773J12'] = [n_new, n_old]
+    scan_data['22937T01'] = [n_new, n_old]
+    scan_data['25768R01'] = [n_new, n_old]
+    scan_data['26607A01'] = [n_new, n_old]
 
-    # vars_to_plot = ['xtiW20', 'xteW20', 'xvt',]
-    # vars_to_plot = ['fti', 'fte', 'fvt',]
-    # scan_data['147634T61'] = [45, 26314]  # 26314
+    ## MAST
+    scan_data['08505Z06'] = [n_new, n_old]
+    scan_data['22341P01'] = [n_new, n_old]
+    scan_data['29976P01'] = [n_new, n_old]
+    scan_data['45083P01'] = [n_new, n_old]
+    scan_data['45163P01'] = [n_new, n_old]
+    scan_data['45238P01'] = [n_new, n_old]
+    scan_data['47014P01'] = [n_new, n_old]
+
+    ## ITER
+    scan_data['20102A12']  = [n_new, n_old]
+    scan_data['38265A28']  = [n_new, n_old]
+    scan_data['38275A19']  = [n_new, n_old]
+    scan_data['38285A42']  = [n_new, n_old]
+    scan_data['38530A80']  = [n_new, n_old]
+    scan_data['50000A10']  = [n_new, n_old]
+    scan_data['59100A05']  = [n_new, n_old]
+    scan_data['80200A13']  = [n_new, n_old]
+
+    ## JET
+    scan_data['84599T01'] = [n_new, n_old]
+    scan_data['86911T01'] = [n_new, n_old]
+    scan_data['87215T01'] = [n_new, n_old]
+    scan_data['87261T01'] = [n_new, n_old]
+
+    # Break scan data up into smaller dictionaries
+    cdfList = list(scan_data.keys())
+    keyCount = len(cdfList)
+    idx1 = int(0.25 * keyCount)
+    idx2 = int(0.50 * keyCount)
+    idx3 = int(0.75 * keyCount)
+
+    # cdfList = cdfList[:idx2]
+    # cdfList = cdfList[idx2:]
+
+    idx1 = int(0.33333 * keyCount) + 1
+    idx2 = int(0.66666 * keyCount) + 1
+
+    # cdfList = cdfList[:idx1]
+    # cdfList = cdfList[idx1:idx2]
+    cdfList = cdfList[idx2:]
+
+    scan_data_new = {}
+
+    for key in cdfList:
+        scan_data_new[key] = scan_data[key]
+
+    scan_data = scan_data_new
 
     plot_options = contourdata.PlotOptions(
         # xmin=0.2,
         # xmax=0.8,
         # ymin=0.2,
         # ymax=0.6,
-        zmax_diff=100,
-        zmin_diff=-100,
-        showfig=1,
-        savefig=0,
+        showfig=0,
+        savefig=1,
         savedata=0,
         plotidentical=1,
         saveappend='',

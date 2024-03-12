@@ -60,7 +60,11 @@ def run_wrapper(input_vars, controls):
     tmp_path = utils.get_temp_path(runid, scan_num)
     input_file = utils.get_temp_path(runid, scan_num, 'input.dat')  # input has no file type
     output_file = utils.get_temp_path(runid, scan_num, 'output.dat')
-    outputdev_file = utils.get_temp_path(runid, scan_num, 'output_dev.dat')
+
+    if settings.MMM_HEADER_VERSION in ['old', '#90', '#105', '#107', '#111']:
+        outputdev_file = utils.get_temp_path(runid, scan_num, 'output_Dev.dat')
+    else:
+        outputdev_file = utils.get_temp_path(runid, scan_num, 'outputDev.dat')
     # error_file = utils.get_temp_path(runid, scan_num, 'fort.36')
 
     # Create input file in temp directory
@@ -105,6 +109,8 @@ def run_wrapper(input_vars, controls):
     output_vars.load_from_file_path(output_file)
     output_vars.load_from_file_path(outputdev_file)
     os.remove(output_file)  # ensure accurate error checks on next run
-    os.remove(outputdev_file)  # ensure accurate error checks on next run
+    
+    if os.path.exists(outputdev_file):
+        os.remove(outputdev_file)  # ensure accurate error checks on next run
 
     return output_vars

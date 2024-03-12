@@ -59,6 +59,8 @@ def extract_data(options, print_warnings=False):
 
     cdf_vars = variables.InputVariables(options)
     cdf_vars_to_get = cdf_vars.get_cdf_variables()
+    if not options.load_all_vars:
+        cdf_vars_to_get = [c for c in cdf_vars_to_get if getattr(cdf_vars, c).required]
 
     # Find indices of specified time values, so all times don't load
     time_values = np.array(cdf.variables[cdf_vars.time.cdfvar.upper()][:].T)
@@ -138,7 +140,7 @@ def print_dimensions(cdf):
 if __name__ == '__main__':
     # For testing purposes
     runid = 'ps_tb.debug'
-    runid = '129016A03'
+    runid = '85122L01'
     cdf = Dataset(utils.get_cdf_path(runid))
     print_variables(runid, cdf)
     print_dimensions(cdf)

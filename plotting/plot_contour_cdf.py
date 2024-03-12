@@ -15,6 +15,7 @@ import logging
 
 # 3rd Party Packages
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Local Packages
 import modules.options
@@ -40,6 +41,14 @@ def main(vars_to_plot, scan_data, plot_options):
     utils.init_logging()
     contourdata.verify_vars_to_plot(vars_to_plot)
     options = modules.options.Options()
+    options.set(
+        adjustment_name='time',
+        scan_range=np.linspace(
+            start=plot_options.time_min,
+            stop=plot_options.time_max,
+            num=plot_options.time_count,
+        ),
+    )
 
     if plot_options.savefig:
         print(f'Files will be saved in:\n\t{utils.get_plotting_contours_path()}')
@@ -68,6 +77,9 @@ if __name__ == '__main__':
         # xmax=0.95,
         # ymin=0.5,
         # ymax=0.55,
+        time_min=0,
+        time_max=1,
+        time_count=100,
         raw=0,
         savefig=0,
         savedata=0,
@@ -135,8 +147,9 @@ if __name__ == '__main__':
     # vars_to_plot = ['xkiw20', 'xdew20', 'xkew20', 'xkzw20', 'xppw20', 'xptw20', ]
     # vars_to_plot = ['xkiw20', 'xkew20','xkemtm', ]
     # vars_to_plot = ['gti', 'gte','ti','te', ]
-    vars_to_plot = ['kyrsetg', 'xke', 'xkemmm', 'gte', 'te', ]
-    vars_to_plot = ['gte', ]
+    # vars_to_plot = ['kyrsetg', 'xke', 'xkemmm', 'gte', 'te', ]
+    # vars_to_plot = ['agxi_1', 'agxi_1b','agxi2_1',]
+    vars_to_plot = ['ti', 'te', ]
     # vars_to_plot = ['xkemmm', 'gte', 'te', ]
     # vars_to_plot = ['tz', 'fki', 'xki', 'xkimmm', 'gti', 'ti', ]
     # vars_to_plot = ['wexbsmod', 'wexbsv2', 'te', 'ti', 'wexb',]
@@ -186,7 +199,12 @@ if __name__ == '__main__':
     # scan_data.append('113944W20') # Failed EAST run
     # scan_data.append('113944W15') # Good old EAST run
 
-    scan_data.append('15334T03') # Testing
+    # scan_data.append('129016W12') # Testing
+
+    vars_to_plot = ['vndnc_e', 'dvtor_dr', 'dwtor_dr']
+    vars_to_plot = ['wexb',]
+    # scan_data.append('129016A04')  # Testing
+    scan_data.append('85122L01')  # Testing
 
     # vars_to_plot = ['xkidrbm', 'xkddrbm', 'xkedrbm', 'xkhdrbm']
     # scan_data.append('129016Q71') # DBM, 0.001 cal

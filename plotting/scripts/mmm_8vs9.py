@@ -203,10 +203,10 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='120982W32', yname='te', xname='time', legend='9.0.7'),
         # PlotDataCdf(runid='120982W01', yname='te', xname='time', legend='9.0.7 Disabled'),
         # PlotDataCdf(runid='120982W02', yname='mmmtime', xname='time', legend='9.0.7 Enabled'),
-        PlotDataCdf(runid='120982W01', yname='walltime', xname='time', legend='9.0.7 Disabled'),
-        PlotDataCdf(runid='120982W02', yname='walltime', xname='time', legend='9.0.7 Enabled'),
-        PlotDataCdf(runid='120982W02', yname='cptim', xname='time', legend='9.0.7 Enabled'),
-        title_override='120982' 
+        # PlotDataCdf(runid='120982W01', yname='walltime', xname='time', legend='9.0.7 Disabled'),
+        # PlotDataCdf(runid='120982W02', yname='walltime', xname='time', legend='9.0.7 Enabled'),
+        # PlotDataCdf(runid='120982W02', yname='cptim', xname='time', legend='9.0.7 Enabled'),
+        # title_override='120982' 
 
         # PlotDataCdf(runid='120982W01', yname='xkemmm', xname='rho', zval=0.65, legend='9.0.7 Disabled'),
         # PlotDataCdf(runid='120982W02', yname='xkemmm', xname='rho', zval=0.65, legend='9.0.7 Enabled'),
@@ -346,10 +346,14 @@ if __name__ == '__main__':
 
         # PlotDataCdf(runid='129016W12', yname='mmmtime', xname='time', legend=r'Default'),
         # PlotDataCdf(runid='129016W15', yname='mmmtime', xname='time', legend=r'fact, min = 0'),
-        # # PlotDataCdf(runid='129016W19', yname='te', zval=0.533, legend=r'9.0.9 pphi, No Smoothing'),
-        # # PlotDataCdf(runid='129016W13', yname='te', zval=0.533, legend=r'Analysis'),
+        # PlotDataCdf(runid='129016W19', yname='te', zval=0.533, legend=r'9.0.9 pphi, No Smoothing'),
+        # PlotDataCdf(runid='129016W13', yname='ti', xname='time', zval=0.5, legend=r'Analysis'),
         # title_override='129016', allow_title_time=1,
 
+        PlotDataCdf(runid='129016W13', yname='te', xname='time', zval=0.5, legend=r'Analysis'),
+        PlotDataCdf(runid='129016W12', yname='te', xname='time', zval=0.5, legend=r'With Artificial Diffusivity'),
+        PlotDataCdf(runid='129016W15', yname='te', xname='time', zval=0.5, legend=r'No Artificial Diffusivity'),
+        title_override='129016, rho = 0.5'
         # ---------------------------------------------------------------------------
         # ---------------------------------------------------------------------------
         # TOTAL DIFFUSIVITIES AT BEST MATCHEES

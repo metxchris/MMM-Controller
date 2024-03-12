@@ -56,6 +56,7 @@ Example Usage:
 # Standard Packages
 import sys; sys.path.insert(0, '../')
 import logging
+import os
 
 # 3rd Party Packages
 import numpy as np
@@ -223,6 +224,8 @@ class Variables:
         '''
 
         # TODO: Add check if file exists
+        if not os.path.exists(file_path):
+            return
         data_array = np.genfromtxt(file_path, delimiter=',', dtype=float, names=True)
         var_names = data_array.dtype.names
 
@@ -301,11 +304,13 @@ class InputVariables(Variables):
         self.gtf = Variable(
             'Fast Ion Temperature Gradient',
             label=r'$g_{\mathrm{Tf}}$',
+            required=True,
         )
 
         self.gnf = Variable(
             'Fast Ion Density Gradient',
             label=r'$g_{\mathrm{nf}}$',
+            required=True,
         )
 
         self.tf = Variable(
@@ -314,6 +319,7 @@ class InputVariables(Variables):
             minvalue=1e-6,
             smooth=1,
             units='keV',
+            required=True,
         )
 
         self.bpshi = Variable(
@@ -325,7 +331,7 @@ class InputVariables(Variables):
             units='keV',
         )
 
-        if settings.USE_EPM:
+        if settings.MMM_HEADER_VERSION not in ['old', '#90', '#105', '#107']:
             self.gtf.save_type = SaveType.INPUT
             self.gnf.save_type = SaveType.INPUT
             self.tf.save_type = SaveType.INPUT
@@ -336,19 +342,21 @@ class InputVariables(Variables):
             cdfvar='TIME',
             label=r'time',
             units='s',
+            required=True,
         )
 
         self.x = Variable(
             'X',
             cdfvar='X',
             label=r'$\hat{\rho}$',
+            required=True,
         )
 
         self.xb = Variable(
             'XB',
             cdfvar='XB',
-            # label=r'$x_\mathrm{B}$',
             label=r'$\hat{\rho}$',
+            required=True,
         )
 
         # CDF Variables needed for calculations
@@ -358,28 +366,33 @@ class InputVariables(Variables):
             label=r'$\overline{M}_\mathrm{z}$',
             minvalue=1,
             smooth=1,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
         self.arat = Variable(
             'Aspect Ratio',
             cdfvar='ARAT',
+            required=True,
         )
 
         self.bzxr = Variable(
             'BZXR',
             cdfvar='BZXR',
+            required=True,
         )
 
         self.dbp = Variable(
             'dbp',
             label=r'$B_{\rm \theta}^\prime$',
+            required=True,
             save_type=SaveType.INPUT,
         )
 
         self.d2bp = Variable(
             'd2bp',
             label=r'$B_{\rm \theta}^{\prime\prime}$',
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -388,6 +401,7 @@ class InputVariables(Variables):
             cdfvar='ELONG',
             label=r'$\kappa$',
             smooth=0,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -398,6 +412,7 @@ class InputVariables(Variables):
             units='mohm',
             smooth=0,
             minvalue=0,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -409,6 +424,7 @@ class InputVariables(Variables):
             smooth=1,
             units='m^-3',
             default_values=1e-16,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -420,7 +436,17 @@ class InputVariables(Variables):
             smooth=1,
             units='m^-3',
             default_values=1e-16,
+            required=True,
             save_type=SaveType.INPUT,
+        )
+
+        self.nt = Variable(
+            'Tritium Ion Density',
+            cdfvar='NT',
+            label=r'$n_\mathrm{T}$',
+            units='m^-3',
+            default_values=1e-16,
+            required=True,
         )
 
         self.nfd = Variable(
@@ -432,6 +458,7 @@ class InputVariables(Variables):
             smooth=1,
             units='m^-3',
             default_values=1e-16,
+            # required=True,
             # save_type=SaveType.INPUT,
         )
 
@@ -464,6 +491,7 @@ class InputVariables(Variables):
             smooth=1,
             units='m^-3',
             default_values=1e-16,
+            required=True,
             save_type=SaveType.ADDITIONAL,
         )
 
@@ -475,6 +503,7 @@ class InputVariables(Variables):
             smooth=1,
             units='m^-3',
             default_values=1e-16,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -484,6 +513,8 @@ class InputVariables(Variables):
             label=r'$\omega_\phi$',
             units='1/s',  # CDF may list units as rad/s, but assume 1/s (CDF is wrong)
             contour_max=1e3,
+            required=True,
+            absminvalue=1e-32,
         )
 
         self.q = Variable(
@@ -492,12 +523,14 @@ class InputVariables(Variables):
             label=r'$q$',
             minvalue=1e-6,
             smooth=0,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
         self.rho = Variable(  # Rho is saved in every CSV
             'Normalized Radius',
-            label=r'$\hat{\rho}$'
+            label=r'$\hat{\rho}$',
+            required=True,
         )
 
         self.rhochi = Variable(
@@ -511,6 +544,7 @@ class InputVariables(Variables):
             label=r'$R$',
             units='m',
             minvalue=0,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -520,6 +554,7 @@ class InputVariables(Variables):
             label=r'RMAJM',
             units='m',
             minvalue=0,
+            # required=True,
             # save_type=SaveType.INPUT,
         )
 
@@ -529,6 +564,7 @@ class InputVariables(Variables):
             label=r'$r$',
             units=r'm',
             minvalue=0,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -546,16 +582,8 @@ class InputVariables(Variables):
             minvalue=1e-6,
             smooth=1,
             units='keV',
+            required=True,
             save_type=SaveType.INPUT,
-        )
-
-        self.tepro = Variable(  # Data copied to te when experimental profiles are used
-            'Electron Temperature',
-            cdfvar='TEPRO',
-            label=r'$T_\mathrm{e,exp}$',
-            minvalue=1e-6,
-            smooth=0,
-            units='keV',
         )
 
         self.ti = Variable(
@@ -565,6 +593,7 @@ class InputVariables(Variables):
             minvalue=1e-6,
             smooth=1,
             units='keV',
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -575,16 +604,8 @@ class InputVariables(Variables):
             minvalue=1e-6,
             smooth=1,
             units='keV',
+            # required=True,
             # save_type=SaveType.INPUT,
-        )
-
-        self.tipro = Variable(  # Data copied to ti when experimental profiles are used
-            'Thermal Ion Temperature',
-            cdfvar='TIPRO',
-            label=r'$T_\mathrm{i,exp}$',
-            minvalue=1e-6,
-            smooth=0,
-            units='keV',
         )
 
         self.vpol = Variable(
@@ -594,6 +615,7 @@ class InputVariables(Variables):
             absminvalue=1e-6,
             smooth=3,
             units='m/s',
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -604,6 +626,7 @@ class InputVariables(Variables):
             absminvalue=1e-6,
             smooth=0,
             units='m/s',
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -613,6 +636,7 @@ class InputVariables(Variables):
             smooth=0,
             units='s^{-1}',
             minvalue=1e-6,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -630,7 +654,32 @@ class InputVariables(Variables):
             cdfvar='XZIMP',
             label=r'$\overline{Z}_\mathrm{imp}$',
             smooth=1,
+            required=True,
             save_type=SaveType.INPUT,
+        )
+
+        self.agxi_1 = Variable(
+            '1 / (a * GR)',
+            label=r'1 / a GR',
+            minvalue=1e-16,
+            units='',
+            save_type=SaveType.ADDITIONAL,
+        )
+
+        self.agxi_1b = Variable(
+            '1 / (a * GR)',
+            label=r'1 / a GR',
+            minvalue=1e-16,
+            units='',
+            save_type=SaveType.ADDITIONAL,
+        )
+
+        self.agxi2_1 = Variable(
+            'gxi / (a * gxi2)',
+            label=r'1 / a gxi',
+            minvalue=1e-16,
+            units='',
+            save_type=SaveType.ADDITIONAL,
         )
 
         self.ebeam = Variable(
@@ -639,6 +688,7 @@ class InputVariables(Variables):
             label=r'EBEAM$\_$D',
             minvalue=1e-4,
             units='keV',
+            required=True,
         )
 
         self.ebeampp = Variable(
@@ -697,6 +747,7 @@ class InputVariables(Variables):
             smooth=1,
             units='s^{-1}',  # CDF may list units as rad/s, but assume 1/s (CDF is wrong)
             minvalue=1e-6,
+            required=True,
         )
 
         self.wexbsmod = Variable(
@@ -706,6 +757,7 @@ class InputVariables(Variables):
             smooth=1,
             units='s^{-1}',  # CDF may list units as rad/s, but assume 1/s (CDF is wrong)
             minvalue=1e-6,
+            required=True,
         )
 
         self.wexbsv2 = Variable(
@@ -715,6 +767,7 @@ class InputVariables(Variables):
             smooth=1,
             units='s^{-1}',  # CDF may list units as rad/s, but assume 1/s (CDF is wrong)
             minvalue=1e-6,
+            required=True,
         )
 
         self.ai = Variable(
@@ -731,6 +784,7 @@ class InputVariables(Variables):
             units='u',
             minvalue=1,
             save_type=SaveType.INPUT,
+            required=True,
         )
 
         self.alphamhd = Variable(
@@ -785,6 +839,7 @@ class InputVariables(Variables):
             cdfvar='TRFLX',
             label=r'$\Psi_\mathrm{\phi}$',
             minvalue=0,
+            required=True,
         )
 
         self.bftor1 = Variable(
@@ -797,6 +852,7 @@ class InputVariables(Variables):
         self.bftorsqrt = Variable(
             'SQRT of Toroidal Magnetic Flux',
             absminvalue=1e-16,
+            required=True,
         )
 
         self.bpol = Variable(
@@ -805,8 +861,8 @@ class InputVariables(Variables):
             label=r'$B_\theta$',
             units='T',
             minvalue=1e-32,
+            required=True,
             save_type=SaveType.INPUT,
-            # save_type=SaveType.ADDITIONAL,
         )
 
         self.btor = Variable(
@@ -814,6 +870,7 @@ class InputVariables(Variables):
             label=r'$B_\phi$',
             units='T',
             absminvalue=1e-32,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -822,6 +879,7 @@ class InputVariables(Variables):
             label=r'$B_\mathrm{u}$',
             units='T',
             absminvalue=1e-32,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -935,7 +993,16 @@ class InputVariables(Variables):
             cdfvar='GXI',
             units='m^-1',
             label=r'$\nabla \hat{\rho}$',
+            required=True,
             save_type=SaveType.INPUT,
+        )
+
+        self.gxi2 = Variable(
+            'Flux Surface Vol. Avg.',
+            cdfvar='GXI2',
+            units='m^-2',
+            label=r'$\nabla^2 \hat{\rho}$',
+            required=True,
         )
 
         self.gyrfe = Variable(
@@ -980,6 +1047,7 @@ class InputVariables(Variables):
             'Electron Coulomb Logarithm',
             cdfvar='CLOGE',
             label=r'$\lambda_\mathrm{e}$',
+            required=True,
             save_type=SaveType.ADDITIONAL,
         )
 
@@ -987,6 +1055,7 @@ class InputVariables(Variables):
             'Ion Coulomb Logarithm',
             cdfvar='CLOGI',
             label=r'$\lambda_\mathrm{i}$',
+            required=True,
         )
 
         self.ni = Variable(
@@ -996,6 +1065,7 @@ class InputVariables(Variables):
             units='m^-3',
             minvalue=1e-32,
             default_values=0,
+            required=True,
             save_type=SaveType.ADDITIONAL,
         )
 
@@ -1012,6 +1082,7 @@ class InputVariables(Variables):
             label=r'$n_\mathrm{h0}$',
             units='m^-3',
             default_values=0,
+            required=True,
             save_type=SaveType.ADDITIONAL,
         )
 
@@ -1021,6 +1092,7 @@ class InputVariables(Variables):
             units='m^-3',
             minvalue=1e-32,
             default_values=0,
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -1115,6 +1187,7 @@ class InputVariables(Variables):
             label=r'$v_\parallel$',
             absminvalue=1e-32,
             units='m/s',
+            required=True,
             save_type=SaveType.INPUT,
         )
 
@@ -1136,8 +1209,25 @@ class InputVariables(Variables):
             'Effective Charge',
             cdfvar='ZEFFP',
             label=r'$Z_\mathrm{eff}$',
-            save_type=SaveType.INPUT,
+            required=True,
             minvalue=0.999,
+            save_type=SaveType.INPUT,
+        )
+
+        self.zave = Variable(
+            'Effective Charge',
+            cdfvar='',
+            label=r'$\overline{Z}$',
+            minvalue=0.999,
+            save_type=SaveType.ADDITIONAL,
+        )
+
+        self.zni = Variable(
+            'Z * Ni',
+            cdfvar='',
+            label=r'$\overline{Z} n_{\rm i}$',
+            minvalue=0.999,
+            save_type=SaveType.ADDITIONAL,
         )
 
         self.wbe = Variable(
@@ -1179,6 +1269,7 @@ class InputVariables(Variables):
             cdfvar='LPOL',
             units='m',
             minvalue=0,
+            required=True,
         )
 
         self.dvol = Variable(
@@ -1187,6 +1278,7 @@ class InputVariables(Variables):
             cdfvar='DVOL',
             units='m^3',
             minvalue=0,
+            required=True,
         )
 
         # Calculated Gradients
@@ -1277,6 +1369,38 @@ class InputVariables(Variables):
             label=r'$g_{v\phi}$',
             absminvalue=1e-32,
             save_type=SaveType.INPUT,
+        )
+
+        self.gwtor = Variable(
+            'Toroidal Angular Velocity Gradient',
+            label=r'$g_{\omega\phi}$',
+            absminvalue=1e-32,
+            # save_type=SaveType.INPUT,
+        )
+
+        self.dwtor_dr = Variable(
+            'Toroidal Angular Velocity Gradient',
+            label=r'$\partial_r \omega_\phi$',
+            absminvalue=1e-16,
+            contour_max=1e6,
+            contour_min=-1e6,
+            # save_type=SaveType.INPUT,
+        )
+        self.dvtor_dr = Variable(
+            'Toroidal Velocity Gradient',
+            label=r'$\partial_r v_\phi$',
+            absminvalue=1e-16,
+            contour_max=1e6,
+            contour_min=-1e6,
+            # save_type=SaveType.INPUT,
+        )
+        self.dvtor_dwtor = Variable(
+            'Toroidal Velocity Gradient Ratio',
+            label=r'$\partial_r v_\phi / \partial_r \omega_\phi$',
+            absminvalue=1e-16,
+            contour_max=2,
+            contour_min=0.5,
+            # save_type=SaveType.INPUT,
         )
 
         self.gelong = Variable(
@@ -1819,13 +1943,6 @@ class InputVariables(Variables):
             units='',
         )
 
-        self.nt = Variable(
-            'NT',
-            cdfvar='NT',
-            label=r'NT',
-            units='',
-        )
-
         self.nhe3 = Variable(
             'NHE3',
             cdfvar='NHE3',
@@ -1874,6 +1991,57 @@ class InputVariables(Variables):
             label=r'GR2I',
             units='',
         )
+
+        self.gte_solver = Variable(
+            'Electron Temperature Gradient',
+            label=r'$g_{\mathrm{Te, PTS}}$',
+            absminvalue=1e-32,
+            save_type=SaveType.INPUT,
+        )
+
+        self.gnz_solver = Variable(
+            'Impurity Density Gradient',
+            label=r'$g_{\mathrm{nz, PTS}}$',
+            absminvalue=1e-32,
+            save_type=SaveType.INPUT,
+        )
+
+        self.gne_solver = Variable(
+            'Electron Density Gradient',
+            label=r'$g_{\mathrm{ne, PTS}}$',
+            absminvalue=1e-32,
+            save_type=SaveType.INPUT,
+        )
+
+        self.gti_solver = Variable(
+            'Thermal Ion Temperature Gradient',
+            label=r'$g_{\mathrm{Ti, PTS}}$',
+            absminvalue=1e-32,
+            save_type=SaveType.INPUT,
+        )
+
+        self.gvtor_solver = Variable(
+            'Toroidal Velocity Gradient',
+            label=r'$g_{v\phi, \rm PTS}$',
+            absminvalue=1e-32,
+            save_type=SaveType.INPUT,
+        )
+
+        self.gvpol_solver = Variable(
+            'Poloidal Velocity Gradient',
+            label=r'$g_{v\theta, \rm PTS}$',
+            absminvalue=1e-32,
+            save_type=SaveType.INPUT,
+        )
+
+        # Disable solver input for older MMM versions
+        if settings.MMM_HEADER_VERSION in ['old', '#90']:
+            self.gti_solver.save_type = None
+            self.gte_solver.save_type = None
+            self.gnz_solver.save_type = None
+            self.gne_solver.save_type = None
+            self.gvtor_solver.save_type = None
+            self.gvpol_solver.save_type = None
 
         super().__init__(options)  # Init parent class
 
@@ -2057,47 +2225,31 @@ class OutputVariables(Variables):
         self.rmin = Variable('Minor Radius', units='m', label=r'$r$', minvalue=0)
         self.rmina = Variable('rmina', label=r'$r/a$', units=r'', minvalue=0)
         # Total Fluxes
-        self.fti = Variable('fti', units='keVm/s', label=r'$\Gamma_\mathrm{i}$', contour_min=0)
-        self.fde = Variable('fde', units='m^-2s^-1', label=r'$\Gamma_\mathrm{n}$', contour_min=0)
-        self.fte = Variable('fte', units='keVm/s', label=r'$\Gamma_\mathrm{e}$', contour_min=0)
-        self.fdz = Variable('fdz', units='m^-2s^-1', label=r'$\Gamma_\mathrm{z}$', contour_min=0)
-        self.fvt = Variable('fvt', units='m^2/s^2', label=r'$\Gamma_\phi$', contour_min=0)
-        self.fvp = Variable('fvp', units='m^2/s^2', label=r'$\Gamma_\theta$', contour_min=0)
+        self.fti = Variable('fti', units='keVm/s', label=r'$\Gamma_\mathrm{i}$', contour_max=2e2, contour_min=-2e2)
+        self.fte = Variable('fte', units='keVm/s', label=r'$\Gamma_\mathrm{e}$', contour_max=2e2, contour_min=-2e2)
+        self.fde = Variable('fde', units='m^-2s^-1', label=r'$\Gamma_\mathrm{n}$', contour_max=5e21, contour_min=-5e21)
+        self.fdz = Variable('fdz', units='m^-2s^-1', label=r'$\Gamma_\mathrm{z}$', contour_max=5e20, contour_min=-5e20)
+        self.fvt = Variable('fvt', units='m^2/s^2', label=r'$\Gamma_\phi$', contour_max=1e7, contour_min=-1e7)
+        self.fvp = Variable('fvp', units='m^2/s^2', label=r'$\Gamma_\theta$', contour_max=1e7, contour_min=-1e7)
         # Convective Velocities
-        self.vci = Variable('vci', units='m/s', label=r'$V_{\mathrm{i}}$')
-        self.vch = Variable('vch', units='m/s', label=r'$V_{\mathrm{n}}$')
-        self.vce = Variable('vce', units='m/s', label=r'$V_{\mathrm{e}}$')
-        self.vcz = Variable('vcz', units='m/s', label=r'$V_{\mathrm{z}}$', contour_max=1e5, contour_min=-1e5)
-        self.vct = Variable('vct', units='m/s', label=r'$V_{\phi}$', contour_max=1e5, contour_min=-1e5)
-        self.vcp = Variable('vcp', units='m/s', label=r'$V_{\theta}$', contour_max=1e5, contour_min=-1e5)
+        self.vti = Variable('vti', units='m/s', label=r'$V_{\mathrm{i}}$', contour_max=2e4, contour_min=-2e4)
+        self.vde = Variable('vde', units='m/s', label=r'$V_{\mathrm{n}}$', contour_max=2e4, contour_min=-2e4)
+        self.vte = Variable('vte', units='m/s', label=r'$V_{\mathrm{e}}$', contour_max=2e4, contour_min=-2e4)
+        self.vdz = Variable('vdz', units='m/s', label=r'$V_{\mathrm{z}}$', contour_max=2e4, contour_min=-2e4)
+        self.vvt = Variable('vvt', units='m/s', label=r'$V_{\phi}$', contour_max=2e4, contour_min=-2e4)
+        self.vvp = Variable('vvp', units='m/s', label=r'$V_{\theta}$', contour_max=2e4, contour_min=-2e4)
         # Total Diffusivities
-        self.xti = Variable('xti', units='m^2/s', label=r'$\chi_\mathrm{i}$')
-        self.xde = Variable('xde', units='m^2/s', label=r'$\chi_\mathrm{n}$')
-        self.xdi = Variable('xdi', units='m^2/s', label=r'$\chi_\mathrm{n}$')  # TODO: Remove eventually
-        self.xte = Variable('xte', units='m^2/s', label=r'$\chi_\mathrm{e}$')
-        self.xdz = Variable('xdz', units='m^2/s', label=r'$\chi_\mathrm{z}$')
-        self.xvt = Variable('xvt', units='m^2/s', label=r'$\chi_\phi$')
-        self.xvp = Variable('xvp', units='m^2/s', label=r'$\chi_\theta$')
+        self.xti = Variable('xti', units='m^2/s', label=r'$\chi_\mathrm{i}$', contour_max=1e2, contour_min=-1e2)
+        self.xde = Variable('xde', units='m^2/s', label=r'$\chi_\mathrm{n}$', contour_max=1e2, contour_min=-1e2)
+        self.xdi = Variable('xdi', units='m^2/s', label=r'$\chi_\mathrm{n}$', contour_max=1e2, contour_min=-1e2)  # TODO: Remove eventually
+        self.xte = Variable('xte', units='m^2/s', label=r'$\chi_\mathrm{e}$', contour_max=1e2, contour_min=-1e2)
+        self.xdz = Variable('xdz', units='m^2/s', label=r'$\chi_\mathrm{z}$', contour_max=1e2, contour_min=-1e2)
+        self.xvt = Variable('xvt', units='m^2/s', label=r'$\chi_\phi$', contour_max=1e2, contour_min=-1e2)
+        self.xvp = Variable('xvp', units='m^2/s', label=r'$\chi_\theta$', contour_max=1e2, contour_min=-1e2)
         # Weiland Components
         self.xtiW20 = Variable('xtiW20', units='m^2/s', label=r'$\chi_\mathrm{i, w20}$')
         self.xdeW20 = Variable('xdeW20', units='m^2/s', label=r'$\chi_\mathrm{n, w20}$')
         self.xteW20 = Variable('xteW20', units='m^2/s', label=r'$\chi_\mathrm{e, w20}$')
-        self.gmaW20ii = Variable('gmaW20ii', units='s^{-1}', label=r'$\gamma_\mathrm{ii, w20}$',
-                                 contour_max=5e7, contour_min=-5e7)
-        self.omgW20ii = Variable('omgW20ii', units='s^{-1}', label=r'$\omega_\mathrm{ii, w20}$',
-                                 contour_max=5e6, contour_min=-5e6)
-        self.gmaW20ie = Variable('gmaW20ie', units='s^{-1}', label=r'$\gamma_\mathrm{ie, w20}$',
-                                 contour_max=5e7, contour_min=-5e7)
-        self.omgW20ie = Variable('omgW20ie', units='s^{-1}', label=r'$\omega_\mathrm{ie, w20}$',
-                                 contour_max=5e6, contour_min=-5e6)
-        self.gmaW20ei = Variable('gmaW20ei', units='s^{-1}', label=r'$\gamma_\mathrm{ei, w20}$',
-                                 contour_max=5e7, contour_min=-5e7)
-        self.omgW20ei = Variable('omgW20ei', units='s^{-1}', label=r'$\omega_\mathrm{ei, w20}$',
-                                 contour_max=5e6, contour_min=-5e6)
-        self.gmaW20ee = Variable('gmaW20ee', units='s^{-1}', label=r'$\gamma_\mathrm{ee, w20}$',
-                                 contour_max=5e7, contour_min=-5e7)
-        self.omgW20ee = Variable('omgW20ee', units='s^{-1}', label=r'$\omega_\mathrm{ee, w20}$',
-                                 contour_max=5e6, contour_min=-5e6)
         self.gmaW20e = Variable('gmaW20e', units='s^{-1}', label=r'$\gamma_\mathrm{e, w20}$',
                                  contour_max=5e5, contour_min=-5e5)
         self.omgW20e = Variable('omgW20e', units='s^{-1}', label=r'$\omega_\mathrm{e, w20}$',
@@ -2133,20 +2285,7 @@ class OutputVariables(Variables):
         self.xteDBM = Variable('xteDBM', units='m^2/s', label=r'$\chi_\mathrm{e, dbm}$')
         self.xti2DBM = Variable('xti2DBM', units='m^2/s', label=r'$\chi^*_\mathrm{i, dbm}$')
         self.xtiDBM = Variable('xtiDBM', units='m^2/s', label=r'$\chi_\mathrm{i, dbm}$')
-        # EPM Component
-        self.gmaEPM = Variable('gmaEPM', units='s^{-1}', label=r'$\gamma_\mathrm{epm}$', contour_max=5e7, contour_min=-5e7)
-        self.kyrhosEPM = Variable('kyrhosEPM', units='', label=r'$k_y\rho_\mathrm{s}$')
-        self.omgEPM = Variable('omgEPM', units='s^{-1}', label=r'$\omega_\mathrm{epm}$', contour_max=5e7, contour_min=-5e7)
-        self.xdeEPM = Variable('xdeEPM', units='m^2/s', label=r'$\chi_\mathrm{n, epm}$')
-        self.xteEPM = Variable('xteEPM', units='m^2/s', label=r'$\chi_\mathrm{e, epm}$')
-        self.xtiEPM = Variable('xtiEPM', units='m^2/s', label=r'$\chi_\mathrm{i, epm}$')
-        self.nEPM = Variable('nEPM', units='', label=r'$n$')
-        self.gaveEPM = Variable('gaveEPM', units='', label=r'$\overline{G}$', contour_max=1, contour_min=0)
-        self.kparaEPM = Variable('kparaEPM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
-        self.errorEPM = Variable('errorEPM', units='', label=r'Error$_{\rm epm}$')
-        self.wdfEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm Df}$')
-        self.wdeEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm De}$')
-        self.wseEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm *e}$')
+
         # ETG Component
         self.xteETG = Variable('xteETG', units='m^2/s', label=r'$\chi_\mathrm{e, etg}$')
         self.gtecETG = Variable(r'Critical $g_\mathrm{Te}$ (Jenko ETG)', units='',
@@ -2180,7 +2319,6 @@ class OutputVariables(Variables):
         self.gaveETGM = Variable('Magnetic Field Curvature', units='', label=r'$\overline{G}$',
                                  contour_max=5, contour_min=-5)
         self.alphaETGM = Variable('alphaMHD', units='', label=r'$\alpha_\mathrm{MHD}$')
-        self.kpara2ETGM = Variable('kpara2ETGM', units='m^-2', label=r'$\langle k^{2}_\parallel \rangle$')
         self.kparaETGM = Variable('kparaETGM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
         self.fleETGM = Variable('fleETGM', units='', label=r'$\langle k^{2}_\perp \rho^{2}_\mathrm{e}\rangle$')
         self.phi2ETGM = Variable('Electrostatic Potential', units='', label=r'$|\hat{\phi}|^2$')
@@ -2206,10 +2344,113 @@ class OutputVariables(Variables):
 
         self.nR8TOMSQZ = Variable(
             'Eigenvalue solver calls',
-            label=r'nR8TOMSQZ',
+            label=r'$n_{\rm calls}$',
             units='',
             contour_min=0,
+            is_int=True,
         )
+
+        self.nWarning = Variable(
+            'Iteration Warnings',
+            label=r'$n_{\rm warn}$',
+            units='',
+            contour_min=0,
+            is_int=True,
+        )
+
+        self.nError = Variable(
+            'Iteration Errors',
+            label=r'$n_{\rm error}$',
+            units='',
+            contour_min=0,
+            is_int=True,
+        )
+
+        self.omg0W20 = Variable(
+            'Initial Real Frequency',
+            units='s^{-1}',
+            label=r'$\omega_\mathrm{0, w20}$',
+            contour_max=5e5,
+            contour_min=-5e5,
+        )
+
+        self.gma0W20 = Variable(
+            'Initial Growth Rate',
+            units='s^{-1}',
+            label=r'$\gamma_\mathrm{0, w20}$',
+            contour_max=5e5,
+            contour_min=-5e5,
+        )
+
+        self.omggW20 = Variable(
+            'Real Frequency Guess',
+            units='s^{-1}',
+            label=r'$\omega_\mathrm{g, w20}$',
+            contour_max=5e5,
+            contour_min=-5e5,
+        )
+
+        self.gmagW20 = Variable(
+            'Growth Rate Guess',
+            units='s^{-1}',
+            label=r'$\gamma_\mathrm{g, w20}$',
+            contour_max=5e5,
+            contour_min=-5e5,
+        )
+
+        self.gmaW20 = Variable(
+            'Max Growth Rate',
+            units='s^{-1}',
+            label=r'$\gamma_\mathrm{w20}$',
+            contour_max=5e5,
+            contour_min=-5e5,
+        )
+
+        self.omgW20 = Variable(
+            'Real Frequency',
+            units='s^{-1}',
+            label=r'$\omega_\mathrm{w20}$',
+            contour_max=5e5,
+            contour_min=-5e5,
+        )
+
+        # EPM Component
+        if settings.USE_EPM:
+            self.gmaEPM = Variable('gmaEPM', units='s^{-1}', label=r'$\gamma_\mathrm{epm}$', contour_max=5e7, contour_min=-5e7)
+            self.kyrhosEPM = Variable('kyrhosEPM', units='', label=r'$k_y\rho_\mathrm{s}$')
+            self.omgEPM = Variable('omgEPM', units='s^{-1}', label=r'$\omega_\mathrm{epm}$', contour_max=5e7, contour_min=-5e7)
+            self.xdeEPM = Variable('xdeEPM', units='m^2/s', label=r'$\chi_\mathrm{n, epm}$')
+            self.xteEPM = Variable('xteEPM', units='m^2/s', label=r'$\chi_\mathrm{e, epm}$')
+            self.xtiEPM = Variable('xtiEPM', units='m^2/s', label=r'$\chi_\mathrm{i, epm}$')
+            self.nEPM = Variable('nEPM', units='', label=r'$n$')
+            self.gaveEPM = Variable('gaveEPM', units='', label=r'$\overline{G}$', contour_max=1, contour_min=0)
+            self.kparaEPM = Variable('kparaEPM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
+            self.errorEPM = Variable('errorEPM', units='', label=r'Error$_{\rm epm}$')
+            self.wdfEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm Df}$')
+            self.wdeEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm De}$')
+            self.wseEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm *e}$')
+
+
+        # Deprecated Variables
+        # self.kpara2ETGM = Variable('kpara2ETGM', units='m^-2', label=r'$\langle k^{2}_\parallel \rangle$')
+
+        # self.gmaW20ii = Variable('gmaW20ii', units='s^{-1}', label=r'$\gamma_\mathrm{ii, w20}$',
+        #                          contour_max=5e7, contour_min=-5e7)
+        # self.omgW20ii = Variable('omgW20ii', units='s^{-1}', label=r'$\omega_\mathrm{ii, w20}$',
+        #                          contour_max=5e6, contour_min=-5e6)
+        # self.gmaW20ie = Variable('gmaW20ie', units='s^{-1}', label=r'$\gamma_\mathrm{ie, w20}$',
+        #                          contour_max=5e7, contour_min=-5e7)
+        # self.omgW20ie = Variable('omgW20ie', units='s^{-1}', label=r'$\omega_\mathrm{ie, w20}$',
+        #                          contour_max=5e6, contour_min=-5e6)
+        # self.gmaW20ei = Variable('gmaW20ei', units='s^{-1}', label=r'$\gamma_\mathrm{ei, w20}$',
+        #                          contour_max=5e7, contour_min=-5e7)
+        # self.omgW20ei = Variable('omgW20ei', units='s^{-1}', label=r'$\omega_\mathrm{ei, w20}$',
+        #                          contour_max=5e6, contour_min=-5e6)
+        # self.gmaW20ee = Variable('gmaW20ee', units='s^{-1}', label=r'$\gamma_\mathrm{ee, w20}$',
+        #                          contour_max=5e7, contour_min=-5e7)
+        # self.omgW20ee = Variable('omgW20ee', units='s^{-1}', label=r'$\omega_\mathrm{ee, w20}$',
+        #                          contour_max=5e6, contour_min=-5e6)
+  
 
 
         super().__init__(options)  # Init parent class
@@ -2262,7 +2503,7 @@ class OutputVariables(Variables):
 class Variable:
     def __init__(self, name, cdfvar=None, smooth=None, label='', desc='', minvalue=None, absminvalue=None,
                  save_type=None, default_values=1.e-16, contour_max=np.inf, contour_min=-np.inf,
-                 reduce_memory=False, units='', dimensions=None, values=None):
+                 reduce_memory=False, units='', dimensions=None, values=None, required=False, is_int=False):
         # Public
         self.name = name
         self.cdfvar = cdfvar  # Name of variable as used in CDF's
@@ -2276,6 +2517,8 @@ class Variable:
         self.contour_max = contour_max  # maximum value to display on contour plots
         self.contour_min = contour_min  # minimum value to display on contour plots
         self.reduce_memory = reduce_memory  # delete this variable after calculations to reduce memory usage
+        self.required = required  # variable required for input file calculations
+        self.is_int = is_int  # Whether variable should be treated as integer on contour plots
         # Private
         self._units_label = ''
         self._units = ''

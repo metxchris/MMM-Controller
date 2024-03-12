@@ -66,6 +66,13 @@ def differential(x):
         dx[1:, :] += tmp
         return dx
 
+    elif settings.GRADIENT_METHOD == 'ptsolver':
+        dx = np.zeros_like(x)
+        tmp = np.diff(x, axis=0)
+        dx[1:, :] += tmp
+        dx[0, :] = dx[1, :]
+        return dx
+
     elif settings.GRADIENT_METHOD == 'akima':
         dx = np.zeros_like(x)
         tmp = np.diff(x, axis=0)
@@ -76,11 +83,11 @@ def differential(x):
     else:
         raise ValueError(
             f'\'{settings.GRADIENT_METHOD}\' is not a valid argument for the gradient method\n'
-            f'Possible choices: \'interpolate\', \'traditional\', \'akima\''
+            f'Possible choices: \'interpolate\', \'traditional\', \'akima\', \'ptsolver\''
         )
 
 
-def differentiate(yname, xname, calc_vars):
+def differentiate(yname, xname, calc_vars, method=''):
     '''
     Take the derivative of variable y with respect to variable x
 
@@ -89,8 +96,10 @@ def differentiate(yname, xname, calc_vars):
     * xname (str): name of variable to use for x
     * calc_vars (InputVariables): Object containing variable data
     '''
+    if not method:
+        method = settings.GRADIENT_METHOD
 
-    if settings.GRADIENT_METHOD == 'akima':
+    if method == 'akima':
         return akima_differentiate(yname, xname, calc_vars)
 
     dy = differential(getattr(calc_vars, yname).values)
@@ -102,7 +111,7 @@ def differentiate(yname, xname, calc_vars):
 
     dy_dx = dy / dx
 
-    if settings.GRADIENT_METHOD == 'interpolate':
+    if method == 'interpolate':
 
         rhox = calc_vars.x.values[:, 0]
         rhoxb = calc_vars.xb.values[:, 0]  # includes origin
@@ -127,7 +136,7 @@ def akima_differentiate(yname, xname, mmm_vars):
         dy_dx[:, i] = set_interp(xvals[:, i], 1)
     return dy_dx
 
-def gradient(gvar_name, var_name, gsign, calc_vars):
+def gradient(gvar_name, var_name, gsign, calc_vars, method=''):
     '''
     Calculates the normalized gradient using interpolation
 
@@ -149,7 +158,7 @@ def gradient(gvar_name, var_name, gsign, calc_vars):
     gvar = getattr(calc_vars, gvar_name)
     var = getattr(calc_vars, var_name)
 
-    dy_dx = differentiate(var_name, 'rmin', calc_vars)
+    dy_dx = differentiate(var_name, 'rmin', calc_vars, method)
     gvar.set(values=gsign * rmaj * dy_dx / var.values, units='')
 
     if calc_vars.options.apply_smoothing:
@@ -232,12 +241,42 @@ def calculation_output(func):
 
 
 @calculation
+def dwtor_dr(calc_vars):
+    '''Mean Atomic Mass of Hydrogenic Ions (Hydrogen + Deuterium)'''
+    wtor = calc_vars.omega.values
+    gwtor = calc_vars.gwtor.values
+    rmaj = calc_vars.rmaj.values
+
+    return -gwtor * wtor / rmaj
+
+
+@calculation
+def dvtor_dr(calc_vars):
+    '''Mean Atomic Mass of Hydrogenic Ions (Hydrogen + Deuterium)'''
+    vtor = calc_vars.vtor.values
+    gvt = calc_vars.gvtor.values
+    rmaj = calc_vars.rmaj.values
+
+    return -gvt * vtor / rmaj
+
+
+@calculation
+def dvtor_dwtor(calc_vars):
+    '''Mean Atomic Mass of Hydrogenic Ions (Hydrogen + Deuterium)'''
+    dvtor_dr = calc_vars.dvtor_dr.values
+    dwtor_dr = calc_vars.dwtor_dr.values
+
+    return dvtor_dr / dwtor_dr
+
+
+@calculation
 def ah(calc_vars):
     '''Mean Atomic Mass of Hydrogenic Ions (Hydrogen + Deuterium)'''
     nh0 = calc_vars.nh0.values
     nd = calc_vars.nd.values
+    nt = calc_vars.nt.values
 
-    return (nh0 + 2 * nd) / (nh0 + nd)
+    return (nh0 + 2 * nd + 3 * nt) / (nh0 + nd + nt)
 
 
 @calculation
@@ -279,6 +318,47 @@ def alphamhdu(calc_vars):
     ti = calc_vars.ti.values
 
     return q**2 * betaeu * (gne + gte + ti / te * (gni + gti))
+
+
+@calculation
+def agxi_1(calc_vars):
+    '''Beta'''
+    a = calc_vars.rmin.values[-1, :]
+    gxi = calc_vars.gxi.values
+    elong = calc_vars.elong.values
+    gr = gxi + (1 / a - gxi) / elong
+
+    return 1 / (a * gr)
+
+
+@calculation
+def agxi_1b(calc_vars):
+    '''Beta'''
+    # a = calc_vars.rmin.values[-1, :]
+    # gxi = calc_vars.gxi.values
+    # gxi2 = calc_vars.gxi2.values
+
+    a = calc_vars.rmin.values[-1, :]
+    gxi = calc_vars.gxi.values
+    elong = calc_vars.elong.values
+    gr = gxi + (1 / a - gxi) / elong**2
+
+    return 1 / (a * gr)
+
+    return 1 / (a * gxi)
+
+
+@calculation
+def agxi2_1(calc_vars):
+    '''Beta'''
+    # a = calc_vars.rmin.values[-1, :]
+    # gxi = calc_vars.gxi.values
+    # gxi2 = calc_vars.gxi2.values
+
+    a = calc_vars.rmin.values[-1, :]
+    gxi = calc_vars.gxi.values
+
+    return 1 / (a * gxi)
 
 
 @calculation
@@ -460,20 +540,20 @@ def curohrho(calc_vars):
 @calculation
 def dbp(calc_vars):
     '''dBpol / drho'''
-    return differentiate('bpol', 'rho', calc_vars)
+    return differentiate('bpol', 'rmin', calc_vars)
     # return akima_differentiate('bpol', 'rho', calc_vars)
 
 
 @calculation
 def d2bp(calc_vars):
     '''d^2Bpol / drho^2'''
-    return differentiate('dbp', 'rho', calc_vars)
+    return differentiate('dbp', 'rmin', calc_vars)
     # return akima_differentiate('dbp', 'rho', calc_vars)
 
 
 @calculation
 def dvol_drho(calc_vars):
-    '''d^2Bpol / drho^2'''
+    ''''''
     return differentiate('dvol', 'rho', calc_vars)
     # return akima_differentiate('dbp', 'rho', calc_vars)
 
@@ -767,9 +847,10 @@ def nh0(calc_vars):
     ne = calc_vars.ne.values
     nf = calc_vars.nf.values
     nz = calc_vars.nz.values
+    nt = calc_vars.nt.values
     zz = calc_vars.zz.values
-
-    return ne - zz * nz - nf - nd
+    
+    return ne - zz * nz - nf - nd - nt
 
 
 @calculation
@@ -777,8 +858,9 @@ def nh(calc_vars):
     '''Total Hydrogenic Ion Density'''
     nh0 = calc_vars.nh0.values
     nd = calc_vars.nd.values
+    nt = calc_vars.nt.values
 
-    return nh0 + nd
+    return nh0 + nd + nt
 
 
 @calculation
@@ -786,9 +868,10 @@ def ni(calc_vars):
     '''Thermal Ion Density'''
     nh = calc_vars.nh.values
     nz = calc_vars.nz.values
+    nf = calc_vars.nf.values
 
     # TRANSP Definition
-    return nh + nz
+    return nh + nz + nf
 
 
 @calculation
@@ -1166,6 +1249,56 @@ def zeff(calc_vars):
     return (nh + nf + zz**2 * nz) / np.maximum(ne, 1e-16)
 
 
+@calculation
+def zave(calc_vars):
+    '''Effective Charge'''
+    nf = calc_vars.nf.values
+    nh = calc_vars.nh.values
+    nz = calc_vars.nz.values
+    zz = calc_vars.zz.values
+
+    return (nh + nf + zz * nz) / (nh + nf + nz)
+    # return (nh + zz * nz) / (nh + nz)
+
+
+@calculation
+def zni(calc_vars):
+    '''Effective Charge'''
+    zave = calc_vars.zave.values
+    nf = calc_vars.nf.values
+    nh = calc_vars.nh.values
+    nz = calc_vars.nz.values
+
+    return zave * (nh + nf + nz)
+    # return zave * (nh + nz)
+
+
+@calculation_output
+def gmaW20(calc_vars, output_vars):
+    '''Growth Rate of Most Unstable Mode'''
+    gmaW20i = output_vars.gmaW20i.values
+    gmaW20e = output_vars.gmaW20e.values
+    gmaW20 = np.zeros_like(gmaW20i)
+    gmaW20[gmaW20i >= gmaW20e] = gmaW20i[gmaW20i >= gmaW20e]
+    gmaW20[gmaW20i < gmaW20e] = gmaW20e[gmaW20i < gmaW20e]
+
+    return gmaW20
+
+
+@calculation_output
+def omgW20(calc_vars, output_vars):
+    '''Frequency of Most Unstable Mode'''
+    gmaW20i = output_vars.gmaW20i.values
+    gmaW20e = output_vars.gmaW20e.values
+    omgW20i = output_vars.omgW20i.values
+    omgW20e = output_vars.omgW20e.values
+    omgW20 = np.zeros_like(omgW20i)
+    omgW20[gmaW20i >= gmaW20e] = omgW20i[gmaW20i >= gmaW20e]
+    omgW20[gmaW20i < gmaW20e] = omgW20e[gmaW20i < gmaW20e]
+
+    return omgW20
+
+
 @calculation_output
 def gmanMTM(calc_vars, output_vars):
     '''MTM Growth Rate Normalized'''
@@ -1342,27 +1475,31 @@ def calculate_output_variables(calc_vars, output_vars, controls):
     # same name as the variable it calculates. Note that calculation order
     # matters here.
 
-    if controls.cmodel_etgm.values:
-        wdeETGM(calc_vars, output_vars)
-        wde_gaveETGM(calc_vars, output_vars)
-        wseETGM(calc_vars, output_vars)
-        wsetaETGM(calc_vars, output_vars)
-        wteETGM(calc_vars, output_vars)
-        omgdiffETGM(calc_vars, output_vars)
-        gmadiffETGM(calc_vars, output_vars)
-        waETGM(calc_vars, output_vars)
-        gmanETGM(calc_vars, output_vars)
-        omgnETGM(calc_vars, output_vars)
+    if settings.SAVE_ADDITIONAL_VARIABLES:
+        if controls.cmodel_etgm.values:
+            wdeETGM(calc_vars, output_vars)
+            wde_gaveETGM(calc_vars, output_vars)
+            wseETGM(calc_vars, output_vars)
+            wsetaETGM(calc_vars, output_vars)
+            wteETGM(calc_vars, output_vars)
+            omgdiffETGM(calc_vars, output_vars)
+            gmadiffETGM(calc_vars, output_vars)
+            waETGM(calc_vars, output_vars)
+            gmanETGM(calc_vars, output_vars)
+            omgnETGM(calc_vars, output_vars)
 
-    if controls.cmodel_mtm.values:
-        gmanMTM(calc_vars, output_vars)
-        omgnMTM(calc_vars, output_vars)
+        if controls.cmodel_mtm.values:
+            gmanMTM(calc_vars, output_vars)
+            omgnMTM(calc_vars, output_vars)
 
-    if controls.cmodel_epm.values:
-        wdeEPM(calc_vars, output_vars)
-        wdfEPM(calc_vars, output_vars)
-        wseEPM(calc_vars, output_vars)
+        if controls.cmodel_epm.values:
+            wdeEPM(calc_vars, output_vars)
+            wdfEPM(calc_vars, output_vars)
+            wseEPM(calc_vars, output_vars)
 
+    if controls.cmodel_weiland.values:
+        gmaW20(calc_vars, output_vars)
+        omgW20(calc_vars, output_vars)
 
 def calculate_base_variables(calc_vars):
     '''
@@ -1386,13 +1523,11 @@ def calculate_base_variables(calc_vars):
     drmin(calc_vars)
     nh(calc_vars)
     ni(calc_vars)
-    ne(calc_vars)
+    # ne(calc_vars)
     ah(calc_vars)
-    ai(calc_vars)
     zeff(calc_vars)
     btor(calc_vars)
     bftorsqrt(calc_vars)
-    rhochi(calc_vars)
     bu(calc_vars)
     bpol(calc_vars)
     dbp(calc_vars)
@@ -1400,7 +1535,7 @@ def calculate_base_variables(calc_vars):
     vtor(calc_vars)
     vpar(calc_vars)
     tf(calc_vars)
-    eps(calc_vars)
+    eps(calc_vars)  # for gelong
 
     # Calculations for testing
     # 
@@ -1408,7 +1543,7 @@ def calculate_base_variables(calc_vars):
     # e_r_phi(calc_vars)
     # e_r_tht(calc_vars)
     # wexb(calc_vars)
-    gxi(calc_vars)
+    # gxi(calc_vars)
 
     if hasattr(calc_vars.options, 'use_etgm_btor') and calc_vars.options.use_etgm_btor:
         calc_vars.bu.values = calc_vars.btor.values
@@ -1444,9 +1579,17 @@ def calculate_gradient_variables(calc_vars):
     gradient('gte', 'te', -1, calc_vars)
     gradient('gtf', 'tf', -1, calc_vars)
     gradient('gti', 'ti', -1, calc_vars)
-    gradient('gvpar', 'vpar', -1, calc_vars)
     gradient('gvpol', 'vpol', -1, calc_vars)
     gradient('gvtor', 'vtor', -1, calc_vars)
+    gradient('gvpar', 'vpar', -1, calc_vars)
+
+    method = settings.SOLVER_GRADIENT_METHOD
+    gradient('gti_solver', 'ti', -1, calc_vars, method)
+    gradient('gte_solver', 'te', -1, calc_vars, method)
+    gradient('gne_solver', 'ne', -1, calc_vars, method)
+    gradient('gnz_solver', 'nz', -1, calc_vars, method)
+    gradient('gvtor_solver', 'vtor', -1, calc_vars, method)
+    gradient('gvpol_solver', 'vpol', -1, calc_vars, method)
 
     # gelong calculated differently than other normalized gradients
     gelong(calc_vars)
@@ -1498,10 +1641,21 @@ def calculate_additional_variables(calc_vars):
     # same name as the variable it calculates. Note that calculation order
     # matters here.
 
+    if not settings.SAVE_ADDITIONAL_VARIABLES:
+        return
+
+    gradient('gwtor', 'omega', -1, calc_vars)
+    dwtor_dr(calc_vars)
+    dvtor_dr(calc_vars)
+    dvtor_dwtor(calc_vars)
+    agxi_1(calc_vars)
+    agxi_1b(calc_vars)
+    agxi2_1(calc_vars)
+    rhochi(calc_vars)
+    ai(calc_vars)
     te_ti(calc_vars)
     ti_te(calc_vars)
     tf_te(calc_vars)
-    eps(calc_vars)
     p(calc_vars)
     beta(calc_vars)
     betae(calc_vars)
@@ -1535,6 +1689,8 @@ def calculate_additional_variables(calc_vars):
     epsne(calc_vars)
     vei_nc(calc_vars)
     vA(calc_vars)
+    zave(calc_vars)
+    zni(calc_vars)
 
     # curlh(calc_vars)
     # curoh(calc_vars)

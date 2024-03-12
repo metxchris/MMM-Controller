@@ -9,6 +9,7 @@ associated data from a variable scan.
 # Standard Packages
 import sys; sys.path.insert(0, '../')
 import logging
+import warnings
 
 # 3rd Party Packages
 import matplotlib.pyplot as plt
@@ -43,11 +44,11 @@ def main(vars_to_plot, scan_data, plot_options):
 
     plt.figure()  # Instantiate the figure
 
-    for runid, scan_nums in scan_data.items():
+    for i, (runid, scan_nums) in enumerate(scan_data.items()):
         for scan_num in scan_nums:
             options.load(runid, scan_num)
             if options.var_to_scan:
-                print(f'\nInitializing data for {runid}, scan {scan_num}, {options.var_to_scan}...')
+                print(f'\nInitializing data for {runid}, scan {scan_num}, {options.var_to_scan} ({i + 1}/{len(scan_data)})...')
                 cd = contourdata.ContourDataMMM(options, plot_options)
                 makecontourplot.run_plotting_loop(cd, vars_to_plot)
             else:
@@ -56,7 +57,10 @@ def main(vars_to_plot, scan_data, plot_options):
 
 # Run this file directly to plot scanned variable profiles from previously created scanned data
 if __name__ == '__main__':
+    warnings.filterwarnings("ignore")
+
     scan_data = {}
+    vars_to_plot = []
 
     PlotStyles(
         axes=StyleType.Axes.WHITE,
@@ -64,20 +68,9 @@ if __name__ == '__main__':
         layout=StyleType.Layout.AIP2,
     )
 
-    plot_options = contourdata.PlotOptions(
-        # xmin=0.1,
-        # xmax=0.9,
-        # ymin=0.5,
-        # ymax=0.6,
-        savefig=0,
-        savedata=0,
-        smoothing=0,
-        showfig=1,
-        saveappend='',
-    )
-
     plt.rcParams.update({
         'savefig.format': 'pdf',  # Common save formats: png, pdf, eps
+        # 'figure.dpi': 50,
     })
 
     """
@@ -99,7 +92,7 @@ if __name__ == '__main__':
         - values (list of int): The scan_numbers to plot from
     """
 
-    vars_to_plot = ['satETGM']
+    # vars_to_plot = ['satETGM']
     ## 20001: 7x7 w/ optimization
     ## 20002: 7x7 no opt
     ## 20003: 1000x1
@@ -117,8 +110,8 @@ if __name__ == '__main__':
     # scan_data['129016A04'] = [25029]; # kyrhos scan
 
     # vars_to_plot = ['satETGM','satDBM',] # 20001 - 7x7 scans w/ opt
-    vars_to_plot = ['xteMTM', 'xtiW20', 'xteW20'] # 20001 - 7x7 scans w/ opt
-    vars_to_plot = ['gmaW20i', 'gmaW20e'] # 20001 - 7x7 scans w/ opt
+    # vars_to_plot = ['xteMTM', 'xtiW20', 'xteW20'] # 20001 - 7x7 scans w/ opt
+    # vars_to_plot = ['gmaW20i', 'gmaW20e'] # 20001 - 7x7 scans w/ opt
     # vars_to_plot = ['nR8TOMSQZ'] # 20001 - 7x7 scans w/ opt
     # vars_to_plot = ['xteETGM'] # 20001 - 7x7 scans w/ opt
     # scan_data['120968A02'] = [26207];  # 7x7 scans, w/ optimization (29.3 scans)
@@ -138,12 +131,119 @@ if __name__ == '__main__':
     # scan_data['84599T01']  = [26100];  # 7x7 scans, w/ optimization  (21.7 scans)
     # scan_data['87261T01']  = [26100];  # 7x7 scans, w/ optimization  (31.9 scans)
 
-    vars_to_plot = ['gte'] # 20001 - 7x7 scans w/ opt
-    scan_data['15334T03'] = [26224];  # 7x7 scans, w/ optimization (34.0 scans)
+    # vars_to_plot = ['xtiW20'] # 20001 - 7x7 scans w/ opt
+    # scan_data['118341T54'] = [26301];  # 7x7 scans, w/ optimization (34.0 scans)
 
     ## Examples using ranges
     # scan_data['138536A01'] = [i for i in range(1716, 1738 + 1)]
     # scan_data['138536A01'] = [i for i in [*range(1716, 1738 + 1), *range(1756, 1763 + 1)]]
+
+    # scan_data['141716A80']  = [26202];  # 1 mode, scan both ways
+
+    # vars_to_plot = ['gxi','gaveW20i', 'gaveW20e']
+    # vars_to_plot = ['fti', 'fte', 'fde', 'fdz', 'fvp', 'fvt']
+    # vars_to_plot = ['xtiW20', 'xteW20', 'xdeW20', 'xdz', 'xvt', 'xvp']
+    # vars_to_plot += ['gti', 'gte', 'gne', 'gnz', 'gvt', 'gvp']
+    # vars_to_plot += ['nR8TOMSQZ', 'nWarning', 'nError']
+    # vars_to_plot = ['gma0W20', 'gmagW20', 'gmaW20']
+    # vars_to_plot = ['gaveETGM', 'gmaW20e', 'gmaW20']
+    # vars_to_plot = ['nR8TOMSQZ']
+    # vars_to_plot += ['tvt', 'xvt', 'vct', 'gvtor', 'fvt']
+    # vars_to_plot = ['gaveW20i', 'gaveW20e']
+    # num = 26325  # 26322, replacement rule on initial solutions
+    # num = 26324  # 26314, only ion direction guesses
+    # num = 26323  # 26314, but no mode replacement
+    # num = 26322  # 26314, but converge in both directions
+    # num = 26314  # 26302, only conv initial modes + gave kpara fix
+    # num = 26311  # 26302, with max mode from match array fixed
+    # num = 26307  # 26305, but coded without overwriting ion vars
+    # num = 26305  # 26303, but searching in both directions
+    # num = 26303  # 26302, but using single most unstable mode
+    # num = 26302  # ky_i = ky_e, wexb_i = wexb_e
+    # num = 26301  # W20 9.0.10
+    
+    num = 27030  # Major w20 fixes, + alp min zepsqrt
+    # num = 27027  # Major w20 fixes, + suppressed kap1, ne/nh Curr, guess fix
+    # num = 27026  # Major w20 fixes, + removing kap1 max
+    # num = 27025  # Major w20 fixes, + zflh, zflz, geometry
+    # num = 27024  # Major w20 fixes, + epsilon Gave
+    # num = 27023  # Major w20 fixes, Fixing XI(3) term
+    # num = 27021  # Major w20 fixes
+    # num = 27020  # #103 (cleanup of w20 calculations)
+    # num = 27015  # #102, QZ zepsqrt, Gave min = zepslon
+    # num = 27014  # Commit 102, Gave min = zepslon
+    # num = 27013  # Commit 101
+    # num = 27011  # pre w20 fixes, Commit 102
+    # num = 26386  # convstrat 6 rolling guess denominator
+    # num = 26385  # convstrat 5 cleanup, max 99, stuck 30
+    # num = 26382  # convstrat 4 counting opp gma, omgr
+    # num = 26381  # convstrat 3 counting mode stuck
+    # num = 26380  # convstrat 2 based on rel dif > 1E-1
+    # num = 26376  # convergence strategy OG
+    # num = 26375  # NEW Baseline (stricter duplicate modes)
+    # num = 26371  # conv fix 6 OPT#7 (e, i mode replacement)
+    # num = 26370  # conv fix 6 OPT#7 (no mode replacement)
+    # num = 26357  # conv fix 6 OPT#7
+    # num = 26356  # conv fix 6 OPT#6
+    # num = 26355  # conv fix 6 OPT#5
+    # num = 26354  # conv fix 6 OPT#4
+    # num = 26352  # 9.0.10 OPT
+    # num = 26351  # 9.0.10 NO OPT
+    # num = 26348  # conv fix 6 OPT#3
+    # num = 26347  # conv fix 6 OPT#2
+    # num = 26343  # i = e OPT
+    # num = 26342  # i = e NO OPT
+    # num = 26341  # conv fix 6 OPT
+    # num = 26340  # conv fix 6 NO OPT
+    # num = 61
+    vars_to_plot = ['nR8TOMSQZ', 'nWarning', 'nError']
+    # vars_to_plot = ['gmaW20', 'gma0W20', 'gmagW20', ]
+    # vars_to_plot += ['omgW20', 'omg0W20', 'omggW20', ]
+    # vars_to_plot = ['gmagW20', 'gma0W20']
+    # vars_to_plot = ['fde', 'xde', 'vde']
+    # vars_to_plot = ['fvt', 'xvt', 'vvt']
+    # vars_to_plot += ['fte', 'xte', 'vte']
+    # vars_to_plot += ['fti', 'xti', 'vti']
+    # vars_to_plot = ['fdz', 'xdz', 'vdz']
+    # vars_to_plot = ['dvtor_dr', 'dwtor_dr']
+    # vars_to_plot = ['fti', 'fte', 'fde']
+    # vars_to_plot = ['te', 'ti']
+    # vars_to_plot = ['gne', 'fde', 'xde']
+    # vars_to_plot = ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
+    # vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
+    
+
+    # scan_data['80200A13'] = [233]
+
+    # 48: no split, no convert
+    # 49: split, no convert
+    # 56: no split, convert
+    # 57: split, convert
+    # 58: no split, no convert, no neg
+    # 63: solvers
+    # 64: No solvers
+    # 73: zflh no ah
+    # 74: zflh with ah
+    # 79, 77: no limit small grad
+    # 80, 78: limit small grad
+    # scan_data['85122L01'] = [11]
+    # scan_data['129016A04'] = [127]
+    # scan_data['138536A01'] = [84]
+    # scan_data['183743H01'] = [8]
+    # scan_data['120968A02'] = [55]
+    scan_data['90949R01'] = [8]
+
+    plot_options = contourdata.PlotOptions(
+        # xmin=0.60,
+        # xmax=0.75,
+        # ymin=0.5,
+        # ymax=500,
+        showfig=1,
+        savefig=0,
+        savedata=0,
+        smoothing=0,
+        saveappend='',
+    )
 
     ## Run program
     main(vars_to_plot, scan_data, plot_options)

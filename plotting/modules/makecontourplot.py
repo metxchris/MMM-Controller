@@ -62,7 +62,12 @@ def make_contour_plot(cd):
         args_line['zorder'] = -2
         args_line['linewidths'] = 0.4
         colormaps = plotting.modules.colormaps.get_colormaps()
-        if cd.Z.min() >= 0:
+
+        if hasattr(cd, 'isidentical') and cd.isidentical or (cd.Z == 0).all():
+            args_both['norm'] = None
+            args_fill['cmap'] = colormaps['white']
+            args_line['cmap'] = colormaps['white']
+        elif cd.Z.min() >= 0:
             args_both['norm'] = None
             args_fill['cmap'] = colormaps['magma_positive']
             args_line['cmap'] = colormaps['magma_positive_lines']
@@ -82,7 +87,18 @@ def make_contour_plot(cd):
         contour_level_count = 20
         Z = cd.Z
 
-        if cd.plot_options.difftype:
+        if cd.zvar.is_int and Z.max() - Z.min() <= contour_level_count:
+            Zmax = int(Z.max())
+            Zmin = int(Z.min())
+            if Zmax == Zmin:
+                Zmax += 1
+                Zmin -= 1
+            Zcount = max(min(Zmax - Zmin + 1, contour_level_count), 2)
+            args_fill['levels'] = np.linspace(Zmin, Zmax, Zcount)
+        elif hasattr(cd, 'isidentical') and cd.isidentical or (cd.Z == 0).all():
+            loc = ticker.MaxNLocator(1, min_n_ticks=1)
+            args_fill['levels'] = loc.tick_values(Z.min(), Z.max())
+        elif cd.plot_options.difftype:
             loc = ticker.MaxNLocator(contour_level_count + 1, min_n_ticks=contour_level_count - 4)
             args_fill['levels'] = loc.tick_values(Z.min(), Z.max())
         elif not use_log:
@@ -92,6 +108,7 @@ def make_contour_plot(cd):
                 min_n_ticks = contour_level_count + 0
             else:
                 min_n_ticks = contour_level_count - 4
+            min_n_ticks = max(min_n_ticks, 2)
             loc = ticker.MaxNLocator(contour_level_count + 0, min_n_ticks=min_n_ticks)
             args_fill['levels'] = loc.tick_values(Z.min(), Z.max())
         else:
@@ -121,7 +138,8 @@ def make_contour_plot(cd):
             ticks = [utils.get_power_10(t) for t in cf.levels]
             cb.ax.axes.set_yticklabels(ticks)
         else:
-            cb.ax.ticklabel_format(axis="y", style="sci", scilimits=(-2, 2))
+            scilimits = (-1, 2) if min(cf.levels) < 0 else (-2, 2)
+            cb.ax.ticklabel_format(axis="y", style="sci", scilimits=scilimits)
 
         # An upper colorbar extension moves the offset text down, so we raise it back up
         if 'extend' in args_both:
@@ -155,10 +173,10 @@ def make_contour_plot(cd):
 
     def write_wexb_text(fig, cd):
         """Writes whether wexb is enabled or disabled to the plot"""
-        if cd.controls is None or not hasattr(OutputVariables, cd.var_to_plot) or 'MTM' in cd.var_to_plot:
+        if cd.controls is None or not hasattr(OutputVariables(), cd.var_to_plot) or 'MTM' in cd.var_to_plot:
             return  # Don't print wexb status for non-output variables or MTM output variables
 
-        if cd.controls.etgm_exbs.values:
+        if cd.options.wexb_factor or cd.controls.etgm_exbs.values:
             wexb_status = 'on'
             text_x, text_y = 0.8, 0.035
         else:
@@ -168,6 +186,17 @@ def make_contour_plot(cd):
         fig.text(text_x, text_y,
                  rf'$\omega_{{E \times\! B}}\,\,\mathrm{{{wexb_status}}}$',
                  size=8, color='#777')
+
+    def write_zero_difference(fig, cd):
+        """Writes text when two variables in difference plot are identical"""
+        fig.text(0.525, 0.5, rf'Zero Difference', ha='center', size=10, color='#777')
+
+    if cd.var_to_plot == 'nR8TOMSQZ':
+        print('\t R8TOMSQZ Calls Per Point:', round(np.average(cd.Z[:, 1:]), 3))
+    if cd.var_to_plot == 'nWarning':
+        print('\t Total Warnings:', int(np.sum(cd.Z)))
+    if cd.var_to_plot == 'nError':
+        print('\t Total Errors:', int(np.sum(cd.Z)))
 
     options = cd.options
     plot_options = cd.plot_options
@@ -190,6 +219,9 @@ def make_contour_plot(cd):
 
     if hasattr(cd, 'controls'):
         write_wexb_text(fig, cd)
+
+    if hasattr(cd, 'isidentical') and cd.isidentical:
+        write_zero_difference(fig, cd)
 
     # Save handling
     if plot_options.savedata or plot_options.savefig:
@@ -241,8 +273,5 @@ def run_plotting_loop(cd, vars_to_plot):
         is_error = cd.set_z(var_to_plot)
         if is_error:
             continue
-
-        if var_to_plot == 'nR8TOMSQZ':
-            print('\t R8TOMSQZ Calls:', np.sum(cd.Z[:, -1]) / cd.Z[:, -1].size)
 
         make_contour_plot(cd)

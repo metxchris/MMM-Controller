@@ -172,7 +172,6 @@ def create_rho_files(options):
     * Control data does not need to be reshaped, since it is not a function of rho
     '''
     control_files = utils.get_files_in_dir(scanned_dir, f'{SaveType.CONTROLS.name.capitalize()}*', show_warning=False)
-    print(len(control_files))
     negative_factors = ([file for file in control_files
                         if '-' in file.split(constants.SCAN_FACTOR_VALUE_SEPARATOR)[1]])
     non_negative_factors = [file for file in control_files if file not in negative_factors]
@@ -191,6 +190,6 @@ For testing purposes
 '''
 if __name__ == '__main__':
     from modules.options import Options
-    o = Options().load(runid='118341T54', scan_num=563)
+    o = Options().load(runid='80200A13', scan_num=26360)
     utils.clear_folder(utils.get_rho_path(o.runid, o.scan_num, o.var_to_scan), '*.csv')
     create_rho_files(o)

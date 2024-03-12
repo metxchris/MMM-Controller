@@ -66,13 +66,16 @@ class Options:
 
     Properties and Members:
     * adjustment_name (string): the name of the adjustment to make
+    * allow_negative_chi (int): output diffusivity can be negative when 1
     * apply_smoothing (bool): kill-switch to disable smoothing of all variables
     * ignore_exceptions (bool): Exceptions for nonphysical values or NaN values are ignored when True
     * input_points (int): the amount of radial points each variable is interpolated to when sent to MMM
     * input_time (float): the time to check the CDF for values
     * input_time_range (np.ndarray[float]): the input range of time values to use in a time scan
+    * load_all_vars (bool): load all defined variables from CDF if True, otherwise only load required variables
     * normalize_time_range (bool): treat input time range as a range of normalized time values
     * runid (str): the Runid in the CDF, usually also the name of the CDF
+    * save_zero_outputs (bool): save output variables even if zero or 1E-16 everywhere when True
     * scan_factor_str (str): the string of the scan factor, rounded for better visual presentation
     * scan_num (int): the number identifying where data is stored within the ./output/runid/ directory
     * scan_range_idxs (list[int]): indices corresponding to scan range values (used for time scans)
@@ -91,6 +94,7 @@ class Options:
     * use_etgm_btor (bool): replaces bu, gbu values with btor, gbtor values in the input file
     * use_experimental_profiles (bool): replaces te, ti, q, with CDF variables TEPRO, TIPRO, QPRO (if available)
     * var_to_scan (str): the variable to scan; syntax must match a member of InputVariables
+    * wexb_factor (float): the factor to multiply wexb by in the MMM input file
     '''
 
     def __init__(self, **kwargs):
@@ -102,17 +106,19 @@ class Options:
         self._time_str = None
         self._var_to_scan = None
         # Public members
+        self.allow_negative_chi = 1
         self.apply_smoothing = False
         self.ignore_exceptions = False
         self.input_time = None
         self.input_time_range = None
+        self.load_all_vars = True
         self.normalize_time_range = True
+        self.save_zero_outputs = True
         self.scan_num = None
         self.scan_range_idxs = None
         self.scan_type = ScanType.NONE
         self.shot_type = ShotType.NONE
         self.temperature_profiles = False
-        # self.time_str = None
         self.time_idx = None
         self.use_gnezero = False
         self.use_gtezero = False
@@ -122,6 +128,7 @@ class Options:
         self.use_gtethreshold = False
         self.use_etgm_btor = False
         self.use_experimental_profiles = False
+        self.wexb_factor = 0
 
         self.set(**kwargs)
 
