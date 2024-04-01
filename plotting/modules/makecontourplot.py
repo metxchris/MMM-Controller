@@ -173,7 +173,7 @@ def make_contour_plot(cd):
 
     def write_wexb_text(fig, cd):
         """Writes whether wexb is enabled or disabled to the plot"""
-        if cd.controls is None or not hasattr(OutputVariables(), cd.var_to_plot) or 'MTM' in cd.var_to_plot:
+        if cd.controls is None or not hasattr(OutputVariables(cd.options), cd.var_to_plot) or 'MTM' in cd.var_to_plot:
             return  # Don't print wexb status for non-output variables or MTM output variables
 
         if cd.options.wexb_factor or cd.controls.etgm_exbs.values:
@@ -193,6 +193,8 @@ def make_contour_plot(cd):
 
     if cd.var_to_plot == 'nR8TOMSQZ':
         print('\t R8TOMSQZ Calls Per Point:', round(np.average(cd.Z[:, 1:]), 3))
+    if cd.var_to_plot == 'nCubic':
+        print('\t Cubic Calls Per Point:', round(np.average(cd.Z[:, 1:]), 3))
     if cd.var_to_plot == 'nWarning':
         print('\t Total Warnings:', int(np.sum(cd.Z)))
     if cd.var_to_plot == 'nError':

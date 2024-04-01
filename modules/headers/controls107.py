@@ -15,8 +15,7 @@ def get_mmm_header(self):
     Gets the header for the MMM input file
 
     Raises:
-    * TypeError: If input_points.values is None
-    * TypeError: If input_points.values is of type np.ndarray
+    * ValueError: If settings.MMM_HEADER_VERSION not in VALID_VERSIONS
     '''
 
     if settings.MMM_HEADER_VERSION not in VALID_VERSIONS:
@@ -162,4 +161,3 @@ if __name__ == '__main__':
     controls = controls.InputControls(options)
     print(f'Example MMM Header:\n{"-"*50}')
     print(controls.get_mmm_header())
-    print(type(controls))

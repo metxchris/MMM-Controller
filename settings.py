@@ -31,6 +31,7 @@ INTERPOLATION_METHOD = 'quadratic'
 #                  Unfortunately, this method can be slow in Python.
 #   'traditional': Gradients taken using a simple nearest neighbor method.
 #                  This is faster, but less accurate when not many input points are available.
+#   'ptsolver':    A worse implementation of the nearest neighbor method.
 #   'interpolate': Gradients taken using interpolation.  This is more accurate when not using
 #                  many input points, but the endpoint values are more dependent on the
 #                  interpolation method.
@@ -40,11 +41,5 @@ SOLVER_GRADIENT_METHOD = 'ptsolver'
 # Temp EPM switch
 USE_EPM = True
 
-# Temp MMM switch
-USE_MMM = True
-
-# 'old', '#90', '#105', '#107', '#111', #113
-MMM_HEADER_VERSION = '#111'
-
-# Set False for #105 and older
-USE_SOLVER_GRADIENTS = True
+# 'old', '#90', '#105', '#107', '#111', '#113', '#114', '#117', '#123'
+MMM_HEADER_VERSION = '#123'

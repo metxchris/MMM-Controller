@@ -139,19 +139,33 @@ if __name__ == '__main__':
         - keys (str): The runid of the scan
         - values (list of int): The scan_numbers to plot from
     """
+    # OLD
+    # vars_to_plot += ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
+    # vars_to_plot += ['xti', 'xte', 'xde', 'xdz', 'xvp', 'xvt']
 
     # vars_to_plot += ['xtiW20', 'xteW20', 'xdeW20', 'xdz', 'xvt', 'xvp']
-    vars_to_plot += ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
-    # vars_to_plot += ['xti', 'xte', 'xde', 'xdz', 'xvp', 'xvt']
+    # vars_to_plot += ['fti', 'fte', 'fne', 'fnz', 'fvt', 'fvp']
+    # vars_to_plot += ['xti', 'xte', 'xne', 'xnz', 'xvp', 'xvt']
     # vars_to_plot += ['fti']
-    # vars_to_plot += ['fti', 'fte', 'fde']
+    vars_to_plot += ['fti', 'fte', 'fne']
     vars_to_plot += ['nR8TOMSQZ']
     # vars_to_plot = ['gmaW20e', 'gmaW20i', 'kparaW20i', 'kparaW20e', 'gaveW20i', 'gaveW20e', 'omgW20i', 'omgW20e']
     # vars_to_plot += ['nR8TOMSQZ', 'nWarning', 'nError']
     # vars_to_plot += ['gmaW20','gma0W20', 'gmagW20']
     # vars_to_plot = ['xtiW20', 'fte', 'fvt']
     
-    n_new = 27065  # #111 Newton-Rahpson
+    n_new = 27101  # #117 dbm shat_e
+    # n_new = 27100  # #117 dbm default vei (no etanc)
+    # n_new = 27099  # #117 dbm default xne, dbm nh_ne, ti/te no max
+    # n_new = 27098  # #117 dbm nh_ne, ti/te no max
+    # n_new = 27097  # #117 dbm ti/te max 3
+    # n_new = 27095  # #117 dbm ti/te no max
+    # n_new = 27094  # #117 dbm ti/te in alphaMHD
+    # n_new = 27092  # #117 w20 derived gxi
+    # n_new = 27091  # #117 w20 kparaN in disp change
+    # n_new = 27084  # #115 w20 eigensolver fix
+    # n_new = 27083  # #114 w20 no negative chi
+    # n_new = 27065  # #111 Newton-Rahpson
     # n_new = 27064  # #111 w20 min gma diffusivity zepsqrt
     # n_new = 27063  # #111 kap1 no max
     # n_new = 27062  # #111 w20 velocity min zepslon
@@ -209,7 +223,13 @@ if __name__ == '__main__':
     # n_new = 26321  # conv fix 2 (BASELINE OPT)
     # n_new = 26314  # conv fix 1
 
-    n_old = 27064  # #111 w20 min gma diffusivity zepsqrt
+    n_old = 27099  # #117 default xne, dbm nh_ne, ti/te no max
+    # n_old = 27095  # #117 dbm ti/te no max
+    # n_old = 27094  # #117 dbm ti/te in alphaMHD
+    # n_old = 27093  # #117 dbm gxi calculated
+    # n_old = 27091  # #117 w20 kparaN in disp change
+    # n_old = 27073  # #114 w20 only
+    # n_old = 27064  # #111 w20 min gma diffusivity zepsqrt
     # n_old = 27062  # #111 w20 velocity min zepslon
     # n_old = 27061  # #111 min eps zepslon
     # n_old = 27060  # #111 min grad zepslon + limit small grad

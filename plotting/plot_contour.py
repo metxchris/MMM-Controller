@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     plt.rcParams.update({
         'savefig.format': 'pdf',  # Common save formats: png, pdf, eps
-        # 'figure.dpi': 50,
+        'figure.dpi': 250,
     })
 
     """
@@ -162,7 +162,10 @@ if __name__ == '__main__':
     # num = 26302  # ky_i = ky_e, wexb_i = wexb_e
     # num = 26301  # W20 9.0.10
     
-    num = 27030  # Major w20 fixes, + alp min zepsqrt
+    num = 27083  # #114 w20 no negative chi
+    # num = 27073  # #114 w20 only
+    # num = 27070  # #114 Channel swap, var rename
+    # num = 27030  # Major w20 fixes, + alp min zepsqrt
     # num = 27027  # Major w20 fixes, + suppressed kap1, ne/nh Curr, guess fix
     # num = 27026  # Major w20 fixes, + removing kap1 max
     # num = 27025  # Major w20 fixes, + zflh, zflz, geometry
@@ -197,9 +200,11 @@ if __name__ == '__main__':
     # num = 26340  # conv fix 6 NO OPT
     # num = 61
     vars_to_plot = ['nR8TOMSQZ', 'nWarning', 'nError']
+    vars_to_plot = ['nCubic']
     # vars_to_plot = ['gmaW20', 'gma0W20', 'gmagW20', ]
     # vars_to_plot += ['omgW20', 'omg0W20', 'omggW20', ]
     # vars_to_plot = ['gmagW20', 'gma0W20']
+    # vars_to_plot = ['gmaDBM']
     # vars_to_plot = ['fde', 'xde', 'vde']
     # vars_to_plot = ['fvt', 'xvt', 'vvt']
     # vars_to_plot += ['fte', 'xte', 'vte']
@@ -209,11 +214,22 @@ if __name__ == '__main__':
     # vars_to_plot = ['fti', 'fte', 'fde']
     # vars_to_plot = ['te', 'ti']
     # vars_to_plot = ['gne', 'fde', 'xde']
+    # vars_to_plot = ['fti', 'fte', 'fne', 'fnz', 'fvt', 'fvp']
     # vars_to_plot = ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
-    # vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
-    
+    # vars_to_plot = ['xti', 'xte', 'xne', 'xnz', 'xvt', 'xvp']
+    # vars_to_plot = ['fne', 'xne', 'vne']
+    # vars_to_plot = ['gmaETGM', 'phi2ETGM', 'Apara2ETGM', 'xteETGM', 'xte2ETGM']
+    # vars_to_plot = ['gmaW20', 'xtiW20', 'xteW20', 'xneW20', 'xnz', 'xvt', 'xvp']
+    # vars_to_plot = ['gmaETGM', 'satETGM', 'phiETGM', 'AparaETGM', 'xteETGM', 'xte2ETGM',]
+    # vars_to_plot = ['xteETGM', 'xte2ETGM',]
+    vars_to_plot = ['fte', 'xte', 'xteETGM',]
+    # vars_to_plot = ['kyrhosMTM',]
 
-    # scan_data['80200A13'] = [233]
+    scan_data['179415P02'] = [27117]
+    # scan_data['138536A01'] = [10027]
+
+    # vars_to_plot = ['gxi',]
+    # scan_data['120968A02'] = [42]
 
     # 48: no split, no convert
     # 49: split, no convert
@@ -231,12 +247,12 @@ if __name__ == '__main__':
     # scan_data['138536A01'] = [84]
     # scan_data['183743H01'] = [8]
     # scan_data['120968A02'] = [55]
-    scan_data['90949R01'] = [8]
+    # scan_data['90949R01'] = [8]
 
     plot_options = contourdata.PlotOptions(
         # xmin=0.60,
         # xmax=0.75,
-        # ymin=0.5,
+        ymin=0.3,
         # ymax=500,
         showfig=1,
         savefig=0,

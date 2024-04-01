@@ -33,6 +33,7 @@ from scipy.interpolate import interp1d, Akima1DInterpolator
 # Local Packages
 import settings
 import modules.datahelper as datahelper
+import modules.constants as constants
 
 
 class _XValues:
@@ -109,6 +110,8 @@ def convert_units(input_var):
         input_var.set(values=input_var.values / 100, units='MA/m^2')
     elif units == 'OHM*CM':
         input_var.set(values=input_var.values / 100, units='ohm*m')
+    elif units == 'JLES/CM3':
+        input_var.set(values=input_var.values * 10**6 / constants.ZCKB, units='keV/m^3')
     elif units == 'SEC**-1':
         input_var.set(units='s^-1')
     elif units == 'RAD/SEC':

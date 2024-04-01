@@ -140,7 +140,7 @@ def print_dimensions(cdf):
 if __name__ == '__main__':
     # For testing purposes
     runid = 'ps_tb.debug'
-    runid = '85122L01'
+    runid = '16325A00'
     cdf = Dataset(utils.get_cdf_path(runid))
     print_variables(runid, cdf)
     print_dimensions(cdf)

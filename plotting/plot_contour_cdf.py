@@ -41,13 +41,13 @@ def main(vars_to_plot, scan_data, plot_options):
     utils.init_logging()
     contourdata.verify_vars_to_plot(vars_to_plot)
     options = modules.options.Options()
-    options.set(
-        adjustment_name='time',
-        scan_range=np.linspace(
-            start=plot_options.time_min,
-            stop=plot_options.time_max,
-            num=plot_options.time_count,
-        ),
+    options.set(adjustment_name='time')
+
+    # Scan range needs to be set each loop over scan_data
+    scan_range = np.linspace(
+        start=plot_options.time_min,
+        stop=plot_options.time_max,
+        num=plot_options.time_count,
     )
 
     if plot_options.savefig:
@@ -56,7 +56,7 @@ def main(vars_to_plot, scan_data, plot_options):
     plt.figure()  # Instantiate the figure
 
     for runid in scan_data:
-        options.set(runid=runid)
+        options.set(runid=runid, scan_range=scan_range)
         print(f'\nInitializing data for {runid}...')
         cd = contourdata.ContourDataCDF(options, plot_options)
         makecontourplot.run_plotting_loop(cd, vars_to_plot)
@@ -202,9 +202,9 @@ if __name__ == '__main__':
     # scan_data.append('129016W12') # Testing
 
     vars_to_plot = ['vndnc_e', 'dvtor_dr', 'dwtor_dr']
-    vars_to_plot = ['wexb',]
-    # scan_data.append('129016A04')  # Testing
-    scan_data.append('85122L01')  # Testing
+    vars_to_plot = ['rmin']
+    scan_data.append('16295A00')  # Testing
+    scan_data.append('16325A00')  # Testing
 
     # vars_to_plot = ['xkidrbm', 'xkddrbm', 'xkedrbm', 'xkhdrbm']
     # scan_data.append('129016Q71') # DBM, 0.001 cal

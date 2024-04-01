@@ -254,7 +254,8 @@ if __name__ == '__main__':
     # n_new = 26321  # conv fix 2 (BASELINE OPT)
     # n_new = 26314  # conv fix 1
 
-    n_old = 27040  # #108 Default
+    n_old = 27110  # #122 v9.1.0 w20 
+    # n_old = 27040  # #108 Default
     # n_old = 27027  # Major w20 fixes, + suppressed kap1, ne/nh Curr, guess fix
     # n_old = 27025  # Major w20 fixes, + zflh, zflz, geometry
     # n_old = 27020  # #103 (cleanup of w20 equations)
@@ -288,17 +289,26 @@ if __name__ == '__main__':
     # 14: rmaj0 to rmaj
     # scan_data['138536A01'] = [15, 14] # 12 default with wexb
 
+    ## OLD
+    # vars_to_plot = ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
+    # vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
+
     # vars_to_plot = ['fde', 'xde', 'vde']
     # vars_to_plot = ['fdz', 'xdz', 'vdz']
     # vars_to_plot = ['fti', 'xti', 'vti']
     # vars_to_plot = ['fte', 'xte', 'vte']
     # vars_to_plot = ['fvt', 'xvt', 'vvt']
-    vars_to_plot = ['fti', 'fte', 'fde', 'fdz', 'fvt', 'fvp']
-    # vars_to_plot = ['xti', 'xte', 'xde', 'xdz', 'xvt', 'xvp']
-    # vars_to_plot = ['fde', 'xde',]
-    # scan_data['129016A04'] = [123, 27043]
+    vars_to_plot = ['fti', 'fte', 'fne', 'fnz', 'fvt', 'fvp']
+    # vars_to_plot = ['xti', 'xte', 'xne', 'xnz', 'xvt', 'xvp']
+    # vars_to_plot = ['fne', 'xne',]
+    # vars_to_plot = ['gmaW20', 'xtiW20', 'xteW20', 'xneW20', 'xnz', 'xvt', 'xvp']
+    # vars_to_plot = ['gmaETGM', 'phiETGM', 'AparaETGM', 'xteETGM', 'xte2ETGM']
+    # scan_data['138536A01'] = [118, 116]
+    
+    # vars_to_plot = ['gxi',]
+    scan_data['129016A04'] = [2, 27117]
 
-    scan_data['138536A01'] = [84, 83]
+    # scan_data['90949R01'] = [11, 27064]
 
 
     ## Akima derivative vs normal derivative
@@ -324,7 +334,7 @@ if __name__ == '__main__':
         showfig=1,
         savefig=0,
         savedata=0,
-        plotidentical=1,
+        plotidentical=0,
         saveappend='',
         difftype='diff',  # 'diff', 'rel', 'absdiff', 'absrel', 'ratio'
     )

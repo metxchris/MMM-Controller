@@ -129,6 +129,13 @@ class Options:
         self.use_etgm_btor = False
         self.use_experimental_profiles = False
         self.wexb_factor = 0
+        self.cmodel_w20 = 1
+        self.cmodel_dbm = 1
+        self.cmodel_mtm = 1
+        self.cmodel_etgm = 1
+        self.cmodel_etg = 1
+        self.cmodel_epm = 1
+        self.save_model_outputs = 1
 
         self.set(**kwargs)
 

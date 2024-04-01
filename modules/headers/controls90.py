@@ -14,8 +14,7 @@ def get_mmm_header(self):
     Gets the header for the MMM input file
 
     Raises:
-    * TypeError: If input_points.values is None
-    * TypeError: If input_points.values is of type np.ndarray
+    * ValueError: If settings.MMM_HEADER_VERSION not in VALID_VERSIONS
     '''
 
     # Temporary EPM switch

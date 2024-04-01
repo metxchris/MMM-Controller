@@ -14,11 +14,8 @@ def get_mmm_header(self):
     Gets the header for the MMM input file
 
     Raises:
-    * TypeError: If input_points.values is None
-    * TypeError: If input_points.values is of type np.ndarray
+    * ValueError: If settings.MMM_HEADER_VERSION not in VALID_VERSIONS
     '''
-
-    # Temporary EPM switch
 
     if settings.MMM_HEADER_VERSION not in VALID_VERSIONS:
         raise ValueError(
@@ -96,7 +93,6 @@ def get_mmm_header(self):
         f'   {self.dribm_sat_expo.get_input_line()}'
         f'   {self.dribm_sum_modes.get_input_line()}'
         f'   {self.dribm_kyrhos_type.get_input_line()}'
-        
         '\n'
         '!.. DRIBM real options\n'
         'rDBM =\n'
@@ -160,7 +156,6 @@ def get_mmm_header(self):
         # f'   {self.etgm_betaep_mult.get_input_line()}'
         '\n'
     )
-
 
 
 if __name__ == '__main__':

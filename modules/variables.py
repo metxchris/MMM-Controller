@@ -85,6 +85,7 @@ _UNITS_TO_UNITS_LABEL = {
     'm^-2': r'm$^{-2}$',
     'm^2': r'm$^2$',
     'MA/m^2': r'MA/m$^2$',
+    'keV/m^3': r'keV/m$^3$',
     'keVm/s': r'keV$\,$m/s',
     'm^-2s^-1': r'm$^{-2}$s$^{-1}$',
     'ohm*m': r'$\Omega\,$m',
@@ -186,7 +187,7 @@ class Variables:
 
         dir_path, file_path = self._get_csv_save_path(save_type, scan_factor, rho_value)
         utils.create_directory(dir_path)
-        np.savetxt(file_path, data, header=header, fmt='%.6e', delimiter=',')
+        np.savetxt(file_path, data, header=header, fmt=constants.NUMPY_CSV_VALUE_FMT, delimiter=',')
 
         _log.info(f'\n\tSaved: {file_path}\n')
 
@@ -301,6 +302,18 @@ class InputVariables(Variables):
     def __init__(self, options=None):
 
         # EPM Variables
+        self.gtfpa = Variable(
+            'Fast Ion Temperature Gradient',
+            label=r'$g_{\mathrm{Tf}}$',
+            required=True,
+        )
+
+        self.gtfpp = Variable(
+            'Fast Ion Temperature Gradient',
+            label=r'$g_{\mathrm{Tf}}$',
+            required=True,
+        )
+
         self.gtf = Variable(
             'Fast Ion Temperature Gradient',
             label=r'$g_{\mathrm{Tf}}$',
@@ -313,25 +326,41 @@ class InputVariables(Variables):
             required=True,
         )
 
-        self.tf = Variable(
+        self.tfpa = Variable(
             'Fast Ion Temperature',
-            label=r'$T_\mathrm{f, EBEAM\_D}$',
+            label=r'$T_\mathrm{f, UFASTPA}$',
             minvalue=1e-6,
             smooth=1,
             units='keV',
             required=True,
         )
 
-        self.bpshi = Variable(
+        self.tfpp = Variable(
             'Fast Ion Temperature',
-            cdfvar='BPSHI',
-            label=r'BPSHI',
+            label=r'$T_\mathrm{f, UFASTPP}$',
             minvalue=1e-6,
             smooth=1,
             units='keV',
+            required=True,
         )
 
-        if settings.MMM_HEADER_VERSION not in ['old', '#90', '#105', '#107']:
+        self.tf = Variable(
+            'Fast Ion Temperature',
+            label=r'$T_\mathrm{f, UFASTPA,\, UFASTPP}$',
+            minvalue=1e-6,
+            smooth=1,
+            units='keV',
+            required=True,
+        )
+
+        if settings.MMM_HEADER_VERSION not in ['old', '#90', '#105', '#107', '#111', '#113', '#114']:
+            self.gtfpa.save_type = SaveType.INPUT
+            self.gtfpp.save_type = SaveType.INPUT
+            self.gnf.save_type = SaveType.INPUT
+            self.tfpa.save_type = SaveType.INPUT
+            self.tfpp.save_type = SaveType.INPUT
+
+        elif settings.MMM_HEADER_VERSION not in ['old', '#90', '#105', '#107']:
             self.gtf.save_type = SaveType.INPUT
             self.gnf.save_type = SaveType.INPUT
             self.tf.save_type = SaveType.INPUT
@@ -1969,6 +1998,7 @@ class InputVariables(Variables):
             cdfvar='UFASTPA',
             label=r'UFASTPA',
             units='',
+            required=True,
         )
 
         self.ufastpp = Variable(
@@ -1976,12 +2006,13 @@ class InputVariables(Variables):
             cdfvar='UFASTPP',
             label=r'UFASTPP',
             units='',
+            required=True,
         )
 
         self.tfast = Variable(
             'TFAST',
             cdfvar='',
-            label=r'$T_{\rm f, UFASTPA, UFASTPP}$',
+            label=r'$T_{\rm f, EBEAM\_D}$',
             units='keV',
         )
 
@@ -2032,6 +2063,13 @@ class InputVariables(Variables):
             label=r'$g_{v\theta, \rm PTS}$',
             absminvalue=1e-32,
             save_type=SaveType.INPUT,
+        )
+
+        self.pcnve = Variable(
+            'PCNVE',
+            cdfvar='PCNVE',
+            label=r'PCNVE',
+            absminvalue=1e-32,
         )
 
         # Disable solver input for older MMM versions
@@ -2220,128 +2258,38 @@ class OutputVariables(Variables):
     '''
 
     def __init__(self, options=None):
+        super().__init__(options)  # Init parent class
+
         # Independent Variables
         self.rho = Variable('rho', units='', label=r'$\hat{\rho}$')
         self.rmin = Variable('Minor Radius', units='m', label=r'$r$', minvalue=0)
         self.rmina = Variable('rmina', label=r'$r/a$', units=r'', minvalue=0)
+
         # Total Fluxes
         self.fti = Variable('fti', units='keVm/s', label=r'$\Gamma_\mathrm{i}$', contour_max=2e2, contour_min=-2e2)
         self.fte = Variable('fte', units='keVm/s', label=r'$\Gamma_\mathrm{e}$', contour_max=2e2, contour_min=-2e2)
-        self.fde = Variable('fde', units='m^-2s^-1', label=r'$\Gamma_\mathrm{n}$', contour_max=5e21, contour_min=-5e21)
-        self.fdz = Variable('fdz', units='m^-2s^-1', label=r'$\Gamma_\mathrm{z}$', contour_max=5e20, contour_min=-5e20)
+        self.fne = Variable('fde', units='m^-2s^-1', label=r'$\Gamma_\mathrm{n}$', contour_max=5e21, contour_min=-5e21)
+        self.fnz = Variable('fdz', units='m^-2s^-1', label=r'$\Gamma_\mathrm{z}$', contour_max=5e20, contour_min=-5e20)
         self.fvt = Variable('fvt', units='m^2/s^2', label=r'$\Gamma_\phi$', contour_max=1e7, contour_min=-1e7)
         self.fvp = Variable('fvp', units='m^2/s^2', label=r'$\Gamma_\theta$', contour_max=1e7, contour_min=-1e7)
+
         # Convective Velocities
         self.vti = Variable('vti', units='m/s', label=r'$V_{\mathrm{i}}$', contour_max=2e4, contour_min=-2e4)
-        self.vde = Variable('vde', units='m/s', label=r'$V_{\mathrm{n}}$', contour_max=2e4, contour_min=-2e4)
         self.vte = Variable('vte', units='m/s', label=r'$V_{\mathrm{e}}$', contour_max=2e4, contour_min=-2e4)
-        self.vdz = Variable('vdz', units='m/s', label=r'$V_{\mathrm{z}}$', contour_max=2e4, contour_min=-2e4)
+        self.vne = Variable('vde', units='m/s', label=r'$V_{\mathrm{n}}$', contour_max=2e4, contour_min=-2e4)
+        self.vnz = Variable('vdz', units='m/s', label=r'$V_{\mathrm{z}}$', contour_max=2e4, contour_min=-2e4)
         self.vvt = Variable('vvt', units='m/s', label=r'$V_{\phi}$', contour_max=2e4, contour_min=-2e4)
         self.vvp = Variable('vvp', units='m/s', label=r'$V_{\theta}$', contour_max=2e4, contour_min=-2e4)
+
         # Total Diffusivities
         self.xti = Variable('xti', units='m^2/s', label=r'$\chi_\mathrm{i}$', contour_max=1e2, contour_min=-1e2)
-        self.xde = Variable('xde', units='m^2/s', label=r'$\chi_\mathrm{n}$', contour_max=1e2, contour_min=-1e2)
-        self.xdi = Variable('xdi', units='m^2/s', label=r'$\chi_\mathrm{n}$', contour_max=1e2, contour_min=-1e2)  # TODO: Remove eventually
         self.xte = Variable('xte', units='m^2/s', label=r'$\chi_\mathrm{e}$', contour_max=1e2, contour_min=-1e2)
-        self.xdz = Variable('xdz', units='m^2/s', label=r'$\chi_\mathrm{z}$', contour_max=1e2, contour_min=-1e2)
+        self.xne = Variable('xde', units='m^2/s', label=r'$\chi_\mathrm{n}$', contour_max=1e2, contour_min=-1e2)
+        self.xnz = Variable('xdz', units='m^2/s', label=r'$\chi_\mathrm{z}$', contour_max=1e2, contour_min=-1e2)
         self.xvt = Variable('xvt', units='m^2/s', label=r'$\chi_\phi$', contour_max=1e2, contour_min=-1e2)
         self.xvp = Variable('xvp', units='m^2/s', label=r'$\chi_\theta$', contour_max=1e2, contour_min=-1e2)
-        # Weiland Components
-        self.xtiW20 = Variable('xtiW20', units='m^2/s', label=r'$\chi_\mathrm{i, w20}$')
-        self.xdeW20 = Variable('xdeW20', units='m^2/s', label=r'$\chi_\mathrm{n, w20}$')
-        self.xteW20 = Variable('xteW20', units='m^2/s', label=r'$\chi_\mathrm{e, w20}$')
-        self.gmaW20e = Variable('gmaW20e', units='s^{-1}', label=r'$\gamma_\mathrm{e, w20}$',
-                                 contour_max=5e5, contour_min=-5e5)
-        self.omgW20e = Variable('omgW20e', units='s^{-1}', label=r'$\omega_\mathrm{e, w20}$',
-                                 contour_max=5e5, contour_min=-5e5)
-        self.gmaW20i = Variable('gmaW20i', units='s^{-1}', label=r'$\gamma_\mathrm{i, w20}$',
-                                 contour_max=5e5, contour_min=-5e5)
-        self.omgW20i = Variable('omgW20i', units='s^{-1}', label=r'$\omega_\mathrm{i, w20}$',
-                                 contour_max=5e5, contour_min=-5e5)
-        self.gaveW20i = Variable('gaveW20i', units='', label=r'$\overline{G}_{\rm i}$',
-                                 contour_max=2, contour_min=0)
-        self.gaveW20e = Variable('gaveW20e', units='', label=r'$\overline{G}_{\rm e}$',
-                                 contour_max=2, contour_min=0)
-        self.kyrhosW20i = Variable('kyrhosW20i', units='', label=r'$k_y\rho_\mathrm{s, i}$',
-                                  )
-        self.kyrhosW20e = Variable('kyrhosW20e', units='', label=r'$k_y\rho_\mathrm{s, e}$',
-                                  )
-        self.kparaW20i = Variable('kparaW20i', units='1/m', label=r'$\langle k_{\parallel}\! \rangle_{\rm i}$',
-                                  )
-        self.kparaW20e = Variable('kparaW20e', units='1/m', label=r'$\langle k_{\parallel}\! \rangle_{\rm e}$',
-                                  )
-        # DBM Components
-        self.Apara2DBM = Variable('Apara2DBM', units='', label=r'$|\hat{A}_{\!\parallel}\!|^2$')
-        self.gaveDBM = Variable('gaveDBM', units='', label=r'$\overline{G}$',contour_max=5, contour_min=-5)
-        self.gmaDBM = Variable('gmaDBM', units='s^{-1}', label=r'$\gamma_\mathrm{dbm}$', contour_max=5e5, contour_min=-5e5)
-        self.kyrhosDBM = Variable('kyrhosDBM', units='', label=r'$k_y\rho_\mathrm{s}$')
-        self.kparaDBM = Variable('kparaDBM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
-        self.omgDBM = Variable('omgDBM', units='s^{-1}', label=r'$\omega_\mathrm{dbm}$', contour_max=5e6, contour_min=-5e6)
-        self.phi2DBM = Variable('phi2DBM', units='', label=r'$|\hat{\phi}|^2$')
-        self.satDBM = Variable('satDBM', units='', label=r'$2\hat{\gamma}/|\hat{\phi}| R k_\mathrm{x}$')
-        self.xde2DBM = Variable('xde2DBM', units='m^2/s', label=r'$\chi^*_\mathrm{n, dbm}$')
-        self.xdeDBM = Variable('xdeDBM', units='m^2/s', label=r'$\chi_\mathrm{n, dbm}$')
-        self.xte2DBM = Variable('xte2DBM', units='m^2/s', label=r'$\chi^*_\mathrm{e, dbm}$')
-        self.xteDBM = Variable('xteDBM', units='m^2/s', label=r'$\chi_\mathrm{e, dbm}$')
-        self.xti2DBM = Variable('xti2DBM', units='m^2/s', label=r'$\chi^*_\mathrm{i, dbm}$')
-        self.xtiDBM = Variable('xtiDBM', units='m^2/s', label=r'$\chi_\mathrm{i, dbm}$')
 
-        # ETG Component
-        self.xteETG = Variable('xteETG', units='m^2/s', label=r'$\chi_\mathrm{e, etg}$')
-        self.gtecETG = Variable(r'Critical $g_\mathrm{Te}$ (Jenko ETG)', units='',
-                                   label=r'$g_\mathrm{Te, crit}$')
-        # MTM Components
-        self.xteMTM = Variable('xteMTM', units='m^2/s', label=r'$\chi_\mathrm{e, mtm}$',
-                               contour_max=25, contour_min=0)
-        self.gmaMTM = Variable('gmaMTM', units='s^{-1}', label=r'$\gamma_\mathrm{mtm}$',
-                               contour_max=5e7, contour_min=-5e7)
-        self.gmanMTM = Variable('gmanMTM', units='', label=r'$\gamma\, a / c_\mathrm{s}$')
-        self.omgMTM = Variable('omgMTM', units='s^{-1}', label=r'$\omega_\mathrm{mtm}$',
-                               contour_max=3e6, contour_min=-3e6)
-        self.omgnMTM = Variable('omgnMTM', units='', label=r'$\omega\, a / c_\mathrm{s}$')
-        self.kyrhosMTM = Variable('kyrhosMTM', units='', label=r'$k_y\rho_\mathrm{s}$')
-        self.dbsqMTM = Variable('dbsqMTM', units='', label=r'$|\delta B/B|^2$')
-        # ETGM Components
-        self.xteETGM = Variable('Thermal Diffusivity', units='m^2/s', label=r'$\chi_\mathrm{e, etgm}$',
-                                contour_max=25, contour_min=-25)
-        self.xte2ETGM = Variable('Thermal Diffusivity', units='m^2/s', label=r'$\chi^{\ast}_\mathrm{e, etgm}$',
-                                 contour_max=1e1, contour_min=-1e1)
-        self.gmaETGM = Variable('Growth Rate', units='s^{-1}', label=r'$\gamma_\mathrm{etgm}$',
-                                contour_max=5e7, contour_min=-5e7)
-        self.gmanETGM = Variable('Growth Rate', units='', label=r'$\gamma\ (c_{\rm s} / a)$',
-                                contour_max=5e7, contour_min=-5e7)
-        self.omgETGM = Variable('Frequency', units='', label=r'$\omega_\mathrm{etgm}$',
-                                contour_max=3e6, contour_min=-3e6)
-        self.omgnETGM = Variable('Frequency', units='', label=r'$\omega_{\rm r}\ (c_{\rm s} / a)$',
-                                contour_max=3e6, contour_min=-3e6)
-        self.kyrhoeETGM = Variable('Wave Number', units='', label=r'$k_y\rho_\mathrm{e}$')
-        self.kyrhosETGM = Variable('Wave Number', units='', label=r'$k_y\rho_\mathrm{s}$')
-        self.gaveETGM = Variable('Magnetic Field Curvature', units='', label=r'$\overline{G}$',
-                                 contour_max=5, contour_min=-5)
-        self.alphaETGM = Variable('alphaMHD', units='', label=r'$\alpha_\mathrm{MHD}$')
-        self.kparaETGM = Variable('kparaETGM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
-        self.fleETGM = Variable('fleETGM', units='', label=r'$\langle k^{2}_\perp \rho^{2}_\mathrm{e}\rangle$')
-        self.phi2ETGM = Variable('Electrostatic Potential', units='', label=r'$|\hat{\phi}|^2$')
-        self.Apara2ETGM = Variable('Electromagnetic Potential', units='', label=r'$|\hat{A}_{\!\parallel}\!|^2$')
-        self.wdeETGM = Variable('wdeETGM', units='s^{-1}', label=r'$\omega_\mathrm{De}$',
-                                   contour_max=3e6, contour_min=-3e6)
-        self.wde_gaveETGM = Variable('wde_gaveETGM', units='s^{-1}', label=r'$\omega_\mathrm{De} / \overline{G}$',
-                                        contour_max=3e6, contour_min=-3e6)
-        self.omgdiffETGM = Variable('omgdiffETGM', units='s^{-1}', label=r'$\omega - \omega_\mathrm{De}$',
-                                      contour_max=1e6, contour_min=-1e6)
-        self.gmadiffETGM = Variable('gmadiffETGM', units='s^{-1}', label=r'$\gamma - \omega_\mathrm{De}$',
-                                      contour_max=1e6, contour_min=-1e6)
-        self.wseETGM = Variable('wseETGM', units='s^{-1}', label=r'$\omega_{*\mathrm{e}}$',
-                                   contour_max=1e7, contour_min=-1e7)
-        self.wteETGM = Variable('wteETGM', units='s^{-1}', label=r'$\omega_{\mathrm{Te}}$',
-                                    contour_max=1e7, contour_min=-1e7)
-        self.wsetaETGM = Variable('wsetaETGM', units='s^{-1}',
-                                      label=r'$\omega_{*\mathrm{e}} (1 + \eta_\mathrm{e})$',
-                                      contour_max=1e7, contour_min=-1e7)
-        self.waETGM = Variable('Alfven Frequency', units='s^{-1}', label=r'$\omega_\mathrm{A}$')
-        self.satETGM = Variable('Saturation Ratio', units='', label=r'$2\hat{\gamma}/|\hat{\phi}| R k_\mathrm{x}$')
-
-
+        # Misc components
         self.nR8TOMSQZ = Variable(
             'Eigenvalue solver calls',
             label=r'$n_{\rm calls}$',
@@ -2366,56 +2314,165 @@ class OutputVariables(Variables):
             is_int=True,
         )
 
-        self.omg0W20 = Variable(
-            'Initial Real Frequency',
-            units='s^{-1}',
-            label=r'$\omega_\mathrm{0, w20}$',
-            contour_max=5e5,
-            contour_min=-5e5,
+        self.nCubic = Variable(
+            'Cubic Solver Calls',
+            label=r'$n_{\rm cubic}$',
+            units='',
+            contour_min=0,
+            is_int=True,
         )
 
-        self.gma0W20 = Variable(
-            'Initial Growth Rate',
-            units='s^{-1}',
-            label=r'$\gamma_\mathrm{0, w20}$',
-            contour_max=5e5,
-            contour_min=-5e5,
-        )
+        # Weiland Components
+        if self.options.cmodel_w20 > 0 and self.options.save_model_outputs > 0:
+            self.xtiW20 = Variable('xtiW20', units='m^2/s', label=r'$\chi_\mathrm{i, w20}$')
+            self.xneW20 = Variable('xneW20', units='m^2/s', label=r'$\chi_\mathrm{n, w20}$')
+            self.xteW20 = Variable('xteW20', units='m^2/s', label=r'$\chi_\mathrm{e, w20}$')
+            self.gmaW20e = Variable('gmaW20e', units='s^{-1}', label=r'$\gamma_\mathrm{e, w20}$',
+                                     contour_max=5e5, contour_min=-5e5)
+            self.omgW20e = Variable('omgW20e', units='s^{-1}', label=r'$\omega_\mathrm{e, w20}$',
+                                     contour_max=5e5, contour_min=-5e5)
+            self.gmaW20i = Variable('gmaW20i', units='s^{-1}', label=r'$\gamma_\mathrm{i, w20}$',
+                                     contour_max=5e5, contour_min=-5e5)
+            self.omgW20i = Variable('omgW20i', units='s^{-1}', label=r'$\omega_\mathrm{i, w20}$',
+                                     contour_max=5e5, contour_min=-5e5)
+            self.gaveW20i = Variable('gaveW20i', units='', label=r'$\overline{G}_{\rm i}$',
+                                     contour_max=2, contour_min=0)
+            self.gaveW20e = Variable('gaveW20e', units='', label=r'$\overline{G}_{\rm e}$',
+                                     contour_max=2, contour_min=0)
+            self.kyrhosW20i = Variable('kyrhosW20i', units='', label=r'$k_y\rho_\mathrm{s, i}$',
+                                      )
+            self.kyrhosW20e = Variable('kyrhosW20e', units='', label=r'$k_y\rho_\mathrm{s, e}$',
+                                      )
+            self.kparaW20i = Variable('kparaW20i', units='1/m', label=r'$\langle k_{\parallel}\! \rangle_{\rm i}$',
+                                      )
+            self.kparaW20e = Variable('kparaW20e', units='1/m', label=r'$\langle k_{\parallel}\! \rangle_{\rm e}$',
+                                      )
 
-        self.omggW20 = Variable(
-            'Real Frequency Guess',
-            units='s^{-1}',
-            label=r'$\omega_\mathrm{g, w20}$',
-            contour_max=5e5,
-            contour_min=-5e5,
-        )
+            self.omg0W20 = Variable(
+                'Initial Real Frequency',
+                units='s^{-1}',
+                label=r'$\omega_\mathrm{0, w20}$',
+                contour_max=5e5,
+                contour_min=-5e5,
+            )
 
-        self.gmagW20 = Variable(
-            'Growth Rate Guess',
-            units='s^{-1}',
-            label=r'$\gamma_\mathrm{g, w20}$',
-            contour_max=5e5,
-            contour_min=-5e5,
-        )
+            self.gma0W20 = Variable(
+                'Initial Growth Rate',
+                units='s^{-1}',
+                label=r'$\gamma_\mathrm{0, w20}$',
+                contour_max=5e5,
+                contour_min=-5e5,
+            )
 
-        self.gmaW20 = Variable(
-            'Max Growth Rate',
-            units='s^{-1}',
-            label=r'$\gamma_\mathrm{w20}$',
-            contour_max=5e5,
-            contour_min=-5e5,
-        )
+            self.omggW20 = Variable(
+                'Real Frequency Guess',
+                units='s^{-1}',
+                label=r'$\omega_\mathrm{g, w20}$',
+                contour_max=5e5,
+                contour_min=-5e5,
+            )
 
-        self.omgW20 = Variable(
-            'Real Frequency',
-            units='s^{-1}',
-            label=r'$\omega_\mathrm{w20}$',
-            contour_max=5e5,
-            contour_min=-5e5,
-        )
+            self.gmagW20 = Variable(
+                'Growth Rate Guess',
+                units='s^{-1}',
+                label=r'$\gamma_\mathrm{g, w20}$',
+                contour_max=5e5,
+                contour_min=-5e5,
+            )
+
+            self.gmaW20 = Variable(
+                'Max Growth Rate',
+                units='s^{-1}',
+                label=r'$\gamma_\mathrm{w20}$',
+                contour_max=5e5,
+                contour_min=-5e5,
+            )
+
+            self.omgW20 = Variable(
+                'Real Frequency',
+                units='s^{-1}',
+                label=r'$\omega_\mathrm{w20}$',
+                contour_max=5e5,
+                contour_min=-5e5,
+            )
+
+        # DBM Components
+        if self.options.cmodel_dbm > 0 and self.options.save_model_outputs > 0:
+            self.Apara2DBM = Variable('Apara2DBM', units='', label=r'$|\hat{A}_{\!\parallel}\!|^2$')
+            self.AparaDBM = Variable('AparaDBM', units='', label=r'$|\hat{A}_{\!\parallel}\!|$')
+            self.gaveDBM = Variable('gaveDBM', units='', label=r'$\overline{G}$',contour_max=5, contour_min=-5)
+            self.gmaDBM = Variable('gmaDBM', units='s^{-1}', label=r'$\gamma_\mathrm{dbm}$', contour_max=5e5, contour_min=-5e5)
+            self.kyrhosDBM = Variable('kyrhosDBM', units='', label=r'$k_y\rho_\mathrm{s}$')
+            self.kparaDBM = Variable('kparaDBM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
+            self.omgDBM = Variable('omgDBM', units='s^{-1}', label=r'$\omega_\mathrm{dbm}$', contour_max=5e6, contour_min=-5e6)
+            self.phi2DBM = Variable('phi2DBM', units='', label=r'$|\hat{\phi}|^2$')
+            self.phiDBM = Variable('phiDBM', units='', label=r'$|\hat{\phi}|$')
+            self.satDBM = Variable('satDBM', units='', label=r'$2\hat{\gamma}/|\hat{\phi}_C| R k_\mathrm{x}$')
+            self.xne2DBM = Variable('xde2DBM', units='m^2/s', label=r'$\chi^*_\mathrm{n, dbm}$')
+            self.xneDBM = Variable('xdeDBM', units='m^2/s', label=r'$\chi_\mathrm{n, dbm}$')
+            self.xte2DBM = Variable('xte2DBM', units='m^2/s', label=r'$\chi^*_\mathrm{e, dbm}$')
+            self.xteDBM = Variable('xteDBM', units='m^2/s', label=r'$\chi_\mathrm{e, dbm}$')
+            self.xti2DBM = Variable('xti2DBM', units='m^2/s', label=r'$\chi^*_\mathrm{i, dbm}$')
+            self.xtiDBM = Variable('xtiDBM', units='m^2/s', label=r'$\chi_\mathrm{i, dbm}$')
+
+        # ETGM Components
+        if self.options.cmodel_etgm > 0 and self.options.save_model_outputs > 0:
+            self.xteETGM = Variable('Thermal Diffusivity', units='m^2/s', label=r'$\chi_\mathrm{e, etgm}$',
+                                    contour_max=25, contour_min=-25)
+            self.xte2ETGM = Variable('Thermal Diffusivity', units='m^2/s', label=r'$\chi^{\ast}_\mathrm{e, etgm}$',
+                                     contour_max=1e1, contour_min=-1e1)
+            self.gmaETGM = Variable('Growth Rate', units='s^{-1}', label=r'$\gamma_\mathrm{etgm}$',
+                                    contour_max=5e7, contour_min=-5e7)
+            self.gmanETGM = Variable('Growth Rate', units='', label=r'$\gamma\ (c_{\rm s} / a)$',
+                                    contour_max=5e7, contour_min=-5e7)
+            self.omgETGM = Variable('Frequency', units='', label=r'$\omega_\mathrm{etgm}$',
+                                    contour_max=3e6, contour_min=-3e6)
+            self.omgnETGM = Variable('Frequency', units='', label=r'$\omega_{\rm r}\ (c_{\rm s} / a)$',
+                                    contour_max=3e6, contour_min=-3e6)
+            self.kyrhoeETGM = Variable('Wave Number', units='', label=r'$k_y\rho_\mathrm{e}$')
+            self.kyrhosETGM = Variable('Wave Number', units='', label=r'$k_y\rho_\mathrm{s}$')
+            self.gaveETGM = Variable('Magnetic Field Curvature', units='', label=r'$\overline{G}$',
+                                     contour_max=5, contour_min=-5)
+            self.alphaETGM = Variable('alphaMHD', units='', label=r'$\alpha_\mathrm{MHD}$')
+            self.kparaETGM = Variable('kparaETGM', units='m^-1', label=r'$\langle k_\parallel \rangle$')
+            self.fleETGM = Variable('fleETGM', units='', label=r'$\langle k^{2}_\perp \rho^{2}_\mathrm{e}\rangle$')
+            self.phi2ETGM = Variable('Electrostatic Potential', units='', label=r'$|\hat{\phi}|^2$')
+            self.Apara2ETGM = Variable('Electromagnetic Potential', units='', label=r'$|\hat{A}_{\!\parallel}\!|^2$')
+            self.phiETGM = Variable('Electrostatic Potential', units='', label=r'$|\hat{\phi}|$')
+            self.AparaETGM = Variable('Electromagnetic Potential', units='', label=r'$|\hat{A}_{\!\parallel}\!|$', contour_max=10)
+            self.wdeETGM = Variable('wdeETGM', units='s^{-1}', label=r'$\omega_\mathrm{De}$',
+                                    contour_max=3e6, contour_min=-3e6)
+            self.wde_gaveETGM = Variable('wde_gaveETGM', units='s^{-1}', label=r'$\omega_\mathrm{De} / \overline{G}$',
+                                         contour_max=3e6, contour_min=-3e6)
+            self.omgdiffETGM = Variable('omgdiffETGM', units='s^{-1}', label=r'$\omega - \omega_\mathrm{De}$',
+                                        contour_max=1e6, contour_min=-1e6)
+            self.gmadiffETGM = Variable('gmadiffETGM', units='s^{-1}', label=r'$\gamma - \omega_\mathrm{De}$',
+                                        contour_max=1e6, contour_min=-1e6)
+            self.wseETGM = Variable('wseETGM', units='s^{-1}', label=r'$\omega_{*\mathrm{e}}$',
+                                    contour_max=1e7, contour_min=-1e7)
+            self.wteETGM = Variable('wteETGM', units='s^{-1}', label=r'$\omega_{\mathrm{Te}}$',
+                                    contour_max=1e7, contour_min=-1e7)
+            self.wsetaETGM = Variable('wsetaETGM', units='s^{-1}',
+                                      label=r'$\omega_{*\mathrm{e}} (1 + \eta_\mathrm{e})$',
+                                      contour_max=1e7, contour_min=-1e7)
+            self.waETGM = Variable('Alfven Frequency', units='s^{-1}', label=r'$\omega_\mathrm{A}$')
+            self.satETGM = Variable('Saturation Ratio', units='', label=r'$2\hat{\gamma}/|\hat{\phi}_C| R k_\mathrm{x}$')
+
+        # MTM Components
+        if self.options.cmodel_mtm > 0 and self.options.save_model_outputs > 0:
+            self.xteMTM = Variable('xteMTM', units='m^2/s', label=r'$\chi_\mathrm{e, mtm}$',
+                                   contour_max=25, contour_min=0)
+            self.gmaMTM = Variable('gmaMTM', units='s^{-1}', label=r'$\gamma_\mathrm{mtm}$',
+                                   contour_max=5e7, contour_min=-5e7)
+            self.gmanMTM = Variable('gmanMTM', units='', label=r'$\gamma\, a / c_\mathrm{s}$')
+            self.omgMTM = Variable('omgMTM', units='s^{-1}', label=r'$\omega_\mathrm{mtm}$',
+                                   contour_max=3e6, contour_min=-3e6)
+            self.omgnMTM = Variable('omgnMTM', units='', label=r'$\omega\, a / c_\mathrm{s}$')
+            self.kyrhosMTM = Variable('kyrhosMTM', units='', label=r'$k_y\rho_\mathrm{s}$')
+            self.dbsqMTM = Variable('dbsqMTM', units='', label=r'$|\delta B/B|^2$')
 
         # EPM Component
-        if settings.USE_EPM:
+        if self.options.cmodel_epm > 0 and self.options.save_model_outputs > 0:
             self.gmaEPM = Variable('gmaEPM', units='s^{-1}', label=r'$\gamma_\mathrm{epm}$', contour_max=5e7, contour_min=-5e7)
             self.kyrhosEPM = Variable('kyrhosEPM', units='', label=r'$k_y\rho_\mathrm{s}$')
             self.omgEPM = Variable('omgEPM', units='s^{-1}', label=r'$\omega_\mathrm{epm}$', contour_max=5e7, contour_min=-5e7)
@@ -2430,30 +2487,54 @@ class OutputVariables(Variables):
             self.wdeEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm De}$')
             self.wseEPM = Variable('wdfEPM', units='s^-1', label=r'$\omega_{\rm *e}$')
 
+        # ETG Component
+        if self.options.cmodel_etg > 0 and self.options.save_model_outputs > 0:
+            self.xteETG = Variable('xteETG', units='m^2/s', label=r'$\chi_\mathrm{e, etg}$')
+            self.gtecETG = Variable(r'Critical $g_\mathrm{Te}$ (Jenko ETG)', units='',
+                                    label=r'$g_\mathrm{Te, crit}$')
+
+        # Versioned variables
+        if settings.MMM_HEADER_VERSION in ['old']:
+            self.xdi = Variable('xdi', units='m^2/s', label=r'$\chi_\mathrm{n}$', contour_max=1e2, contour_min=-1e2)
+
+        if settings.MMM_HEADER_VERSION in ['old', '#90', '#105', '#107', '#111', '#113']:
+            self.fde = Variable('fde', units='m^-2s^-1', label=r'$\Gamma_\mathrm{n}$', contour_max=5e21, contour_min=-5e21)
+            self.fdz = Variable('fdz', units='m^-2s^-1', label=r'$\Gamma_\mathrm{z}$', contour_max=5e20, contour_min=-5e20)
+            self.vde = Variable('vde', units='m/s', label=r'$V_{\mathrm{n}}$', contour_max=2e4, contour_min=-2e4)
+            self.vdz = Variable('vdz', units='m/s', label=r'$V_{\mathrm{z}}$', contour_max=2e4, contour_min=-2e4)
+            self.xde = Variable('xde', units='m^2/s', label=r'$\chi_\mathrm{n}$', contour_max=1e2, contour_min=-1e2)
+            self.xdz = Variable('xdz', units='m^2/s', label=r'$\chi_\mathrm{z}$', contour_max=1e2, contour_min=-1e2)
+
+            if self.options.save_model_outputs > 0:
+                if self.options.cmodel_w20 > 0:
+                    self.xdeW20 = Variable('xdeW20', units='m^2/s', label=r'$\chi_\mathrm{n, w20}$')
+
+                if self.options.cmodel_dbm > 0:
+                    self.xde2DBM = Variable('xde2DBM', units='m^2/s', label=r'$\chi^*_\mathrm{n, dbm}$')
+                    self.xdeDBM = Variable('xdeDBM', units='m^2/s', label=r'$\chi_\mathrm{n, dbm}$')
 
         # Deprecated Variables
-        # self.kpara2ETGM = Variable('kpara2ETGM', units='m^-2', label=r'$\langle k^{2}_\parallel \rangle$')
+        if settings.MMM_HEADER_VERSION in ['old'] and self.options.save_model_outputs > 0:
+            if self.options.cmodel_etgm > 0:
+                self.kpara2ETGM = Variable('kpara2ETGM', units='m^-2', label=r'$\langle k^{2}_\parallel \rangle$')
 
-        # self.gmaW20ii = Variable('gmaW20ii', units='s^{-1}', label=r'$\gamma_\mathrm{ii, w20}$',
-        #                          contour_max=5e7, contour_min=-5e7)
-        # self.omgW20ii = Variable('omgW20ii', units='s^{-1}', label=r'$\omega_\mathrm{ii, w20}$',
-        #                          contour_max=5e6, contour_min=-5e6)
-        # self.gmaW20ie = Variable('gmaW20ie', units='s^{-1}', label=r'$\gamma_\mathrm{ie, w20}$',
-        #                          contour_max=5e7, contour_min=-5e7)
-        # self.omgW20ie = Variable('omgW20ie', units='s^{-1}', label=r'$\omega_\mathrm{ie, w20}$',
-        #                          contour_max=5e6, contour_min=-5e6)
-        # self.gmaW20ei = Variable('gmaW20ei', units='s^{-1}', label=r'$\gamma_\mathrm{ei, w20}$',
-        #                          contour_max=5e7, contour_min=-5e7)
-        # self.omgW20ei = Variable('omgW20ei', units='s^{-1}', label=r'$\omega_\mathrm{ei, w20}$',
-        #                          contour_max=5e6, contour_min=-5e6)
-        # self.gmaW20ee = Variable('gmaW20ee', units='s^{-1}', label=r'$\gamma_\mathrm{ee, w20}$',
-        #                          contour_max=5e7, contour_min=-5e7)
-        # self.omgW20ee = Variable('omgW20ee', units='s^{-1}', label=r'$\omega_\mathrm{ee, w20}$',
-        #                          contour_max=5e6, contour_min=-5e6)
-  
-
-
-        super().__init__(options)  # Init parent class
+            if self.options.cmodel_w20 > 0:
+                self.gmaW20ii = Variable('gmaW20ii', units='s^{-1}', label=r'$\gamma_\mathrm{ii, w20}$',
+                                         contour_max=5e7, contour_min=-5e7)
+                self.omgW20ii = Variable('omgW20ii', units='s^{-1}', label=r'$\omega_\mathrm{ii, w20}$',
+                                         contour_max=5e6, contour_min=-5e6)
+                self.gmaW20ie = Variable('gmaW20ie', units='s^{-1}', label=r'$\gamma_\mathrm{ie, w20}$',
+                                         contour_max=5e7, contour_min=-5e7)
+                self.omgW20ie = Variable('omgW20ie', units='s^{-1}', label=r'$\omega_\mathrm{ie, w20}$',
+                                         contour_max=5e6, contour_min=-5e6)
+                self.gmaW20ei = Variable('gmaW20ei', units='s^{-1}', label=r'$\gamma_\mathrm{ei, w20}$',
+                                         contour_max=5e7, contour_min=-5e7)
+                self.omgW20ei = Variable('omgW20ei', units='s^{-1}', label=r'$\omega_\mathrm{ei, w20}$',
+                                         contour_max=5e6, contour_min=-5e6)
+                self.gmaW20ee = Variable('gmaW20ee', units='s^{-1}', label=r'$\gamma_\mathrm{ee, w20}$',
+                                         contour_max=5e7, contour_min=-5e7)
+                self.omgW20ee = Variable('omgW20ee', units='s^{-1}', label=r'$\omega_\mathrm{ee, w20}$',
+                                         contour_max=5e6, contour_min=-5e6)
 
     def get_all_output_vars(self):
         '''Returns (list of str): all output variable names (other than rho and rmin)'''
@@ -2495,6 +2576,7 @@ class OutputVariables(Variables):
         var_list = self.get_variables()
         var_list.insert(0, var_list.pop(var_list.index('rmin')))
         var_list.remove('rho')
+        var_list.remove('rmina')
 
         data, header = self._get_data_as_array(var_list)
         self._save_to_csv(data, header, SaveType.OUTPUT, scan_factor)
@@ -2633,9 +2715,9 @@ class Variable:
         '''
 
         if self.minvalue is not None and isinstance(self.values, np.ndarray):
-            multiple_errors_per_timeval = (np.count_nonzero(self.values < self.minvalue, axis=0) > 1)
-            if not ignore_exceptions and multiple_errors_per_timeval.any():
-                idx_list = [i for i in np.where(multiple_errors_per_timeval)][0]
+            # multiple_errors_per_timeval = (np.count_nonzero(self.values < self.minvalue, axis=0) > 1)
+            # if not ignore_exceptions and multiple_errors_per_timeval.any():
+                # idx_list = [i for i in np.where(multiple_errors_per_timeval)][0]
                 # raise ValueError(
                 #     f'Multiple Nonphysical values obtained for {self.name}\n'
                 #     f'    min value:     {self.values[:, idx_list].min()}\n'

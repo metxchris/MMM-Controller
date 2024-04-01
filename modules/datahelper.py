@@ -82,7 +82,7 @@ def deepcopy_data(obj):
     return new_obj
 
 
-def get_all_rho_data(options):
+def get_all_rho_data(options, get_input=True, get_output=True, get_control=True):
     '''
     Creates dictionaries that map rho values to InputVariables and
     OutputVariables objects
@@ -101,23 +101,28 @@ def get_all_rho_data(options):
     '''
 
     input_vars_dict, output_vars_dict = {}, {}
+    input_controls = None
     rho_values = utils.get_rho_strings(options, SaveType.OUTPUT)
 
     # Stores InputVariables and OutputVariables data objects for each rho_value
-    for rho in rho_values:
-        input_vars = variables.InputVariables(options)
-        output_vars = variables.OutputVariables(options)
 
-        input_vars.load_from_csv(SaveType.INPUT, rho_value=rho)
-        input_vars.load_from_csv(SaveType.ADDITIONAL, rho_value=rho)
-        output_vars.load_from_csv(SaveType.OUTPUT, rho_value=rho)
+    if get_input:
+        for rho in rho_values:
+            input_vars = variables.InputVariables(options)
+            input_vars.load_from_csv(SaveType.INPUT, rho_value=rho)
+            input_vars.load_from_csv(SaveType.ADDITIONAL, rho_value=rho)
+            input_vars_dict[rho] = input_vars
 
-        input_vars_dict[rho] = input_vars
-        output_vars_dict[rho] = output_vars
+    if get_output:
+        for rho in rho_values:
+            output_vars = variables.OutputVariables(options)
+            output_vars.load_from_csv(SaveType.OUTPUT, rho_value=rho)
+            output_vars_dict[rho] = output_vars
 
-    # Get control_file from rho folder (there's at most one control file, as controls are independent of rho values)
-    input_controls = controls.InputControls(options)
-    input_controls.load_from_csv(use_rho=True)
+    if get_control:
+        # Get control_file from rho folder (there's at most one control file, as controls are independent of rho values)
+        input_controls = controls.InputControls(options)
+        input_controls.load_from_csv(use_rho=True)
 
     return input_vars_dict, output_vars_dict, input_controls
 

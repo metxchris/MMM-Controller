@@ -11,6 +11,7 @@ import numpy as np
 import modules.utils as utils
 import modules.datahelper as datahelper
 import modules.constants as constants
+import modules.options
 from modules.variables import InputVariables, OutputVariables
 
 
@@ -177,7 +178,7 @@ class ContourData():
             # Could use some cleanup
             if self.controls.etgm_sum_modes.values and 'ETGM' in self.var_to_plot and '\chi' in self.zvar.label:
                 title = fr'$_{{^\sum}}${title}'
-        if self.zvar.label == r'$n_{\rm calls}$':
+        if self.var_to_plot in ['nR8TOMSQZ', 'nCubic']:
             title = f'{title} ({round(np.average(self.Z[:, 1:]), 1)})'
         if self.var_to_plot in ['nWarning', 'nError']:
             title = f'{title} ({int(np.sum(self.Z))})'
@@ -528,8 +529,8 @@ class ContourDataDiff(ContourData):
 
     def get_title(self):
         title = f'{self.zvar.label} ({self.zvar.units_label})' if self.zvar.units_label else f'{self.zvar.label}'
-
-        if self.var_to_plot == 'nR8TOMSQZ':
+        print(self.var_to_plot)
+        if self.var_to_plot in ['nR8TOMSQZ', 'nCubic']:
             title = f'{title} ({round(np.average(self.Z[:, 1:]), 1)})'
         elif self.var_to_plot in ['nWarning', 'nError']:
             title = f'{title} ({int(np.sum(self.Z))})'
@@ -559,8 +560,9 @@ def verify_vars_to_plot(vars_to_plot):
     * NameError: If the variable to plot is not found in OutputVariables
     '''
 
-    output_vars = OutputVariables()
-    input_vars = InputVariables()
+    options = modules.options.Options()
+    output_vars = OutputVariables(options)
+    input_vars = InputVariables(options)
     for var_to_plot in vars_to_plot:
         if var_to_plot == 'var_to_scan':
             continue

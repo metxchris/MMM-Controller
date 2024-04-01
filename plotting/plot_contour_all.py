@@ -91,22 +91,57 @@ if __name__ == '__main__':
         - values (list of int): The scan_numbers to plot from
     """
 
-  
-    # vars_to_plot = ['gxi','gaveW20i', 'gaveW20e']
-    vars_to_plot += ['fti', 'fte', 'fde', 'fdz', 'fvp', 'fvt']
+    # OLD
     # vars_to_plot += ['xti', 'xte', 'xde', 'xdz', 'xvp', 'xvt']
+    # vars_to_plot += ['fti', 'fte', 'fde', 'fdz', 'fvp', 'fvt']
+
+    # vars_to_plot = ['gxi','gaveW20i', 'gaveW20e']
+    # vars_to_plot += ['fti', 'fte', 'fne', 'fnz', 'fvp', 'fvt']
+    # vars_to_plot += ['xti', 'xte', 'xne', 'xnz', 'xvp', 'xvt']
     # vars_to_plot = ['xtiW20', 'xteW20', 'xdeW20', 'xdz', 'xvt', 'xvp']
-    # vars_to_plot += ['fte']
-    # vars_to_plot += ['fti', 'fte', 'fde']
+    vars_to_plot += ['fte', 'xte']
+    # vars_to_plot += ['fti', 'fte', 'fne']
+    # vars_to_plot += ['xti', 'xte', 'xne']
     # vars_to_plot += ['gti', 'gte', 'gne', 'gnz', 'gvt', 'gvp']
-    vars_to_plot += ['nR8TOMSQZ', 'nWarning', 'nError']
+    # vars_to_plot += ['nR8TOMSQZ', 'nWarning', 'nError']
     # vars_to_plot = ['gma0W20', 'gmagW20', 'gmaW20']
     # vars_to_plot = ['gaveETGM', 'gmaW20e', 'gmaW20']
-    # vars_to_plot = ['nR8TOMSQZ']
+    # vars_to_plot += ['nR8TOMSQZ']
     # vars_to_plot = ['fti', 'fte', 'xvt']
     # vars_to_plot = ['gaveW20i', 'gaveW20e']
 
-    num = 27065  # #111 Newton-Rahpson
+    num = 27117  # #122 v9.1.0 mtm
+    # num = 27116  # #122 v9.1.0 etgm horton 2
+    # num = 27115  # #122 v9.1.0 etgm horton 1
+    # num = 27114  # #122 v9.1.0 etgm alternate
+    # num = 27113  # #122 v9.1.0 etgm default
+    # num = 27112  # #122 v9.1.0 dbm alternate
+    # num = 27111  # #122 v9.1.0dbm default
+    # num = 27110  # #122 v9.1.0 w20 
+    # num = 27101  # #117 dbm shat_e
+    # num = 27100  # #117 dbm default vei (no etanc)
+    # num = 27099  # #117 dbm default xne, dbm nh_ne, ti/te no max
+    # num = 27098  # #117 dbm nh_ne, ti/te no max
+    # num = 27097  # #117 dbm ti/te max 3
+    # num = 27095  # #117 dbm ti/te = z_ti/te
+    # num = 27094  # #117 dbm ti/te in alphaMHD
+    # num = 27093  # #117 dbm gxi calculated
+    # num = 27092  # #117 w20 gxi calculated
+    # num = 27091  # #117 w20 kparaN in disp change
+    # num = 27084  # #115 w20 eigensolver fix
+    # num = 27083  # #114 w20 no negative chi
+    # num = 27082  # #114 mtm
+    # num = 27081  # #114 etgm horton 2
+    # num = 27080  # #114 etgm horton 1
+    # num = 27079  # #114 etgm alt
+    # num = 27078  # #114 etgm default
+    # num = 27077  # #114 dbm alternate
+    # num = 27076  # #114 dbm default
+    # num = 27075  # #114 dbm default no wexb
+    # num = 27074  # #114 w20 only no wexb
+    # num = 27073  # #114 w20 only
+    # num = 27072  # #114 Channel swap, xne, xnz rename
+    # num = 27065  # #111 Newton-Rahpson
     # num = 27064  # #111 min gma diffusivity zepsqrt
     # num = 27063  # #111 kap1 no max
     # num = 27062  # #111 w20 velocity min zepslon
@@ -278,13 +313,14 @@ if __name__ == '__main__':
 
     cdfList = list(scan_data.keys())
     keyCount = len(cdfList)
-    idx1 = int(0.25 * keyCount)
-    idx2 = int(0.50 * keyCount)
-    idx3 = int(0.75 * keyCount)
+    idx1 = int(0.25 * keyCount) + 1
+    idx2 = int(0.50 * keyCount) + 1
+    idx3 = int(0.75 * keyCount) + 1
 
-    # cdfList = cdfList[:idx2]
-    # cdfList = cdfList[idx2:]
-    # cdfList = cdfList[0:1]
+    # cdfList = cdfList[:idx1]
+    # cdfList = cdfList[idx1:idx2]
+    # cdfList = cdfList[idx2:idx3]
+    cdfList = cdfList[idx3:]
 
     scan_data_new = {}
 
@@ -292,7 +328,6 @@ if __name__ == '__main__':
         scan_data_new[key] = scan_data[key]
 
     scan_data = scan_data_new
-
 
     plot_options = contourdata.PlotOptions(
         # xmin=0.60,

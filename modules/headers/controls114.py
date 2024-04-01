@@ -6,7 +6,7 @@ import modules.controls as controls
 import settings
 
 
-VALID_VERSIONS = ['#113']
+VALID_VERSIONS = ['#114', '#117']
 
 
 def get_mmm_header(self):
@@ -78,14 +78,14 @@ def get_mmm_header(self):
         '!.. MMM real options (All Models)\n'
         'rMMM =\n'
         f'   {self.mmm_xti_max.get_input_line()}'
-        f'   {self.mmm_xde_max.get_input_line()}'
         f'   {self.mmm_xte_max.get_input_line()}'
+        f'   {self.mmm_xde_max.get_input_line()}'
         f'   {self.mmm_xdz_max.get_input_line()}'
         f'   {self.mmm_xvt_max.get_input_line()}'
         f'   {self.mmm_xvp_max.get_input_line()}'
         f'   {self.mmm_vti_max.get_input_line()}'
-        f'   {self.mmm_vde_max.get_input_line()}'
         f'   {self.mmm_vte_max.get_input_line()}'
+        f'   {self.mmm_vde_max.get_input_line()}'
         f'   {self.mmm_vdz_max.get_input_line()}'
         f'   {self.mmm_vvt_max.get_input_line()}'
         f'   {self.mmm_vvp_max.get_input_line()}'
@@ -169,7 +169,7 @@ def get_mmm_header(self):
 
 
 if __name__ == '__main__':
-    settings.MMM_HEADER_VERSION = '#113'
+    settings.MMM_HEADER_VERSION = '#114'
 
     import modules.options
     options = modules.options.Options(runid='TEST', scan_num=373, input_points=51)

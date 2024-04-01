@@ -125,9 +125,10 @@ if __name__ == '__main__':
         # PlotDataCdf(runid='129016X38', yname='xdew20', xname='xb', ymult=1e-4, zval=0.3, legend=r'$Z_{\rm eff}$ MMM Input', source=r'raw'),
         # PlotDataCdf(runid='129016X38', yname='zeff', xname='xb', zval=0.3, source=r'mmm'),
         # ylabel_override=' ',
-        # PlotDataCdf(runid='129016X38', yname='xkew20', xname='xb', zval=0.3, ymult=1e-4, legend=r'$\nabla\hat{\rho}$ MMM Input', source=r'raw'),
-        # PlotDataCdf(runid='129016X38', yname='gxi', xname='xb', zval=0.3, source=r'mmm'),
-        # ylabel_override='1/m', title_override='gxi',
+        PlotDataCdf(runid='129016X38', yname='xkew20', xname='xb', zval=0.3, ymult=1e-4, legend=r'MMM Input', source=r'raw'),
+        PlotDataCdf(runid='129016X38', yname='gxi', xname='xb', zval=0.3, legend=r'Calculated', source=r'mmm'),
+        PlotDataCdf(runid='129016X38', yname='gxi', xname='xb', zval=0.3, legend=r'GXI (CDF)', source=r'cdf'),
+        ylabel_override='1/m', title_override=r'$\nabla\hat{\rho}$',
 
         # PlotDataCdf(runid='129016X44', yname='xkiw20', xname='xb', zval=0.3, ymult=1e-4, legend=r'$\omega_{\rm E \times B}$ MMM Input', source=r'raw'),
         # PlotDataCdf(runid='129016X44', yname='wexb', xname='xb', zval=0.3, source=r'mmm'),

@@ -66,7 +66,6 @@ class CdfData():
         self.input_time = input_time
 
 
-
 def _execute_variable_scan(mmm_vars, controls):
     '''
     Executes an input variable scan, where the values of an input variable are
@@ -286,7 +285,7 @@ if __name__ == '__main__':
         # CdfData('204100J02', ShotType.NSTX, 0.50),
         # CdfData('204202Z02', ShotType.NSTX, 0.50),
 
-        # ## D3D
+        # # D3D
         # CdfData('101381A01', ShotType.D3D, 0.50),
         # CdfData('101391A07', ShotType.D3D, 0.50),
         # CdfData('141069A01', ShotType.D3D, 0.50),
@@ -296,7 +295,7 @@ if __name__ == '__main__':
         # CdfData('150840T02', ShotType.D3D, 0.50),
         # CdfData('175275K01', ShotType.D3D, 0.50),
         # CdfData('175288A01', ShotType.D3D, 0.50),
-        # CdfData('176523L01', ShotType.D3D, 0.50),
+        CdfData('176523L01', ShotType.D3D, 0.50),
         # CdfData('179415P02', ShotType.D3D, 0.50),
         # CdfData('183743H01', ShotType.D3D, 0.50),
         # CdfData('184822M01', ShotType.D3D, 0.50),
@@ -306,7 +305,7 @@ if __name__ == '__main__':
         # CdfData('85606W02',  ShotType.EAST, 2.00),
         # CdfData('85610W01',  ShotType.EAST, 2.00),
         # CdfData('90328W02',  ShotType.EAST, 2.00),
-        CdfData('90949R01',  ShotType.EAST, 2.00),
+        # CdfData('90949R01',  ShotType.EAST, 2.00),
         # CdfData('100131N01', ShotType.EAST, 2.00),
         # CdfData('100137N01', ShotType.EAST, 2.00),
         # CdfData('100205N01', ShotType.EAST, 2.00),
@@ -358,7 +357,7 @@ if __name__ == '__main__':
         # CdfData('87215T01', ShotType.JET, 2.00),
         # CdfData('87261T01', ShotType.JET, 2.00),
     ]
-    
+
     cdfcount = len(cdflist)
     idx1 = int(0.25 * cdfcount)
     idx2 = int(0.50 * cdfcount)
@@ -368,8 +367,6 @@ if __name__ == '__main__':
     # cdflist = cdflist[idx1:idx2]
     # cdflist = cdflist[idx2:idx3]
     # cdflist = cdflist[idx3:]
-
-    # cdflist = cdflist[10:11]
 
 
     # CdfData('103818A04', ShotType.D3D, 0.50), # Missing WEXB
@@ -417,7 +414,7 @@ if __name__ == '__main__':
 
     ## normalized time scan (options.normalize_time_range = 1)
     # scanned_vars['time'] = np.linspace(start=0, stop=1, num=50)
-    # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
+    scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=100)
     # scanned_vars['time'] = np.linspace(start=0.0, stop=1.0, num=300)
 
     # EPM Scans
@@ -442,7 +439,14 @@ if __name__ == '__main__':
         use_gnethreshold=0,
         use_gtethreshold=0,
         use_etgm_btor=0,
-        use_experimental_profiles=0,
+        # CMODEL
+        cmodel_w20=0,
+        cmodel_dbm=0,
+        cmodel_etgm=0,
+        cmodel_mtm=1,
+        cmodel_epm=0,
+        cmodel_etg=0,
+        save_model_outputs=0,
     )
 
     '''
@@ -452,12 +456,6 @@ if __name__ == '__main__':
 
     controls = modules.controls.InputControls(
         options,
-        # CMODEL
-        cmodel_weiland=1,
-        cmodel_dribm=0,
-        cmodel_etgm=0,
-        cmodel_mtm=0,
-        cmodel_epm=0,
         # MMM
         mmm_separate_conv_vel=0,
         mmm_convert_negative_chi=0,
@@ -469,12 +467,12 @@ if __name__ == '__main__':
         mmm_xdz_max=2e2,
         mmm_xvt_max=2e2,
         mmm_xvp_max=2e2,
-        mmm_vti_max=5e12,
-        mmm_vde_max=5e12,
-        mmm_vte_max=5e12,
-        mmm_vdz_max=5e12,
-        mmm_vvt_max=5e12,
-        mmm_vvp_max=5e12,
+        mmm_vti_max=5e4,
+        mmm_vde_max=5e4,
+        mmm_vte_max=5e4,
+        mmm_vdz_max=5e4,
+        mmm_vvt_max=5e4,
+        mmm_vvp_max=5e4,
         # W20
         w20_shear_def=0,
         w20_kyrhos=0.316,
@@ -496,9 +494,12 @@ if __name__ == '__main__':
         etgm_kyrhos_max=40,
         etgm_sat_expo=2,
         etgm_diffusivity_type=0,
-        etgm_jenko_threshold=2,
+        etgm_jenko_threshold=1,
+        etgm_kyrhos_type=1,
         # MTM
         mtm_kyrhos_loops=200,
+        mtm_kyrhos_layer_loops=7,
+        mtm_kyrhos_layers=10,
         mtm_kyrhos_min=0.005,
         mtm_kyrhos_max=10,
         mtm_kyrhos_type=1,
@@ -526,10 +527,10 @@ if __name__ == '__main__':
     settings.MAKE_PROFILE_PDFS = 0
     settings.PRINT_MMM_RESPONSE = 0
     settings.SAVE_ADDITIONAL_VARIABLES = 0
-    # settings.STARTING_SCAN_NUMBER = 27051
+    # settings.STARTING_SCAN_NUMBER = 27120
+    # settings.STARTING_SCAN_NUMBER = 10000
     settings.STARTING_SCAN_NUMBER = 1
     settings.USE_EPM = 0
-    settings.USE_MMM = 1
-    settings.MMM_HEADER_VERSION = '#111'
+    settings.MMM_HEADER_VERSION = '#123'
 
     main(cdflist, scanned_vars, controls)

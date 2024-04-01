@@ -45,7 +45,7 @@ import modules.datahelper as datahelper
 _gradients = set()  # Stores the names of calculated gradient variables
 
 
-def differential(x):
+def differential(x, method=''):
     '''
     Take the radial differential of variable x
 
@@ -55,25 +55,27 @@ def differential(x):
     Raises:
     * ValueError: If settings.GRADIENT_METHOD does not match a valid gradient method
     '''
+    if not method:
+        method = settings.GRADIENT_METHOD
 
-    if settings.GRADIENT_METHOD == 'interpolate':
+    if method == 'interpolate':
         return np.diff(x, axis=0)
 
-    elif settings.GRADIENT_METHOD == 'traditional':
+    elif method == 'traditional':
         dx = np.zeros_like(x)
         tmp = np.diff(x, axis=0)
         dx[:-1, :] = tmp
         dx[1:, :] += tmp
         return dx
 
-    elif settings.GRADIENT_METHOD == 'ptsolver':
+    elif method == 'ptsolver':
         dx = np.zeros_like(x)
         tmp = np.diff(x, axis=0)
         dx[1:, :] += tmp
         dx[0, :] = dx[1, :]
         return dx
 
-    elif settings.GRADIENT_METHOD == 'akima':
+    elif method == 'akima':
         dx = np.zeros_like(x)
         tmp = np.diff(x, axis=0)
         dx[:-1, :] = tmp
@@ -102,12 +104,12 @@ def differentiate(yname, xname, calc_vars, method=''):
     if method == 'akima':
         return akima_differentiate(yname, xname, calc_vars)
 
-    dy = differential(getattr(calc_vars, yname).values)
+    dy = differential(getattr(calc_vars, yname).values, method)
 
-    if xname == 'rmin':
+    if xname == 'rmin' and not method:
         dx = calc_vars.drmin.values
     else:
-        dx = differential(getattr(calc_vars, xname).values)
+        dx = differential(getattr(calc_vars, xname).values, method)
 
     dy_dx = dy / dx
 
@@ -571,15 +573,41 @@ def tmhdf(calc_vars):
     nf = calc_vars.nf.values
 
     # partial derivative along radial dimension
-    return pmhdf / nf / 1.602176487E-16
+    return pmhdf / nf / constants.ZCKB
+
+
+@calculation
+def tfpa(calc_vars):
+    '''Fast Ion Temperature (parallel)'''
+    ufastpa = calc_vars.ufastpa.values
+    nf = calc_vars.nf.values
+
+    return ufastpa / nf
+
+
+@calculation
+def tfpp(calc_vars):
+    '''Fast Ion Temperature (perpendicular)'''
+    ufastpp = calc_vars.ufastpp.values
+    nf = calc_vars.nf.values
+
+    return ufastpp / nf
 
 
 @calculation
 def tf(calc_vars):
     '''Fast Ion Temperature'''
-    ebeam = calc_vars.ebeam.values
+    tfpa = calc_vars.tfpa.values
+    tfpp = calc_vars.tfpp.values
 
-    return ebeam / 1.5
+    return tfpa + 0.5 * tfpp
+
+
+@calculation
+def tfast(calc_vars):
+    '''Fast ion temp from EBEAM_D'''
+
+    return calc_vars.ebeam.values / 1.5
 
 
 @calculation
@@ -588,14 +616,6 @@ def rmajm(calc_vars):
     # return calc_vars.rmajm.values - 1
     return calc_vars.rmajm.values
 
-
-@calculation
-def tfast(calc_vars):
-    '''Radial Electric Field (Pressure Term)'''
-
-    nf = calc_vars.nf.values
-
-    return (calc_vars.ufastpa.values + 0.5 * calc_vars.ufastpp.values) / (1.602176487E-16 * nf) * 1E6
 
 @calculation
 def ebeam2(calc_vars):
@@ -1318,7 +1338,6 @@ def gmadiffETGM(calc_vars, output_vars):
     return gmaETGM - wdeETGM
 
 
-
 @calculation_output
 def gmanETGM(calc_vars, output_vars):
     '''ETGM Growth Rate resonance'''
@@ -1475,8 +1494,8 @@ def calculate_output_variables(calc_vars, output_vars, controls):
     # same name as the variable it calculates. Note that calculation order
     # matters here.
 
-    if settings.SAVE_ADDITIONAL_VARIABLES:
-        if controls.cmodel_etgm.values:
+    if calc_vars.options.save_model_outputs:
+        if calc_vars.options.cmodel_etgm > 0:
             wdeETGM(calc_vars, output_vars)
             wde_gaveETGM(calc_vars, output_vars)
             wseETGM(calc_vars, output_vars)
@@ -1488,18 +1507,20 @@ def calculate_output_variables(calc_vars, output_vars, controls):
             gmanETGM(calc_vars, output_vars)
             omgnETGM(calc_vars, output_vars)
 
-        if controls.cmodel_mtm.values:
-            gmanMTM(calc_vars, output_vars)
-            omgnMTM(calc_vars, output_vars)
+        if calc_vars.options.cmodel_mtm > 0:
+            if settings.SAVE_ADDITIONAL_VARIABLES:
+                gmanMTM(calc_vars, output_vars)
+                omgnMTM(calc_vars, output_vars)
 
-        if controls.cmodel_epm.values:
+        if calc_vars.options.cmodel_epm > 0:
             wdeEPM(calc_vars, output_vars)
             wdfEPM(calc_vars, output_vars)
             wseEPM(calc_vars, output_vars)
 
-    if controls.cmodel_weiland.values:
-        gmaW20(calc_vars, output_vars)
-        omgW20(calc_vars, output_vars)
+        if calc_vars.options.cmodel_w20 > 0:
+            gmaW20(calc_vars, output_vars)
+            omgW20(calc_vars, output_vars)
+
 
 def calculate_base_variables(calc_vars):
     '''
@@ -1534,6 +1555,8 @@ def calculate_base_variables(calc_vars):
     d2bp(calc_vars)
     vtor(calc_vars)
     vpar(calc_vars)
+    tfpa(calc_vars)
+    tfpp(calc_vars)
     tf(calc_vars)
     eps(calc_vars)  # for gelong
 
@@ -1543,7 +1566,7 @@ def calculate_base_variables(calc_vars):
     # e_r_phi(calc_vars)
     # e_r_tht(calc_vars)
     # wexb(calc_vars)
-    # gxi(calc_vars)
+    gxi(calc_vars)
 
     if hasattr(calc_vars.options, 'use_etgm_btor') and calc_vars.options.use_etgm_btor:
         calc_vars.bu.values = calc_vars.btor.values
@@ -1577,6 +1600,8 @@ def calculate_gradient_variables(calc_vars):
     gradient('gni', 'ni', -1, calc_vars)
     gradient('gnz', 'nz', -1, calc_vars)
     gradient('gte', 'te', -1, calc_vars)
+    gradient('gtfpa', 'tfpa', -1, calc_vars)
+    gradient('gtfpp', 'tfpp', -1, calc_vars)
     gradient('gtf', 'tf', -1, calc_vars)
     gradient('gti', 'ti', -1, calc_vars)
     gradient('gvpol', 'vpol', -1, calc_vars)

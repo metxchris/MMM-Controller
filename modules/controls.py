@@ -56,6 +56,8 @@ import numpy as np
 # Local Packages
 import modules.utils as utils
 import modules.constants as constants
+import modules.headers.controls123 as controls123
+import modules.headers.controls114 as controls114
 import modules.headers.controls113 as controls113
 import modules.headers.controls107 as controls107
 import modules.headers.controls105 as controls105
@@ -130,7 +132,7 @@ class InputControls:
         self.w20_vconv = Control('Convective velocity coefficient', float, 1)
         self.w20_vconv_mult = Control('Max convective velocity coefficient', float, 1)
         self.w20_diff_mult = Control('Max diffusivity coefficient', float, 0.5)
-        self.w20_kyrhos = Control('kyrhos (ion direction)', float, 0.316, label=r'$k_\mathrm{y}\rho_\mathrm{s}$')
+        self.w20_kyrhos = Control('kyrhos', float, 0.316, label=r'$k_\mathrm{y}\rho_\mathrm{s}$')
         self.w20_xti_max = Control('max |xti|', float, 1e6)
         self.w20_xde_max = Control('max |xde|', float, 1e6)
         self.w20_xte_max = Control('max |xte|', float, 1e6)
@@ -192,9 +194,11 @@ class InputControls:
         self.dribm_vei_mult = Control('DRIBM extra real', float, 1, label=r'$\nu_\mathrm{ei}$')
         
         # MTM options
-        self.mtm_kyrhos_loops = Control('kyrhos scan iterations', int, 2000)
+        self.mtm_kyrhos_loops = Control('kyrhos scans for sum', int, 200)
+        self.mtm_kyrhos_layer_loops = Control('kyrhos scans per layer', int, 7)
         self.mtm_negative_chi = Control('[Minimum Diffusivity] 0: Zero, 1: Negative of max', int, 0)
         self.mtm_kyrhos_type = Control('[kyrhos Increments] 1: Exponential, 0: Linear', int, 1)
+        self.mtm_kyrhos_layers = Control('kyrhos layers', int, 10)
 
         self.mtm_ky_kx = Control('ky / kx', float, 0.2, label=r'$k_y/k_x$')
         self.mtm_cf = Control('calibration factor', float, 1)
@@ -259,6 +263,7 @@ class InputControls:
         self.set(**kwargs)
         self.set_wexb_factor()
         self.set_allow_negative_chi()
+        self.set_cmodel_values()
 
         if not self.input_points.values and self.options.input_points:
             self.input_points.values = self.options.input_points
@@ -292,6 +297,14 @@ class InputControls:
         self.etgm_negative_chi.values = self.options.allow_negative_chi
         self.mtm_negative_chi.values = self.options.allow_negative_chi
 
+    def set_cmodel_values(self):
+        self.cmodel_weiland.values = self.options.cmodel_w20
+        self.cmodel_dribm.values = self.options.cmodel_dbm
+        self.cmodel_epm.values = self.options.cmodel_epm
+        self.cmodel_etg.values = self.options.cmodel_etg
+        self.cmodel_etgm.values = self.options.cmodel_etgm
+        self.cmodel_mtm.values = self.options.cmodel_mtm
+
     def verify_values(self):
         '''Verifies that certain control values are correct and fixes them if needed'''
         ...
@@ -304,6 +317,10 @@ class InputControls:
         * ValueError: If no header is defined for settings.MMM_HEADER_VERSION
         '''
 
+        if settings.MMM_HEADER_VERSION in ['#123']:
+            return controls123.get_mmm_header(self)
+        if settings.MMM_HEADER_VERSION in ['#114', '#117']:
+            return controls114.get_mmm_header(self)
         if settings.MMM_HEADER_VERSION in ['#113']:
             return controls113.get_mmm_header(self)
         if settings.MMM_HEADER_VERSION in ['#107', '#111']:

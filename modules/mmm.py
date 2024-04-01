@@ -58,7 +58,7 @@ def run_wrapper(input_vars, controls):
     scan_num = input_vars.options.scan_num
 
     tmp_path = utils.get_temp_path(runid, scan_num)
-    input_file = utils.get_temp_path(runid, scan_num, 'input.dat')  # input has no file type
+    input_file = utils.get_temp_path(runid, scan_num, 'input.dat')
     output_file = utils.get_temp_path(runid, scan_num, 'output.dat')
 
     if settings.MMM_HEADER_VERSION in ['old', '#90', '#105', '#107', '#111']:

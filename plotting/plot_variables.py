@@ -141,7 +141,7 @@ class PlotData:
 
     def get_run_label_str(self):
         """Returns (str): The runname or runid string used in the legend label and title details"""
-        return self.runname if self.runname is not None else self.runid
+        return self.runname or self.runid
 
     def get_time_label_str(self):
         """Returns (str): The time string used in the legend label and title details"""
@@ -1128,13 +1128,16 @@ if __name__ == '__main__':
 
     plt.rcParams.update({
         'savefig.format': 'pdf',  # Common save formats: png, pdf, eps
+        'legend.fontsize': 9,
+        'legend.handlelength': 1.8,  # length of lines
+        'figure.dpi': 250,
     })
 
     # Define settings for the plot
     fig_data = FigData(
         replace_offset_text=0,
-        allow_title_runid=0,
-        allow_title_time=0,
+        allow_title_runid=1,
+        allow_title_time=1,
         allow_title_factor=1,
         allow_title_rho=1,
         invert_y_axis=False,
@@ -1145,7 +1148,7 @@ if __name__ == '__main__':
         ylabel_override='',
         xlabel_override='',
         savefig=False,
-        savedata=True,
+        savedata=False,
     )
 
     # Define data for the plot (Examples shown below)
@@ -2209,7 +2212,131 @@ if __name__ == '__main__':
         # PlotDataCsv(runid='120968A02', yname='zave', xname='rho',  scan_num=42),
         # PlotDataCsv(runid='120968A02', yname='zeff', xname='rho',  scan_num=42),
 
-        PlotDataCsv(runid='129016A04', yname='vvp', xname='rho', scan_num=32),
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', legend='akima', scan_num=21),
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', legend='interp (cubic)', scan_num=24),
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', legend='ptsolver', scan_num=23),
+        # ymax=2e5,
+
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', legend='akima', scan_num=28),
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', legend='interp (cubic)', scan_num=29),
+        # PlotDataCsv(runid='120968A02', yname='gmaDBM', legend='ptsolver', scan_num=30),
+        # ymax=2e5,
+
+        # PlotDataCdf(runid='129016A04', yname='tf', zval=0.629),
+        # PlotDataCdf(runid='129016A04', yname='tfast', zval=0.629),
+        # PlotDataCdf(runid='129016A04', yname='tmhdf', zval=0.629),
+
+        # PlotDataCdf(runid='120968A02', yname='tf', zval=0.629),
+        # PlotDataCdf(runid='120968A02', yname='tfpa', zval=0.629),
+        # PlotDataCdf(runid='120968A02', yname='tfpp', zval=0.629),
+
+        # PlotDataCdf(runid='129016A04', yname='ufastpa', zval=0.629),
+        # PlotDataCdf(runid='129016A04', yname='ufastpp', zval=0.629),
+        
+        # PlotDataCdf(runid='129016A04', yname='gxi', zval=0.629, source='cdf'),
+        # PlotDataCdf(runid='129016A04', yname='gxi', zval=0.629),
+        # # ymax=2e5,
+
+        # MTM Scan Counts
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 10000', scan_num=129),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 100000', scan_num=136),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 1000000', scan_num=139),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 100000', scan_num=135),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 500000', scan_num=137),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 1000000', scan_num=138),
+
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='Converged', scan_num=138),  # 1M Linear
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 200', scan_num=126),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 4000',  scan_num=140),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E+ 200',  scan_num=141),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E+ 100',  scan_num=144),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 2000', scan_num=127),
+        # # PlotDataCsv(runid='138536A01', yname='xte', legend='E 5000', scan_num=128),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 10000', scan_num=129),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 200',   scan_num=130),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 2000',  scan_num=131),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 5000',  scan_num=132),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 10000', scan_num=133),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 100000', scan_num=135),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 100000', scan_num=136),
+
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='Converged', scan_num=138),  # 1M Linear
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E+ 100',  scan_num=144),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 100',  scan_num=145),
+        
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='Converged', scan_num=138),  # 1M Linear
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 200 ++',  scan_num=147),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 200', scan_num=126),
+        
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='Converged', scan_num=138),  # 1M Linear
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 200 ++',  scan_num=147),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 4000',  scan_num=140),
+
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='Converged', scan_factor=0.252, scan_num=10000),  # 1M Linear
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='E 2E2',     scan_factor=0.252, scan_num=10001),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 1E4',     scan_factor=0.252, scan_num=10006),
+
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='Converged',            scan_num=10000),  # 1M Linear
+        # PlotDataCsv(runid='138536A01', yname='xte', legend=r'$n_{\rm E} = 200$',   scan_num=10001),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend=r'$n_{\rm L} = 4000$', scan_num=10004),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend=r'$n_{\rm L} = 10000$', scan_num=10006),
+
+        # PlotDataCsv(runid='141716A80', yname='fte', legend='Converged',          scan_num=10000),  # 1E6 E
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm E} = 50$',  scan_num=10001),
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm E} = 100$', scan_num=10002),
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm E} = 200$', scan_num=10003),
+
+        # PlotDataCsv(runid='141716A80', yname='fte', legend='Converged',           scan_num=10000),  # 1E6 E
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm L} = 2000$', scan_num=10004),
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm L} = 4000$', scan_num=10005),
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm L} = 8000$', scan_num=10006),
+
+        # PlotDataCsv(runid='141716A80', yname='fte', legend='Converged',           scan_factor=0.4, scan_num=10000),  # 1E6 E
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm L} = 8000$', scan_factor=0.4, scan_num=10006),
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm E} = 200$',  scan_factor=0.4, scan_num=10003),
+        # xmin=0.36, xmax=0.82, ymin=0.6, ymax=1.6,
+
+        # PlotDataCsv(runid='176523L01', yname='fte', legend='Converged',            scan_factor=0.6, scan_num=10000),  # 1E6 E
+        # PlotDataCsv(runid='176523L01', yname='fte', legend=r'$n_{\rm L} = 16000$', scan_factor=0.6, scan_num=10010),
+        # PlotDataCsv(runid='176523L01', yname='fte', legend=r'$n_{\rm E} = 200$',   scan_factor=0.6, scan_num=10003),
+        # xmin=0.3, xmax=0.85, ymin=0.15, ymax=0.4,
+        
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='Converged', scan_num=138),  # 1M Linear
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 500',   scan_num=149),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 2000',  scan_num=131),
+        # PlotDataCsv(runid='138536A01', yname='xte', legend='L 4000',  scan_num=140),   
+        # # ymax=2e5,
+
+
+        PlotDataCsv(runid='176523L01', yname='fte', legend='Converged',           scan_factor=0.6, scan_num=10000),  # 1E6 E
+        # PlotDataCsv(runid='176523L01', yname='fte', legend=r'$n_{\rm L} = 16000$', scan_factor=0.6, scan_num=10010),
+        PlotDataCsv(runid='176523L01', yname='fte', legend=r'$n_{\rm E} = 200$',  scan_factor=0.6, scan_num=10003),
+        # PlotDataCsv(runid='176523L01', yname='fte', legend=r'$n_{\rm \mathcal{E}} = 149$',  scan_factor=0.6, scan_num=10023),
+        PlotDataCsv(runid='176523L01', yname='fte', legend=r'$\overline{n}_{\rm \mathcal{E}} = 245$',  scan_factor=0.6, scan_num=10026),
+        xmin=0.58, xmax=0.78, ymin=0.35, ymax=0.392,
+
+
+        # PlotDataCsv(runid='141716A80', yname='fte', legend='Converged',           scan_factor=0.5, scan_num=10000),  # 1E6 E
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm L} = 8000$', scan_factor=0.5, scan_num=10006),
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm E} = 200$',  scan_factor=0.5, scan_num=10003),
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$\overline{n}_{\rm \mathcal{E}} = 246$',  scan_factor=0.5, scan_num=10027),
+        # xmin=0.45, xmax=0.575, ymin=2.4, ymax=3.2,
+
+
+        # PlotDataCsv(runid='141716A80', yname='fte', legend='Converged',           scan_factor=0.4, scan_num=10000),  # 1E6 E
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm L} = 8000$', scan_factor=0.4, scan_num=10006),
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$n_{\rm E} = 200$',  scan_factor=0.4, scan_num=10003),
+        # PlotDataCsv(runid='141716A80', yname='fte', legend=r'$\overline{n}_{\rm \mathcal{E}} = 246$',  scan_factor=0.4, scan_num=10027),
+        # xmin=0.58, xmax=0.8, ymin=1.2, ymax=1.52,
+
+
+        # PlotDataCsv(runid='120968A02', yname='gxi', legend='Akima',     scan_num=41),  # 1E6 E
+        # PlotDataCsv(runid='120968A02', yname='gxi', legend='PT Solver', scan_num=42),
+        
+        # PlotDataCsv(runid='141716A80', yname='xteMTM', scan_num=20, scan_factor=1.5),
+        # PlotDataCsv(runid='141716A80', yname='xteMTM', scan_num=19, scan_factor=1.5),
+        # PlotDataCsv(runid='141716A80', yname='xteMTM', scan_num=21, scan_factor=1.5),
+
 
     )
 

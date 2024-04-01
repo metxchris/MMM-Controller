@@ -6,7 +6,7 @@ import modules.controls as controls
 import settings
 
 
-VALID_VERSIONS = ['#113']
+VALID_VERSIONS = ['#123']
 
 
 def get_mmm_header(self):
@@ -78,14 +78,14 @@ def get_mmm_header(self):
         '!.. MMM real options (All Models)\n'
         'rMMM =\n'
         f'   {self.mmm_xti_max.get_input_line()}'
-        f'   {self.mmm_xde_max.get_input_line()}'
         f'   {self.mmm_xte_max.get_input_line()}'
+        f'   {self.mmm_xde_max.get_input_line()}'
         f'   {self.mmm_xdz_max.get_input_line()}'
         f'   {self.mmm_xvt_max.get_input_line()}'
         f'   {self.mmm_xvp_max.get_input_line()}'
         f'   {self.mmm_vti_max.get_input_line()}'
-        f'   {self.mmm_vde_max.get_input_line()}'
         f'   {self.mmm_vte_max.get_input_line()}'
+        f'   {self.mmm_vde_max.get_input_line()}'
         f'   {self.mmm_vdz_max.get_input_line()}'
         f'   {self.mmm_vvt_max.get_input_line()}'
         f'   {self.mmm_vvp_max.get_input_line()}'
@@ -115,7 +115,6 @@ def get_mmm_header(self):
         f'   0\n'
         f'   {self.dribm_kyrhos_type.get_input_line()}'
         f'   {self.dribm_kyrhos_layers.get_input_line()}'
-        f'   {self.dribm_sat_expo.get_input_line()}'
         '\n'
         '!.. DRIBM real options\n'
         'rDBM =\n'
@@ -127,7 +126,7 @@ def get_mmm_header(self):
         '!.. MTM integer options\n'
         'iMTM =\n'
         f'   {self.mtm_kyrhos_loops.get_input_line()}'
-        f'   0\n'
+        f'   {self.mtm_kyrhos_layer_loops.get_input_line()}'
         f'   0\n'
         f'   0\n'
         f'   0\n'
@@ -136,6 +135,7 @@ def get_mmm_header(self):
         f'   0\n'
         f'   0\n'
         f'   {self.mtm_kyrhos_type.get_input_line()}'
+        f'   {self.mtm_kyrhos_layers.get_input_line()}'
         '\n'
         '!.. MTM real options\n'
         'rMTM =\n'
@@ -156,7 +156,6 @@ def get_mmm_header(self):
         f'   0\n'
         f'   {self.etgm_kyrhos_type.get_input_line()}'
         f'   {self.etgm_kyrhos_layers.get_input_line()}'
-        f'   {self.etgm_sat_expo.get_input_line()}'
         '\n'
         '!.. ETGM real options\n'
         'rETGM =\n'
@@ -169,7 +168,7 @@ def get_mmm_header(self):
 
 
 if __name__ == '__main__':
-    settings.MMM_HEADER_VERSION = '#113'
+    settings.MMM_HEADER_VERSION = '#123'
 
     import modules.options
     options = modules.options.Options(runid='TEST', scan_num=373, input_points=51)
