@@ -540,10 +540,11 @@ class InputVariables(Variables):
             'Toroidal Frequency',
             cdfvar='OMEGA',
             label=r'$\omega_\phi$',
-            units='1/s',  # CDF may list units as rad/s, but assume 1/s (CDF is wrong)
+            units='s^-1',  # CDF may list units as rad/s, but assume 1/s (CDF is wrong)
             contour_max=1e3,
             required=True,
             absminvalue=1e-32,
+            save_type=SaveType.ADDITIONAL,
         )
 
         self.q = Variable(
@@ -1127,6 +1128,7 @@ class InputVariables(Variables):
 
         self.nuei = Variable(
             'Electron Collision Frequency',
+            units='s^-1',
             label=r'$\nu_\mathrm{ei}$',
             save_type=SaveType.ADDITIONAL,
         )
@@ -2290,7 +2292,7 @@ class OutputVariables(Variables):
         self.xvp = Variable('xvp', units='m^2/s', label=r'$\chi_\theta$', contour_max=1e2, contour_min=-1e2)
 
         # Misc components
-        self.nR8TOMSQZ = Variable(
+        self.nSolver = Variable(
             'Eigenvalue solver calls',
             label=r'$n_{\rm calls}$',
             units='',
@@ -2321,6 +2323,16 @@ class OutputVariables(Variables):
             contour_min=0,
             is_int=True,
         )
+
+        if settings.MMM_HEADER_VERSION in ['old', '#90', '#105', '#107', '#111', '#113', '#114', '#117', '#123']:
+            self.nR8TOMSQZ = Variable(
+                'Eigenvalue solver calls',
+                label=r'$n_{\rm calls}$',
+                units='',
+                contour_min=0,
+                is_int=True,
+            )
+
 
         # Weiland Components
         if self.options.cmodel_w20 > 0 and self.options.save_model_outputs > 0:

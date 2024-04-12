@@ -110,6 +110,7 @@ class InputControls:
         self.mmm_allow_negative_chi = Control('[Allow Negative Diffusivity Output] 0: False, 1: True', int, 1)
         self.mmm_use_solver_grads = Control('[Convert Diffusivity Using Solver Gradients] 0: False, 1: True', int, 1)
         self.mmm_limit_small_grads = Control('[Limit Diffusivity From Small Gradients] 0: False, 1: True', int, 1)
+        self.mmm_omp_threads = Control('[OpenMP Threads] 0: auto, 1+: thread count', int, 0)
 
         self.mmm_xti_max = Control('max |xti|', float, 200)
         self.mmm_xde_max = Control('max |xde|', float, 200)
@@ -317,7 +318,7 @@ class InputControls:
         * ValueError: If no header is defined for settings.MMM_HEADER_VERSION
         '''
 
-        if settings.MMM_HEADER_VERSION in ['#123']:
+        if settings.MMM_HEADER_VERSION in ['#123', '#129']:
             return controls123.get_mmm_header(self)
         if settings.MMM_HEADER_VERSION in ['#114', '#117']:
             return controls114.get_mmm_header(self)

@@ -70,7 +70,7 @@ if __name__ == '__main__':
 
     plt.rcParams.update({
         'savefig.format': 'pdf',  # Common save formats: png, pdf, eps
-        'figure.dpi': 250,
+        'figure.dpi': 150,
     })
 
     """

@@ -1,25 +1,29 @@
 import sys; sys.path.insert(0, '../../')
+import time
 
 # 3rd Party Packages
 import numpy as np
-from scipy.linalg import eigh, eig, hessenberg, solve_triangular
+from scipy.linalg import eig
+
+timing_loops = 1
 
 # CSV info
 file_dir = 'data/'
-file_num = '96845'
+file_num = '00001'
+f = f'{file_dir}{file_num}'
 
 # Number formats for printing values
 nfmt = '.2e'
 sfmt = '>13'
 
 # Load matrix A
-AR = data_array = np.genfromtxt(f'{file_dir}{file_num}_AR.csv', delimiter=',', dtype=complex)
-AI = data_array = np.genfromtxt(f'{file_dir}{file_num}_AI.csv', delimiter=',', dtype=complex) * 1j
+AR = data_array = np.genfromtxt(f'{f}_AR.csv', delimiter=',', dtype=complex)
+AI = data_array = np.genfromtxt(f'{f}_AI.csv', delimiter=',', dtype=complex) * 1j
 A = AR + AI
 
 # Load matrix B
-BR = data_array = np.genfromtxt(f'{file_dir}{file_num}_BR.csv', delimiter=',', dtype=complex)
-BI = data_array = np.genfromtxt(f'{file_dir}{file_num}_BI.csv', delimiter=',', dtype=complex) * 1j
+BR = data_array = np.genfromtxt(f'{f}_BR.csv', delimiter=',', dtype=complex)
+BI = data_array = np.genfromtxt(f'{f}_BI.csv', delimiter=',', dtype=complex) * 1j
 B = BR + BI
 
 # Print matrix A
@@ -54,7 +58,10 @@ if not (B == np.identity(B.shape[0], dtype=complex)).all():
         print('')
 
 # Solve eigensystem
-w, v = eig(A, B)
+t0 = time.perf_counter_ns()
+for i in range(timing_loops):
+    w, v = eig(A, B)
+t1 = time.perf_counter_ns()
 
 # Sort eigenvalues and eigenvectors by largest to smallest w.imag
 isorted = np.flip(np.argsort(w.imag))
@@ -73,4 +80,8 @@ for i in range(w.shape[0]):
     sr = f'{w[i].real:{nfmt}}'
     si = f'{w[i].imag:{nfmt}}'
     print(f'{sr:{sfmt}}{si:{sfmt}}')
-print()
+print('')
+
+if timing_loops > 1:
+    print('\nTime (s):')
+    print(f'{(t1-t0) * 1e-9 / timing_loops:{nfmt}}')

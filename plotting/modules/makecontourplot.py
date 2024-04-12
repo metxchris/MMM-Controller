@@ -191,7 +191,7 @@ def make_contour_plot(cd):
         """Writes text when two variables in difference plot are identical"""
         fig.text(0.525, 0.5, rf'Zero Difference', ha='center', size=10, color='#777')
 
-    if cd.var_to_plot == 'nR8TOMSQZ':
+    if cd.var_to_plot in ['nR8TOMSQZ', 'nSolver']:
         print('\t R8TOMSQZ Calls Per Point:', round(np.average(cd.Z[:, 1:]), 3))
     if cd.var_to_plot == 'nCubic':
         print('\t Cubic Calls Per Point:', round(np.average(cd.Z[:, 1:]), 3))

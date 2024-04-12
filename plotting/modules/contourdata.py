@@ -178,7 +178,7 @@ class ContourData():
             # Could use some cleanup
             if self.controls.etgm_sum_modes.values and 'ETGM' in self.var_to_plot and '\chi' in self.zvar.label:
                 title = fr'$_{{^\sum}}${title}'
-        if self.var_to_plot in ['nR8TOMSQZ', 'nCubic']:
+        if self.var_to_plot in ['nR8TOMSQZ', 'nCubic', 'nSolver']:
             title = f'{title} ({round(np.average(self.Z[:, 1:]), 1)})'
         if self.var_to_plot in ['nWarning', 'nError']:
             title = f'{title} ({int(np.sum(self.Z))})'
@@ -530,7 +530,7 @@ class ContourDataDiff(ContourData):
     def get_title(self):
         title = f'{self.zvar.label} ({self.zvar.units_label})' if self.zvar.units_label else f'{self.zvar.label}'
         print(self.var_to_plot)
-        if self.var_to_plot in ['nR8TOMSQZ', 'nCubic']:
+        if self.var_to_plot in ['nR8TOMSQZ', 'nCubic', 'nSolver']:
             title = f'{title} ({round(np.average(self.Z[:, 1:]), 1)})'
         elif self.var_to_plot in ['nWarning', 'nError']:
             title = f'{title} ({int(np.sum(self.Z))})'

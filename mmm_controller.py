@@ -249,6 +249,7 @@ if __name__ == '__main__':
     cdflist = [
         # ## NSTU
         # CdfData('121123K55', ShotType.NSTX, 11.8),
+        # CdfData('204202K91', ShotType.NSTX, 11.8),
         # CdfData('205042A02', ShotType.NSTU, 11.8),
         # CdfData('204980A05', ShotType.NSTU, 11.8),
         # CdfData('204963A08', ShotType.NSTU, 11.8),
@@ -467,6 +468,7 @@ if __name__ == '__main__':
         mmm_xdz_max=2e2,
         mmm_xvt_max=2e2,
         mmm_xvp_max=2e2,
+        mmm_omp_threads=0,
         mmm_vti_max=5e4,
         mmm_vde_max=5e4,
         mmm_vte_max=5e4,
@@ -483,7 +485,6 @@ if __name__ == '__main__':
         dribm_kyrhos_layers=10,
         dribm_kyrhos_min=0.05,
         dribm_kyrhos_max=0.3,
-        dribm_sat_expo=2,
         dribm_diffusivity_type=0,
         # ETGM
         etgm_direction=0,
@@ -492,7 +493,6 @@ if __name__ == '__main__':
         etgm_kyrhos_layers=10,
         etgm_kyrhos_min=1,
         etgm_kyrhos_max=40,
-        etgm_sat_expo=2,
         etgm_diffusivity_type=0,
         etgm_jenko_threshold=1,
         etgm_kyrhos_type=1,
@@ -531,6 +531,6 @@ if __name__ == '__main__':
     # settings.STARTING_SCAN_NUMBER = 10000
     settings.STARTING_SCAN_NUMBER = 1
     settings.USE_EPM = 0
-    settings.MMM_HEADER_VERSION = '#123'
+    settings.MMM_HEADER_VERSION = '#129'
 
     main(cdflist, scanned_vars, controls)

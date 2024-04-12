@@ -6,7 +6,7 @@ import modules.controls as controls
 import settings
 
 
-VALID_VERSIONS = ['#123']
+VALID_VERSIONS = ['#123', '#129']
 
 
 def get_mmm_header(self):
@@ -74,6 +74,7 @@ def get_mmm_header(self):
         f'   {self.mmm_allow_negative_chi.get_input_line()}'
         f'   {self.mmm_use_solver_grads.get_input_line()}'
         f'   {self.mmm_limit_small_grads.get_input_line()}'
+        f'   {self.mmm_omp_threads.get_input_line()}'
         '\n'
         '!.. MMM real options (All Models)\n'
         'rMMM =\n'

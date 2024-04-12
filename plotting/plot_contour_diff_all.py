@@ -144,17 +144,23 @@ if __name__ == '__main__':
     # vars_to_plot += ['xti', 'xte', 'xde', 'xdz', 'xvp', 'xvt']
 
     # vars_to_plot += ['xtiW20', 'xteW20', 'xdeW20', 'xdz', 'xvt', 'xvp']
-    # vars_to_plot += ['fti', 'fte', 'fne', 'fnz', 'fvt', 'fvp']
+    vars_to_plot += ['fti', 'fte', 'fne', 'fnz', 'fvt', 'fvp']
     # vars_to_plot += ['xti', 'xte', 'xne', 'xnz', 'xvp', 'xvt']
-    # vars_to_plot += ['fti']
-    vars_to_plot += ['fti', 'fte', 'fne']
-    vars_to_plot += ['nR8TOMSQZ']
+    # vars_to_plot += ['fte']
+    # vars_to_plot += ['fti', 'fte', 'fne']
+    # vars_to_plot += ['nR8TOMSQZ']
+    # vars_to_plot += ['nCubic']
     # vars_to_plot = ['gmaW20e', 'gmaW20i', 'kparaW20i', 'kparaW20e', 'gaveW20i', 'gaveW20e', 'omgW20i', 'omgW20e']
-    # vars_to_plot += ['nR8TOMSQZ', 'nWarning', 'nError']
+    vars_to_plot += ['nR8TOMSQZ', 'nWarning', 'nError']
     # vars_to_plot += ['gmaW20','gma0W20', 'gmagW20']
     # vars_to_plot = ['xtiW20', 'fte', 'fvt']
     
-    n_new = 27101  # #117 dbm shat_e
+    n_new = 27124  # #126 9.1.1 w20 zggev
+    # n_new = 27123  # #126 9.1.1 mtm default
+    # n_new = 27122  # #126 9.1.1 etgm default
+    # n_new = 27121  # #126 9.1.1 dbm default
+    # n_new = 27120  # #126 9.1.1 w20
+    # n_new = 27101  # #117 dbm shat_e
     # n_new = 27100  # #117 dbm default vei (no etanc)
     # n_new = 27099  # #117 dbm default xne, dbm nh_ne, ti/te no max
     # n_new = 27098  # #117 dbm nh_ne, ti/te no max
@@ -223,7 +229,16 @@ if __name__ == '__main__':
     # n_new = 26321  # conv fix 2 (BASELINE OPT)
     # n_new = 26314  # conv fix 1
 
-    n_old = 27099  # #117 default xne, dbm nh_ne, ti/te no max
+    n_old = 27120  # #126 9.1.1 w20
+    # n_old = 27117  # #122 v9.1.0 mtm
+    # n_old = 27116  # #122 v9.1.0 etgm horton 2
+    # n_old = 27115  # #122 v9.1.0 etgm horton 1
+    # n_old = 27114  # #122 v9.1.0 etgm alternate
+    # n_old = 27113  # #122 v9.1.0 etgm default
+    # n_old = 27112  # #122 v9.1.0 dbm alternate
+    # n_old = 27111  # #122 v9.1.0 dbm default
+    # n_old = 27110  # #122 v9.1.0 w20 
+    # n_old = 27099  # #117 default xne, dbm nh_ne, ti/te no max
     # n_old = 27095  # #117 dbm ti/te no max
     # n_old = 27094  # #117 dbm ti/te in alphaMHD
     # n_old = 27093  # #117 dbm gxi calculated

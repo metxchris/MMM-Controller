@@ -902,8 +902,8 @@ def ne(calc_vars):
     zz = calc_vars.zz.values
     nf = calc_vars.nf.values
 
-    # return nh + zz*nz + nf
-    return nh + zz*nz
+    return nh + zz*nz + nf
+    # return nh + zz*nz
 
 
 @calculation
@@ -1495,17 +1495,18 @@ def calculate_output_variables(calc_vars, output_vars, controls):
     # matters here.
 
     if calc_vars.options.save_model_outputs:
-        if calc_vars.options.cmodel_etgm > 0:
-            wdeETGM(calc_vars, output_vars)
-            wde_gaveETGM(calc_vars, output_vars)
-            wseETGM(calc_vars, output_vars)
-            wsetaETGM(calc_vars, output_vars)
-            wteETGM(calc_vars, output_vars)
-            omgdiffETGM(calc_vars, output_vars)
-            gmadiffETGM(calc_vars, output_vars)
-            waETGM(calc_vars, output_vars)
-            gmanETGM(calc_vars, output_vars)
-            omgnETGM(calc_vars, output_vars)
+        if calc_vars.options.cmodel_etgm > 0 and settings.SAVE_ADDITIONAL_VARIABLES:
+            # wdeETGM(calc_vars, output_vars)
+            # wde_gaveETGM(calc_vars, output_vars)
+            # wseETGM(calc_vars, output_vars)
+            # wsetaETGM(calc_vars, output_vars)
+            # wteETGM(calc_vars, output_vars)
+            # omgdiffETGM(calc_vars, output_vars)
+            # gmadiffETGM(calc_vars, output_vars)
+            # waETGM(calc_vars, output_vars)
+            # gmanETGM(calc_vars, output_vars)
+            # omgnETGM(calc_vars, output_vars)
+            ...
 
         if calc_vars.options.cmodel_mtm > 0:
             if settings.SAVE_ADDITIONAL_VARIABLES:
